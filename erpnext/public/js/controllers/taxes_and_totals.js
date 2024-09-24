@@ -461,16 +461,20 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 		if(tax.charge_type == "Actual") {
 			// distribute the tax amount proportionally to each item row
 			var actual = flt(tax.tax_amount, precision("tax_amount", tax));
+			current_net_amount = item.net_amount
 			current_tax_amount = this.frm.doc.net_total ?
 				((item.net_amount / this.frm.doc.net_total) * actual) : 0.0;
 
 		} else if(tax.charge_type == "On Net Total") {
+			current_net_amount = item.net_amount
 			current_tax_amount = (tax_rate / 100.0) * item.net_amount;
 		} else if(tax.charge_type == "On Previous Row Amount") {
+			current_net_amount = this.frm.doc["taxes"][cint(tax.row_id) - 1].tax_amount_for_current_item
 			current_tax_amount = (tax_rate / 100.0) *
 				this.frm.doc["taxes"][cint(tax.row_id) - 1].tax_amount_for_current_item;
 
 		} else if(tax.charge_type == "On Previous Row Total") {
+			current_net_amount = this.frm.doc["taxes"][cint(tax.row_id) - 1].grand_total_for_current_item
 			current_tax_amount = (tax_rate / 100.0) *
 				this.frm.doc["taxes"][cint(tax.row_id) - 1].grand_total_for_current_item;
 		} else if (tax.charge_type == "On Item Quantity") {
@@ -478,13 +482,13 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 		}
 
 		if (!tax.dont_recompute_tax) {
-			this.set_item_wise_tax(item, tax, tax_rate, current_tax_amount);
+			this.set_item_wise_tax(item, tax, tax_rate, current_tax_amount, current_net_amount);
 		}
 
 		return current_tax_amount;
 	}
 
-	set_item_wise_tax(item, tax, tax_rate, current_tax_amount) {
+	set_item_wise_tax(item, tax, tax_rate, current_tax_amount, current_net_amount) {
 		// store tax breakup for each item
 		let tax_detail = tax.item_wise_tax_detail;
 		let key = item.item_code || item.item_name;
@@ -495,17 +499,20 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 		}
 
 		let item_wise_tax_amount = current_tax_amount * this.frm.doc.conversion_rate;
+		let item_wise_net_amount = current_net_amount * this.frm.doc.conversion_rate;
 		if (frappe.flags.round_row_wise_tax) {
 			item_wise_tax_amount = flt(item_wise_tax_amount, precision("tax_amount", tax));
+			item_wise_net_amount = flt(item_wise_net_amount, precision("net_amount", tax));
 			if (tax_detail && tax_detail[key]) {
 				item_wise_tax_amount += flt(tax_detail[key][1], precision("tax_amount", tax));
+				item_wise_net_amount += flt(tax_detail[key][2], precision("net_amount", tax));
 			}
 		} else {
 			if (tax_detail && tax_detail[key])
 				item_wise_tax_amount += tax_detail[key][1];
 		}
 
-		tax_detail[key] = [tax_rate, flt(item_wise_tax_amount, precision("base_tax_amount", tax))];
+		tax_detail[key] = [tax_rate, flt(item_wise_tax_amount, precision("base_tax_amount", tax)), flt(item_wise_net_amount, precision("base_net_amount", tax))];
 	}
 
 	round_off_totals(tax) {
