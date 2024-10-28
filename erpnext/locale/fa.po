@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: info@erpnext.com\n"
-"POT-Creation-Date: 2024-10-20 09:35+0000\n"
-"PO-Revision-Date: 2024-10-21 02:26\n"
+"POT-Creation-Date: 2024-10-27 09:35+0000\n"
+"PO-Revision-Date: 2024-10-28 02:56\n"
 "Last-Translator: info@erpnext.com\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -211,7 +211,7 @@ msgstr "٪ از مواد در برابر این سفارش فروش صورتحس
 msgid "% of materials delivered against this Sales Order"
 msgstr "٪ از مواد در برابر این سفارش فروش تحویل شدند"
 
-#: erpnext/controllers/accounts_controller.py:2028
+#: erpnext/controllers/accounts_controller.py:2031
 msgid "'Account' in the Accounting section of Customer {0}"
 msgstr "حساب در بخش حسابداری مشتری {0}"
 
@@ -231,7 +231,7 @@ msgstr "'تاریخ' الزامی است"
 msgid "'Days Since Last Order' must be greater than or equal to zero"
 msgstr "روزهای پس از آخرین سفارش باید بزرگتر یا مساوی صفر باشد"
 
-#: erpnext/controllers/accounts_controller.py:2033
+#: erpnext/controllers/accounts_controller.py:2036
 msgid "'Default {0} Account' in Company {1}"
 msgstr "«حساب پیش‌فرض {0}» در شرکت {1}"
 
@@ -272,17 +272,13 @@ msgstr "'به شماره بسته.' نمی تواند کمتر از \"از شم�
 msgid "'Update Stock' can not be checked because items are not delivered via {0}"
 msgstr "«به‌روزرسانی موجودی» قابل بررسی نیست زیرا آیتم‌ها از طریق {0} تحویل داده نمی‌شوند"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:362
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:365
 msgid "'Update Stock' cannot be checked for fixed asset sale"
 msgstr "به روز رسانی موجودی را نمی توان برای فروش دارایی ثابت بررسی کرد"
 
 #: erpnext/accounts/doctype/bank_account/bank_account.py:65
 msgid "'{0}' account is already used by {1}. Use another account."
 msgstr "حساب '{0}' قبلاً توسط {1} استفاده شده است. از حساب دیگری استفاده کنید."
-
-#: erpnext/controllers/accounts_controller.py:402
-msgid "'{0}' account: '{1}' should match the Return Against Invoice"
-msgstr "حساب '{0}': '{1}' باید با فاکتور برگشتی مطابقت داشته باشد"
 
 #: erpnext/setup/doctype/company/company.py:205
 #: erpnext/setup/doctype/company/company.py:216
@@ -376,10 +372,6 @@ msgstr "(شامل)"
 #: erpnext/accounts/doctype/sales_taxes_and_charges_template/sales_taxes_and_charges_template.json
 msgid "* Will be calculated in the transaction."
 msgstr "* در تراکنش محاسبه می شود."
-
-#: erpnext/stock/doctype/stock_ledger_entry/stock_ledger_entry.py:144
-msgid ", with the inventory {0}: {1}"
-msgstr "، با موجودی {0}: {1}"
 
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.html:95
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts_accounts_receivable.html:347
@@ -1171,15 +1163,15 @@ msgstr "طبق CEFACT/ICG/2010/IC013 یا CEFACT/ICG/2010/IC010"
 #: erpnext/accounts/report/budget_variance_report/budget_variance_report.py:83
 #: erpnext/accounts/report/consolidated_financial_statement/consolidated_financial_statement.py:286
 #: erpnext/accounts/report/dimension_wise_accounts_balance_report/dimension_wise_accounts_balance_report.py:201
-#: erpnext/accounts/report/financial_statements.py:620
+#: erpnext/accounts/report/financial_statements.py:623
 #: erpnext/accounts/report/general_and_payment_ledger_comparison/general_and_payment_ledger_comparison.js:30
 #: erpnext/accounts/report/general_and_payment_ledger_comparison/general_and_payment_ledger_comparison.py:190
 #: erpnext/accounts/report/general_ledger/general_ledger.js:38
-#: erpnext/accounts/report/general_ledger/general_ledger.py:598
+#: erpnext/accounts/report/general_ledger/general_ledger.py:604
 #: erpnext/accounts/report/invalid_ledger_entries/invalid_ledger_entries.js:30
 #: erpnext/accounts/report/payment_ledger/payment_ledger.js:30
 #: erpnext/accounts/report/payment_ledger/payment_ledger.py:146
-#: erpnext/accounts/report/trial_balance/trial_balance.py:409
+#: erpnext/accounts/report/trial_balance/trial_balance.py:403
 #: erpnext/accounts/report/trial_balance_for_party/trial_balance_for_party.js:70
 #: erpnext/regional/doctype/uae_vat_account/uae_vat_account.json
 #: erpnext/stock/doctype/warehouse/warehouse.json
@@ -1257,9 +1249,12 @@ msgstr "ارز حساب (به)"
 
 #. Label of the account_details_section (Section Break) field in DocType 'Bank
 #. Account'
+#. Label of the account_details_section (Section Break) field in DocType 'GL
+#. Entry'
 #. Label of the section_break_7 (Section Break) field in DocType 'Tax
 #. Withholding Category'
 #: erpnext/accounts/doctype/bank_account/bank_account.json
+#: erpnext/accounts/doctype/gl_entry/gl_entry.json
 #: erpnext/accounts/doctype/tax_withholding_category/tax_withholding_category.json
 msgid "Account Details"
 msgstr "جزئیات حساب"
@@ -1284,8 +1279,8 @@ msgstr "سرفصل حساب"
 msgid "Account Manager"
 msgstr "مدیر حساب"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:865
-#: erpnext/controllers/accounts_controller.py:2037
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:868
+#: erpnext/controllers/accounts_controller.py:2040
 msgid "Account Missing"
 msgstr "حساب از دست رفته است"
 
@@ -1460,7 +1455,7 @@ msgstr "حساب {0} در شرکت فرزند {1} اضافه شد"
 msgid "Account {0} is frozen"
 msgstr "حساب {0} مسدود شده است"
 
-#: erpnext/controllers/accounts_controller.py:1130
+#: erpnext/controllers/accounts_controller.py:1133
 msgid "Account {0} is invalid. Account Currency must be {1}"
 msgstr "حساب {0} نامعتبر است. ارز حساب باید {1} باشد"
 
@@ -1488,11 +1483,11 @@ msgstr "حساب: <b>{0}</b> یک کار سرمایه ای در حال انجا�
 msgid "Account: {0} can only be updated via Stock Transactions"
 msgstr "حساب: {0} فقط از طریق معاملات موجودی قابل به روز رسانی است"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.py:2617
+#: erpnext/accounts/doctype/payment_entry/payment_entry.py:2619
 msgid "Account: {0} is not permitted under Payment Entry"
 msgstr "حساب: {0} در قسمت ثبت پرداخت مجاز نیست"
 
-#: erpnext/controllers/accounts_controller.py:2723
+#: erpnext/controllers/accounts_controller.py:2726
 msgid "Account: {0} with currency: {1} can not be selected"
 msgstr "حساب: {0} با واحد پول: {1} قابل انتخاب نیست"
 
@@ -1791,7 +1786,7 @@ msgstr "ثبت حسابداری برای موجودی"
 msgid "Accounting Entry for {0}"
 msgstr "ثبت حسابداری برای {0}"
 
-#: erpnext/controllers/accounts_controller.py:2078
+#: erpnext/controllers/accounts_controller.py:2081
 msgid "Accounting Entry for {0}: {1} can only be made in currency: {2}"
 msgstr "ثبت حسابداری برای {0}: {1} فقط به ارز: {2} قابل انجام است"
 
@@ -2298,12 +2293,12 @@ msgstr "اگر نرخ یکسانی در طول چرخه فروش حفظ نشود
 #: erpnext/manufacturing/doctype/bom/bom.js:140
 #: erpnext/manufacturing/doctype/bom/bom.js:151
 #: erpnext/manufacturing/doctype/bom/bom.js:162
-#: erpnext/projects/doctype/project/project.js:86
-#: erpnext/projects/doctype/project/project.js:94
-#: erpnext/projects/doctype/project/project.js:168
+#: erpnext/projects/doctype/project/project.js:87
+#: erpnext/projects/doctype/project/project.js:95
+#: erpnext/projects/doctype/project/project.js:169
 #: erpnext/public/js/bank_reconciliation_tool/data_table_manager.js:88
 #: erpnext/public/js/bank_reconciliation_tool/data_table_manager.js:121
-#: erpnext/public/js/utils/unreconcile.js:28
+#: erpnext/public/js/utils/unreconcile.js:29
 #: erpnext/quality_management/doctype/quality_feedback/quality_feedback.json
 #: erpnext/quality_management/doctype/quality_procedure/quality_procedure.json
 #: erpnext/selling/doctype/customer/customer.js:184
@@ -2473,7 +2468,7 @@ msgstr "هزینه عملیاتی واقعی"
 msgid "Actual Operation Time"
 msgstr "زمان واقعی عملیات"
 
-#: erpnext/accounts/report/deferred_revenue_and_expense/deferred_revenue_and_expense.py:397
+#: erpnext/accounts/report/deferred_revenue_and_expense/deferred_revenue_and_expense.py:400
 msgid "Actual Posting"
 msgstr "ارسال واقعی"
 
@@ -2743,7 +2738,7 @@ msgstr "افزودن موجودی"
 msgid "Add Sub Assembly"
 msgstr "افزودن زیر مونتاژ"
 
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:472
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:473
 #: erpnext/public/js/event.js:32
 msgid "Add Suppliers"
 msgstr "تامین کنندگان را اضافه کنید"
@@ -3425,7 +3420,7 @@ msgstr "در برابر"
 #: erpnext/accounts/doctype/journal_entry_account/journal_entry_account.json
 #: erpnext/accounts/report/bank_clearance_summary/bank_clearance_summary.py:39
 #: erpnext/accounts/report/bank_reconciliation_statement/bank_reconciliation_statement.py:91
-#: erpnext/accounts/report/general_ledger/general_ledger.py:664
+#: erpnext/accounts/report/general_ledger/general_ledger.py:670
 msgid "Against Account"
 msgstr "در مقابل حساب"
 
@@ -3440,7 +3435,7 @@ msgstr "در مقابل حساب"
 msgid "Against Blanket Order"
 msgstr "در مقابل سفارش کلی"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:958
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:961
 #: erpnext/patches/v15_0/update_invoice_remarks.py:22
 msgid "Against Customer Order {0}"
 msgstr "در مقابل سفارش مشتری {0}"
@@ -3539,7 +3534,7 @@ msgstr "در مقابل فاکتور تامین کننده {0}"
 
 #. Label of the against_voucher (Dynamic Link) field in DocType 'GL Entry'
 #: erpnext/accounts/doctype/gl_entry/gl_entry.json
-#: erpnext/accounts/report/general_ledger/general_ledger.py:683
+#: erpnext/accounts/report/general_ledger/general_ledger.py:689
 msgid "Against Voucher"
 msgstr "در مقابل کوپن"
 
@@ -3557,7 +3552,7 @@ msgstr "در مقابل کوپن شماره"
 #. Entry'
 #: erpnext/accounts/doctype/gl_entry/gl_entry.json
 #: erpnext/accounts/doctype/payment_ledger_entry/payment_ledger_entry.json
-#: erpnext/accounts/report/general_ledger/general_ledger.py:681
+#: erpnext/accounts/report/general_ledger/general_ledger.py:687
 #: erpnext/accounts/report/payment_ledger/payment_ledger.py:177
 msgid "Against Voucher Type"
 msgstr "در مقابل نوع کوپن"
@@ -3571,7 +3566,7 @@ msgstr "سن"
 
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts_accounts_receivable.html:152
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:133
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1068
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1087
 msgid "Age (Days)"
 msgstr "سن (روزها)"
 
@@ -3855,7 +3850,7 @@ msgstr "تمام ارتباطات از جمله و بالاتر از این با
 msgid "All items have already been Invoiced/Returned"
 msgstr "همه آیتم‌ها قبلاً صورتحساب/بازگردانده شده اند"
 
-#: erpnext/stock/doctype/delivery_note/delivery_note.py:1296
+#: erpnext/stock/doctype/delivery_note/delivery_note.py:1297
 msgid "All items have already been received"
 msgstr "همه آیتم‌ها قبلاً دریافت شده است"
 
@@ -3943,7 +3938,7 @@ msgstr "اختصاص داده شده است"
 #: erpnext/accounts/doctype/purchase_invoice_advance/purchase_invoice_advance.json
 #: erpnext/accounts/doctype/unreconcile_payment_entries/unreconcile_payment_entries.json
 #: erpnext/accounts/report/gross_profit/gross_profit.py:331
-#: erpnext/public/js/utils/unreconcile.js:86
+#: erpnext/public/js/utils/unreconcile.js:87
 msgid "Allocated Amount"
 msgstr "مبلغ تخصیص یافته"
 
@@ -3984,7 +3979,7 @@ msgstr "تخصیص"
 #. Label of the allocations (Table) field in DocType 'Unreconcile Payment'
 #: erpnext/accounts/doctype/process_payment_reconciliation_log/process_payment_reconciliation_log.json
 #: erpnext/accounts/doctype/unreconcile_payment/unreconcile_payment.json
-#: erpnext/public/js/utils/unreconcile.js:97
+#: erpnext/public/js/utils/unreconcile.js:98
 msgid "Allocations"
 msgstr "تخصیص ها"
 
@@ -4814,6 +4809,11 @@ msgstr "مبلغ {0} {1} از {2} به {3} منتقل شد"
 msgid "Amount {0} {1} {2} {3}"
 msgstr "مبلغ {0} {1} {2} {3}"
 
+#. Label of the amounts_section (Section Break) field in DocType 'GL Entry'
+#: erpnext/accounts/doctype/gl_entry/gl_entry.json
+msgid "Amounts"
+msgstr ""
+
 #. Name of a UOM
 #: erpnext/setup/setup_wizard/data/uom_data.json
 msgid "Ampere"
@@ -4854,7 +4854,7 @@ msgid "An error has occurred during {0}. Check {1} for more details"
 msgstr "خطایی در طول {0} رخ داده است. برای جزئیات بیشتر {1} را بررسی کنید"
 
 #: erpnext/public/js/controllers/buying.js:292
-#: erpnext/public/js/utils/sales_common.js:429
+#: erpnext/public/js/utils/sales_common.js:430
 msgid "An error occurred during the update process"
 msgstr "در طول فرآیند به روز رسانی خطایی رخ داد"
 
@@ -4908,10 +4908,6 @@ msgstr "رکورد بودجه دیگری \"{0}\" در برابر {1} \"{2}\" و 
 #: erpnext/accounts/doctype/cost_center_allocation/cost_center_allocation.py:107
 msgid "Another Cost Center Allocation record {0} applicable from {1}, hence this allocation will be applicable upto {2}"
 msgstr "یکی دیگر از رکوردهای تخصیص مرکز هزینه {0} قابل اعمال از {1}، بنابراین این تخصیص تا {2} قابل اعمال خواهد بود."
-
-#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:124
-msgid "Another Period Closing Entry {0} has been made after {1}"
-msgstr "یکی دیگر از ورودی های بسته شدن دوره {0} پس از {1} انجام شده است"
 
 #: erpnext/setup/doctype/sales_person/sales_person.py:100
 msgid "Another Sales Person {0} exists with the same Employee id"
@@ -5810,7 +5806,7 @@ msgstr "دارایی بازیابی شد"
 msgid "Asset restored after Asset Capitalization {0} was cancelled"
 msgstr "دارایی پس از لغو حروف بزرگ دارایی {0} بازیابی شد"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1339
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1342
 msgid "Asset returned"
 msgstr "دارایی برگردانده شد"
 
@@ -5822,7 +5818,7 @@ msgstr "دارایی از بین رفته است"
 msgid "Asset scrapped via Journal Entry {0}"
 msgstr "دارایی از طریق ثبت دفتر روزنامه {0} کنار گذاشته شد"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1376
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1379
 msgid "Asset sold"
 msgstr "دارایی فروخته شده"
 
@@ -5980,7 +5976,7 @@ msgid "At least one item should be entered with negative quantity in return docu
 msgstr "حداقل یک مورد باید با مقدار منفی در سند برگشت وارد شود"
 
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.py:420
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:507
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:510
 msgid "At least one mode of payment is required for POS invoice."
 msgstr "حداقل یک روش پرداخت برای فاکتور POS مورد نیاز است."
 
@@ -6343,7 +6339,7 @@ msgid "Auto re-order"
 msgstr "سفارش مجدد خودکار"
 
 #: erpnext/public/js/controllers/buying.js:290
-#: erpnext/public/js/utils/sales_common.js:424
+#: erpnext/public/js/utils/sales_common.js:425
 msgid "Auto repeat document updated"
 msgstr "سند تکرار خودکار به روز شد"
 
@@ -6860,7 +6856,7 @@ msgstr "مورد وب سایت BOM"
 msgid "BOM Website Operation"
 msgstr "عملیات وب سایت BOM"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.js:1174
+#: erpnext/stock/doctype/stock_entry/stock_entry.js:1183
 msgid "BOM and Manufacturing Quantity are required"
 msgstr "BOM و مقدار تولید مورد نیاز است"
 
@@ -6977,7 +6973,7 @@ msgstr "تراز"
 msgid "Balance (Dr - Cr)"
 msgstr "تراز (Dr - Cr)"
 
-#: erpnext/accounts/report/general_ledger/general_ledger.py:617
+#: erpnext/accounts/report/general_ledger/general_ledger.py:623
 msgid "Balance ({0})"
 msgstr "تراز ({0})"
 
@@ -7778,7 +7774,7 @@ msgstr ""
 #. Label of the bill_date (Date) field in DocType 'Journal Entry'
 #. Label of the bill_date (Date) field in DocType 'Subcontracting Receipt'
 #: erpnext/accounts/doctype/journal_entry/journal_entry.json
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1053
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1072
 #: erpnext/accounts/report/purchase_register/purchase_register.py:214
 #: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.json
 msgid "Bill Date"
@@ -7787,7 +7783,7 @@ msgstr "تاریخ قبض"
 #. Label of the bill_no (Data) field in DocType 'Journal Entry'
 #. Label of the bill_no (Data) field in DocType 'Subcontracting Receipt'
 #: erpnext/accounts/doctype/journal_entry/journal_entry.json
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1052
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1071
 #: erpnext/accounts/report/purchase_register/purchase_register.py:213
 #: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.json
 msgid "Bill No"
@@ -8959,12 +8955,12 @@ msgid "Can not filter based on Voucher No, if grouped by Voucher"
 msgstr "اگر بر اساس کوپن گروه بندی شود، نمی توان بر اساس شماره کوپن فیلتر کرد"
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.py:1289
-#: erpnext/accounts/doctype/payment_entry/payment_entry.py:2775
+#: erpnext/accounts/doctype/payment_entry/payment_entry.py:2777
 msgid "Can only make payment against unbilled {0}"
 msgstr "فقط می‌توانید با {0} پرداخت نشده انجام دهید"
 
 #: erpnext/accounts/doctype/payment_entry/payment_entry.js:1424
-#: erpnext/controllers/accounts_controller.py:2632
+#: erpnext/controllers/accounts_controller.py:2635
 #: erpnext/public/js/controllers/accounts.js:90
 msgid "Can refer row only if the charge type is 'On Previous Row Amount' or 'Previous Row Total'"
 msgstr "فقط در صورتی می‌توان ردیف را ارجاع داد که نوع شارژ «بر مقدار ردیف قبلی» یا «مجموع ردیف قبلی» باشد"
@@ -9272,7 +9268,7 @@ msgstr "نمی توان از تحویل با شماره سریال اطمینا�
 msgid "Cannot find Item with this Barcode"
 msgstr "نمی توان موردی را با این بارکد پیدا کرد"
 
-#: erpnext/controllers/accounts_controller.py:3150
+#: erpnext/controllers/accounts_controller.py:3153
 msgid "Cannot find a default warehouse for item {0}. Please set one in the Item Master or in Stock Settings."
 msgstr ""
 
@@ -9280,7 +9276,7 @@ msgstr ""
 msgid "Cannot make any transactions until the deletion job is completed"
 msgstr ""
 
-#: erpnext/controllers/accounts_controller.py:1902
+#: erpnext/controllers/accounts_controller.py:1905
 msgid "Cannot overbill for Item {0} in row {1} more than {2}. To allow over-billing, please set allowance in Accounts Settings"
 msgstr ""
 
@@ -9301,7 +9297,7 @@ msgid "Cannot receive from customer against negative outstanding"
 msgstr "نمی توان از مشتری در برابر معوقات منفی دریافت کرد"
 
 #: erpnext/accounts/doctype/payment_entry/payment_entry.js:1441
-#: erpnext/controllers/accounts_controller.py:2647
+#: erpnext/controllers/accounts_controller.py:2650
 #: erpnext/public/js/controllers/accounts.js:100
 msgid "Cannot refer row number greater than or equal to current row number for this Charge type"
 msgstr "نمی توان شماره ردیف را بزرگتر یا مساوی با شماره ردیف فعلی برای این نوع شارژ ارجاع داد"
@@ -9317,7 +9313,7 @@ msgstr "توکن پیوند بازیابی نمی شود. برای اطلاعا�
 #: erpnext/accounts/doctype/payment_entry/payment_entry.js:1433
 #: erpnext/accounts/doctype/payment_entry/payment_entry.js:1612
 #: erpnext/accounts/doctype/payment_entry/payment_entry.py:1723
-#: erpnext/controllers/accounts_controller.py:2637
+#: erpnext/controllers/accounts_controller.py:2640
 #: erpnext/public/js/controllers/accounts.js:94
 #: erpnext/public/js/controllers/taxes_and_totals.js:455
 msgid "Cannot select charge type as 'On Previous Row Amount' or 'On Previous Row Total' for first row"
@@ -9335,11 +9331,11 @@ msgstr "نمی توان مجوز را بر اساس تخفیف برای {0} تن
 msgid "Cannot set multiple Item Defaults for a company."
 msgstr "نمی توان چندین مورد پیش فرض را برای یک شرکت تنظیم کرد."
 
-#: erpnext/controllers/accounts_controller.py:3298
+#: erpnext/controllers/accounts_controller.py:3301
 msgid "Cannot set quantity less than delivered quantity"
 msgstr "نمی توان مقدار کمتر از مقدار تحویلی را تنظیم کرد"
 
-#: erpnext/controllers/accounts_controller.py:3301
+#: erpnext/controllers/accounts_controller.py:3304
 msgid "Cannot set quantity less than received quantity"
 msgstr "نمی توان مقدار کمتر از مقدار دریافتی را تنظیم کرد"
 
@@ -9680,7 +9676,7 @@ msgstr "تاریخ انتشار را تغییر دهید"
 msgid "Change in Stock Value"
 msgstr "تغییر در ارزش موجودی"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:884
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:887
 msgid "Change the account type to Receivable or select a different account."
 msgstr "نوع حساب را به دریافتنی تغییر دهید یا حساب دیگری را انتخاب کنید."
 
@@ -9715,7 +9711,7 @@ msgid "Channel Partner"
 msgstr "شریک کانال"
 
 #: erpnext/accounts/doctype/payment_entry/payment_entry.py:2152
-#: erpnext/controllers/accounts_controller.py:2700
+#: erpnext/controllers/accounts_controller.py:2703
 msgid "Charge of type 'Actual' in row {0} cannot be included in Item Rate or Paid Amount"
 msgstr "هزینه از نوع \"واقعی\" در ردیف {0} نمی تواند در نرخ مورد یا مبلغ پرداختی لحاظ شود"
 
@@ -10190,17 +10186,17 @@ msgstr "سفارش بسته قابل لغو نیست. برای لغو بسته �
 msgid "Closing"
 msgstr "بسته شدن"
 
-#: erpnext/accounts/report/trial_balance/trial_balance.py:458
+#: erpnext/accounts/report/trial_balance/trial_balance.py:452
 #: erpnext/accounts/report/trial_balance_for_party/trial_balance_for_party.py:213
 msgid "Closing (Cr)"
 msgstr "اختتامیه (بستانکاری)"
 
-#: erpnext/accounts/report/trial_balance/trial_balance.py:451
+#: erpnext/accounts/report/trial_balance/trial_balance.py:445
 #: erpnext/accounts/report/trial_balance_for_party/trial_balance_for_party.py:206
 msgid "Closing (Dr)"
 msgstr "اختتامیه (بدهی)"
 
-#: erpnext/accounts/report/general_ledger/general_ledger.py:408
+#: erpnext/accounts/report/general_ledger/general_ledger.py:416
 msgid "Closing (Opening + Total)"
 msgstr "اختتامیه (افتتاحیه + کل)"
 
@@ -10210,7 +10206,7 @@ msgstr "اختتامیه (افتتاحیه + کل)"
 msgid "Closing Account Head"
 msgstr "بستن سر حساب"
 
-#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:92
+#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:122
 msgid "Closing Account {0} must be of type Liability / Equity"
 msgstr "بسته شدن حساب {0} باید از نوع بدهی / حقوق صاحبان موجودی باشد"
 
@@ -10241,11 +10237,6 @@ msgstr "تراز پایانی طبق ERP"
 #: erpnext/projects/doctype/task/task.json
 msgid "Closing Date"
 msgstr "تاریخ بسته شدن"
-
-#. Label of the fiscal_year (Link) field in DocType 'Period Closing Voucher'
-#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.json
-msgid "Closing Fiscal Year"
-msgstr "پایان سال مالی"
 
 #. Name of a DocType
 #: erpnext/stock/doctype/closing_stock_balance/closing_stock_balance.json
@@ -11015,7 +11006,7 @@ msgstr "شناسه مالیاتی شرکت"
 msgid "Company and Posting Date is mandatory"
 msgstr "شرکت و تاریخ ارسال الزامی است"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2204
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2207
 msgid "Company currencies of both the companies should match for Inter Company Transactions."
 msgstr "ارزهای شرکت هر دو شرکت باید برای معاملات بین شرکتی مطابقت داشته باشد."
 
@@ -11108,7 +11099,7 @@ msgstr "نام رقیب"
 #. Label of the competitors (Table MultiSelect) field in DocType 'Opportunity'
 #. Label of the competitors (Table MultiSelect) field in DocType 'Quotation'
 #: erpnext/crm/doctype/opportunity/opportunity.json
-#: erpnext/public/js/utils/sales_common.js:497
+#: erpnext/public/js/utils/sales_common.js:498
 #: erpnext/selling/doctype/quotation/quotation.json
 msgid "Competitors"
 msgstr "رقبا"
@@ -11505,7 +11496,7 @@ msgstr "صورت مالی تلفیقی"
 #. Log'
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.json
 #: erpnext/accounts/doctype/pos_invoice_merge_log/pos_invoice_merge_log.json
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:520
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:523
 msgid "Consolidated Sales Invoice"
 msgstr "فاکتور فروش تلفیقی"
 
@@ -12037,7 +12028,7 @@ msgstr "ضریب تبدیل برای واحد اندازه گیری پیش فر�
 msgid "Conversion factor for item {0} has been reset to 1.0 as the uom {1} is same as stock uom {2}."
 msgstr ""
 
-#: erpnext/controllers/accounts_controller.py:2529
+#: erpnext/controllers/accounts_controller.py:2532
 msgid "Conversion rate cannot be 0 or 1"
 msgstr "نرخ تبدیل نمی تواند 0 یا 1 باشد"
 
@@ -12249,12 +12240,12 @@ msgstr "هزینه"
 #: erpnext/accounts/report/accounts_payable/accounts_payable.js:28
 #: erpnext/accounts/report/accounts_payable_summary/accounts_payable_summary.js:40
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.js:30
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1039
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1058
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.js:40
 #: erpnext/accounts/report/asset_depreciation_ledger/asset_depreciation_ledger.js:42
 #: erpnext/accounts/report/asset_depreciation_ledger/asset_depreciation_ledger.py:195
 #: erpnext/accounts/report/general_ledger/general_ledger.js:152
-#: erpnext/accounts/report/general_ledger/general_ledger.py:676
+#: erpnext/accounts/report/general_ledger/general_ledger.py:682
 #: erpnext/accounts/report/gross_profit/gross_profit.js:68
 #: erpnext/accounts/report/gross_profit/gross_profit.py:317
 #: erpnext/accounts/report/item_wise_sales_register/item_wise_sales_register.py:306
@@ -12314,7 +12305,7 @@ msgstr "درصد تخصیص مرکز هزینه"
 msgid "Cost Center Allocation Percentages"
 msgstr "درصدهای تخصیص مرکز هزینه"
 
-#: erpnext/public/js/utils/sales_common.js:456
+#: erpnext/public/js/utils/sales_common.js:457
 msgid "Cost Center For Item with Item Code {0} has been Changed to {1}"
 msgstr "مرکز هزینه برای مورد با کد مورد {0} به {1} تغییر کرده است"
 
@@ -12367,7 +12358,7 @@ msgstr "مرکز هزینه {} متعلق به شرکت {} نیست"
 msgid "Cost Center {} is a group cost center and group cost centers cannot be used in transactions"
 msgstr "مرکز هزینه {} یک مرکز هزینه گروهی است و مراکز هزینه گروهی را نمی توان در تراکنش ها استفاده کرد"
 
-#: erpnext/accounts/report/financial_statements.py:611
+#: erpnext/accounts/report/financial_statements.py:614
 msgid "Cost Center: {0} does not exist"
 msgstr "مرکز هزینه: {0} وجود ندارد"
 
@@ -12515,7 +12506,7 @@ msgid "Could not find path for "
 msgstr " مسیری برای پیدا نشد"
 
 #: erpnext/accounts/report/dimension_wise_accounts_balance_report/dimension_wise_accounts_balance_report.py:124
-#: erpnext/accounts/report/financial_statements.py:234
+#: erpnext/accounts/report/financial_statements.py:235
 msgid "Could not retrieve information for {0}."
 msgstr "اطلاعات مربوط به {0} بازیابی نشد."
 
@@ -12749,7 +12740,7 @@ msgstr "بستانکاری"
 #: erpnext/stock/doctype/stock_entry/stock_entry.js:166
 #: erpnext/stock/doctype/stock_entry/stock_entry.js:168
 #: erpnext/stock/doctype/stock_entry/stock_entry.js:241
-#: erpnext/stock/doctype/stock_entry/stock_entry.js:1249
+#: erpnext/stock/doctype/stock_entry/stock_entry.js:1258
 #: erpnext/subcontracting/doctype/subcontracting_order/subcontracting_order.js:199
 #: erpnext/subcontracting/doctype/subcontracting_order/subcontracting_order.js:232
 #: erpnext/subcontracting/doctype/subcontracting_order/subcontracting_order.js:242
@@ -13119,17 +13110,17 @@ msgstr ""
 #: erpnext/accounts/report/general_ledger/general_ledger.html:31
 #: erpnext/accounts/report/purchase_register/purchase_register.py:241
 #: erpnext/accounts/report/sales_register/sales_register.py:277
-#: erpnext/accounts/report/trial_balance/trial_balance.py:444
+#: erpnext/accounts/report/trial_balance/trial_balance.py:438
 #: erpnext/accounts/report/trial_balance_for_party/trial_balance_for_party.py:199
 #: erpnext/accounts/report/voucher_wise_balance/voucher_wise_balance.py:34
 msgid "Credit"
 msgstr "اعتبار"
 
-#: erpnext/accounts/report/general_ledger/general_ledger.py:634
+#: erpnext/accounts/report/general_ledger/general_ledger.py:640
 msgid "Credit (Transaction)"
 msgstr "اعتبار (تراکنش)"
 
-#: erpnext/accounts/report/general_ledger/general_ledger.py:611
+#: erpnext/accounts/report/general_ledger/general_ledger.py:617
 msgid "Credit ({0})"
 msgstr "اعتبار ({0})"
 
@@ -13245,7 +13236,7 @@ msgstr "ماه های اعتباری"
 #: erpnext/accounts/doctype/journal_entry_template/journal_entry_template.json
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts_accounts_receivable.html:174
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:147
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1062
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1081
 #: erpnext/controllers/sales_and_purchase_return.py:331
 #: erpnext/setup/setup_wizard/operations/install_fixtures.py:288
 #: erpnext/stock/doctype/delivery_note/delivery_note.js:89
@@ -13280,7 +13271,7 @@ msgstr "یادداشت اعتباری {0} به طور خودکار ایجاد ش
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.json
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.py:367
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.py:375
-#: erpnext/controllers/accounts_controller.py:2017
+#: erpnext/controllers/accounts_controller.py:2020
 msgid "Credit To"
 msgstr "اعتبار به"
 
@@ -13465,7 +13456,7 @@ msgstr ""
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 #: erpnext/accounts/doctype/subscription_plan/subscription_plan.json
 #: erpnext/accounts/report/account_balance/account_balance.py:28
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1072
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1091
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.py:205
 #: erpnext/accounts/report/bank_reconciliation_statement/bank_reconciliation_statement.py:101
 #: erpnext/accounts/report/consolidated_financial_statement/consolidated_financial_statement.js:118
@@ -13473,7 +13464,7 @@ msgstr ""
 #: erpnext/accounts/report/customer_ledger_summary/customer_ledger_summary.py:145
 #: erpnext/accounts/report/dimension_wise_accounts_balance_report/dimension_wise_accounts_balance_report.py:208
 #: erpnext/accounts/report/financial_statements.html:29
-#: erpnext/accounts/report/financial_statements.py:630
+#: erpnext/accounts/report/financial_statements.py:633
 #: erpnext/accounts/report/general_ledger/general_ledger.js:146
 #: erpnext/accounts/report/gross_profit/gross_profit.py:380
 #: erpnext/accounts/report/item_wise_sales_register/item_wise_sales_register.py:690
@@ -13482,7 +13473,7 @@ msgstr ""
 #: erpnext/accounts/report/purchase_register/purchase_register.py:229
 #: erpnext/accounts/report/sales_register/sales_register.py:265
 #: erpnext/accounts/report/trial_balance/trial_balance.js:76
-#: erpnext/accounts/report/trial_balance/trial_balance.py:416
+#: erpnext/accounts/report/trial_balance/trial_balance.py:410
 #: erpnext/accounts/report/trial_balance_for_party/trial_balance_for_party.py:220
 #: erpnext/accounts/workspace/accounting/accounting.json
 #: erpnext/buying/doctype/purchase_order/purchase_order.json
@@ -13496,7 +13487,7 @@ msgstr ""
 #: erpnext/manufacturing/doctype/bom_creator/bom_creator.json
 #: erpnext/projects/doctype/timesheet/timesheet.json
 #: erpnext/public/js/financial_statements.js:244
-#: erpnext/public/js/utils/unreconcile.js:93
+#: erpnext/public/js/utils/unreconcile.js:94
 #: erpnext/selling/doctype/quotation/quotation.json
 #: erpnext/selling/doctype/sales_order/sales_order.json
 #: erpnext/selling/report/item_wise_sales_history/item_wise_sales_history.py:121
@@ -13575,11 +13566,11 @@ msgstr "پس از ثبت نام با استفاده از ارزهای دیگر،
 
 #: erpnext/accounts/doctype/payment_entry/payment_entry.py:1504
 #: erpnext/accounts/doctype/payment_entry/payment_entry.py:1566
-#: erpnext/accounts/utils.py:2160
+#: erpnext/accounts/utils.py:2164
 msgid "Currency for {0} must be {1}"
 msgstr "واحد پول برای {0} باید {1} باشد"
 
-#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:98
+#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:129
 msgid "Currency of the Closing Account must be {0}"
 msgstr "واحد پول حساب بسته شده باید {0} باشد"
 
@@ -13991,7 +13982,7 @@ msgstr "کد مشتری"
 #. Label of the customer_contact_display (Small Text) field in DocType
 #. 'Purchase Order'
 #. Label of the customer_contact (Small Text) field in DocType 'Delivery Stop'
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1033
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1052
 #: erpnext/buying/doctype/purchase_order/purchase_order.json
 #: erpnext/stock/doctype/delivery_stop/delivery_stop.json
 msgid "Customer Contact"
@@ -14087,7 +14078,7 @@ msgstr "بازخورد مشتری"
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 #: erpnext/accounts/doctype/tax_rule/tax_rule.json
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.js:99
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1090
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1109
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.js:80
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.py:185
 #: erpnext/accounts/report/customer_ledger_summary/customer_ledger_summary.js:55
@@ -14131,7 +14122,7 @@ msgstr "مورد گروه مشتری"
 msgid "Customer Group Name"
 msgstr "نام گروه مشتری"
 
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1182
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1201
 msgid "Customer Group: {0} does not exist"
 msgstr "گروه مشتری: {0} وجود ندارد"
 
@@ -14150,7 +14141,7 @@ msgstr "مورد مشتری"
 msgid "Customer Items"
 msgstr "آیتم‌های مشتری"
 
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1081
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1100
 msgid "Customer LPO"
 msgstr "LPO مشتری"
 
@@ -14328,7 +14319,7 @@ msgstr "مشتری یا مورد"
 msgid "Customer required for 'Customerwise Discount'"
 msgstr "مشتری برای \"تخفیف از نظر مشتری\" مورد نیاز است"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1001
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1004
 #: erpnext/selling/doctype/sales_order/sales_order.py:347
 #: erpnext/stock/doctype/delivery_note/delivery_note.py:407
 msgid "Customer {0} does not belong to project {1}"
@@ -14405,7 +14396,7 @@ msgstr "مشتریان"
 msgid "Customers Without Any Sales Transactions"
 msgstr "مشتریان بدون هیچ گونه تراکنش فروش"
 
-#: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.py:96
+#: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.py:97
 msgid "Customers not selected."
 msgstr "مشتریان انتخاب نشده اند."
 
@@ -14686,6 +14677,11 @@ msgstr "تاریخ تراکنش"
 msgid "Date: {0} to {1}"
 msgstr ""
 
+#. Label of the dates_section (Section Break) field in DocType 'GL Entry'
+#: erpnext/accounts/doctype/gl_entry/gl_entry.json
+msgid "Dates"
+msgstr ""
+
 #. Option for the 'Billing Interval' (Select) field in DocType 'Subscription
 #. Plan'
 #. Name of a UOM
@@ -14812,17 +14808,17 @@ msgstr "مدیر محترم سیستم"
 #: erpnext/accounts/report/general_ledger/general_ledger.html:30
 #: erpnext/accounts/report/purchase_register/purchase_register.py:240
 #: erpnext/accounts/report/sales_register/sales_register.py:276
-#: erpnext/accounts/report/trial_balance/trial_balance.py:437
+#: erpnext/accounts/report/trial_balance/trial_balance.py:431
 #: erpnext/accounts/report/trial_balance_for_party/trial_balance_for_party.py:192
 #: erpnext/accounts/report/voucher_wise_balance/voucher_wise_balance.py:27
 msgid "Debit"
 msgstr "بدهی"
 
-#: erpnext/accounts/report/general_ledger/general_ledger.py:627
+#: erpnext/accounts/report/general_ledger/general_ledger.py:633
 msgid "Debit (Transaction)"
 msgstr "بدهی (تراکنش)"
 
-#: erpnext/accounts/report/general_ledger/general_ledger.py:605
+#: erpnext/accounts/report/general_ledger/general_ledger.py:611
 msgid "Debit ({0})"
 msgstr "بدهی ({0})"
 
@@ -14859,7 +14855,7 @@ msgstr "مبلغ بدهی به ارز تراکنش"
 #: erpnext/accounts/doctype/journal_entry_template/journal_entry_template.json
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts_accounts_receivable.html:176
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:147
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1065
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1084
 #: erpnext/controllers/sales_and_purchase_return.py:335
 #: erpnext/setup/setup_wizard/operations/install_fixtures.py:289
 #: erpnext/stock/doctype/purchase_receipt/purchase_receipt.js:61
@@ -14886,13 +14882,13 @@ msgstr ""
 #. Label of the debit_to (Link) field in DocType 'Sales Invoice'
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.json
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:869
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:880
-#: erpnext/controllers/accounts_controller.py:2017
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:872
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:883
+#: erpnext/controllers/accounts_controller.py:2020
 msgid "Debit To"
 msgstr "بدهی به"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:865
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:868
 msgid "Debit To is required"
 msgstr "بدهی به مورد نیاز است"
 
@@ -14965,7 +14961,7 @@ msgstr "دسی لیتر"
 msgid "Decimeter"
 msgstr "دسی متر"
 
-#: erpnext/public/js/utils/sales_common.js:524
+#: erpnext/public/js/utils/sales_common.js:525
 msgid "Declare Lost"
 msgstr "اعلام از دست رفتن"
 
@@ -15067,7 +15063,7 @@ msgstr "BOM پیش‌فرض ({0}) باید برای این مورد یا الگ�
 msgid "Default BOM for {0} not found"
 msgstr "BOM پیش‌فرض برای {0} یافت نشد"
 
-#: erpnext/controllers/accounts_controller.py:3339
+#: erpnext/controllers/accounts_controller.py:3342
 msgid "Default BOM not found for FG Item {0}"
 msgstr "BOM پیش فرض برای آیتم کالای تمام شده {0} یافت نشد"
 
@@ -15878,7 +15874,7 @@ msgstr "کالای بسته بندی شده یادداشت تحویل"
 msgid "Delivery Note Trends"
 msgstr "روند یادداشت تحویل"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1157
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1160
 msgid "Delivery Note {0} is not submitted"
 msgstr "یادداشت تحویل {0} ارسال نشده است"
 
@@ -15886,7 +15882,7 @@ msgstr "یادداشت تحویل {0} ارسال نشده است"
 msgid "Delivery Note(s) created for the Pick List"
 msgstr "یادداشت(های) تحویل برای لیست انتخاب ایجاد شده است"
 
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1085
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1104
 #: erpnext/stock/doctype/delivery_trip/delivery_trip.js:73
 msgid "Delivery Notes"
 msgstr "یادداشت های تحویل"
@@ -16511,7 +16507,7 @@ msgstr "کاربر میز"
 #. Label of the order_lost_reason (Small Text) field in DocType 'Opportunity'
 #. Label of the order_lost_reason (Small Text) field in DocType 'Quotation'
 #: erpnext/crm/doctype/opportunity/opportunity.json
-#: erpnext/public/js/utils/sales_common.js:503
+#: erpnext/public/js/utils/sales_common.js:504
 #: erpnext/selling/doctype/quotation/quotation.json
 msgid "Detailed Reason"
 msgstr "دلیل تفصیلی"
@@ -16687,6 +16683,11 @@ msgstr "نام ابعاد"
 msgid "Dimension-wise Accounts Balance Report"
 msgstr "گزارش تراز حسابها از نظر ابعاد"
 
+#. Label of the dimensions_section (Section Break) field in DocType 'GL Entry'
+#: erpnext/accounts/doctype/gl_entry/gl_entry.json
+msgid "Dimensions"
+msgstr ""
+
 #. Option for the 'Account Type' (Select) field in DocType 'Account'
 #: erpnext/accounts/doctype/account/account.json
 msgid "Direct Expense"
@@ -16838,11 +16839,11 @@ msgstr "حساب غیرفعال انتخاب شد"
 msgid "Disabled Warehouse {0} cannot be used for this transaction."
 msgstr "از انبار غیرفعال شده {0} نمی توان برای این تراکنش استفاده کرد."
 
-#: erpnext/controllers/accounts_controller.py:610
+#: erpnext/controllers/accounts_controller.py:613
 msgid "Disabled pricing rules since this {} is an internal transfer"
 msgstr "قوانین قیمت گذاری غیرفعال شده است زیرا این {} یک انتقال داخلی است"
 
-#: erpnext/controllers/accounts_controller.py:624
+#: erpnext/controllers/accounts_controller.py:627
 msgid "Disabled tax included prices since this {} is an internal transfer"
 msgstr "مالیات غیرفعال شامل قیمت‌ها می‌شود زیرا این {} یک انتقال داخلی است"
 
@@ -17042,7 +17043,7 @@ msgstr "تخفیف نمی تواند بیشتر از 100% باشد"
 msgid "Discount must be less than 100"
 msgstr "تخفیف باید کمتر از 100 باشد"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.py:3246
+#: erpnext/accounts/doctype/payment_entry/payment_entry.py:3248
 msgid "Discount of {} applied as per Payment Term"
 msgstr "تخفیف {} طبق شرایط پرداخت اعمال شد"
 
@@ -17509,6 +17510,7 @@ msgstr "موجودی دو برابر کاهشی"
 
 #: erpnext/accounts/doctype/chart_of_accounts_importer/chart_of_accounts_importer.js:93
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.js:27
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:150
 msgid "Download"
 msgstr "دانلود"
 
@@ -17536,6 +17538,10 @@ msgstr "دانلود بخش طرح درخواست مواد"
 #: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:70
 msgid "Download PDF"
 msgstr "دانلود PDF"
+
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:149
+msgid "Download PDF for Supplier"
+msgstr ""
 
 #. Label of the download_template (Button) field in DocType 'Bank Statement
 #. Import'
@@ -17763,7 +17769,7 @@ msgstr "تاریخ سررسید بر اساس"
 msgid "Due Date cannot be before Posting / Supplier Invoice Date"
 msgstr "تاریخ سررسید نمی تواند قبل از ارسال / تاریخ فاکتور تامین کننده باشد"
 
-#: erpnext/controllers/accounts_controller.py:646
+#: erpnext/controllers/accounts_controller.py:649
 msgid "Due Date is mandatory"
 msgstr "تاریخ سررسید اجباری است"
 
@@ -17849,7 +17855,7 @@ msgstr "گروه آیتم تکراری"
 msgid "Duplicate POS Invoices found"
 msgstr "فاکتورهای POS تکراری پیدا شد"
 
-#: erpnext/projects/doctype/project/project.js:82
+#: erpnext/projects/doctype/project/project.js:83
 msgid "Duplicate Project with Tasks"
 msgstr "پروژه تکراری با وظایف"
 
@@ -17865,7 +17871,7 @@ msgstr "ثبت تکراری در برابر کد آیتم {0} و تولید کن
 msgid "Duplicate item group found in the item group table"
 msgstr "گروه آیتم تکراری در جدول گروه آیتم یافت شد"
 
-#: erpnext/projects/doctype/project/project.js:182
+#: erpnext/projects/doctype/project/project.js:183
 msgid "Duplicate project has been created"
 msgstr "پروژه تکراری ایجاد شده است"
 
@@ -18696,7 +18702,7 @@ msgstr "پایان حمل و نقل"
 msgid "End Year"
 msgstr "پایان سال"
 
-#: erpnext/accounts/report/financial_statements.py:125
+#: erpnext/accounts/report/financial_statements.py:126
 msgid "End Year cannot be before Start Year"
 msgstr "پایان سال نمی تواند قبل از سال شروع باشد"
 
@@ -18908,7 +18914,7 @@ msgstr ""
 #. Valuation'
 #: erpnext/accounts/doctype/bank_statement_import/bank_statement_import.json
 #: erpnext/accounts/doctype/ledger_merge/ledger_merge.json
-#: erpnext/accounts/doctype/payment_request/payment_request.py:433
+#: erpnext/accounts/doctype/payment_request/payment_request.py:442
 #: erpnext/accounts/doctype/pos_closing_entry/pos_closing_entry.json
 #: erpnext/manufacturing/doctype/job_card/job_card.py:847
 #: erpnext/stock/doctype/repost_item_valuation/repost_item_valuation.json
@@ -19094,8 +19100,8 @@ msgstr "سود یا ضرر مبادله"
 msgid "Exchange Gain/Loss"
 msgstr "سود/زیان مبادله"
 
-#: erpnext/controllers/accounts_controller.py:1421
-#: erpnext/controllers/accounts_controller.py:1506
+#: erpnext/controllers/accounts_controller.py:1424
+#: erpnext/controllers/accounts_controller.py:1509
 msgid "Exchange Gain/Loss amount has been booked through {0}"
 msgstr "مبلغ سود/زیان مبادله از طریق {0} رزرو شده است"
 
@@ -19186,7 +19192,7 @@ msgstr "نرخ ارز باید برابر با {0} {1} ({2}) باشد"
 msgid "Excise Entry"
 msgstr "ثبت مالیات غیر مستقیم"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.js:1242
+#: erpnext/stock/doctype/stock_entry/stock_entry.js:1251
 msgid "Excise Invoice"
 msgstr "فاکتور مالیات غیر مستقیم"
 
@@ -19251,7 +19257,7 @@ msgstr "مصاحبه خروج برگزار شد"
 msgid "Expand All"
 msgstr "گسترش همه"
 
-#: erpnext/accounts/report/deferred_revenue_and_expense/deferred_revenue_and_expense.py:411
+#: erpnext/accounts/report/deferred_revenue_and_expense/deferred_revenue_and_expense.py:414
 msgid "Expected"
 msgstr "انتظار می رود"
 
@@ -20122,15 +20128,15 @@ msgstr "تعداد آیتم کالای تمام شده"
 msgid "Finished Good Item Quantity"
 msgstr "تعداد آیتم کالای تمام شده"
 
-#: erpnext/controllers/accounts_controller.py:3325
+#: erpnext/controllers/accounts_controller.py:3328
 msgid "Finished Good Item is not specified for service item {0}"
 msgstr "آیتم کالای تمام شده برای آیتم سرویس مشخص نشده است {0}"
 
-#: erpnext/controllers/accounts_controller.py:3342
+#: erpnext/controllers/accounts_controller.py:3345
 msgid "Finished Good Item {0} Qty can not be zero"
 msgstr "مقدار آیتم کالای تمام شده {0} تعداد نمی تواند صفر باشد"
 
-#: erpnext/controllers/accounts_controller.py:3336
+#: erpnext/controllers/accounts_controller.py:3339
 msgid "Finished Good Item {0} must be a sub-contracted item"
 msgstr "آیتم کالای تمام شده {0} باید یک آیتم قرارداد فرعی باشد"
 
@@ -20289,6 +20295,7 @@ msgstr "رژیم مالی اجباری است، لطفاً رژیم مالی ر�
 #. Name of a DocType
 #. Label of the fiscal_year (Link) field in DocType 'GL Entry'
 #. Label of the fiscal_year (Link) field in DocType 'Monthly Distribution'
+#. Label of the fiscal_year (Link) field in DocType 'Period Closing Voucher'
 #. Label of a Link in the Accounting Workspace
 #. Label of the fiscal_year (Link) field in DocType 'Lower Deduction
 #. Certificate'
@@ -20298,6 +20305,7 @@ msgstr "رژیم مالی اجباری است، لطفاً رژیم مالی ر�
 #: erpnext/accounts/doctype/fiscal_year/fiscal_year.json
 #: erpnext/accounts/doctype/gl_entry/gl_entry.json
 #: erpnext/accounts/doctype/monthly_distribution/monthly_distribution.json
+#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.json
 #: erpnext/accounts/notification/notification_for_new_fiscal_year/notification_for_new_fiscal_year.html:1
 #: erpnext/accounts/report/dimension_wise_accounts_balance_report/dimension_wise_accounts_balance_report.js:16
 #: erpnext/accounts/report/profitability_analysis/profitability_analysis.js:38
@@ -20495,7 +20503,7 @@ msgstr "فوت/ثانیه"
 msgid "For"
 msgstr "برای"
 
-#: erpnext/public/js/utils/sales_common.js:332
+#: erpnext/public/js/utils/sales_common.js:333
 msgid "For 'Product Bundle' items, Warehouse, Serial No and Batch No will be considered from the 'Packing List' table. If Warehouse and Batch No are same for all packing items for any 'Product Bundle' item, those values can be entered in the main Item table, values will be copied to 'Packing List' table."
 msgstr "برای آیتم‌های \"باندل محصول\"، انبار، شماره سریال و شماره دسته از جدول \"لیست بسته بندی\" در نظر گرفته می شود. اگر انبار و شماره دسته‌ برای همه آیتم‌های بسته‌بندی برای هر آیتم «باندل محصول» یکسان باشد، آن مقادیر را می‌توان در جدول کالای اصلی وارد کرد، مقادیر در جدول «فهرست بسته‌بندی» کپی می‌شوند."
 
@@ -20553,7 +20561,7 @@ msgstr "برای تولید"
 msgid "For Quantity (Manufactured Qty) is mandatory"
 msgstr "برای مقدار (تعداد تولید شده) اجباری است"
 
-#: erpnext/controllers/accounts_controller.py:1104
+#: erpnext/controllers/accounts_controller.py:1107
 msgid "For Return Invoices with Stock effect, '0' qty Items are not allowed. Following rows are affected: {0}"
 msgstr ""
 
@@ -20965,7 +20973,7 @@ msgstr "از تاریخ"
 msgid "From Date and To Date are Mandatory"
 msgstr "از تاریخ و تا به امروز اجباری است"
 
-#: erpnext/accounts/report/financial_statements.py:130
+#: erpnext/accounts/report/financial_statements.py:131
 msgid "From Date and To Date are mandatory"
 msgstr "از تاریخ و تا تاریخ اجباری است"
 
@@ -21361,14 +21369,14 @@ msgstr "گره های بیشتر را فقط می توان تحت گره های 
 
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts_accounts_receivable.html:186
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:155
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1077
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1096
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.py:177
 msgid "Future Payment Amount"
 msgstr "مبلغ پرداخت آینده"
 
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts_accounts_receivable.html:185
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:154
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1076
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1095
 msgid "Future Payment Ref"
 msgstr "مرجع پرداخت آینده"
 
@@ -21393,7 +21401,7 @@ msgstr "تراز دفتر کل"
 
 #. Name of a DocType
 #: erpnext/accounts/doctype/gl_entry/gl_entry.json
-#: erpnext/accounts/report/general_ledger/general_ledger.py:590
+#: erpnext/accounts/report/general_ledger/general_ledger.py:596
 msgid "GL Entry"
 msgstr "ثبت در دفتر کل"
 
@@ -21474,7 +21482,7 @@ msgstr "گالن مایع (US)"
 msgid "Gamma"
 msgstr "گاما"
 
-#: erpnext/projects/doctype/project/project.js:101
+#: erpnext/projects/doctype/project/project.js:102
 msgid "Gantt Chart"
 msgstr "نمودار گانت"
 
@@ -21636,7 +21644,7 @@ msgid "Get Item Locations"
 msgstr "مکان های آیتم را دریافت کنید"
 
 #. Label of the get_items (Button) field in DocType 'Stock Entry'
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:377
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:378
 #: erpnext/manufacturing/doctype/production_plan/production_plan.js:369
 #: erpnext/stock/doctype/pick_list/pick_list.js:193
 #: erpnext/stock/doctype/pick_list/pick_list.js:236
@@ -21653,9 +21661,9 @@ msgstr "دریافت آیتم‌ها"
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.js:319
 #: erpnext/buying/doctype/purchase_order/purchase_order.js:567
 #: erpnext/buying/doctype/purchase_order/purchase_order.js:587
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:335
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:357
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:402
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:336
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:358
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:403
 #: erpnext/buying/doctype/supplier_quotation/supplier_quotation.js:53
 #: erpnext/buying/doctype/supplier_quotation/supplier_quotation.js:86
 #: erpnext/maintenance/doctype/maintenance_schedule/maintenance_schedule.js:80
@@ -21693,7 +21701,7 @@ msgstr "دریافت آیتم‌ها از رسید خرید"
 msgid "Get Items from BOM"
 msgstr "دریافت آیتم‌ها از BOM"
 
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:374
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:375
 msgid "Get Items from Material Requests against this Supplier"
 msgstr "اقلام را از درخواست های مواد در برابر این تامین کننده دریافت کنید"
 
@@ -21790,12 +21798,12 @@ msgstr "دریافت آیتم‌های زیر مونتاژ"
 msgid "Get Supplier Group Details"
 msgstr "جزئیات گروه تامین کننده را دریافت کنید"
 
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:416
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:436
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:417
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:437
 msgid "Get Suppliers"
 msgstr "تامین کنندگان را دریافت کنید"
 
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:440
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:441
 msgid "Get Suppliers By"
 msgstr "تامین کنندگان را دریافت کنید"
 
@@ -23980,7 +23988,7 @@ msgstr "شامل آیتم ها برای زیر مونتاژ ها"
 #: erpnext/accounts/doctype/account/chart_of_accounts/verified/standard_chart_of_accounts_with_account_number.py:105
 #: erpnext/accounts/doctype/ledger_merge/ledger_merge.json
 #: erpnext/accounts/doctype/process_deferred_accounting/process_deferred_accounting.json
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:379
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:382
 #: erpnext/accounts/report/account_balance/account_balance.js:27
 #: erpnext/accounts/report/profit_and_loss_statement/profit_and_loss_statement.py:170
 #: erpnext/accounts/report/profitability_analysis/profitability_analysis.py:182
@@ -24114,7 +24122,7 @@ msgstr "نوع تراکنش نادرست"
 msgid "Incorrect Warehouse"
 msgstr "انبار نادرست"
 
-#: erpnext/accounts/general_ledger.py:52
+#: erpnext/accounts/general_ledger.py:53
 msgid "Incorrect number of General Ledger Entries found. You might have selected a wrong Account in the transaction."
 msgstr "تعداد اشتباهی از ورودی های دفتر کل مرکزی پیدا شد. ممکن است حساب اشتباهی را در تراکنش انتخاب کرده باشید."
 
@@ -24369,8 +24377,8 @@ msgstr "دستورالعمل ها"
 msgid "Insufficient Capacity"
 msgstr "ظرفیت ناکافی"
 
-#: erpnext/controllers/accounts_controller.py:3257
-#: erpnext/controllers/accounts_controller.py:3281
+#: erpnext/controllers/accounts_controller.py:3260
+#: erpnext/controllers/accounts_controller.py:3284
 msgid "Insufficient Permissions"
 msgstr "مجوزهای ناکافی"
 
@@ -24497,7 +24505,7 @@ msgstr "تنظیمات انتقال بین انبار"
 msgid "Interest"
 msgstr "علاقه"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.py:2882
+#: erpnext/accounts/doctype/payment_entry/payment_entry.py:2884
 msgid "Interest and/or dunning fee"
 msgstr "بهره و/یا هزینه اجناس"
 
@@ -24522,11 +24530,11 @@ msgstr "مشتری داخلی"
 msgid "Internal Customer for company {0} already exists"
 msgstr "مشتری داخلی برای شرکت {0} از قبل وجود دارد"
 
-#: erpnext/controllers/accounts_controller.py:593
+#: erpnext/controllers/accounts_controller.py:596
 msgid "Internal Sale or Delivery Reference missing."
 msgstr "مرجع فروش داخلی یا تحویل موجود نیست."
 
-#: erpnext/controllers/accounts_controller.py:595
+#: erpnext/controllers/accounts_controller.py:598
 msgid "Internal Sales Reference Missing"
 msgstr "مرجع فروش داخلی وجود ندارد"
 
@@ -24557,7 +24565,7 @@ msgstr "تامین کننده داخلی برای شرکت {0} از قبل وج�
 msgid "Internal Transfer"
 msgstr "انتقال داخلی"
 
-#: erpnext/controllers/accounts_controller.py:604
+#: erpnext/controllers/accounts_controller.py:607
 msgid "Internal Transfer Reference Missing"
 msgstr "مرجع انتقال داخلی وجود ندارد"
 
@@ -24590,12 +24598,12 @@ msgstr "بی اعتبار"
 
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.py:368
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.py:376
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:875
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:885
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:878
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:888
 #: erpnext/assets/doctype/asset_category/asset_category.py:70
 #: erpnext/assets/doctype/asset_category/asset_category.py:98
-#: erpnext/controllers/accounts_controller.py:2661
-#: erpnext/controllers/accounts_controller.py:2669
+#: erpnext/controllers/accounts_controller.py:2664
+#: erpnext/controllers/accounts_controller.py:2672
 msgid "Invalid Account"
 msgstr "حساب نامعتبر"
 
@@ -24604,7 +24612,7 @@ msgstr "حساب نامعتبر"
 msgid "Invalid Allocated Amount"
 msgstr ""
 
-#: erpnext/accounts/doctype/payment_request/payment_request.py:111
+#: erpnext/accounts/doctype/payment_request/payment_request.py:120
 msgid "Invalid Amount"
 msgstr ""
 
@@ -24612,7 +24620,7 @@ msgstr ""
 msgid "Invalid Attribute"
 msgstr "ویژگی نامعتبر است"
 
-#: erpnext/controllers/accounts_controller.py:430
+#: erpnext/controllers/accounts_controller.py:433
 msgid "Invalid Auto Repeat Date"
 msgstr "تاریخ تکرار خودکار نامعتبر است"
 
@@ -24628,13 +24636,13 @@ msgstr "سفارش کلی نامعتبر برای مشتری و آیتم انت�
 msgid "Invalid Child Procedure"
 msgstr "رویه فرزند نامعتبر"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1983
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1986
 msgid "Invalid Company for Inter Company Transaction."
 msgstr "شرکت نامعتبر برای معاملات بین شرکتی."
 
 #: erpnext/assets/doctype/asset/asset.py:249
 #: erpnext/assets/doctype/asset/asset.py:256
-#: erpnext/controllers/accounts_controller.py:2684
+#: erpnext/controllers/accounts_controller.py:2687
 msgid "Invalid Cost Center"
 msgstr "مرکز هزینه نامعتبر است"
 
@@ -24717,11 +24725,11 @@ msgstr "پیکربندی از دست دادن فرآیند نامعتبر است
 msgid "Invalid Purchase Invoice"
 msgstr "فاکتور خرید نامعتبر"
 
-#: erpnext/controllers/accounts_controller.py:3294
+#: erpnext/controllers/accounts_controller.py:3297
 msgid "Invalid Qty"
 msgstr "تعداد نامعتبر است"
 
-#: erpnext/controllers/accounts_controller.py:1119
+#: erpnext/controllers/accounts_controller.py:1122
 msgid "Invalid Quantity"
 msgstr "مقدار نامعتبر"
 
@@ -24784,7 +24792,7 @@ msgstr "مقدار {0} برای {1} در برابر حساب {2} نامعتبر 
 msgid "Invalid {0}"
 msgstr "{0} نامعتبر است"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1981
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1984
 msgid "Invalid {0} for Inter Company Transaction."
 msgstr "{0} برای تراکنش بین شرکتی نامعتبر است."
 
@@ -24803,7 +24811,7 @@ msgstr "فهرست موجودی"
 msgid "Inventory Dimension"
 msgstr "ابعاد موجودی"
 
-#: erpnext/stock/doctype/stock_ledger_entry/stock_ledger_entry.py:161
+#: erpnext/stock/doctype/stock_ledger_entry/stock_ledger_entry.py:160
 msgid "Inventory Dimension Negative Stock"
 msgstr "ابعاد موجودی منفی"
 
@@ -24855,7 +24863,7 @@ msgstr "تاریخ فاکتور"
 msgid "Invoice Discounting"
 msgstr "تخفیف فاکتور"
 
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1057
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1076
 msgid "Invoice Grand Total"
 msgstr "فاکتور گرند توتال"
 
@@ -24928,7 +24936,7 @@ msgstr "وضعیت فاکتور"
 msgid "Invoice Type"
 msgstr "نوع فاکتور"
 
-#: erpnext/projects/doctype/timesheet/timesheet.py:389
+#: erpnext/projects/doctype/timesheet/timesheet.py:429
 msgid "Invoice already created for all billing hours"
 msgstr "فاکتور قبلاً برای تمام ساعات صورتحساب ایجاد شده است"
 
@@ -24938,13 +24946,13 @@ msgstr "فاکتور قبلاً برای تمام ساعات صورتحساب ا
 msgid "Invoice and Billing"
 msgstr "فاکتور و صورتحساب"
 
-#: erpnext/projects/doctype/timesheet/timesheet.py:386
+#: erpnext/projects/doctype/timesheet/timesheet.py:426
 msgid "Invoice can't be made for zero billing hour"
 msgstr "برای ساعت صورتحساب صفر نمی توان فاکتور ایجاد کرد"
 
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts_accounts_receivable.html:169
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:144
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1059
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1078
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.py:164
 #: erpnext/accounts/report/customer_ledger_summary/customer_ledger_summary.py:102
 msgid "Invoiced Amount"
@@ -24964,7 +24972,7 @@ msgstr "تعداد فاکتور"
 #: erpnext/accounts/doctype/opening_invoice_creation_tool/opening_invoice_creation_tool.json
 #: erpnext/accounts/doctype/payment_reconciliation/payment_reconciliation.json
 #: erpnext/accounts/doctype/pos_profile/pos_profile.json
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2032
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2035
 #: erpnext/buying/doctype/supplier/supplier.json
 #: erpnext/selling/report/payment_terms_status_for_sales_order/payment_terms_status_for_sales_order.py:62
 msgid "Invoices"
@@ -26750,7 +26758,7 @@ msgstr "نام آیتم"
 msgid "Item operation"
 msgstr "عملیات آیتم"
 
-#: erpnext/controllers/accounts_controller.py:3317
+#: erpnext/controllers/accounts_controller.py:3320
 msgid "Item qty can not be updated as raw materials are already processed."
 msgstr "تعداد مورد را نمی توان به روز کرد زیرا مواد خام قبلاً پردازش شده است."
 
@@ -27018,7 +27026,7 @@ msgstr ""
 msgid "Items and Pricing"
 msgstr "آیتم‌ها و قیمت"
 
-#: erpnext/controllers/accounts_controller.py:3536
+#: erpnext/controllers/accounts_controller.py:3539
 msgid "Items cannot be updated as Subcontracting Order is created against the Purchase Order {0}."
 msgstr "موارد را نمی توان به روز کرد زیرا سفارش قرارداد فرعی در برابر سفارش خرید {0} ایجاد شده است."
 
@@ -27345,7 +27353,7 @@ msgstr ""
 msgid "Journals"
 msgstr "دفترهای روزنامه"
 
-#: erpnext/projects/doctype/project/project.js:112
+#: erpnext/projects/doctype/project/project.js:113
 msgid "Kanban Board"
 msgstr "نمودار کانبان"
 
@@ -27830,7 +27838,7 @@ msgstr "برای استفاده از قالب استاندارد یادداشت 
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.js:30
 #: erpnext/accounts/doctype/payment_entry/payment_entry.js:388
-#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.js:25
+#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.js:43
 msgid "Ledger"
 msgstr "دفتر کل"
 
@@ -28089,7 +28097,7 @@ msgstr "پیوند رویه کیفیت موجود"
 msgid "Link to Material Request"
 msgstr "پیوند به درخواست مواد"
 
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:407
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:408
 #: erpnext/buying/doctype/supplier_quotation/supplier_quotation.js:58
 msgid "Link to Material Requests"
 msgstr "پیوند به درخواست های مواد"
@@ -28160,6 +28168,10 @@ msgstr "لیتر-اتمسفر"
 #: erpnext/buying/doctype/supplier_scorecard/supplier_scorecard.json
 msgid "Load All Criteria"
 msgstr "بارگیری همه معیارها"
+
+#: erpnext/accounts/doctype/pos_closing_entry/pos_closing_entry.js:83
+msgid "Loading Invoices! Please Wait..."
+msgstr ""
 
 #: erpnext/accounts/doctype/bank_statement_import/bank_statement_import.js:290
 msgid "Loading import file..."
@@ -28313,7 +28325,7 @@ msgstr "جزئیات دلیل از دست دادن"
 #. 'Quotation'
 #: erpnext/crm/doctype/opportunity/opportunity.json
 #: erpnext/crm/report/lost_opportunity/lost_opportunity.py:49
-#: erpnext/public/js/utils/sales_common.js:487
+#: erpnext/public/js/utils/sales_common.js:488
 #: erpnext/selling/doctype/quotation/quotation.json
 msgid "Lost Reasons"
 msgstr "دلایل از دست رفتن"
@@ -28630,7 +28642,7 @@ msgstr "برنامه های تعمیر و نگهداری"
 msgid "Maintenance Status"
 msgstr "وضعیت نگهداری"
 
-#: erpnext/assets/doctype/asset_maintenance_log/asset_maintenance_log.py:58
+#: erpnext/assets/doctype/asset_maintenance_log/asset_maintenance_log.py:59
 msgid "Maintenance Status has to be Cancelled or Completed to Submit"
 msgstr "برای ارسال، وضعیت نگهداری باید لغو یا تکمیل شود"
 
@@ -28870,7 +28882,7 @@ msgstr "بعد حسابداری اجباری"
 msgid "Mandatory Depends On"
 msgstr "اجباری بستگی دارد"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1537
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1540
 msgid "Mandatory Field"
 msgstr "فیلد اجباری"
 
@@ -29390,7 +29402,7 @@ msgstr "رسید مواد"
 #: erpnext/accounts/doctype/purchase_invoice_item/purchase_invoice_item.json
 #: erpnext/buying/doctype/purchase_order/purchase_order.js:546
 #: erpnext/buying/doctype/purchase_order_item/purchase_order_item.json
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:316
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:317
 #: erpnext/buying/doctype/request_for_quotation_item/request_for_quotation_item.json
 #: erpnext/buying/doctype/supplier_quotation/supplier_quotation.js:34
 #: erpnext/buying/doctype/supplier_quotation_item/supplier_quotation_item.json
@@ -29609,7 +29621,7 @@ msgstr "انتقال مواد برای قرارداد فرعی"
 msgid "Material to Supplier"
 msgstr "مواد به تامین کننده"
 
-#: erpnext/controllers/subcontracting_controller.py:1289
+#: erpnext/controllers/subcontracting_controller.py:1295
 msgid "Materials are already received against the {0} {1}"
 msgstr "مواد قبلاً در مقابل {0} {1} دریافت شده است"
 
@@ -30200,13 +30212,13 @@ msgstr "جا افتاده"
 #: erpnext/accounts/doctype/pos_opening_entry/pos_opening_entry.py:69
 #: erpnext/accounts/doctype/pos_profile/pos_profile.py:168
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.py:586
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2048
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2606
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2051
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2609
 #: erpnext/assets/doctype/asset_category/asset_category.py:117
 msgid "Missing Account"
 msgstr "حساب جا افتاده"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1423
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1426
 msgid "Missing Asset"
 msgstr "دارایی گمشده"
 
@@ -30551,6 +30563,7 @@ msgstr "کل سفارش‌های کاری ماهانه"
 msgid "Months"
 msgstr "ماه ها"
 
+#. Label of the more_info_section (Section Break) field in DocType 'GL Entry'
 #. Label of the more_info_tab (Tab Break) field in DocType 'Purchase Invoice'
 #. Label of the more_info_tab (Tab Break) field in DocType 'Sales Invoice'
 #. Label of the more_info_tab (Tab Break) field in DocType 'Purchase Order'
@@ -30563,6 +30576,7 @@ msgstr "ماه ها"
 #. Label of the more_info_tab (Tab Break) field in DocType 'Delivery Note'
 #. Label of the more_info_tab (Tab Break) field in DocType 'Material Request'
 #. Label of the more_info_tab (Tab Break) field in DocType 'Purchase Receipt'
+#: erpnext/accounts/doctype/gl_entry/gl_entry.json
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.json
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 #: erpnext/buying/doctype/purchase_order/purchase_order.json
@@ -30703,7 +30717,7 @@ msgstr "چندین گونه"
 msgid "Multiple Warehouse Accounts"
 msgstr "چندین حساب انبار"
 
-#: erpnext/controllers/accounts_controller.py:975
+#: erpnext/controllers/accounts_controller.py:978
 msgid "Multiple fiscal years exist for the date {0}. Please set company in Fiscal Year"
 msgstr "چندین سال مالی برای تاریخ {0} وجود دارد. لطفا شرکت را در سال مالی تعیین کنید"
 
@@ -30753,7 +30767,7 @@ msgstr ""
 #: erpnext/accounts/doctype/payment_entry_reference/payment_entry_reference.json
 #: erpnext/accounts/doctype/payment_order_reference/payment_order_reference.json
 #: erpnext/accounts/report/customer_ledger_summary/customer_ledger_summary.py:84
-#: erpnext/accounts/report/deferred_revenue_and_expense/deferred_revenue_and_expense.py:355
+#: erpnext/accounts/report/deferred_revenue_and_expense/deferred_revenue_and_expense.py:358
 #: erpnext/bulk_transaction/doctype/bulk_transaction_log_detail/bulk_transaction_log_detail.json
 #: erpnext/crm/doctype/appointment/appointment.json
 #: erpnext/crm/report/prospects_engaged_but_not_converted/prospects_engaged_but_not_converted.py:29
@@ -31155,7 +31169,7 @@ msgstr "وزن خالص"
 msgid "Net Weight UOM"
 msgstr "وزن خالص UOM"
 
-#: erpnext/controllers/accounts_controller.py:1311
+#: erpnext/controllers/accounts_controller.py:1314
 msgid "Net total calculation precision loss"
 msgstr "خالص از دست دادن دقت محاسبه کل"
 
@@ -31438,12 +31452,12 @@ msgstr "بدون اقدام"
 msgid "No Answer"
 msgstr "بدون پاسخ"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2150
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2153
 msgid "No Customer found for Inter Company Transactions which represents company {0}"
 msgstr "هیچ مشتری برای Inter Company Transactions که نماینده شرکت {0} است یافت نشد"
 
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.js:115
-#: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.py:352
+#: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.py:354
 msgid "No Customers found with selected options."
 msgstr "هیچ مشتری با گزینه های انتخاب شده یافت نشد."
 
@@ -31504,7 +31518,7 @@ msgid "No Records for these settings."
 msgstr "هیچ رکوردی برای این تنظیمات وجود ندارد."
 
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.py:332
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:963
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:966
 msgid "No Remarks"
 msgstr "بدون اظهار نظر"
 
@@ -31520,7 +31534,7 @@ msgstr "موجودی در حال حاضر موجود نیست"
 msgid "No Summary"
 msgstr "بدون خلاصه"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2134
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2137
 msgid "No Supplier found for Inter Company Transactions which represents company {0}"
 msgstr "هیچ تامین کننده ای برای Inter Company Transactions یافت نشد که نماینده شرکت {0}"
 
@@ -31557,7 +31571,7 @@ msgstr "هیچ BOM فعالی برای آیتم {0} یافت نشد. تحویل 
 msgid "No additional fields available"
 msgstr "هیچ فیلد اضافی در دسترس نیست"
 
-#: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.py:417
+#: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.py:419
 msgid "No billing email found for customer: {0}"
 msgstr "هیچ ایمیل صورتحساب برای مشتری پیدا نشد: {0}"
 
@@ -31699,7 +31713,7 @@ msgstr "هیچ {0} معوقاتی برای {1} {2} که واجد شرایط فی
 msgid "No pending Material Requests found to link for the given items."
 msgstr "هیچ درخواست مواد معلقی برای پیوند برای موارد داده شده یافت نشد."
 
-#: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.py:424
+#: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.py:426
 msgid "No primary email found for customer: {0}"
 msgstr "ایمیل اصلی برای مشتری پیدا نشد: {0}"
 
@@ -31740,7 +31754,7 @@ msgstr "بدون ارزش"
 msgid "No {0} Accounts found for this company."
 msgstr "هیچ حساب {0} برای این شرکت یافت نشد."
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2198
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2201
 msgid "No {0} found for Inter Company Transactions."
 msgstr "هیچ {0} برای معاملات بین شرکتی یافت نشد."
 
@@ -31794,7 +31808,7 @@ msgstr "عدد"
 
 #: erpnext/accounts/doctype/mode_of_payment/mode_of_payment.py:66
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.py:260
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:523
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:526
 #: erpnext/assets/doctype/asset/asset.js:618
 #: erpnext/assets/doctype/asset/asset.js:635
 #: erpnext/controllers/buying_controller.py:201
@@ -31833,7 +31847,7 @@ msgstr ""
 
 #: erpnext/buying/doctype/purchase_order/purchase_order.py:763
 #: erpnext/templates/pages/material_request_info.py:21
-#: erpnext/templates/pages/order.py:34 erpnext/templates/pages/rfq.py:46
+#: erpnext/templates/pages/order.py:37 erpnext/templates/pages/rfq.py:46
 msgid "Not Permitted"
 msgstr "غیر مجاز"
 
@@ -31943,7 +31957,7 @@ msgstr "توجه: برای کاربران ناتوان ایمیل ارسال ن�
 msgid "Note: Item {0} added multiple times"
 msgstr "توجه: مورد {0} چندین بار اضافه شد"
 
-#: erpnext/controllers/accounts_controller.py:504
+#: erpnext/controllers/accounts_controller.py:507
 msgid "Note: Payment Entry will not be created since 'Cash or Bank Account' was not specified"
 msgstr "توجه: ثبت پرداخت ایجاد نخواهد شد زیرا «حساب نقدی یا بانکی» مشخص نشده است"
 
@@ -32207,7 +32221,7 @@ msgstr "اجاره دفتر کار"
 msgid "Offsetting Account"
 msgstr "تسویه حساب"
 
-#: erpnext/accounts/general_ledger.py:82
+#: erpnext/accounts/general_ledger.py:83
 msgid "Offsetting for Accounting Dimension"
 msgstr "جبران برای بعد حسابداری"
 
@@ -32589,7 +32603,7 @@ msgstr "باز کردن سفارش‌های کاری"
 msgid "Open a new ticket"
 msgstr "یک بلیط جدید باز کنید"
 
-#: erpnext/accounts/report/general_ledger/general_ledger.py:406
+#: erpnext/accounts/report/general_ledger/general_ledger.py:414
 #: erpnext/public/js/stock_analytics.js:97
 msgid "Opening"
 msgstr "افتتاح"
@@ -32599,12 +32613,12 @@ msgstr "افتتاح"
 msgid "Opening & Closing"
 msgstr "افتتاحیه و اختتامیه"
 
-#: erpnext/accounts/report/trial_balance/trial_balance.py:430
+#: erpnext/accounts/report/trial_balance/trial_balance.py:424
 #: erpnext/accounts/report/trial_balance_for_party/trial_balance_for_party.py:185
 msgid "Opening (Cr)"
 msgstr "افتتاحیه (بستانکاری)"
 
-#: erpnext/accounts/report/trial_balance/trial_balance.py:423
+#: erpnext/accounts/report/trial_balance/trial_balance.py:417
 #: erpnext/accounts/report/trial_balance_for_party/trial_balance_for_party.py:178
 msgid "Opening (Dr)"
 msgstr "افتتاحیه (بدهی)"
@@ -32689,7 +32703,7 @@ msgid "Opening Invoice Item"
 msgstr "باز شدن مورد فاکتور"
 
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.py:1526
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1638
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1641
 msgid "Opening Invoice has rounding adjustment of {0}.<br><br> '{1}' account is required to post these values. Please set it in Company: {2}.<br><br> Or, '{3}' can be enabled to not post any rounding adjustment."
 msgstr ""
 
@@ -32987,7 +33001,7 @@ msgstr "فرصت ها بر اساس منبع"
 #. Label of a Link in the CRM Workspace
 #. Label of a shortcut in the CRM Workspace
 #. Label of the opportunity (Link) field in DocType 'Quotation'
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:340
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:341
 #: erpnext/buying/doctype/request_for_quotation/request_for_quotation.json
 #: erpnext/buying/doctype/supplier_quotation/supplier_quotation.json
 #: erpnext/crm/doctype/crm_settings/crm_settings.json
@@ -33451,7 +33465,7 @@ msgstr "معوق"
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.json
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:149
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1066
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1085
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.py:167
 #: erpnext/accounts/report/purchase_register/purchase_register.py:289
 #: erpnext/accounts/report/sales_register/sales_register.py:319
@@ -33527,7 +33541,7 @@ msgstr "مجاز به انتقال بیش از حد (%)"
 msgid "Overbilling of {0} {1} ignored for item {2} because you have {3} role."
 msgstr "اضافه صورتحساب {0} {1} برای مورد {2} نادیده گرفته شد زیرا شما نقش {3} را دارید."
 
-#: erpnext/controllers/accounts_controller.py:1841
+#: erpnext/controllers/accounts_controller.py:1844
 msgid "Overbilling of {} ignored because you have {} role."
 msgstr "پرداخت بیش از حد {} نادیده گرفته شد زیرا شما نقش {} را دارید."
 
@@ -33799,7 +33813,7 @@ msgstr "کاربر پروفایل POS"
 msgid "POS Profile doesn't match {}"
 msgstr ""
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1137
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1140
 msgid "POS Profile required to make POS Entry"
 msgstr "نمایه POS برای ثبت POS لازم است"
 
@@ -34006,7 +34020,7 @@ msgstr "پرداخت شده"
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.json
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:146
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1060
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1079
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.py:165
 #: erpnext/accounts/report/customer_ledger_summary/customer_ledger_summary.py:109
 #: erpnext/accounts/report/pos_register/pos_register.py:209
@@ -34058,7 +34072,7 @@ msgid "Paid To Account Type"
 msgstr "پرداخت به نوع حساب"
 
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.py:322
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1009
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1012
 msgid "Paid amount + Write Off Amount can not be greater than Grand Total"
 msgstr "مبلغ پرداخت شده + مبلغ بازنویسی نمی تواند بیشتر از کل کل باشد"
 
@@ -34455,7 +34469,7 @@ msgstr ""
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.py:147
 #: erpnext/accounts/report/general_and_payment_ledger_comparison/general_and_payment_ledger_comparison.py:228
 #: erpnext/accounts/report/general_ledger/general_ledger.js:74
-#: erpnext/accounts/report/general_ledger/general_ledger.py:666
+#: erpnext/accounts/report/general_ledger/general_ledger.py:672
 #: erpnext/accounts/report/payment_ledger/payment_ledger.js:51
 #: erpnext/accounts/report/payment_ledger/payment_ledger.py:155
 #: erpnext/accounts/report/payment_period_based_on_invoice_date/payment_period_based_on_invoice_date.js:46
@@ -34502,7 +34516,7 @@ msgstr "ارز حساب طرف"
 msgid "Party Account No. (Bank Statement)"
 msgstr "شماره حساب طرف (صورتحساب بانکی)"
 
-#: erpnext/controllers/accounts_controller.py:2109
+#: erpnext/controllers/accounts_controller.py:2112
 msgid "Party Account {0} currency ({1}) and document currency ({2}) should be same"
 msgstr "واحد پول حساب طرف {0} ({1}) و واحد پول سند ({2}) باید یکسان باشند"
 
@@ -34610,7 +34624,7 @@ msgstr "مورد خاص طرف"
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.py:141
 #: erpnext/accounts/report/general_and_payment_ledger_comparison/general_and_payment_ledger_comparison.py:219
 #: erpnext/accounts/report/general_ledger/general_ledger.js:65
-#: erpnext/accounts/report/general_ledger/general_ledger.py:665
+#: erpnext/accounts/report/general_ledger/general_ledger.py:671
 #: erpnext/accounts/report/payment_ledger/payment_ledger.js:41
 #: erpnext/accounts/report/payment_ledger/payment_ledger.py:151
 #: erpnext/accounts/report/payment_period_based_on_invoice_date/payment_period_based_on_invoice_date.js:35
@@ -34884,7 +34898,7 @@ msgstr "کسر ثبت پرداخت"
 msgid "Payment Entry Reference"
 msgstr "مرجع ثبت پرداخت"
 
-#: erpnext/accounts/doctype/payment_request/payment_request.py:433
+#: erpnext/accounts/doctype/payment_request/payment_request.py:442
 msgid "Payment Entry already exists"
 msgstr "ثبت پرداخت از قبل وجود دارد"
 
@@ -34892,13 +34906,13 @@ msgstr "ثبت پرداخت از قبل وجود دارد"
 msgid "Payment Entry has been modified after you pulled it. Please pull it again."
 msgstr "ثبت پرداخت پس از اینکه شما آن را کشیدید اصلاح شده است. لطفا دوباره آن را بکشید."
 
-#: erpnext/accounts/doctype/payment_request/payment_request.py:122
+#: erpnext/accounts/doctype/payment_request/payment_request.py:131
 #: erpnext/accounts/doctype/payment_request/payment_request.py:544
 #: erpnext/accounts/doctype/payment_request/payment_request.py:681
 msgid "Payment Entry is already created"
 msgstr "ثبت پرداخت قبلا ایجاد شده است"
 
-#: erpnext/controllers/accounts_controller.py:1262
+#: erpnext/controllers/accounts_controller.py:1265
 msgid "Payment Entry {0} is linked against Order {1}, check if it should be pulled as advance in this invoice."
 msgstr "ثبت پرداخت {0} با سفارش {1} مرتبط است، بررسی کنید که آیا باید به عنوان پیش پرداخت در این فاکتور آورده شود."
 
@@ -35141,7 +35155,7 @@ msgstr ""
 msgid "Payment Request took too long to respond. Please try requesting for payment again."
 msgstr "پاسخ درخواست پرداخت خیلی طول کشید. لطفاً دوباره درخواست پرداخت کنید."
 
-#: erpnext/accounts/doctype/payment_request/payment_request.py:537
+#: erpnext/accounts/doctype/payment_request/payment_request.py:536
 msgid "Payment Requests cannot be created against: {0}"
 msgstr "درخواست های پرداخت را نمی توان در مقابل: {0} ایجاد کرد"
 
@@ -35176,7 +35190,7 @@ msgstr "برنامه زمانی پرداخت"
 #: erpnext/accounts/doctype/payment_schedule/payment_schedule.json
 #: erpnext/accounts/doctype/payment_term/payment_term.json
 #: erpnext/accounts/doctype/payment_terms_template_detail/payment_terms_template_detail.json
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1056
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1075
 #: erpnext/accounts/report/gross_profit/gross_profit.py:365
 #: erpnext/accounts/workspace/accounting/accounting.json
 #: erpnext/selling/report/payment_terms_status_for_sales_order/payment_terms_status_for_sales_order.py:30
@@ -35608,12 +35622,19 @@ msgstr "کوپن پایان دوره"
 msgid "Period Details"
 msgstr "جزئیات دوره"
 
+#. Label of the period_end_date (Date) field in DocType 'Period Closing
+#. Voucher'
 #. Label of the period_end_date (Datetime) field in DocType 'POS Closing Entry'
 #. Label of the period_end_date (Date) field in DocType 'POS Opening Entry'
+#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.json
 #: erpnext/accounts/doctype/pos_closing_entry/pos_closing_entry.json
 #: erpnext/accounts/doctype/pos_opening_entry/pos_opening_entry.json
 msgid "Period End Date"
 msgstr "تاریخ پایان دوره"
+
+#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:69
+msgid "Period End Date cannot be greater than Fiscal Year End Date"
+msgstr ""
 
 #. Label of the period_name (Data) field in DocType 'Accounting Period'
 #: erpnext/accounts/doctype/accounting_period/accounting_period.json
@@ -35635,14 +35656,25 @@ msgstr "امتیاز دوره"
 msgid "Period Settings"
 msgstr "تنظیمات دوره"
 
+#. Label of the period_start_date (Date) field in DocType 'Period Closing
+#. Voucher'
 #. Label of the period_start_date (Datetime) field in DocType 'POS Closing
 #. Entry'
 #. Label of the period_start_date (Datetime) field in DocType 'POS Opening
 #. Entry'
+#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.json
 #: erpnext/accounts/doctype/pos_closing_entry/pos_closing_entry.json
 #: erpnext/accounts/doctype/pos_opening_entry/pos_opening_entry.json
 msgid "Period Start Date"
 msgstr "تاریخ شروع دوره"
+
+#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:66
+msgid "Period Start Date cannot be greater than Period End Date"
+msgstr ""
+
+#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:63
+msgid "Period Start Date must be {0}"
+msgstr ""
 
 #. Label of the period_to_date (Datetime) field in DocType 'Bisect Nodes'
 #: erpnext/accounts/doctype/bisect_nodes/bisect_nodes.json
@@ -36147,7 +36179,7 @@ msgstr "لطفاً تعداد را تنظیم کنید یا برای ادامه 
 msgid "Please attach CSV file"
 msgstr "لطفا فایل CSV را پیوست کنید"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2741
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2744
 msgid "Please cancel and amend the Payment Entry"
 msgstr "لطفاً ثبت پرداخت را لغو و اصلاح کنید"
 
@@ -36225,7 +36257,7 @@ msgstr "لطفاً در برابر فاکتورهایی که «به‌روزرس
 msgid "Please create a new Accounting Dimension if required."
 msgstr "لطفاً در صورت نیاز یک بعد حسابداری جدید ایجاد کنید."
 
-#: erpnext/controllers/accounts_controller.py:594
+#: erpnext/controllers/accounts_controller.py:597
 msgid "Please create purchase from internal sale or delivery document itself"
 msgstr "لطفا خرید را از فروش داخلی یا سند تحویل خود ایجاد کنید"
 
@@ -36283,11 +36315,11 @@ msgstr ""
 msgid "Please ensure that the {0} account {1} is a Payable account. You can change the account type to Payable or select a different account."
 msgstr ""
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:869
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:872
 msgid "Please ensure {} account is a Balance Sheet account."
 msgstr "لطفاً مطمئن شوید که حساب {} یک حساب ترازنامه است."
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:879
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:882
 msgid "Please ensure {} account {} is a Receivable account."
 msgstr "لطفاً مطمئن شوید که {} حساب {} یک حساب دریافتنی است."
 
@@ -36296,7 +36328,7 @@ msgid "Please enter <b>Difference Account</b> or set default <b>Stock Adjustment
 msgstr "لطفاً <b>حساب تفاوت</b> را وارد کنید یا <b>حساب تعدیل موجودی</b> پیش‌فرض را برای شرکت {0} تنظیم کنید"
 
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.py:444
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1048
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1051
 msgid "Please enter Account for Change Amount"
 msgstr "لطفاً حساب را برای تغییر مقدار وارد کنید"
 
@@ -36386,7 +36418,7 @@ msgid "Please enter Warehouse and Date"
 msgstr "لطفا انبار و تاریخ را وارد کنید"
 
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.py:651
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1044
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1047
 msgid "Please enter Write Off Account"
 msgstr "لطفاً Write Off Account را وارد کنید"
 
@@ -36398,7 +36430,7 @@ msgstr "لطفا ابتدا شرکت را وارد کنید"
 msgid "Please enter company name first"
 msgstr "لطفا ابتدا نام شرکت را وارد کنید"
 
-#: erpnext/controllers/accounts_controller.py:2523
+#: erpnext/controllers/accounts_controller.py:2526
 msgid "Please enter default currency in Company Master"
 msgstr "لطفا ارز پیش فرض را در Company Master وارد کنید"
 
@@ -36577,7 +36609,7 @@ msgstr "لطفاً شرکت و تاریخ ارسال را برای دریافت 
 msgid "Please select Company first"
 msgstr "لطفا ابتدا شرکت را انتخاب کنید"
 
-#: erpnext/assets/doctype/asset_maintenance_log/asset_maintenance_log.py:51
+#: erpnext/assets/doctype/asset_maintenance_log/asset_maintenance_log.py:52
 msgid "Please select Completion Date for Completed Asset Maintenance Log"
 msgstr "لطفاً تاریخ تکمیل را برای گزارش کامل تعمیر و نگهداری دارایی انتخاب کنید"
 
@@ -36599,7 +36631,7 @@ msgstr "لطفاً آیتم کالای تمام شده را برای آیتم س
 msgid "Please select Item Code first"
 msgstr "لطفا ابتدا کد مورد را انتخاب کنید"
 
-#: erpnext/assets/doctype/asset_maintenance_log/asset_maintenance_log.py:54
+#: erpnext/assets/doctype/asset_maintenance_log/asset_maintenance_log.py:55
 msgid "Please select Maintenance Status as Completed or remove Completion Date"
 msgstr "لطفاً وضعیت تعمیر و نگهداری را به عنوان تکمیل شده انتخاب کنید یا تاریخ تکمیل را حذف کنید"
 
@@ -36643,7 +36675,7 @@ msgstr "لطفاً تاریخ شروع و تاریخ پایان را برای م
 msgid "Please select Subcontracting Order instead of Purchase Order {0}"
 msgstr "لطفاً به جای سفارش خرید، سفارش قرارداد فرعی را انتخاب کنید {0}"
 
-#: erpnext/controllers/accounts_controller.py:2419
+#: erpnext/controllers/accounts_controller.py:2422
 msgid "Please select Unrealized Profit / Loss account or add default Unrealized Profit / Loss account account for company {0}"
 msgstr "لطفاً حساب سود / زیان تحقق نیافته را انتخاب کنید یا حساب سود / زیان پیش فرض را برای شرکت اضافه کنید {0}"
 
@@ -36834,7 +36866,7 @@ msgstr "لطفاً \"{0}\" را در شرکت: {1} تنظیم کنید"
 msgid "Please set Account"
 msgstr "لطفا حساب را تنظیم کنید"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1537
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1540
 msgid "Please set Account for Change Amount"
 msgstr ""
 
@@ -36953,23 +36985,23 @@ msgstr "لطفاً یک شناسه ایمیل برای سرنخ {0} تنظیم �
 msgid "Please set at least one row in the Taxes and Charges Table"
 msgstr "لطفاً حداقل یک ردیف در جدول مالیات ها و هزینه ها تنظیم کنید"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2045
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2048
 msgid "Please set default Cash or Bank account in Mode of Payment {0}"
 msgstr "لطفاً حساب پیش‌فرض نقدی یا بانکی را در حالت پرداخت تنظیم کنید {0}"
 
 #: erpnext/accounts/doctype/pos_opening_entry/pos_opening_entry.py:66
 #: erpnext/accounts/doctype/pos_profile/pos_profile.py:165
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2603
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2606
 msgid "Please set default Cash or Bank account in Mode of Payment {}"
 msgstr "لطفاً حساب پیش‌فرض نقدی یا بانکی را در حالت پرداخت تنظیم کنید {}"
 
 #: erpnext/accounts/doctype/pos_opening_entry/pos_opening_entry.py:68
 #: erpnext/accounts/doctype/pos_profile/pos_profile.py:167
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2605
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2608
 msgid "Please set default Cash or Bank account in Mode of Payments {}"
 msgstr "لطفاً حساب پیش‌فرض نقدی یا بانکی را در حالت پرداخت تنظیم کنید {}"
 
-#: erpnext/accounts/utils.py:2155
+#: erpnext/accounts/utils.py:2159
 msgid "Please set default Exchange Gain/Loss Account in Company {}"
 msgstr "لطفاً حساب سود/زیان مبادله پیش‌فرض را در شرکت تنظیم کنید {}"
 
@@ -37003,7 +37035,7 @@ msgstr "لطفاً فیلتر را بر اساس کالا یا انبار تنظ
 msgid "Please set filters"
 msgstr "لطفا فیلترها را تنظیم کنید"
 
-#: erpnext/controllers/accounts_controller.py:2025
+#: erpnext/controllers/accounts_controller.py:2028
 msgid "Please set one of the following:"
 msgstr "لطفا یکی از موارد زیر را تنظیم کنید:"
 
@@ -37053,6 +37085,10 @@ msgstr "لطفاً {0} را برای آدرس {1} تنظیم کنید"
 msgid "Please set {0} in BOM Creator {1}"
 msgstr "لطفاً {0} را در BOM Creator {1} تنظیم کنید"
 
+#: erpnext/controllers/accounts_controller.py:401
+msgid "Please set {0} to {1}, the same account that was used in the original invoice {2}."
+msgstr ""
+
 #: erpnext/erpnext_integrations/doctype/plaid_settings/plaid_settings.py:97
 msgid "Please setup and enable a group account with the Account Type - {0} for the company {1}"
 msgstr ""
@@ -37076,7 +37112,7 @@ msgid "Please specify Company to proceed"
 msgstr "لطفاً شرکت را برای ادامه مشخص کنید"
 
 #: erpnext/accounts/doctype/payment_entry/payment_entry.js:1438
-#: erpnext/controllers/accounts_controller.py:2643
+#: erpnext/controllers/accounts_controller.py:2646
 #: erpnext/public/js/controllers/accounts.js:97
 msgid "Please specify a valid Row ID for row {0} in table {1}"
 msgstr "لطفاً یک شناسه ردیف معتبر برای ردیف {0} در جدول {1} مشخص کنید"
@@ -37159,7 +37195,7 @@ msgstr "کاربران پورتال"
 msgid "Portrait"
 msgstr "پرتره"
 
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:362
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:363
 msgid "Possible Supplier"
 msgstr "تامین کننده احتمالی"
 
@@ -37224,7 +37260,6 @@ msgstr "هزینه های پستی"
 #. Label of the posting_date (Date) field in DocType 'Payment Order'
 #. Label of the posting_date (Date) field in DocType 'Payment Reconciliation
 #. Payment'
-#. Label of the posting_date (Date) field in DocType 'Period Closing Voucher'
 #. Label of the posting_date (Date) field in DocType 'POS Closing Entry'
 #. Label of the posting_date (Date) field in DocType 'POS Invoice Merge Log'
 #. Label of the posting_date (Date) field in DocType 'POS Opening Entry'
@@ -37260,8 +37295,6 @@ msgstr "هزینه های پستی"
 #: erpnext/accounts/doctype/payment_order/payment_order.json
 #: erpnext/accounts/doctype/payment_reconciliation/payment_reconciliation.js:290
 #: erpnext/accounts/doctype/payment_reconciliation_payment/payment_reconciliation_payment.json
-#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.json
-#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:102
 #: erpnext/accounts/doctype/pos_closing_entry/pos_closing_entry.json
 #: erpnext/accounts/doctype/pos_invoice_merge_log/pos_invoice_merge_log.json
 #: erpnext/accounts/doctype/pos_opening_entry/pos_opening_entry.json
@@ -37278,7 +37311,7 @@ msgstr "هزینه های پستی"
 #: erpnext/accounts/report/bank_reconciliation_statement/bank_reconciliation_statement.py:61
 #: erpnext/accounts/report/billed_items_to_be_received/billed_items_to_be_received.py:65
 #: erpnext/accounts/report/cheques_and_deposits_incorrectly_cleared/cheques_and_deposits_incorrectly_cleared.py:151
-#: erpnext/accounts/report/general_ledger/general_ledger.py:596
+#: erpnext/accounts/report/general_ledger/general_ledger.py:602
 #: erpnext/accounts/report/gross_profit/gross_profit.py:222
 #: erpnext/accounts/report/item_wise_purchase_register/item_wise_purchase_register.py:183
 #: erpnext/accounts/report/item_wise_sales_register/item_wise_sales_register.py:201
@@ -37533,7 +37566,7 @@ msgstr "سال مالی گذشته بسته نشده است"
 msgid "Previous Work Experience"
 msgstr "سابقه کار قبلی"
 
-#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:154
+#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:98
 msgid "Previous Year is not closed, please close it first"
 msgstr "سال قبل تعطیل نیست، لطفا اول آن را ببندید"
 
@@ -38399,7 +38432,7 @@ msgstr "پردازش آیتم‌ها و UOMها"
 msgid "Processing Party Addresses"
 msgstr "پردازش آدرس های طرف"
 
-#: erpnext/accounts/doctype/pos_closing_entry/pos_closing_entry.js:122
+#: erpnext/accounts/doctype/pos_closing_entry/pos_closing_entry.js:124
 msgid "Processing Sales! Please Wait..."
 msgstr "در حال پردازش فروش! لطفا صبر کنید..."
 
@@ -38789,7 +38822,7 @@ msgstr "پیشرفت (%)"
 #: erpnext/accounts/doctype/sales_invoice_item/sales_invoice_item.json
 #: erpnext/accounts/report/delivered_items_to_be_billed/delivered_items_to_be_billed.py:73
 #: erpnext/accounts/report/general_ledger/general_ledger.js:162
-#: erpnext/accounts/report/general_ledger/general_ledger.py:667
+#: erpnext/accounts/report/general_ledger/general_ledger.py:673
 #: erpnext/accounts/report/gross_profit/gross_profit.js:78
 #: erpnext/accounts/report/gross_profit/gross_profit.py:310
 #: erpnext/accounts/report/item_wise_purchase_register/item_wise_purchase_register.py:225
@@ -39491,7 +39524,7 @@ msgstr "آیتم سفارش خرید"
 msgid "Purchase Order Item Supplied"
 msgstr "آیتم سفارش خرید عرضه شده است"
 
-#: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.py:767
+#: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.py:732
 msgid "Purchase Order Item reference is missing in Subcontracting Receipt {0}"
 msgstr "مرجع آیتم سفارش خرید در رسید پیمانکاری فرعی وجود ندارد {0}"
 
@@ -39557,7 +39590,7 @@ msgstr "سفارش‌های خرید برای صورتحساب"
 msgid "Purchase Orders to Receive"
 msgstr "سفارش خرید برای دریافت"
 
-#: erpnext/controllers/accounts_controller.py:1661
+#: erpnext/controllers/accounts_controller.py:1664
 msgid "Purchase Orders {0} are un-linked"
 msgstr "سفارش‌های خرید {0} لغو پیوند هستند"
 
@@ -39663,7 +39696,7 @@ msgstr "روند رسید خرید"
 msgid "Purchase Receipt doesn't have any Item for which Retain Sample is enabled."
 msgstr "رسید خرید هیچ موردی ندارد که حفظ نمونه برای آن فعال باشد."
 
-#: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.py:785
+#: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.py:802
 msgid "Purchase Receipt {0} created."
 msgstr "رسید خرید {0} ایجاد شد."
 
@@ -41418,7 +41451,7 @@ msgstr ""
 msgid "Recalculate Incoming/Outgoing Rate"
 msgstr "محاسبه مجدد نرخ ورودی/خروجی"
 
-#: erpnext/projects/doctype/project/project.js:136
+#: erpnext/projects/doctype/project/project.js:137
 msgid "Recalculating Purchase Cost against this Project..."
 msgstr "محاسبه مجدد هزینه خرید در مقابل این پروژه..."
 
@@ -42341,7 +42374,7 @@ msgstr "باقی مانده است"
 
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts_accounts_receivable.html:187
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:156
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1078
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1097
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.py:178
 msgid "Remaining Balance"
 msgstr "موجودی باقی مانده"
@@ -42394,10 +42427,10 @@ msgstr "تذکر دهید"
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:159
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:198
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:269
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1110
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1129
 #: erpnext/accounts/report/general_ledger/general_ledger.html:29
 #: erpnext/accounts/report/general_ledger/general_ledger.html:52
-#: erpnext/accounts/report/general_ledger/general_ledger.py:694
+#: erpnext/accounts/report/general_ledger/general_ledger.py:700
 #: erpnext/accounts/report/payment_period_based_on_invoice_date/payment_period_based_on_invoice_date.py:112
 #: erpnext/accounts/report/purchase_register/purchase_register.py:296
 #: erpnext/accounts/report/sales_register/sales_register.py:335
@@ -43941,12 +43974,12 @@ msgid "Row # {0}: Returned Item {1} does not exist in {2} {3}"
 msgstr "ردیف # {0}: مورد برگشتی {1} در {2} {3} وجود ندارد"
 
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.py:453
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1721
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1724
 msgid "Row #{0} (Payment Table): Amount must be negative"
 msgstr "ردیف #{0} (جدول پرداخت): مبلغ باید منفی باشد"
 
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.py:451
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1716
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1719
 msgid "Row #{0} (Payment Table): Amount must be positive"
 msgstr "ردیف #{0} (جدول پرداخت): مبلغ باید مثبت باشد"
 
@@ -43975,7 +44008,7 @@ msgstr "ردیف #{0}: انبار پذیرفته شده و انبار تامین
 msgid "Row #{0}: Accepted Warehouse is mandatory for the accepted Item {1}"
 msgstr "ردیف #{0}: انبار پذیرفته شده برای مورد پذیرفته شده اجباری است {1}"
 
-#: erpnext/controllers/accounts_controller.py:963
+#: erpnext/controllers/accounts_controller.py:966
 msgid "Row #{0}: Account {1} does not belong to company {2}"
 msgstr "ردیف #{0}: حساب {1} به شرکت {2} تعلق ندارد"
 
@@ -43996,7 +44029,7 @@ msgstr "ردیف #{0}: مبلغ تخصیص یافته:{1} بیشتر از مبل
 msgid "Row #{0}: Amount must be a positive number"
 msgstr "ردیف #{0}: مقدار باید یک عدد مثبت باشد"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:368
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:371
 msgid "Row #{0}: Asset {1} cannot be submitted, it is already {2}"
 msgstr "ردیف #{0}: دارایی {1} قابل ارسال نیست، قبلاً {2} است"
 
@@ -44012,23 +44045,23 @@ msgstr "ردیف #{0}: شماره دسته {1} قبلاً انتخاب شده ا
 msgid "Row #{0}: Cannot allocate more than {1} against payment term {2}"
 msgstr "ردیف #{0}: نمی توان بیش از {1} را در مقابل مدت پرداخت {2} تخصیص داد"
 
-#: erpnext/controllers/accounts_controller.py:3191
+#: erpnext/controllers/accounts_controller.py:3194
 msgid "Row #{0}: Cannot delete item {1} which has already been billed."
 msgstr "ردیف #{0}: نمی‌توان مورد {1} را که قبلاً صورتحساب شده است حذف کرد."
 
-#: erpnext/controllers/accounts_controller.py:3165
+#: erpnext/controllers/accounts_controller.py:3168
 msgid "Row #{0}: Cannot delete item {1} which has already been delivered"
 msgstr "ردیف #{0}: نمی توان مورد {1} را که قبلاً تحویل داده شده حذف کرد"
 
-#: erpnext/controllers/accounts_controller.py:3184
+#: erpnext/controllers/accounts_controller.py:3187
 msgid "Row #{0}: Cannot delete item {1} which has already been received"
 msgstr "ردیف #{0}: نمی توان مورد {1} را که قبلاً دریافت کرده است حذف کرد"
 
-#: erpnext/controllers/accounts_controller.py:3171
+#: erpnext/controllers/accounts_controller.py:3174
 msgid "Row #{0}: Cannot delete item {1} which has work order assigned to it."
 msgstr "ردیف #{0}: نمی توان مورد {1} را که دستور کار به آن اختصاص داده است حذف کرد."
 
-#: erpnext/controllers/accounts_controller.py:3177
+#: erpnext/controllers/accounts_controller.py:3180
 msgid "Row #{0}: Cannot delete item {1} which is assigned to customer's purchase order."
 msgstr "ردیف #{0}: نمی توان مورد {1} را که به سفارش خرید مشتری اختصاص داده است حذف کرد."
 
@@ -44036,7 +44069,7 @@ msgstr "ردیف #{0}: نمی توان مورد {1} را که به سفارش خ
 msgid "Row #{0}: Cannot select Supplier Warehouse while suppling raw materials to subcontractor"
 msgstr "ردیف #{0}: هنگام تامین مواد خام به پیمانکار فرعی، نمی توان انبار تامین کننده را انتخاب کرد"
 
-#: erpnext/controllers/accounts_controller.py:3432
+#: erpnext/controllers/accounts_controller.py:3435
 msgid "Row #{0}: Cannot set Rate if amount is greater than billed amount for Item {1}."
 msgstr "ردیف #{0}: اگر مبلغ بیشتر از مبلغ صورتحساب مورد {1} باشد، نمی‌توان نرخ را تنظیم کرد."
 
@@ -44192,7 +44225,7 @@ msgstr ""
 msgid "Row #{0}: Please set reorder quantity"
 msgstr "ردیف #{0}: لطفاً مقدار سفارش مجدد را تنظیم کنید"
 
-#: erpnext/controllers/accounts_controller.py:421
+#: erpnext/controllers/accounts_controller.py:424
 msgid "Row #{0}: Please update deferred revenue/expense account in item row or default account in company master"
 msgstr "ردیف #{0}: لطفاً حساب درآمد/هزینه معوق را در ردیف آیتم یا حساب پیش‌فرض در اصلی شرکت به‌روزرسانی کنید."
 
@@ -44209,8 +44242,8 @@ msgstr "ردیف #{0}: تعداد باید یک عدد مثبت باشد"
 msgid "Row #{0}: Qty should be less than or equal to Available Qty to Reserve (Actual Qty - Reserved Qty) {1} for Iem {2} against Batch {3} in Warehouse {4}."
 msgstr "ردیف #{0}: تعداد باید کمتر یا برابر با تعداد موجود برای رزرو (تعداد واقعی - تعداد رزرو شده) {1} برای Iem {2} در مقابل دسته {3} در انبار {4} باشد."
 
-#: erpnext/controllers/accounts_controller.py:1116
-#: erpnext/controllers/accounts_controller.py:3291
+#: erpnext/controllers/accounts_controller.py:1119
+#: erpnext/controllers/accounts_controller.py:3294
 msgid "Row #{0}: Quantity for Item {1} cannot be zero."
 msgstr "ردیف #{0}: مقدار آیتم {1} نمی تواند صفر باشد."
 
@@ -44274,15 +44307,15 @@ msgstr "ردیف #{0}: شماره سریال {1} برای آیتم {2} در {3} 
 msgid "Row #{0}: Serial No {1} is already selected."
 msgstr "ردیف #{0}: شماره سریال {1} قبلاً انتخاب شده است."
 
-#: erpnext/controllers/accounts_controller.py:449
+#: erpnext/controllers/accounts_controller.py:452
 msgid "Row #{0}: Service End Date cannot be before Invoice Posting Date"
 msgstr "ردیف #{0}: تاریخ پایان سرویس نمی‌تواند قبل از تاریخ ارسال فاکتور باشد"
 
-#: erpnext/controllers/accounts_controller.py:443
+#: erpnext/controllers/accounts_controller.py:446
 msgid "Row #{0}: Service Start Date cannot be greater than Service End Date"
 msgstr "ردیف #{0}: تاریخ شروع سرویس نمی تواند بیشتر از تاریخ پایان سرویس باشد"
 
-#: erpnext/controllers/accounts_controller.py:437
+#: erpnext/controllers/accounts_controller.py:440
 msgid "Row #{0}: Service Start and End Date is required for deferred accounting"
 msgstr "ردیف #{0}: تاریخ شروع و پایان سرویس برای حسابداری معوق الزامی است"
 
@@ -44354,7 +44387,7 @@ msgstr "ردیف #{0}: زمان بندی با ردیف {1} در تضاد است"
 msgid "Row #{0}: You cannot use the inventory dimension '{1}' in Stock Reconciliation to modify the quantity or valuation rate. Stock reconciliation with inventory dimensions is intended solely for performing opening entries."
 msgstr "ردیف #{0}: نمی‌توانید از بعد موجودی «{1}» در تطبیق موجودی برای تغییر مقدار یا نرخ ارزیابی استفاده کنید. تطبیق موجودی با ابعاد موجودی صرفاً برای انجام ورودی های افتتاحیه در نظر گرفته شده است."
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1422
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1425
 msgid "Row #{0}: You must select an Asset for Item {1}."
 msgstr "ردیف #{0}: باید یک دارایی برای مورد {1} انتخاب کنید."
 
@@ -44483,7 +44516,7 @@ msgstr "ردیف {0}: تعداد پذیرفته شده و تعداد رد شده
 msgid "Row {0}: Account {1} and Party Type {2} have different account types"
 msgstr "ردیف {0}: حساب {1} و نوع طرف {2} انواع مختلف حساب دارند"
 
-#: erpnext/projects/doctype/timesheet/timesheet.py:118
+#: erpnext/projects/doctype/timesheet/timesheet.py:158
 msgid "Row {0}: Activity Type is mandatory."
 msgstr "ردیف {0}: نوع فعالیت اجباری است."
 
@@ -44520,7 +44553,7 @@ msgstr "ردیف {0}: هر دو مقدار بدهی و اعتبار نمی تو�
 msgid "Row {0}: Conversion Factor is mandatory"
 msgstr "ردیف {0}: ضریب تبدیل اجباری است"
 
-#: erpnext/controllers/accounts_controller.py:2681
+#: erpnext/controllers/accounts_controller.py:2684
 msgid "Row {0}: Cost Center {1} does not belong to Company {2}"
 msgstr "ردیف {0}: مرکز هزینه {1} به شرکت {2} تعلق ندارد"
 
@@ -44548,7 +44581,7 @@ msgstr "ردیف {0}: انبار تحویل ({1}) و انبار مشتری ({2})
 msgid "Row {0}: Depreciation Start Date is required"
 msgstr "ردیف {0}: تاریخ شروع استهلاک الزامی است"
 
-#: erpnext/controllers/accounts_controller.py:2340
+#: erpnext/controllers/accounts_controller.py:2343
 msgid "Row {0}: Due Date in the Payment Terms table cannot be before Posting Date"
 msgstr "ردیف {0}: تاریخ سررسید در جدول شرایط پرداخت نمی‌تواند قبل از تاریخ ارسال باشد"
 
@@ -44585,12 +44618,12 @@ msgstr "ردیف {0}: سر هزینه به {1} تغییر کرد زیرا هزی
 msgid "Row {0}: For Supplier {1}, Email Address is Required to send an email"
 msgstr "ردیف {0}: برای تامین کننده {1}، آدرس ایمیل برای ارسال ایمیل ضروری است"
 
-#: erpnext/projects/doctype/timesheet/timesheet.py:115
+#: erpnext/projects/doctype/timesheet/timesheet.py:155
 msgid "Row {0}: From Time and To Time is mandatory."
 msgstr "ردیف {0}: از زمان و تا زمان اجباری است."
 
 #: erpnext/manufacturing/doctype/job_card/job_card.py:259
-#: erpnext/projects/doctype/timesheet/timesheet.py:186
+#: erpnext/projects/doctype/timesheet/timesheet.py:226
 msgid "Row {0}: From Time and To Time of {1} is overlapping with {2}"
 msgstr "ردیف {0}: از زمان و تا زمان {1} با {2} همپوشانی دارد"
 
@@ -44602,7 +44635,7 @@ msgstr "ردیف {0}: از انبار برای نقل و انتقالات داخ
 msgid "Row {0}: From time must be less than to time"
 msgstr "ردیف {0}: از زمان باید کمتر از زمان باشد"
 
-#: erpnext/projects/doctype/timesheet/timesheet.py:121
+#: erpnext/projects/doctype/timesheet/timesheet.py:161
 msgid "Row {0}: Hours value must be greater than zero."
 msgstr "ردیف {0}: مقدار ساعت باید بزرگتر از صفر باشد."
 
@@ -44683,7 +44716,7 @@ msgstr "ردیف {0}: لطفاً حالت پرداخت را در جدول پرد
 msgid "Row {0}: Please set the correct code on Mode of Payment {1}"
 msgstr "ردیف {0}: لطفاً کد صحیح را در حالت پرداخت {1} تنظیم کنید"
 
-#: erpnext/projects/doctype/timesheet/timesheet.py:174
+#: erpnext/projects/doctype/timesheet/timesheet.py:214
 msgid "Row {0}: Project must be same as the one set in the Timesheet: {1}."
 msgstr "ردیف {0}: پروژه باید مانند آنچه در صفحه زمان تنظیم شده است: {1} باشد."
 
@@ -44723,7 +44756,7 @@ msgstr "ردیف {0}: انبار هدف برای نقل و انتقالات دا
 msgid "Row {0}: The item {1}, quantity must be positive number"
 msgstr "ردیف {0}: مورد {1}، مقدار باید عدد مثبت باشد"
 
-#: erpnext/controllers/accounts_controller.py:2658
+#: erpnext/controllers/accounts_controller.py:2661
 msgid "Row {0}: The {3} Account {1} does not belong to the company {2}"
 msgstr ""
 
@@ -44739,7 +44772,7 @@ msgstr ""
 msgid "Row {0}: UOM Conversion Factor is mandatory"
 msgstr "ردیف {0}: ضریب تبدیل UOM اجباری است"
 
-#: erpnext/controllers/accounts_controller.py:864
+#: erpnext/controllers/accounts_controller.py:867
 msgid "Row {0}: user has not applied the rule {1} on the item {2}"
 msgstr "ردیف {0}: کاربر قانون {1} را در مورد {2} اعمال نکرده است"
 
@@ -44751,7 +44784,7 @@ msgstr "ردیف {0}: حساب {1} قبلاً برای بعد حسابداری {
 msgid "Row {0}: {1} must be greater than 0"
 msgstr "ردیف {0}: {1} باید بزرگتر از 0 باشد"
 
-#: erpnext/controllers/accounts_controller.py:571
+#: erpnext/controllers/accounts_controller.py:574
 msgid "Row {0}: {1} {2} cannot be same as {3} (Party Account) {4}"
 msgstr "ردیف {0}: {1} {2} نمی‌تواند مانند {3} (حساب طرف) {4}"
 
@@ -44793,7 +44826,7 @@ msgstr "ردیف‌ها در {0} حذف شدند"
 msgid "Rows with Same Account heads will be merged on Ledger"
 msgstr "ردیف هایی با سرهای حساب یکسان در دفتر کل ادغام می شوند"
 
-#: erpnext/controllers/accounts_controller.py:2350
+#: erpnext/controllers/accounts_controller.py:2353
 msgid "Rows with duplicate due dates in other rows were found: {0}"
 msgstr "ردیف‌هایی با تاریخ سررسید تکراری در ردیف‌های دیگر یافت شد: {0}"
 
@@ -45341,7 +45374,7 @@ msgstr "سفارش فروش برای مورد {0} لازم است"
 msgid "Sales Order {0} already exists against Customer's Purchase Order {1}. To allow multiple Sales Orders, Enable {2} in {3}"
 msgstr "سفارش فروش {0} در مقابل سفارش خرید مشتری {1} وجود دارد. برای مجاز کردن چندین سفارش فروش، {2} را در {3} فعال کنید"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1151
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1154
 msgid "Sales Order {0} is not submitted"
 msgstr "سفارش فروش {0} ارسال نشده است"
 
@@ -45400,7 +45433,7 @@ msgstr "سفارش‌های فروش برای تحویل"
 #: erpnext/accounts/doctype/promotional_scheme/promotional_scheme.json
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.js:114
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1099
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1118
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.js:98
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.py:194
 #: erpnext/accounts/report/customer_ledger_summary/customer_ledger_summary.js:73
@@ -45498,7 +45531,7 @@ msgstr "خلاصه پرداخت فروش"
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts_accounts_receivable.html:156
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:137
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.js:120
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1096
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1115
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.js:104
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.py:191
 #: erpnext/accounts/report/customer_ledger_summary/customer_ledger_summary.js:79
@@ -46175,7 +46208,7 @@ msgstr "نقش ثانویه"
 msgid "Secretary"
 msgstr "منشی"
 
-#: erpnext/accounts/report/financial_statements.py:620
+#: erpnext/accounts/report/financial_statements.py:623
 msgid "Section"
 msgstr "بخش"
 
@@ -46245,7 +46278,7 @@ msgstr "BOM و Qty را برای تولید انتخاب کنید"
 msgid "Select BOM, Qty and For Warehouse"
 msgstr "BOM، Qty و For Warehouse را انتخاب کنید"
 
-#: erpnext/public/js/utils/sales_common.js:383
+#: erpnext/public/js/utils/sales_common.js:384
 #: erpnext/selling/page/point_of_sale/pos_item_details.js:213
 #: erpnext/stock/doctype/pick_list/pick_list.js:352
 msgid "Select Batch No"
@@ -46345,7 +46378,7 @@ msgstr ""
 msgid "Select Loyalty Program"
 msgstr "برنامه وفاداری را انتخاب کنید"
 
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:366
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:367
 msgid "Select Possible Supplier"
 msgstr "تامین کننده احتمالی را انتخاب کنید"
 
@@ -46354,13 +46387,13 @@ msgstr "تامین کننده احتمالی را انتخاب کنید"
 msgid "Select Quantity"
 msgstr "مقدار را انتخاب کنید"
 
-#: erpnext/public/js/utils/sales_common.js:383
+#: erpnext/public/js/utils/sales_common.js:384
 #: erpnext/selling/page/point_of_sale/pos_item_details.js:213
 #: erpnext/stock/doctype/pick_list/pick_list.js:352
 msgid "Select Serial No"
 msgstr "شماره سریال را انتخاب کنید"
 
-#: erpnext/public/js/utils/sales_common.js:386
+#: erpnext/public/js/utils/sales_common.js:387
 #: erpnext/stock/doctype/pick_list/pick_list.js:355
 msgid "Select Serial and Batch"
 msgstr "سریال و دسته را انتخاب کنید"
@@ -46461,7 +46494,7 @@ msgstr "ابتدا شرکت را انتخاب کنید"
 msgid "Select company name first."
 msgstr "ابتدا نام شرکت را انتخاب کنید"
 
-#: erpnext/controllers/accounts_controller.py:2539
+#: erpnext/controllers/accounts_controller.py:2542
 msgid "Select finance book for the item {0} at row {1}"
 msgstr "کتاب مالی را برای مورد {0} در ردیف {1} انتخاب کنید"
 
@@ -46534,7 +46567,7 @@ msgstr "را انتخاب کنید تا مشتری با این فیلدها قا
 msgid "Selected POS Opening Entry should be open."
 msgstr "ثبت افتتاحیه POS انتخاب شده باید باز باشد."
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2193
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2196
 msgid "Selected Price List should have buying and selling fields checked."
 msgstr "لیست قیمت انتخاب شده باید دارای فیلدهای خرید و فروش باشد."
 
@@ -47521,13 +47554,13 @@ msgstr "تاریخ ارسال را تنظیم کنید"
 msgid "Set Process Loss Item Quantity"
 msgstr "مقدار مورد از دست دادن فرآیند را تنظیم کنید"
 
-#: erpnext/projects/doctype/project/project.js:148
-#: erpnext/projects/doctype/project/project.js:151
-#: erpnext/projects/doctype/project/project.js:165
+#: erpnext/projects/doctype/project/project.js:149
+#: erpnext/projects/doctype/project/project.js:152
+#: erpnext/projects/doctype/project/project.js:166
 msgid "Set Project Status"
 msgstr "تنظیم وضعیت پروژه"
 
-#: erpnext/projects/doctype/project/project.js:190
+#: erpnext/projects/doctype/project/project.js:191
 msgid "Set Project and all Tasks to status {0}?"
 msgstr "پروژه و همه وظایف روی وضعیت {0} تنظیم شود؟"
 
@@ -47589,7 +47622,7 @@ msgstr "به عنوان بسته تنظیم کنید"
 msgid "Set as Completed"
 msgstr "به عنوان تکمیل شده تنظیم کنید"
 
-#: erpnext/public/js/utils/sales_common.js:483
+#: erpnext/public/js/utils/sales_common.js:484
 #: erpnext/selling/doctype/quotation/quotation.js:131
 msgid "Set as Lost"
 msgstr "به عنوان از دست رفته ست کنید"
@@ -48244,6 +48277,9 @@ msgstr "نمایش برنامه پرداخت در چاپ"
 msgid "Show Preview"
 msgstr "نمایش پیش نمایش"
 
+#. Label of the show_remarks (Check) field in DocType 'Process Statement Of
+#. Accounts'
+#: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.json
 #: erpnext/accounts/report/accounts_payable/accounts_payable.js:120
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.js:157
 #: erpnext/accounts/report/general_ledger/general_ledger.js:204
@@ -48524,15 +48560,15 @@ msgstr "فروخته شده توسط"
 msgid "Something went wrong please try again"
 msgstr "اشتباهی رخ داده لطفا دوباره تلاش کنید"
 
-#: erpnext/accounts/doctype/pricing_rule/utils.py:738
+#: erpnext/accounts/doctype/pricing_rule/utils.py:736
 msgid "Sorry, this coupon code is no longer valid"
 msgstr "با عرض پوزش، این کد تخفیف دیگر معتبر نیست"
 
-#: erpnext/accounts/doctype/pricing_rule/utils.py:736
+#: erpnext/accounts/doctype/pricing_rule/utils.py:734
 msgid "Sorry, this coupon code's validity has expired"
 msgstr "با عرض پوزش، اعتبار این کد تخفیف منقضی شده است"
 
-#: erpnext/accounts/doctype/pricing_rule/utils.py:733
+#: erpnext/accounts/doctype/pricing_rule/utils.py:732
 msgid "Sorry, this coupon code's validity has not started"
 msgstr "با عرض پوزش، اعتبار این کد تخفیف شروع نشده است"
 
@@ -48969,7 +49005,7 @@ msgstr "زمان شروع نمی تواند بزرگتر یا مساوی با ز
 msgid "Start Year"
 msgstr "سال شروع"
 
-#: erpnext/accounts/report/financial_statements.py:122
+#: erpnext/accounts/report/financial_statements.py:123
 msgid "Start Year and End Year are mandatory"
 msgstr "سال شروع و پایان سال الزامی است"
 
@@ -49934,11 +49970,11 @@ msgstr "موجودی در انبار گروهی {0} قابل رزرو نیست."
 msgid "Stock cannot be updated against Purchase Receipt {0}"
 msgstr "موجودی را نمی توان در برابر رسید خرید به روز کرد {0}"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1030
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1033
 msgid "Stock cannot be updated against the following Delivery Notes: {0}"
 msgstr ""
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1057
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1060
 msgid "Stock cannot be updated because the invoice contains a drop shipping item. Please disable 'Update Stock' or remove the drop shipping item."
 msgstr ""
 
@@ -50287,7 +50323,7 @@ msgid "Submit"
 msgstr "ارسال"
 
 #: erpnext/buying/doctype/purchase_order/purchase_order.py:881
-#: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.py:781
+#: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.py:798
 msgid "Submit Action Failed"
 msgstr "اقدام ارسال نشد"
 
@@ -50828,13 +50864,13 @@ msgstr "جزئیات تامین کننده"
 #: erpnext/accounts/doctype/tax_rule/tax_rule.json
 #: erpnext/accounts/report/accounts_payable/accounts_payable.js:103
 #: erpnext/accounts/report/accounts_payable_summary/accounts_payable_summary.js:86
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1103
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1122
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.py:198
 #: erpnext/accounts/report/customer_ledger_summary/customer_ledger_summary.py:174
 #: erpnext/accounts/report/purchase_register/purchase_register.js:27
 #: erpnext/accounts/report/purchase_register/purchase_register.py:186
 #: erpnext/accounts/report/supplier_ledger_summary/supplier_ledger_summary.js:55
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:458
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:459
 #: erpnext/buying/doctype/supplier/supplier.json
 #: erpnext/buying/report/item_wise_purchase_history/item_wise_purchase_history.py:105
 #: erpnext/buying/workspace/buying/buying.json
@@ -50883,7 +50919,7 @@ msgstr "تاریخ فاکتور تامین کننده نمی تواند بیشت
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.html:59
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.json
 #: erpnext/accounts/report/general_ledger/general_ledger.html:54
-#: erpnext/accounts/report/general_ledger/general_ledger.py:689
+#: erpnext/accounts/report/general_ledger/general_ledger.py:695
 #: erpnext/accounts/report/tax_withholding_details/tax_withholding_details.py:210
 msgid "Supplier Invoice No"
 msgstr "شماره فاکتور تامین کننده"
@@ -51386,7 +51422,7 @@ msgstr "سیستم به طور خودکار شماره سریال / دسته ا�
 msgid "System will fetch all the entries if limit value is zero."
 msgstr "اگر مقدار حد صفر باشد، سیستم تمام ورودی ها را واکشی می کند."
 
-#: erpnext/controllers/accounts_controller.py:1801
+#: erpnext/controllers/accounts_controller.py:1804
 msgid "System will not check over billing since amount for Item {0} in {1} is zero"
 msgstr "سیستم صورتحساب را بررسی نمی‌کند زیرا مبلغ مورد {0} در {1} صفر است"
 
@@ -51433,7 +51469,7 @@ msgstr "جدول برای آیتم که در وب سایت نشان داده خ�
 msgid "Tablespoon (US)"
 msgstr "قاشق غذاخوری (US)"
 
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:466
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:467
 msgid "Tag"
 msgstr "برچسب بزنید"
 
@@ -51723,6 +51759,12 @@ msgstr "شماره تعرفه"
 #: erpnext/templates/pages/timelog_info.html:28
 msgid "Task"
 msgstr "وظیفه"
+
+#. Label of the task_assignee_email (Data) field in DocType 'Asset Maintenance
+#. Log'
+#: erpnext/assets/doctype/asset_maintenance_log/asset_maintenance_log.json
+msgid "Task Assignee Email"
+msgstr ""
 
 #. Option for the '% Complete Method' (Select) field in DocType 'Project'
 #: erpnext/projects/doctype/project/project.json
@@ -52532,7 +52574,7 @@ msgstr "الگوی شرایط و ضوابط"
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 #: erpnext/accounts/doctype/territory_item/territory_item.json
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.js:126
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1087
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1106
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.js:92
 #: erpnext/accounts/report/accounts_receivable_summary/accounts_receivable_summary.py:182
 #: erpnext/accounts/report/customer_ledger_summary/customer_ledger_summary.js:67
@@ -52648,13 +52690,13 @@ msgstr "شرط \"{0}\" نامعتبر است"
 msgid "The Document Type {0} must have a Status field to configure Service Level Agreement"
 msgstr "نوع سند {0} باید دارای یک فیلد وضعیت برای پیکربندی قرارداد سطح سرویس باشد"
 
-#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:70
+#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:149
+msgid "The GL Entries and closing balances will be processed in the background, it can take a few minutes."
+msgstr ""
+
+#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:423
 msgid "The GL Entries will be cancelled in the background, it can take a few minutes."
 msgstr "ورودی‌های دفتر کل در پس‌زمینه لغو می‌شوند، ممکن است چند دقیقه طول بکشد."
-
-#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:171
-msgid "The GL Entries will be processed in the background, it can take a few minutes."
-msgstr "ورودی‌های دفتر کل در پس‌زمینه پردازش می‌شوند، ممکن است چند دقیقه طول بکشد."
 
 #: erpnext/accounts/doctype/loyalty_program/loyalty_program.py:169
 msgid "The Loyalty Program isn't valid for the selected company"
@@ -52708,7 +52750,7 @@ msgstr "حساب ها توسط سیستم به طور خودکار تنظیم م
 msgid "The allocated amount is greater than the outstanding amount of Payment Request {0}"
 msgstr ""
 
-#: erpnext/accounts/doctype/payment_request/payment_request.py:158
+#: erpnext/accounts/doctype/payment_request/payment_request.py:167
 msgid "The amount of {0} set in this payment request is different from the calculated amount of all payment plans: {1}. Make sure this is correct before submitting the document."
 msgstr "مقدار {0} تنظیم شده در این درخواست پرداخت با مقدار محاسبه شده همه طرح‌های پرداخت متفاوت است: {1}. قبل از ارسال سند از صحت این موضوع اطمینان حاصل کنید."
 
@@ -52832,7 +52874,7 @@ msgstr ""
 msgid "The parent account {0} does not exists in the uploaded template"
 msgstr "حساب والد {0} در الگوی آپلود شده وجود ندارد"
 
-#: erpnext/accounts/doctype/payment_request/payment_request.py:147
+#: erpnext/accounts/doctype/payment_request/payment_request.py:156
 msgid "The payment gateway account in plan {0} is different from the payment gateway account in this payment request"
 msgstr "حساب درگاه پرداخت در طرح {0} با حساب درگاه پرداخت در این درخواست پرداخت متفاوت است"
 
@@ -53153,6 +53195,10 @@ msgstr "این مکانی است که مواد اولیه در آن موجود �
 msgid "This is a location where scraped materials are stored."
 msgstr "این مکانی است که مواد ضایعات در آن ذخیره می شود."
 
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:275
+msgid "This is a preview of the email to be sent. A PDF of the document will automatically be attached with the email."
+msgstr ""
+
 #: erpnext/accounts/doctype/account/account.js:35
 msgid "This is a root account and cannot be edited."
 msgstr "این یک حساب کاربری ریشه است و قابل ویرایش نیست."
@@ -53237,7 +53283,7 @@ msgstr "این برنامه زمانی ایجاد شد که دارایی {0} د�
 msgid "This schedule was created when Asset {0} was restored."
 msgstr "این برنامه زمانی ایجاد شد که دارایی {0} بازیابی شد."
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1346
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1349
 msgid "This schedule was created when Asset {0} was returned through Sales Invoice {1}."
 msgstr "این برنامه زمانی ایجاد شد که دارایی {0} از طریق فاکتور فروش {1} برگردانده شد."
 
@@ -53245,7 +53291,7 @@ msgstr "این برنامه زمانی ایجاد شد که دارایی {0} ا�
 msgid "This schedule was created when Asset {0} was scrapped."
 msgstr "این برنامه زمانی ایجاد شد که دارایی {0} لغو شد."
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1358
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1361
 msgid "This schedule was created when Asset {0} was sold through Sales Invoice {1}."
 msgstr "این برنامه زمانی ایجاد شد که دارایی {0} از طریق فاکتور فروش {1} فروخته شد."
 
@@ -53499,14 +53545,14 @@ msgstr "جزئیات جدول زمانی"
 msgid "Timesheet for tasks."
 msgstr "جدول زمانی برای وظایف"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:754
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:757
 msgid "Timesheet {0} is already completed or cancelled"
 msgstr "جدول زمانی {0} قبلاً تکمیل یا لغو شده است"
 
 #. Label of the timesheet_sb (Section Break) field in DocType 'Projects
 #. Settings'
 #: erpnext/projects/doctype/projects_settings/projects_settings.json
-#: erpnext/projects/doctype/timesheet/timesheet.py:530
+#: erpnext/projects/doctype/timesheet/timesheet.py:570
 #: erpnext/templates/pages/projects.html:59
 msgid "Timesheets"
 msgstr "جدول زمانی"
@@ -53750,7 +53796,7 @@ msgstr "به ارز"
 msgid "To Date"
 msgstr "تا تاریخ"
 
-#: erpnext/controllers/accounts_controller.py:430
+#: erpnext/controllers/accounts_controller.py:433
 #: erpnext/setup/doctype/holiday_list/holiday_list.py:112
 msgid "To Date cannot be before From Date"
 msgstr "To Date نمی تواند قبل از From Date باشد"
@@ -53761,7 +53807,7 @@ msgstr "To Date نمی تواند قبل از From Date باشد"
 msgid "To Date cannot be before From Date."
 msgstr "To Date نمی تواند قبل از From Date باشد."
 
-#: erpnext/accounts/report/financial_statements.py:133
+#: erpnext/accounts/report/financial_statements.py:134
 msgid "To Date cannot be less than From Date"
 msgstr "To Date نمی تواند کمتر از From Date باشد"
 
@@ -53987,15 +54033,15 @@ msgstr "برای اعمال شرط در فیلد والد از parent.field_name
 msgid "To be Delivered to Customer"
 msgstr "برای تحویل به مشتری"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:519
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:522
 msgid "To cancel a {} you need to cancel the POS Closing Entry {}."
 msgstr "برای لغو یک {}، باید ثبت اختتامیه POS {} را لغو کنید."
 
-#: erpnext/accounts/doctype/payment_request/payment_request.py:105
+#: erpnext/accounts/doctype/payment_request/payment_request.py:114
 msgid "To create a Payment Request reference document is required"
 msgstr "برای ایجاد سند مرجع درخواست پرداخت مورد نیاز است"
 
-#: erpnext/projects/doctype/timesheet/timesheet.py:146
+#: erpnext/projects/doctype/timesheet/timesheet.py:186
 msgid "To date cannot be before from date"
 msgstr "تا به امروز نمی تواند قبل از تاریخ باشد"
 
@@ -54008,7 +54054,7 @@ msgid "To include non-stock items in the material request planning. i.e. Items f
 msgstr "گنجاندن آیتم‌های غیر موجودی در برنامه ریزی درخواست مواد. به عنوان مثال آیتم‌هایی که چک باکس \"نگهداری موجودی\" برای آنها علامت گذاری نشده است."
 
 #: erpnext/accounts/doctype/payment_entry/payment_entry.py:2143
-#: erpnext/controllers/accounts_controller.py:2691
+#: erpnext/controllers/accounts_controller.py:2694
 msgid "To include tax in row {0} in Item rate, taxes in rows {1} must also be included"
 msgstr "برای گنجاندن مالیات در ردیف {0} در نرخ مورد، مالیات‌های ردیف {1} نیز باید لحاظ شود"
 
@@ -54037,9 +54083,9 @@ msgstr "برای ارسال فاکتور بدون رسید خرید، لطفاً
 msgid "To use a different finance book, please uncheck 'Include Default FB Assets'"
 msgstr "برای استفاده از یک کتاب مالی متفاوت، لطفاً علامت «شامل دارایی‌های پیش‌فرض FB» را بردارید."
 
-#: erpnext/accounts/report/financial_statements.py:574
+#: erpnext/accounts/report/financial_statements.py:577
 #: erpnext/accounts/report/general_ledger/general_ledger.py:289
-#: erpnext/accounts/report/trial_balance/trial_balance.py:272
+#: erpnext/accounts/report/trial_balance/trial_balance.py:266
 msgid "To use a different finance book, please uncheck 'Include Default FB Entries'"
 msgstr "برای استفاده از یک کتاب مالی متفاوت، لطفاً علامت «شامل ورودی‌های پیش‌فرض FB» را بردارید."
 
@@ -54093,8 +54139,8 @@ msgstr "تعداد ستون ها بسیار زیاد است. گزارش را ب�
 #: erpnext/buying/doctype/purchase_order/purchase_order.js:678
 #: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:66
 #: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:153
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:411
-#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:420
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:412
+#: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:421
 #: erpnext/buying/doctype/supplier_quotation/supplier_quotation.js:62
 #: erpnext/buying/report/supplier_quotation_comparison/supplier_quotation_comparison.js:121
 #: erpnext/manufacturing/workspace/manufacturing/manufacturing.json
@@ -54138,13 +54184,13 @@ msgstr "Torr"
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:235
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:273
 #: erpnext/accounts/report/dimension_wise_accounts_balance_report/dimension_wise_accounts_balance_report.py:229
-#: erpnext/accounts/report/financial_statements.py:651
-#: erpnext/accounts/report/general_ledger/general_ledger.py:407
+#: erpnext/accounts/report/financial_statements.py:654
+#: erpnext/accounts/report/general_ledger/general_ledger.py:415
 #: erpnext/accounts/report/item_wise_sales_register/item_wise_sales_register.py:682
 #: erpnext/accounts/report/profitability_analysis/profitability_analysis.py:93
 #: erpnext/accounts/report/profitability_analysis/profitability_analysis.py:98
-#: erpnext/accounts/report/trial_balance/trial_balance.py:338
-#: erpnext/accounts/report/trial_balance/trial_balance.py:339
+#: erpnext/accounts/report/trial_balance/trial_balance.py:332
+#: erpnext/accounts/report/trial_balance/trial_balance.py:333
 #: erpnext/buying/doctype/purchase_order/purchase_order.json
 #: erpnext/buying/doctype/supplier_quotation/supplier_quotation.json
 #: erpnext/crm/doctype/opportunity/opportunity.json
@@ -54639,11 +54685,11 @@ msgstr "کل مبلغ معوقه"
 msgid "Total Paid Amount"
 msgstr "کل مبلغ پرداختی"
 
-#: erpnext/controllers/accounts_controller.py:2397
+#: erpnext/controllers/accounts_controller.py:2400
 msgid "Total Payment Amount in Payment Schedule must be equal to Grand / Rounded Total"
 msgstr "کل مبلغ پرداخت در برنامه پرداخت باید برابر با کل کل / گرد شده باشد"
 
-#: erpnext/accounts/doctype/payment_request/payment_request.py:126
+#: erpnext/accounts/doctype/payment_request/payment_request.py:135
 msgid "Total Payment Request amount cannot be greater than {0} amount"
 msgstr "مبلغ کل درخواست پرداخت نمی تواند بیشتر از مبلغ {0} باشد"
 
@@ -54679,7 +54725,7 @@ msgstr "کل مبلغ خرید"
 msgid "Total Purchase Cost (via Purchase Invoice)"
 msgstr "کل هزینه خرید (از طریق فاکتور خرید)"
 
-#: erpnext/projects/doctype/project/project.js:139
+#: erpnext/projects/doctype/project/project.js:140
 msgid "Total Purchase Cost has been updated"
 msgstr "کل هزینه خرید به روز شده است"
 
@@ -54919,7 +54965,7 @@ msgstr "وزن مجموع"
 msgid "Total Working Hours"
 msgstr "مجموع ساعات کاری"
 
-#: erpnext/controllers/accounts_controller.py:1969
+#: erpnext/controllers/accounts_controller.py:1972
 msgid "Total advance ({0}) against Order {1} cannot be greater than the Grand Total ({2})"
 msgstr "کل پیش پرداخت ({0}) در برابر سفارش {1} نمی تواند بیشتر از کل کل ({2}) باشد"
 
@@ -54936,7 +54982,7 @@ msgid "Total hours: {0}"
 msgstr "کل ساعات: {0}"
 
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.py:459
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:503
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:506
 msgid "Total payments amount can't be greater than {}"
 msgstr "مبلغ کل پرداخت ها نمی تواند بیشتر از {} باشد"
 
@@ -54946,8 +54992,8 @@ msgstr "درصد کل در مقابل مراکز هزینه باید 100 باش�
 
 #: erpnext/accounts/report/consolidated_financial_statement/consolidated_financial_statement.py:745
 #: erpnext/accounts/report/consolidated_financial_statement/consolidated_financial_statement.py:746
-#: erpnext/accounts/report/financial_statements.py:336
 #: erpnext/accounts/report/financial_statements.py:337
+#: erpnext/accounts/report/financial_statements.py:338
 msgid "Total {0} ({1})"
 msgstr "مجموع {0} ({1})"
 
@@ -55101,8 +55147,11 @@ msgstr ""
 msgid "Transaction Deletion Record Item"
 msgstr "مورد رکورد حذف تراکنش"
 
+#. Label of the transaction_details_section (Section Break) field in DocType
+#. 'GL Entry'
 #. Label of the transaction_details (Section Break) field in DocType 'Payment
 #. Request'
+#: erpnext/accounts/doctype/gl_entry/gl_entry.json
 #: erpnext/accounts/doctype/payment_request/payment_request.json
 msgid "Transaction Details"
 msgstr "جزئیات تراکنش"
@@ -55135,7 +55184,7 @@ msgstr "تنظیمات تراکنش"
 msgid "Transaction Type"
 msgstr "نوع تراکنش"
 
-#: erpnext/accounts/doctype/payment_request/payment_request.py:136
+#: erpnext/accounts/doctype/payment_request/payment_request.py:145
 msgid "Transaction currency must be same as Payment Gateway currency"
 msgstr "ارز تراکنش باید همان ارز درگاه پرداخت باشد"
 
@@ -55704,7 +55753,7 @@ msgstr "URL فقط می تواند یک رشته باشد"
 msgid "UTM Source"
 msgstr ""
 
-#: erpnext/public/js/utils/unreconcile.js:24
+#: erpnext/public/js/utils/unreconcile.js:25
 msgid "UnReconcile"
 msgstr "تطبیق نکردن"
 
@@ -56187,7 +56236,7 @@ msgstr "نرخ به روز رسانی بر اساس آخرین خرید"
 msgid "Update Stock"
 msgstr "به روز رسانی موجودی"
 
-#: erpnext/projects/doctype/project/project.js:90
+#: erpnext/projects/doctype/project/project.js:91
 msgid "Update Total Purchase Cost"
 msgstr "به روز رسانی کل هزینه خرید"
 
@@ -56240,13 +56289,13 @@ msgstr "در حال به روز رسانی {0} از {1}، {2}"
 
 #: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.js:43
 msgid "Upload Bank Statement"
-msgstr "بارگذاری صورتحساب بانکی"
+msgstr "آپلود صورتحساب بانکی"
 
 #. Label of the upload_xml_invoices_section (Section Break) field in DocType
 #. 'Import Supplier Invoice'
 #: erpnext/regional/doctype/import_supplier_invoice/import_supplier_invoice.json
 msgid "Upload XML Invoices"
-msgstr "فاکتورهای XML را بارگذاری کنید"
+msgstr "فاکتورهای XML را آپلود کنید"
 
 #: erpnext/setup/setup_wizard/operations/install_fixtures.py:296
 #: erpnext/setup/setup_wizard/operations/install_fixtures.py:404
@@ -56785,7 +56834,7 @@ msgid "Valuation rate for the item as per Sales Invoice (Only for Internal Trans
 msgstr ""
 
 #: erpnext/accounts/doctype/payment_entry/payment_entry.py:2167
-#: erpnext/controllers/accounts_controller.py:2715
+#: erpnext/controllers/accounts_controller.py:2718
 msgid "Valuation type charges can not be marked as Inclusive"
 msgstr "هزینه‌های نوع ارزیابی را نمی‌توان به‌عنوان فراگیر علامت‌گذاری کرد"
 
@@ -57063,8 +57112,8 @@ msgstr "تنظیمات ویدیو"
 #: erpnext/buying/doctype/supplier/supplier.js:93
 #: erpnext/buying/doctype/supplier/supplier.js:104
 #: erpnext/manufacturing/doctype/production_plan/production_plan.js:98
-#: erpnext/projects/doctype/project/project.js:108
-#: erpnext/projects/doctype/project/project.js:125
+#: erpnext/projects/doctype/project/project.js:109
+#: erpnext/projects/doctype/project/project.js:126
 #: erpnext/public/js/controllers/stock_controller.js:76
 #: erpnext/public/js/controllers/stock_controller.js:95
 #: erpnext/public/js/utils.js:137
@@ -57231,17 +57280,17 @@ msgstr "نام کوپن"
 #: erpnext/accounts/doctype/repost_accounting_ledger_items/repost_accounting_ledger_items.json
 #: erpnext/accounts/doctype/repost_payment_ledger_items/repost_payment_ledger_items.json
 #: erpnext/accounts/doctype/unreconcile_payment/unreconcile_payment.json
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1042
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1061
 #: erpnext/accounts/report/general_and_payment_ledger_comparison/general_and_payment_ledger_comparison.js:42
 #: erpnext/accounts/report/general_and_payment_ledger_comparison/general_and_payment_ledger_comparison.py:209
 #: erpnext/accounts/report/general_ledger/general_ledger.js:49
-#: erpnext/accounts/report/general_ledger/general_ledger.py:658
+#: erpnext/accounts/report/general_ledger/general_ledger.py:664
 #: erpnext/accounts/report/invalid_ledger_entries/invalid_ledger_entries.js:41
 #: erpnext/accounts/report/invalid_ledger_entries/invalid_ledger_entries.py:33
 #: erpnext/accounts/report/payment_ledger/payment_ledger.js:64
 #: erpnext/accounts/report/payment_ledger/payment_ledger.py:168
 #: erpnext/accounts/report/voucher_wise_balance/voucher_wise_balance.py:19
-#: erpnext/public/js/utils/unreconcile.js:78
+#: erpnext/public/js/utils/unreconcile.js:79
 #: erpnext/stock/doctype/repost_item_valuation/repost_item_valuation.json
 #: erpnext/stock/doctype/serial_and_batch_bundle/serial_and_batch_bundle.json
 #: erpnext/stock/doctype/stock_ledger_entry/stock_ledger_entry.json
@@ -57273,7 +57322,7 @@ msgstr "مقدار کوپن"
 
 #. Label of the voucher_subtype (Small Text) field in DocType 'GL Entry'
 #: erpnext/accounts/doctype/gl_entry/gl_entry.json
-#: erpnext/accounts/report/general_ledger/general_ledger.py:652
+#: erpnext/accounts/report/general_ledger/general_ledger.py:658
 msgid "Voucher Subtype"
 msgstr "زیرنوع کوپن"
 
@@ -57300,15 +57349,15 @@ msgstr "زیرنوع کوپن"
 #: erpnext/accounts/doctype/repost_payment_ledger_items/repost_payment_ledger_items.json
 #: erpnext/accounts/doctype/tax_withheld_vouchers/tax_withheld_vouchers.json
 #: erpnext/accounts/doctype/unreconcile_payment/unreconcile_payment.json
-#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1040
+#: erpnext/accounts/report/accounts_receivable/accounts_receivable.py:1059
 #: erpnext/accounts/report/general_and_payment_ledger_comparison/general_and_payment_ledger_comparison.py:200
-#: erpnext/accounts/report/general_ledger/general_ledger.py:650
+#: erpnext/accounts/report/general_ledger/general_ledger.py:656
 #: erpnext/accounts/report/invalid_ledger_entries/invalid_ledger_entries.py:31
 #: erpnext/accounts/report/payment_ledger/payment_ledger.py:159
 #: erpnext/accounts/report/purchase_register/purchase_register.py:158
 #: erpnext/accounts/report/sales_register/sales_register.py:174
 #: erpnext/accounts/report/voucher_wise_balance/voucher_wise_balance.py:17
-#: erpnext/public/js/utils/unreconcile.js:70
+#: erpnext/public/js/utils/unreconcile.js:71
 #: erpnext/stock/doctype/repost_item_valuation/repost_item_valuation.json
 #: erpnext/stock/doctype/serial_and_batch_bundle/serial_and_batch_bundle.json
 #: erpnext/stock/doctype/stock_ledger_entry/stock_ledger_entry.json
@@ -57662,7 +57711,7 @@ msgstr "انبار در برابر حساب {0} پیدا نشد"
 msgid "Warehouse not found in the system"
 msgstr "انباری در سیستم یافت نشد"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1020
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1023
 #: erpnext/stock/doctype/delivery_note/delivery_note.py:415
 msgid "Warehouse required for stock Item {0}"
 msgstr "انبار مورد نیاز برای موجودی مورد {0}"
@@ -57782,13 +57831,13 @@ msgid "Warn for new Request for Quotations"
 msgstr "هشدار برای درخواست جدید برای پیش فاکتور"
 
 #: erpnext/accounts/doctype/payment_entry/payment_entry.py:724
-#: erpnext/controllers/accounts_controller.py:1804
+#: erpnext/controllers/accounts_controller.py:1807
 #: erpnext/stock/doctype/delivery_trip/delivery_trip.js:145
 #: erpnext/utilities/transaction_base.py:120
 msgid "Warning"
 msgstr "هشدار"
 
-#: erpnext/projects/doctype/timesheet/timesheet.py:77
+#: erpnext/projects/doctype/timesheet/timesheet.py:117
 msgid "Warning - Row {0}: Billing Hours are more than Actual Hours"
 msgstr "هشدار - ردیف {0}: ساعات صورتحساب بیشتر از ساعت‌های واقعی است"
 
@@ -58672,10 +58721,7 @@ msgid "Year Name"
 msgstr "نام سال"
 
 #. Label of the year_start_date (Date) field in DocType 'Fiscal Year'
-#. Label of the year_start_date (Date) field in DocType 'Period Closing
-#. Voucher'
 #: erpnext/accounts/doctype/fiscal_year/fiscal_year.json
-#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.json
 msgid "Year Start Date"
 msgstr "تاریخ شروع سال"
 
@@ -58767,7 +58813,7 @@ msgstr "رنگ زرد"
 msgid "Yes"
 msgstr "بله"
 
-#: erpnext/controllers/accounts_controller.py:3278
+#: erpnext/controllers/accounts_controller.py:3281
 msgid "You are not allowed to update as per the conditions set in {} Workflow."
 msgstr "شما مجاز به به روز رسانی طبق شرایط تنظیم شده در {} گردش کار نیستید."
 
@@ -58799,13 +58845,9 @@ msgstr "همچنین می توانید این لینک را در مرورگر خ
 msgid "You can also set default CWIP account in Company {}"
 msgstr "همچنین می‌توانید حساب پیش‌فرض «کارهای سرمایه‌ای در دست اجرا» را در شرکت {} تنظیم کنید"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:872
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:875
 msgid "You can change the parent account to a Balance Sheet account or select a different account."
 msgstr "می توانید حساب مادر را به حساب ترازنامه تغییر دهید یا حساب دیگری را انتخاب کنید."
-
-#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:82
-msgid "You can not cancel this Period Closing Voucher, please cancel the future Period Closing Vouchers first"
-msgstr "شما نمی توانید این کوپن اختتامیه دوره را لغو کنید، لطفاً ابتدا کوپن های اختتامیه دوره آینده را لغو کنید"
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.py:647
 msgid "You can not enter current voucher in 'Against Journal Entry' column"
@@ -58844,7 +58886,7 @@ msgstr "نمی‌توانید امتیازهای وفاداری را که ارز
 msgid "You cannot change the rate if BOM is mentioned against any Item."
 msgstr "اگر BOM در برابر هر موردی ذکر شده باشد، نمی توانید نرخ را تغییر دهید."
 
-#: erpnext/accounts/doctype/accounting_period/accounting_period.py:126
+#: erpnext/accounts/doctype/accounting_period/accounting_period.py:128
 msgid "You cannot create a {0} within the closed Accounting Period {1}"
 msgstr "شما نمی توانید یک {0} در دوره حسابداری بسته {1} ایجاد کنید"
 
@@ -58888,7 +58930,11 @@ msgstr "شما نمی توانید سفارش خالی ارسال کنید."
 msgid "You cannot submit the order without payment."
 msgstr "شما نمی توانید سفارش را بدون پرداخت ارسال کنید."
 
-#: erpnext/controllers/accounts_controller.py:3254
+#: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.py:105
+msgid "You cannot {0} this document because another Period Closing Entry {1} exists after {2}"
+msgstr ""
+
+#: erpnext/controllers/accounts_controller.py:3257
 msgid "You do not have permissions to {} items in a {}."
 msgstr "شما مجوز {} مورد در {} را ندارید."
 
@@ -58936,7 +58982,7 @@ msgstr "قبل از افزودن یک آیتم باید مشتری را انتخ
 msgid "You need to cancel POS Closing Entry {} to be able to cancel this document."
 msgstr "برای اینکه بتوانید این سند را لغو کنید، باید ثبت اختتامیه POS {} را لغو کنید."
 
-#: erpnext/controllers/accounts_controller.py:2666
+#: erpnext/controllers/accounts_controller.py:2669
 msgid "You selected the account group {1} as {2} Account in row {0}. Please select a single account."
 msgstr ""
 
@@ -59040,12 +59086,12 @@ msgstr "در"
 msgid "based_on"
 msgstr "بر اساس"
 
-#: erpnext/public/js/utils/sales_common.js:279
+#: erpnext/public/js/utils/sales_common.js:280
 msgid "cannot be greater than 100"
 msgstr "نمی تواند بیشتر از 100 باشد"
 
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.py:329
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:960
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:963
 msgid "dated {0}"
 msgstr ""
 
@@ -59176,7 +59222,7 @@ msgstr "old_parent"
 msgid "on"
 msgstr ""
 
-#: erpnext/controllers/accounts_controller.py:1131
+#: erpnext/controllers/accounts_controller.py:1134
 msgid "or"
 msgstr "یا"
 
@@ -59309,7 +59355,7 @@ msgstr "عنوان"
 msgid "to"
 msgstr "به"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2743
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:2746
 msgid "to unallocate the amount of this Return Invoice before cancelling it."
 msgstr "برای تخصیص مبلغ این فاکتور برگشتی قبل از لغو آن."
 
@@ -59339,7 +59385,7 @@ msgstr "باید در جدول حسابها، حساب سرمایه در جری�
 msgid "{0}"
 msgstr "{0}"
 
-#: erpnext/controllers/accounts_controller.py:955
+#: erpnext/controllers/accounts_controller.py:958
 msgid "{0} '{1}' is disabled"
 msgstr "{0} \"{1}\" غیرفعال است"
 
@@ -59355,7 +59401,7 @@ msgstr "{0} ({1}) نمی تواند بیشتر از مقدار برنامه ری
 msgid "{0} <b>{1}</b> has submitted Assets. Remove Item <b>{2}</b> from table to continue."
 msgstr "{0} <b>{1}</b> دارایی‌ها را ارسال کرده است. برای ادامه، آیتم <b>{2}</b> را از جدول حذف کنید."
 
-#: erpnext/controllers/accounts_controller.py:2024
+#: erpnext/controllers/accounts_controller.py:2027
 msgid "{0} Account not found against Customer {1}."
 msgstr "{0} حساب در مقابل مشتری پیدا نشد {1}."
 
@@ -59367,7 +59413,7 @@ msgstr ""
 msgid "{0} Budget for Account {1} against {2} {3} is {4}. It {5} exceed by {6}"
 msgstr "{0} بودجه برای حساب {1} در برابر {2} {3} {4} است. {5} از {6} بیشتر است"
 
-#: erpnext/accounts/doctype/pricing_rule/utils.py:753
+#: erpnext/accounts/doctype/pricing_rule/utils.py:751
 msgid "{0} Coupon used are {1}. Allowed quantity is exhausted"
 msgstr "{0} کوپن استفاده شده {1} است. مقدار مجاز تمام شده است"
 
@@ -59444,7 +59490,7 @@ msgstr "{0} نمی تواند منفی باشد"
 msgid "{0} cannot be used as a Main Cost Center because it has been used as child in Cost Center Allocation {1}"
 msgstr "{0} نمی‌تواند به‌عنوان مرکز هزینه اصلی استفاده شود زیرا به‌عنوان فرزند در تخصیص مرکز هزینه {1} استفاده شده است."
 
-#: erpnext/accounts/doctype/payment_request/payment_request.py:110
+#: erpnext/accounts/doctype/payment_request/payment_request.py:119
 msgid "{0} cannot be zero"
 msgstr "{0} نمی تواند صفر باشد"
 
@@ -59495,7 +59541,7 @@ msgstr "{0} با موفقیت ارسال شد"
 msgid "{0} hours"
 msgstr ""
 
-#: erpnext/controllers/accounts_controller.py:2345
+#: erpnext/controllers/accounts_controller.py:2348
 msgid "{0} in row {1}"
 msgstr "{0} در ردیف {1}"
 
@@ -59524,7 +59570,7 @@ msgstr "{0} مسدود شده است بنابراین این تراکنش نمی
 msgid "{0} is mandatory"
 msgstr "{0} اجباری است"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:989
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:992
 msgid "{0} is mandatory for Item {1}"
 msgstr "{0} برای آیتم {1} اجباری است"
 
@@ -59537,7 +59583,7 @@ msgstr "{0} برای حساب {1} اجباری است"
 msgid "{0} is mandatory. Maybe Currency Exchange record is not created for {1} to {2}"
 msgstr "{0} اجباری است. شاید رکورد تبادل ارز برای {1} تا {2} ایجاد نشده باشد"
 
-#: erpnext/controllers/accounts_controller.py:2623
+#: erpnext/controllers/accounts_controller.py:2626
 msgid "{0} is mandatory. Maybe Currency Exchange record is not created for {1} to {2}."
 msgstr "{0} اجباری است. شاید رکورد تبادل ارز برای {1} تا {2} ایجاد نشده باشد."
 
@@ -59573,7 +59619,7 @@ msgstr ""
 msgid "{0} is not the default supplier for any items."
 msgstr "{0} تامین کننده پیش فرض هیچ موردی نیست."
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.py:2844
+#: erpnext/accounts/doctype/payment_entry/payment_entry.py:2846
 msgid "{0} is on hold till {1}"
 msgstr "{0} تا {1} در انتظار است"
 
@@ -59596,7 +59642,7 @@ msgstr "{0} مورد تولید شد"
 msgid "{0} must be negative in return document"
 msgstr "{0} باید در سند برگشتی منفی باشد"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1994
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1997
 msgid "{0} not allowed to transact with {1}. Please change the Company or add the Company in the 'Allowed To Transact With'-Section in the Customer record."
 msgstr "{0} مجاز به معامله با {1} نیست. لطفاً شرکت را تغییر دهید یا شرکت را در بخش \"مجاز برای معامله با\" در رکورد مشتری اضافه کنید."
 
@@ -59628,9 +59674,9 @@ msgstr ""
 msgid "{0} units of Item {1} is picked in another Pick List."
 msgstr "{0} واحد از مورد {1} در فهرست انتخاب دیگری انتخاب شده است."
 
-#: erpnext/stock/doctype/stock_ledger_entry/stock_ledger_entry.py:149
-msgid "{0} units of {1} are required in {2}{3}, on {4} {5} for {6} to complete the transaction."
-msgstr "{0} واحد از {1} در {2}{3}، در {4} {5} برای {6} برای تکمیل تراکنش مورد نیاز است."
+#: erpnext/stock/doctype/stock_ledger_entry/stock_ledger_entry.py:146
+msgid "{0} units of {1} are required in {2} with the inventory dimension: {3} ({4}) on {5} {6} for {7} to complete the transaction."
+msgstr ""
 
 #: erpnext/stock/stock_ledger.py:1472 erpnext/stock/stock_ledger.py:1963
 #: erpnext/stock/stock_ledger.py:1977
@@ -59943,7 +59989,7 @@ msgstr "{} انتظار"
 msgid "{} To Bill"
 msgstr "{} برای صورتحساب"
 
-#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1780
+#: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1783
 msgid "{} can't be cancelled since the Loyalty Points earned has been redeemed. First cancel the {} No {}"
 msgstr "{} را نمی توان لغو کرد زیرا امتیازهای وفاداری به دست آمده استفاده شده است. ابتدا {} خیر {} را لغو کنید"
 
