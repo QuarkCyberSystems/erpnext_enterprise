@@ -413,10 +413,15 @@ class PeriodClosingVoucher(AccountsController):
 		return closing_entries
 
 	def is_first_period_closing_voucher(self):
-		return not frappe.db.exists(
+		first_pcv = frappe.db.get_value(
 			"Period Closing Voucher",
-			{"company": self.company, "docstatus": 1, "name": ("!=", self.name)},
+			{"company": self.company, "docstatus": 1},
+			"name",
+			order_by="period_end_date",
 		)
+
+		if not first_pcv or first_pcv == self.name:
+			return True
 
 	def cancel_gl_entries(self):
 		if self.get_gle_count_against_current_pcv() > 5000:
