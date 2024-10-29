@@ -1708,9 +1708,11 @@ class SalesInvoice(SellingController):
 			item.validate_serial_against_delivery_note()
 
 	def update_project(self):
-		if self.project:
-			project = frappe.get_doc("Project", self.project)
+		unique_projects = list(set([d.project for d in self.get("items") if d.project]))
+		for p in unique_projects:
+			project = frappe.get_doc("Project", p)
 			project.update_billed_amount()
+			project.calculate_gross_margin()
 			project.db_update()
 
 	def verify_payment_amount_is_positive(self):
