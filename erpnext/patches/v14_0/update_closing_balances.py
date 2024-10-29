@@ -24,8 +24,9 @@ def execute():
 		for pcv in get_period_closing_vouchers(company):
 			company_wise_order.setdefault(pcv.company, [])
 			if pcv.period_end_date not in company_wise_order[pcv.company]:
-				pcv.pl_accounts_reverse_gle = get_pcv_gl_entries(pcv, gle_fields)
-				closing_entries = pcv.get_account_closing_balances()
+				pcv_doc = frappe.get_doc("Period Closing Voucher", pcv.name)
+				pcv_doc.pl_accounts_reverse_gle = get_pcv_gl_entries(pcv, gle_fields)
+				closing_entries = pcv_doc.get_account_closing_balances()
 				if closing_entries:
 					make_closing_entries(closing_entries, pcv.name, pcv.company, pcv.period_end_date)
 
