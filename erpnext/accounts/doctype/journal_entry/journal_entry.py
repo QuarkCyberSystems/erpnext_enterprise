@@ -1673,6 +1673,8 @@ def make_reverse_journal_entry(source_name, target_doc=None):
 					"debit": "credit",
 					"credit_in_account_currency": "debit_in_account_currency",
 					"credit": "debit",
+					"reference_type": "reference_type",
+					"reference_name": "reference_name",
 				},
 			},
 		},
