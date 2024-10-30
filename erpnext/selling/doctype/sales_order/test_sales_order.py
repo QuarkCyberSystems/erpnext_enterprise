@@ -1352,6 +1352,64 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 		so.reload()
 		self.assertEqual(so.advance_paid, 0)
 
+	def create_foreign_currency_usd_account(self):
+		account_name = "Debtors USD"
+		if not frappe.db.get_value(
+			"Account", filters={"account_name": account_name, "company": "_Test Company"}
+		):
+			acc = frappe.new_doc("Account")
+			acc.account_name = account_name
+			acc.parent_account = "Accounts Receivable - _TC"
+			acc.company = "_Test Company"
+			acc.account_currency = "USD"
+			acc.account_type = "Receivable"
+			acc.insert()
+		else:
+			name = frappe.db.get_value(
+				"Account",
+				filters={"account_name": account_name, "company": "_Test Company"},
+				fieldname="name",
+				pluck=True,
+			)
+			acc = frappe.get_doc("Account", name)
+		self.debtors_usd = acc.name
+
+	def test_advance_paid_and_currency_with_payment(self):
+		from erpnext.accounts.doctype.payment_entry.test_payment_entry import get_payment_entry
+
+		self.create_customer("_Test USD Customer", "USD")
+		self.create_foreign_currency_usd_account()
+
+		so = make_sales_order(customer=self.customer, currency="USD", qty=1, rate=100, do_not_submit=True)
+		so.conversion_rate = 80
+		so.submit()
+
+		pe_exchange_rate = 85
+		pe = get_payment_entry("Sales Order", so.name, bank_account="_Test Bank - _TC")
+		pe.reference_no = "1"
+		pe.reference_date = nowdate()
+		pe.paid_from = self.debtors_usd
+		pe.paid_from_account_currency = "USD"
+		pe.source_exchange_rate = pe_exchange_rate
+		pe.paid_amount = so.grand_total
+		pe.received_amount = pe_exchange_rate * pe.paid_amount
+		pe.references[0].outstanding_amount = 100
+		pe.references[0].total_amount = 100
+		pe.references[0].allocated_amount = 100
+		pe.save().submit()
+
+		so.reload()
+		self.assertEqual(so.advance_paid, 100)
+		self.assertEqual(so.party_account_currency, "USD")
+
+		# cancel advance payment
+		pe.reload()
+		pe.cancel()
+
+		so.reload()
+		self.assertEqual(so.advance_paid, 0)
+		self.assertEqual(so.party_account_currency, "USD")
+
 	def test_cancel_sales_order_after_cancel_payment_entry(self):
 		from erpnext.accounts.doctype.payment_entry.test_payment_entry import get_payment_entry
 
