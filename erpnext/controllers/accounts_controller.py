@@ -1944,7 +1944,7 @@ class AccountsController(TransactionBase):
 		adv = frappe.qb.DocType("Advance Payment Ledger Entry")
 		advance = (
 			frappe.qb.from_(adv)
-			.select(adv.currency, Abs(Sum(adv.amount)).as_("amount"))
+			.select(adv.currency.as_("account_currency"), Abs(Sum(adv.amount)).as_("amount"))
 			.where(
 				(adv.against_voucher_type == self.doctype)
 				& (adv.against_voucher_no == self.name)
@@ -2618,6 +2618,11 @@ class AccountsController(TransactionBase):
 		advance_doctype_references = [
 			x for x in self.references if x.reference_doctype in advance_payment_doctypes
 		]
+		currency = (
+			self.paid_from_account_currency
+			if self.payment_type == "Receive"
+			else self.paid_to_account_currency
+		)
 		for x in advance_doctype_references:
 			doc = frappe.new_doc("Advance Payment Ledger Entry")
 			doc.company = self.company
@@ -2626,6 +2631,7 @@ class AccountsController(TransactionBase):
 			doc.against_voucher_type = x.reference_doctype
 			doc.against_voucher_no = x.reference_name
 			doc.amount = x.allocated_amount if self.docstatus == 1 else -1 * x.allocated_amount
+			doc.currency = currency
 			doc.event = "Submit" if self.docstatus == 1 else "Cancel"
 			doc.save()
 
