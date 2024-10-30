@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: info@erpnext.com\n"
 "POT-Creation-Date: 2024-10-27 09:35+0000\n"
-"PO-Revision-Date: 2024-10-28 02:56\n"
+"PO-Revision-Date: 2024-10-30 03:18\n"
 "Last-Translator: info@erpnext.com\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -83,7 +83,7 @@ msgstr "\"Kund Försedd Artikel\" kan inte vara Försäljning Artikel"
 
 #: erpnext/stock/doctype/item/item.py:235
 msgid "\"Customer Provided Item\" cannot have Valuation Rate"
-msgstr "\"Kund Försedd Artikel\" kan inte ha Grund Pris"
+msgstr "\"Kund Försedd Artikel\" kan inte ha Värderingssats"
 
 #: erpnext/stock/doctype/item/item.py:311
 msgid "\"Is Fixed Asset\" cannot be unchecked, as Asset record exists against the item"
@@ -338,7 +338,7 @@ msgstr "(H) Förändring av Lager Värde (FIFO)"
 
 #: erpnext/stock/report/fifo_queue_vs_qty_after_transaction_comparison/fifo_queue_vs_qty_after_transaction_comparison.py:209
 msgid "(H) Valuation Rate"
-msgstr "(H) Grund Pris"
+msgstr "(H) Värderingssats"
 
 #. Description of the 'Actual Operating Cost' (Currency) field in DocType 'Work
 #. Order Operation'
@@ -349,12 +349,12 @@ msgstr "(Timpris/60) * Faktisk Åtgärd Tid"
 #: erpnext/stock/report/stock_ledger_invariant_check/stock_ledger_invariant_check.py:273
 #: erpnext/stock/report/stock_ledger_variance/stock_ledger_variance.py:174
 msgid "(I) Valuation Rate"
-msgstr "(I) Grund Pris"
+msgstr "(I) Värderingssats"
 
 #: erpnext/stock/report/stock_ledger_invariant_check/stock_ledger_invariant_check.py:278
 #: erpnext/stock/report/stock_ledger_variance/stock_ledger_variance.py:179
 msgid "(J) Valuation Rate as per FIFO"
-msgstr "(J) Grund Pris enligt FIFO"
+msgstr "(J) Värderingssats enligt FIFO"
 
 #: erpnext/stock/report/stock_ledger_invariant_check/stock_ledger_invariant_check.py:288
 #: erpnext/stock/report/stock_ledger_variance/stock_ledger_variance.py:189
@@ -4326,7 +4326,7 @@ msgstr "Tillåt Noll Pris"
 #: erpnext/stock/doctype/stock_entry_detail/stock_entry_detail.json
 #: erpnext/stock/doctype/stock_reconciliation_item/stock_reconciliation_item.json
 msgid "Allow Zero Valuation Rate"
-msgstr "Tillåt Noll Grund Pris"
+msgstr "Tillåt Noll Värderingssats"
 
 #. Description of the 'Allow Continuous Material Consumption' (Check) field in
 #. DocType 'Manufacturing Settings'
@@ -13811,7 +13811,7 @@ msgstr "Aktuell Tid"
 #. Reconciliation Item'
 #: erpnext/stock/doctype/stock_reconciliation_item/stock_reconciliation_item.json
 msgid "Current Valuation Rate"
-msgstr "Aktuell Grund Pris"
+msgstr "Aktuell Värderingssats"
 
 #: erpnext/selling/report/sales_analytics/sales_analytics.js:90
 msgid "Curves"
@@ -19522,7 +19522,7 @@ msgstr "Kostnad Konto saknas"
 #. Account'
 #: erpnext/accounts/doctype/journal_entry_account/journal_entry_account.json
 msgid "Expense Claim"
-msgstr "Utlägg"
+msgstr "Kostnad Anspråk"
 
 #. Label of the expense_account (Link) field in DocType 'Purchase Invoice Item'
 #: erpnext/accounts/doctype/purchase_invoice_item/purchase_invoice_item.json
@@ -23103,7 +23103,7 @@ msgstr "Om aktiverad kommer Konsoliderad Faktura att ha avrundad totalt inaktive
 #. field in DocType 'Stock Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "If enabled, the item rate won't adjust to the valuation rate during internal transfers, but accounting will still use the valuation rate."
-msgstr "Om aktiverad, kommer artikel pris inte att sättas till grund pris vid interna överföringar, men bokföring kommer fortfarande att använda grund pris."
+msgstr "Om aktiverad, kommer artikel pris inte att anpassas till värderingssats vid interna överföringar, men bokföring kommer fortfarande att använda värderingssats."
 
 #. Description of the 'Ignore Available Stock' (Check) field in DocType
 #. 'Production Plan'
@@ -23166,7 +23166,7 @@ msgstr "Om konto är låst, tillåts poster för Behöriga Användare."
 
 #: erpnext/stock/stock_ledger.py:1805
 msgid "If the item is transacting as a Zero Valuation Rate item in this entry, please enable 'Allow Zero Valuation Rate' in the {0} Item table."
-msgstr "Om artikel handlas som Noll Grund Pris i denna post, aktivera 'Tillåt Noll Grund Pris' i {0} Artikel Tabell."
+msgstr "Om artikel handlas som Noll Värderingssats i denna post, aktivera 'Tillåt Noll Värderingssats' i {0} Artikel Tabell."
 
 #: erpnext/manufacturing/doctype/work_order/work_order.js:1002
 msgid "If the selected BOM has Operations mentioned in it, the system will fetch all Operations from BOM, these values can be changed."
@@ -23231,7 +23231,7 @@ msgstr "Om vald kan flera material användas för en Arbetsorder. Detta är anv�
 
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.js:36
 msgid "If ticked, the BOM cost will be automatically updated based on Valuation Rate / Price List Rate / last purchase rate of raw materials."
-msgstr "Om vald uppdateras Stycklista Kostnad automatiskt baserat på Grund Pris / Prislista Pris / Senaste Inköp Pris för Råmaterial."
+msgstr "Om vald uppdateras Stycklista Kostnad automatiskt baserat på Värderingssats / Prislista Pris / Senaste Inköp Pris för Råmaterial."
 
 #: erpnext/accounts/doctype/loyalty_program/loyalty_program.js:14
 msgid "If unlimited expiry for the Loyalty Points, keep the Expiry Duration empty or 0."
@@ -26863,7 +26863,7 @@ msgstr "Artikel kvantitet kan inte uppdateras eftersom råmaterial redan är bea
 
 #: erpnext/stock/doctype/stock_entry/stock_entry.py:873
 msgid "Item rate has been updated to zero as Allow Zero Valuation Rate is checked for item {0}"
-msgstr "Artikel pris har ändrats till noll eftersom Tillåt Noll Grund Pris är vald för artikel {0}"
+msgstr "Artikel pris har ändrats till noll eftersom Tillåt Noll Värderingssats är vald för artikel {0}"
 
 #. Description of the 'Item' (Link) field in DocType 'BOM'
 #: erpnext/manufacturing/doctype/bom/bom.json
@@ -26872,7 +26872,7 @@ msgstr "Artikel som ska produceras eller packas om"
 
 #: erpnext/stock/doctype/landed_cost_voucher/landed_cost_voucher.js:38
 msgid "Item valuation rate is recalculated considering landed cost voucher amount"
-msgstr "Grund Pris räknas om med hänsyn till landad kostnad verifikat belopp"
+msgstr "Värderingssats räknas om med hänsyn till landad kostnad verifikat belopp"
 
 #: erpnext/stock/utils.py:545
 msgid "Item valuation reposting in progress. Report might show incorrect item valuation."
@@ -27135,7 +27135,7 @@ msgstr "Artiklar för Råmaterial Begäran"
 
 #: erpnext/stock/doctype/stock_entry/stock_entry.py:869
 msgid "Items rate has been updated to zero as Allow Zero Valuation Rate is checked for the following items: {0}"
-msgstr "Artikel Pris har ändrats till noll eftersom Tillåt Noll Grund Pris är vald för följande artiklar: {0}"
+msgstr "Artikel Pris har ändrats till noll eftersom Tillåt Noll Värderingssats är vald för följande artiklar: {0}"
 
 #. Label of the items_to_be_repost (Code) field in DocType 'Repost Item
 #. Valuation'
@@ -29903,7 +29903,7 @@ msgstr "Megawatt"
 
 #: erpnext/stock/stock_ledger.py:1818
 msgid "Mention Valuation Rate in the Item master."
-msgstr "Ange Grund Pris i Artikel Tabell."
+msgstr "Ange Värderingssats i Artikel Tabell."
 
 #. Description of the 'Accounts' (Table) field in DocType 'Customer'
 #: erpnext/selling/doctype/customer/customer.json
@@ -31011,7 +31011,7 @@ msgstr "Negativ Kvantitet är inte tillåtet"
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:537
 msgid "Negative Valuation Rate is not allowed"
-msgstr "Negativ Grund Pris är inte tillåtet"
+msgstr "Negativ Värderingssats är inte tillåtet"
 
 #: erpnext/setup/setup_wizard/data/sales_stage.txt:8
 #: erpnext/setup/setup_wizard/operations/install_fixtures.py:420
@@ -37227,7 +37227,7 @@ msgstr "Ange minst en Egenskap i Egenskap Tabell"
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:527
 msgid "Please specify either Quantity or Valuation Rate or both"
-msgstr "Ange antingen Kvantitet eller Grund Pris eller Båda"
+msgstr "Ange antingen Kvantitet eller Värderingssats eller båda"
 
 #: erpnext/stock/doctype/item_attribute/item_attribute.py:79
 msgid "Please specify from/to range"
@@ -44489,7 +44489,7 @@ msgstr "Rad # {0}: Tid Konflikt med rad {1}"
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:97
 msgid "Row #{0}: You cannot use the inventory dimension '{1}' in Stock Reconciliation to modify the quantity or valuation rate. Stock reconciliation with inventory dimensions is intended solely for performing opening entries."
-msgstr "Rad # {0}: Man kan inte använda Lager Dimension '{1}' i Lager Avstämning för att ändra kvantitet eller Grund Pris. Lager Avstämning med Lager Dimensioner är endast avsedd för att utföra öppningsposter."
+msgstr "Rad # {0}: Man kan inte använda Lager Dimension '{1}' i Lager Avstämning för att ändra kvantitet eller Värderingssats. Lager Avstämning med Lager Dimensioner är endast avsedd för att utföra öppningsposter."
 
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1425
 msgid "Row #{0}: You must select an Asset for Item {1}."
@@ -44754,7 +44754,7 @@ msgstr "Rad # {0}: Artikel Moms Mall uppdaterad enligt giltighet och tillämpad 
 #: erpnext/controllers/buying_controller.py:377
 #: erpnext/controllers/selling_controller.py:504
 msgid "Row {0}: Item rate has been updated as per valuation rate since its an internal stock transfer"
-msgstr "Rad # {0}: Artikel Pris är uppdaterad enligt Grund Pris eftersom det är intern lager överföring"
+msgstr "Rad # {0}: Artikel Pris är uppdaterad enligt Värderingssats eftersom det är intern lager överföring"
 
 #: erpnext/controllers/subcontracting_controller.py:98
 msgid "Row {0}: Item {1} must be a stock item."
@@ -47715,7 +47715,7 @@ msgstr "Till Lager"
 #. Creator'
 #: erpnext/manufacturing/doctype/bom_creator/bom_creator.json
 msgid "Set Valuation Rate Based on Source Warehouse"
-msgstr "Ange Grund Pris Baserad på Från Lager"
+msgstr "Ange Värderingssats Baserad på Från Lager"
 
 #: erpnext/selling/doctype/sales_order/sales_order.js:251
 msgid "Set Warehouse"
@@ -53063,7 +53063,7 @@ msgstr "Aktier finns inte med {0}"
 
 #: erpnext/stock/stock_ledger.py:753
 msgid "The stock for the item {0} in the {1} warehouse was negative on the {2}. You should create a positive entry {3} before the date {4} and time {5} to post the correct valuation rate. For more details, please read the <a href='https://docs.erpnext.com/docs/user/manual/en/stock-adjustment-cogs-with-negative-stock'>documentation<a>."
-msgstr "Lager för artikel {0} i {1} lager var negativt {2}. Skapa positiv post {3} före {4} och {5} för att bokföra rätt grund pris. För mer information, läs dokumentation <a href='https://docs.erpnext.com/docs/user/manual/en/stock-adjustment-cogs-with-negative-stock'><a>."
+msgstr "Lager för artikel {0} i {1} lager var negativt {2}. Skapa positiv post {3} före {4} och {5} för att bokföra rätt Värderingssats. För mer information, läs dokumentation <a href='https://docs.erpnext.com/docs/user/manual/en/stock-adjustment-cogs-with-negative-stock'><a>."
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:622
 msgid "The stock has been reserved for the following Items and Warehouses, un-reserve the same to {0} the Stock Reconciliation: <br /><br /> {1}"
@@ -56234,7 +56234,7 @@ msgstr "Uppdatera Stycklista Kostnad Automatiskt"
 #. 'Manufacturing Settings'
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.json
 msgid "Update BOM cost automatically via scheduler, based on the latest Valuation Rate/Price List Rate/Last Purchase Rate of raw materials"
-msgstr "Uppdatera Stycklista kostnad automatiskt via schemaläggare, baserat på senaste Grund Pris / Prislista Pris / Senaste Inköp Pris för Råmaterial"
+msgstr "Uppdatera Stycklista kostnad automatiskt via schemaläggare, baserat på senaste Värderingssats / Prislista Pris / Senaste Inköp Pris för Råmaterial"
 
 #. Label of the update_billed_amount_in_delivery_note (Check) field in DocType
 #. 'POS Invoice'
@@ -56815,7 +56815,7 @@ msgstr "Validera Prissättning Regel"
 #. Settings'
 #: erpnext/selling/doctype/selling_settings/selling_settings.json
 msgid "Validate Selling Price for Item Against Purchase Rate or Valuation Rate"
-msgstr "Validera Försäljning Pris för Artikel mot Inköp Pris eller Grund Pris"
+msgstr "Validera Försäljning Pris för Artikel mot Inköp Pris eller Värderingssats"
 
 #. Label of the validate_stock_on_save (Check) field in DocType 'POS Profile'
 #: erpnext/accounts/doctype/pos_profile/pos_profile.json
@@ -56903,37 +56903,37 @@ msgstr "Värdering Sätt"
 #: erpnext/stock/report/stock_balance/stock_balance.py:472
 #: erpnext/stock/report/stock_ledger/stock_ledger.py:297
 msgid "Valuation Rate"
-msgstr "Grund Pris"
+msgstr "Värderingssats"
 
 #: erpnext/stock/report/incorrect_serial_no_valuation/incorrect_serial_no_valuation.py:166
 msgid "Valuation Rate (In / Out)"
-msgstr "Grund Pris (In/Ut)"
+msgstr "Värderingssats (In/Ut)"
 
 #: erpnext/stock/stock_ledger.py:1821
 msgid "Valuation Rate Missing"
-msgstr "Grund Pris Saknas"
+msgstr "Värderingssats Saknas"
 
 #: erpnext/stock/stock_ledger.py:1799
 msgid "Valuation Rate for the Item {0}, is required to do accounting entries for {1} {2}."
-msgstr "Grund Pris för Artikel {0} erfodras att skapa bokföring poster för {1} {2}."
+msgstr "Värderingssats för Artikel {0} erfodras att skapa bokföring poster för {1} {2}."
 
 #: erpnext/stock/doctype/item/item.py:264
 msgid "Valuation Rate is mandatory if Opening Stock entered"
-msgstr "Grund Pris erfordras om Öppning Lager anges"
+msgstr "Värderingssats erfordras om Öppning Lager anges"
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:674
 msgid "Valuation Rate required for Item {0} at row {1}"
-msgstr "Grund Pris erfordras för Artikel {0} på rad {1}"
+msgstr "Värderingssats erfordras för Artikel {0} på rad {1}"
 
 #. Option for the 'Consider Tax or Charge for' (Select) field in DocType
 #. 'Purchase Taxes and Charges'
 #: erpnext/accounts/doctype/purchase_taxes_and_charges/purchase_taxes_and_charges.json
 msgid "Valuation and Total"
-msgstr "Grund Pris och Totalt"
+msgstr "Värdering och Totalt"
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:883
 msgid "Valuation rate for customer provided items has been set to zero."
-msgstr "Grund Pris för Kund Försedda Artiklar angavs till noll."
+msgstr "Värderingssats för Kund Försedda Artiklar angavs till noll."
 
 #. Description of the 'Sales Incoming Rate' (Currency) field in DocType
 #. 'Purchase Invoice Item'
@@ -56942,7 +56942,7 @@ msgstr "Grund Pris för Kund Försedda Artiklar angavs till noll."
 #: erpnext/accounts/doctype/purchase_invoice_item/purchase_invoice_item.json
 #: erpnext/stock/doctype/purchase_receipt_item/purchase_receipt_item.json
 msgid "Valuation rate for the item as per Sales Invoice (Only for Internal Transfers)"
-msgstr "Grund Pris för artikel enligt Försäljning Faktura (endast för Interna Överföringar)"
+msgstr "Värderingssats för artikel enligt Försäljning Faktura (endast för Interna Överföringar)"
 
 #: erpnext/accounts/doctype/payment_entry/payment_entry.py:2167
 #: erpnext/controllers/accounts_controller.py:2718
@@ -58318,7 +58318,7 @@ msgstr "Näröverordnat lager valts utför system lagerkontroller mot tillhöran
 
 #: erpnext/stock/doctype/item/item.js:967
 msgid "When creating an Item, entering a value for this field will automatically create an Item Price at the backend."
-msgstr "När du skapar en artikel, om du anger ett värde för detta fält, skapas automatiskt ett artikelpris i backend."
+msgstr "När du skapar en artikel, om du anger ett värde för detta fält, skapas automatiskt ett artikelpris i bakgrund."
 
 #: erpnext/accounts/doctype/account/account.py:343
 msgid "While creating account for Child Company {0}, parent account {1} found as a ledger account."
