@@ -2599,7 +2599,11 @@ class AccountsController(TransactionBase):
 
 		for x in advance_doctype_references:
 			# Looking for payments
-			dr_or_cr = "credit" if x.account_type == "Receivable" else "debit"
+			dr_or_cr = (
+				"credit_in_account_currency"
+				if x.account_type == "Receivable"
+				else "debit_in_account_currency"
+			)
 
 			amount = x.get(dr_or_cr)
 			if amount > 0:
@@ -2611,6 +2615,7 @@ class AccountsController(TransactionBase):
 				doc.against_voucher_no = x.reference_name
 				doc.amount = amount if self.docstatus == 1 else -1 * amount
 				doc.event = "Submit" if self.docstatus == 1 else "Cancel"
+				doc.currency = x.account_currency
 				doc.save()
 
 	def make_advance_payment_ledger_for_payment(self):
