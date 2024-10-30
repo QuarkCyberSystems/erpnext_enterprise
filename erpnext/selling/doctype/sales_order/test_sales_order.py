@@ -1410,6 +1410,57 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 		self.assertEqual(so.advance_paid, 0)
 		self.assertEqual(so.party_account_currency, "USD")
 
+	def test_advance_paid_and_currency_with_journal(self):
+		from erpnext.accounts.doctype.payment_entry.test_payment_entry import get_payment_entry
+
+		self.create_customer("_Test USD Customer", "USD")
+		self.create_foreign_currency_usd_account()
+
+		so = make_sales_order(customer=self.customer, currency="USD", qty=1, rate=100, do_not_submit=True)
+		so.conversion_rate = 80
+		so.submit()
+
+		je_exchange_rate = 85
+		je = frappe.get_doc(
+			{
+				"doctype": "Journal Entry",
+				"company": "_Test Company",
+				"voucher_type": "Journal Entry",
+				"posting_date": so.transaction_date,
+				"multi_currency": True,
+				"accounts": [
+					{
+						"account": self.debtors_usd,
+						"party_type": "Customer",
+						"party": so.customer,
+						"credit": 8500,
+						"credit_in_account_currency": 100,
+						"is_advance": "Yes",
+						"reference_type": so.doctype,
+						"reference_name": so.name,
+						"exchange_rate": je_exchange_rate,
+					},
+					{
+						"account": "_Test Bank - _TC",
+						"debit": 8500,
+						"debit_in_account_currency": 8500,
+					},
+				],
+			}
+		)
+		je.save().submit()
+		so.reload()
+		self.assertEqual(so.advance_paid, 100)
+		self.assertEqual(so.party_account_currency, "USD")
+
+		# cancel advance payment
+		je.reload()
+		je.cancel()
+
+		so.reload()
+		self.assertEqual(so.advance_paid, 0)
+		self.assertEqual(so.party_account_currency, "USD")
+
 	def test_cancel_sales_order_after_cancel_payment_entry(self):
 		from erpnext.accounts.doctype.payment_entry.test_payment_entry import get_payment_entry
 
