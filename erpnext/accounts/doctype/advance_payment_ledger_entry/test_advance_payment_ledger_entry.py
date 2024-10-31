@@ -178,3 +178,51 @@ class TestAdvancePaymentLedgerEntry(AccountsTestMixin, IntegrationTestCase):
 		po.reload()
 		self.assertEqual(po.advance_paid, 0)
 		self.assertEqual(po.party_account_currency, "USD")
+
+	def test_po_advance_paid_and_currency_with_journal(self):
+		self.create_supplier("_Test USD Supplier", "USD")
+
+		po = self.create_purchase_order(currency="USD", do_not_submit=True)
+		po.conversion_rate = 80
+		po.submit()
+
+		je_exchange_rate = 85
+		je = frappe.get_doc(
+			{
+				"doctype": "Journal Entry",
+				"company": self.company,
+				"voucher_type": "Journal Entry",
+				"posting_date": po.transaction_date,
+				"multi_currency": True,
+				"accounts": [
+					{
+						"account": self.creditors_usd,
+						"party_type": "Supplier",
+						"party": po.supplier,
+						"debit": 8500,
+						"debit_in_account_currency": 100,
+						"is_advance": "Yes",
+						"reference_type": po.doctype,
+						"reference_name": po.name,
+						"exchange_rate": je_exchange_rate,
+					},
+					{
+						"account": self.cash,
+						"credit": 8500,
+						"credit_in_account_currency": 8500,
+					},
+				],
+			}
+		)
+		je.save().submit()
+		po.reload()
+		self.assertEqual(po.advance_paid, 100)
+		self.assertEqual(po.party_account_currency, "USD")
+
+		# cancel advance payment
+		je.reload()
+		je.cancel()
+
+		po.reload()
+		self.assertEqual(po.advance_paid, 0)
+		self.assertEqual(po.party_account_currency, "USD")
