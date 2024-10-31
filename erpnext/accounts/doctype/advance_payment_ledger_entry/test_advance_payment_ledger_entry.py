@@ -7,6 +7,7 @@ from frappe.utils import nowdate, today
 
 from erpnext.accounts.doctype.payment_entry.test_payment_entry import get_payment_entry
 from erpnext.accounts.test.accounts_mixin import AccountsTestMixin
+from erpnext.buying.doctype.purchase_order.test_purchase_order import create_purchase_order
 from erpnext.selling.doctype.sales_order.test_sales_order import make_sales_order
 
 # On IntegrationTestCase, the doctype test records and all
@@ -47,6 +48,22 @@ class TestAdvancePaymentLedgerEntry(AccountsTestMixin, IntegrationTestCase):
 			do_not_submit=do_not_submit,
 		)
 		return so
+
+	def create_purchase_order(self, qty=1, rate=100, currency="INR", do_not_submit=False):
+		"""
+		Helper method
+		"""
+		po = create_purchase_order(
+			company=self.company,
+			customer=self.supplier,
+			currency=currency,
+			item=self.item,
+			qty=qty,
+			rate=rate,
+			transaction_date=today(),
+			do_not_submit=do_not_submit,
+		)
+		return po
 
 	def test_so_advance_paid_and_currency_with_payment(self):
 		self.create_customer("_Test USD Customer", "USD")
@@ -128,3 +145,36 @@ class TestAdvancePaymentLedgerEntry(AccountsTestMixin, IntegrationTestCase):
 		so.reload()
 		self.assertEqual(so.advance_paid, 0)
 		self.assertEqual(so.party_account_currency, "USD")
+
+	def test_po_advance_paid_and_currency_with_payment(self):
+		self.create_supplier("_Test USD Supplier", "USD")
+
+		po = self.create_purchase_order(currency="USD", do_not_submit=True)
+		po.conversion_rate = 80
+		po.submit()
+
+		pe_exchange_rate = 85
+		pe = get_payment_entry(po.doctype, po.name, bank_account=self.cash)
+		pe.reference_no = "1"
+		pe.reference_date = nowdate()
+		pe.paid_to = self.creditors_usd
+		pe.paid_to_account_currency = "USD"
+		pe.target_exchange_rate = pe_exchange_rate
+		pe.received_amount = po.grand_total
+		pe.paid_amount = pe_exchange_rate * pe.received_amount
+		pe.references[0].outstanding_amount = 100
+		pe.references[0].total_amount = 100
+		pe.references[0].allocated_amount = 100
+		pe.save().submit()
+
+		po.reload()
+		self.assertEqual(po.advance_paid, 100)
+		self.assertEqual(po.party_account_currency, "USD")
+
+		# cancel advance payment
+		pe.reload()
+		pe.cancel()
+
+		po.reload()
+		self.assertEqual(po.advance_paid, 0)
+		self.assertEqual(po.party_account_currency, "USD")
