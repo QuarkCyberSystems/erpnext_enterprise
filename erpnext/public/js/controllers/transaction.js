@@ -479,7 +479,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 	setup_sms() {
 		var me = this;
 		let blacklist = ['Purchase Invoice', 'BOM'];
-		if(this.frm.doc.docstatus===1 && !["Lost", "Stopped", "Closed"].includes(this.frm.doc.status)
+		if(frappe.boot.sms_gateway_enabled && this.frm.doc.docstatus===1 && !["Lost", "Stopped", "Closed"].includes(this.frm.doc.status)
 			&& !blacklist.includes(this.frm.doctype)) {
 			this.frm.page.add_menu_item(__('Send SMS'), function() { me.send_sms(); });
 		}
