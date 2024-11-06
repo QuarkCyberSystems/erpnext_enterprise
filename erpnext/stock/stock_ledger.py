@@ -1048,7 +1048,7 @@ class update_entries_after:
 		rate = 0
 		# Material Transfer, Repack, Manufacturing
 		if sle.voucher_type == "Stock Entry":
-			self.recalculate_amounts_in_stock_entry(sle.voucher_no)
+			self.recalculate_amounts_in_stock_entry(sle.voucher_no, sle.voucher_detail_no)
 			rate = frappe.db.get_value("Stock Entry Detail", sle.voucher_detail_no, "valuation_rate")
 		# Sales and Purchase Return
 		elif sle.voucher_type in (
@@ -1177,14 +1177,15 @@ class update_entries_after:
 
 		# Update outgoing item's rate, recalculate FG Item's rate and total incoming/outgoing amount
 		if not sle.dependant_sle_voucher_detail_no:
-			self.recalculate_amounts_in_stock_entry(sle.voucher_no)
+			self.recalculate_amounts_in_stock_entry(sle.voucher_no, sle.voucher_detail_no)
 
-	def recalculate_amounts_in_stock_entry(self, voucher_no):
+	def recalculate_amounts_in_stock_entry(self, voucher_no, voucher_detail_no):
 		stock_entry = frappe.get_doc("Stock Entry", voucher_no, for_update=True)
 		stock_entry.calculate_rate_and_amount(reset_outgoing_rate=False, raise_error_if_no_rate=False)
 		stock_entry.db_update()
 		for d in stock_entry.items:
-			d.db_update()
+			if d.name == voucher_detail_no or (not d.s_warehouse and d.t_warehouse):
+				d.db_update()
 
 	def update_rate_on_delivery_and_sales_return(self, sle, outgoing_rate):
 		# Update item's incoming rate on transaction
