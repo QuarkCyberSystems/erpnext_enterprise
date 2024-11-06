@@ -497,8 +497,25 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 	}
 
 	item_code(doc, cdt, cdn) {
-		var me = this;
 		var item = frappe.get_doc(cdt, cdn);
+		frappe.call({
+			doc: doc,
+			method: "item_code_trigger",
+			args: {
+				item: item
+			},
+			callback: function(r) {
+				if(!r.exc) {
+					cur_frm.refresh_fields();
+					refresh_field("items");
+				}
+			}
+		});
+
+		return;
+
+		var me = this;
+
 		var update_stock = 0, show_batch_dialog = 0;
 
 		item.weight_per_unit = 0;
