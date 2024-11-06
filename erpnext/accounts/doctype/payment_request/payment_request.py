@@ -696,6 +696,21 @@ def get_amount(ref_doc, payment_account=None):
 		frappe.throw(_("Payment Entry is already created"))
 
 
+def get_irequest_status(payment_requests: None | list = None) -> list:
+	IR = frappe.qb.DocType("Integration Request")
+	res = []
+	if payment_requests:
+		res = (
+			frappe.qb.from_(IR)
+			.select(IR.name)
+			.where(IR.reference_doctype.eq("Payment Request"))
+			.where(IR.reference_docname.isin(payment_requests))
+			.where(IR.status.isin(["Authorized", "Completed"]))
+			.run(as_dict=True)
+		)
+	return res
+
+
 def cancel_old_payment_requests(ref_dt, ref_dn):
 	PR = frappe.qb.DocType("Payment Request")
 
@@ -708,14 +723,17 @@ def cancel_old_payment_requests(ref_dt, ref_dn):
 		.where(PR.status.isin(["Draft", "Requested"]))
 		.run(as_dict=True)
 	):
-		for x in res:
-			doc = frappe.get_doc("Payment Request", x.name)
-			doc.flags.ignore_permissions = True
-			doc.cancel()
+		if get_irequest_status([x.name for x in res]):
+			frappe.throw(_("Another Payment Request is already processed"))
+		else:
+			for x in res:
+				doc = frappe.get_doc("Payment Request", x.name)
+				doc.flags.ignore_permissions = True
+				doc.cancel()
 
-			if ireqs := get_irequests_of_payment_request(doc.name):
-				for ireq in ireqs:
-					frappe.db.set_value("Integration Request", ireq.name, "status", "Cancelled")
+				if ireqs := get_irequests_of_payment_request(doc.name):
+					for ireq in ireqs:
+						frappe.db.set_value("Integration Request", ireq.name, "status", "Cancelled")
 
 
 def get_existing_payment_request_amount(ref_dt, ref_dn, statuses: list | None = None) -> list:
