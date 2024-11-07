@@ -689,7 +689,12 @@ class JobCard(Document):
 		self.set_transferred_qty()
 
 	def validate_transfer_qty(self):
-		if not self.finished_good and self.items and self.transferred_qty < self.for_quantity:
+		if (
+			not self.finished_good
+			and not self.is_corrective_job_card
+			and self.items
+			and self.transferred_qty < self.for_quantity
+		):
 			frappe.throw(
 				_(
 					"Materials needs to be transferred to the work in progress warehouse for the job card {0}"
@@ -986,22 +991,16 @@ class JobCard(Document):
 
 		qty = 0.0
 		if doc.transfer_material_against == "Job Card" and not doc.skip_transfer:
-			completed = True
+			min_qty = []
 			for d in doc.operations:
-				if d.status != "Completed":
-					completed = False
+				if d.completed_qty:
+					min_qty.append(d.completed_qty)
+				else:
+					min_qty = []
 					break
 
-			if completed:
-				job_cards = frappe.get_all(
-					"Job Card",
-					filters={"work_order": self.work_order, "docstatus": ("!=", 2)},
-					fields="sum(transferred_qty) as qty",
-					group_by="operation_id",
-				)
-
-				if job_cards:
-					qty = min(d.qty for d in job_cards)
+			if min_qty:
+				qty = min(min_qty)
 
 			doc.db_set("material_transferred_for_manufacturing", qty)
 

@@ -375,7 +375,8 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 				recipient_id: me.frm.doc.contact_email,
 				payment_request_type: payment_request_type,
 				party_type: payment_request_type == 'Outward' ? "Supplier" : "Customer",
-				party: payment_request_type == 'Outward' ? me.frm.doc.supplier : me.frm.doc.customer
+				party: payment_request_type == 'Outward' ? me.frm.doc.supplier : me.frm.doc.customer,
+				party_name:payment_request_type == 'Outward' ? me.frm.doc.supplier_name : me.frm.doc.customer_name
 			},
 			callback: function(r) {
 				if(!r.exc){
@@ -478,7 +479,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 	setup_sms() {
 		var me = this;
 		let blacklist = ['Purchase Invoice', 'BOM'];
-		if(this.frm.doc.docstatus===1 && !["Lost", "Stopped", "Closed"].includes(this.frm.doc.status)
+		if(frappe.boot.sms_gateway_enabled && this.frm.doc.docstatus===1 && !["Lost", "Stopped", "Closed"].includes(this.frm.doc.status)
 			&& !blacklist.includes(this.frm.doctype)) {
 			this.frm.page.add_menu_item(__('Send SMS'), function() { me.send_sms(); });
 		}
@@ -573,6 +574,15 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 					callback: function(r) {
 						if(!r.exc) {
 							frappe.run_serially([
+								() => {
+									if (item.docstatus === 0
+										&& frappe.meta.has_field(item.doctype, "use_serial_batch_fields")
+										&& !item.use_serial_batch_fields
+										&& cint(frappe.user_defaults?.use_serial_batch_fields) === 1
+									) {
+										item["use_serial_batch_fields"] = 1;
+									}
+								},
 								() => {
 									var d = locals[cdt][cdn];
 									me.add_taxes_from_item_tax_template(d.item_tax_rate);
@@ -1112,7 +1122,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 
 	apply_discount_on_item(doc, cdt, cdn, field) {
 		var item = frappe.get_doc(cdt, cdn);
-		if(!item.price_list_rate) {
+		if(!item?.price_list_rate) {
 			item[field] = 0.0;
 		} else {
 			this.price_list_rate(doc, cdt, cdn);
@@ -1278,6 +1288,10 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 				.filter(Boolean).length > 0;
 		} else if (this.frm.doc?.items) {
 			let first_row = this.frm.doc.items[0];
+			if (!first_row) {
+				return false
+			};
+
 			let mapped_rows = mappped_fields.filter(d => first_row[d])
 
 			return mapped_rows?.length > 0;
@@ -2438,7 +2452,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 	payment_terms_template() {
 		var me = this;
 		const doc = this.frm.doc;
-		if(doc.payment_terms_template && doc.doctype !== 'Delivery Note') {
+		if(doc.payment_terms_template && doc.doctype !== 'Delivery Note' && doc.is_return == 0) {
 			var posting_date = doc.posting_date || doc.transaction_date;
 			frappe.call({
 				method: "erpnext.controllers.accounts_controller.get_payment_terms",

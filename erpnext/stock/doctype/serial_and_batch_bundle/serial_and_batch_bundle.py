@@ -197,7 +197,7 @@ class SerialandBatchBundle(Document):
 	def throw_error_message(self, message, exception=frappe.ValidationError):
 		frappe.throw(_(message), exception, title=_("Error"))
 
-	def set_incoming_rate(self, row=None, save=False, allow_negative_stock=False):
+	def set_incoming_rate(self, parent=None, row=None, save=False, allow_negative_stock=False):
 		if self.type_of_transaction not in ["Inward", "Outward"] or self.voucher_type in [
 			"Installation Note",
 			"Job Card",
@@ -206,12 +206,69 @@ class SerialandBatchBundle(Document):
 		]:
 			return
 
-		if self.type_of_transaction == "Outward":
+		if return_aginst := self.get_return_aginst(parent=parent):
+			self.set_valuation_rate_for_return_entry(return_aginst, save)
+		elif self.type_of_transaction == "Outward":
 			self.set_incoming_rate_for_outward_transaction(
 				row, save, allow_negative_stock=allow_negative_stock
 			)
 		else:
 			self.set_incoming_rate_for_inward_transaction(row, save)
+
+	def set_valuation_rate_for_return_entry(self, return_aginst, save=False):
+		if valuation_details := self.get_valuation_rate_for_return_entry(return_aginst):
+			for row in self.entries:
+				if row.serial_no:
+					valuation_rate = valuation_details["serial_nos"].get(row.serial_no)
+				else:
+					valuation_rate = valuation_details["batches"].get(row.batch_no)
+
+				row.incoming_rate = valuation_rate
+				row.stock_value_difference = flt(row.qty) * flt(row.incoming_rate)
+
+				if save:
+					row.db_set(
+						{
+							"incoming_rate": row.incoming_rate,
+							"stock_value_difference": row.stock_value_difference,
+						}
+					)
+
+	def get_valuation_rate_for_return_entry(self, return_aginst):
+		valuation_details = frappe._dict(
+			{
+				"serial_nos": defaultdict(float),
+				"batches": defaultdict(float),
+			}
+		)
+
+		bundle_data = frappe.get_all(
+			"Serial and Batch Bundle",
+			fields=[
+				"`tabSerial and Batch Entry`.`serial_no`",
+				"`tabSerial and Batch Entry`.`batch_no`",
+				"`tabSerial and Batch Entry`.`incoming_rate`",
+			],
+			filters=[
+				["Serial and Batch Bundle", "voucher_no", "=", return_aginst],
+				["Serial and Batch Entry", "docstatus", "=", 1],
+				["Serial and Batch Bundle", "is_cancelled", "=", 0],
+				["Serial and Batch Bundle", "item_code", "=", self.item_code],
+				["Serial and Batch Bundle", "warehouse", "=", self.warehouse],
+			],
+			order_by="`tabSerial and Batch Bundle`.`creation`, `tabSerial and Batch Entry`.`idx`",
+		)
+
+		if not bundle_data:
+			return {}
+
+		for row in bundle_data:
+			if row.serial_no:
+				valuation_details["serial_nos"][row.serial_no] = row.incoming_rate
+			else:
+				valuation_details["batches"][row.batch_no] = row.incoming_rate
+
+		return valuation_details
 
 	def calculate_total_qty(self, save=True):
 		self.total_qty = 0.0
@@ -280,13 +337,25 @@ class SerialandBatchBundle(Document):
 				)
 
 	def validate_negative_batch(self, batch_no, available_qty):
-		if available_qty < 0:
+		if available_qty < 0 and not self.is_stock_reco_for_valuation_adjustment(available_qty):
 			msg = f"""Batch No {bold(batch_no)} of an Item {bold(self.item_code)}
 				has negative stock
 				of quantity {bold(available_qty)} in the
 				warehouse {self.warehouse}"""
 
 			frappe.throw(_(msg), BatchNegativeStockError)
+
+	def is_stock_reco_for_valuation_adjustment(self, available_qty):
+		if (
+			self.voucher_type == "Stock Reconciliation"
+			and self.type_of_transaction == "Outward"
+			and self.voucher_detail_no
+			and abs(frappe.db.get_value("Stock Reconciliation Item", self.voucher_detail_no, "qty"))
+			== abs(available_qty)
+		):
+			return True
+
+		return False
 
 	def get_sle_for_outward_transaction(self):
 		sle = frappe._dict(
@@ -315,6 +384,33 @@ class SerialandBatchBundle(Document):
 
 		return sle
 
+	def get_return_aginst(self, parent=None):
+		return_aginst = None
+
+		if parent and parent.get("is_return") and parent.get("return_against"):
+			return parent.get("return_against")
+
+		if (
+			self.voucher_type
+			in [
+				"Delivery Note",
+				"Sales Invoice",
+				"Purchase Invoice",
+				"Purchase Receipt",
+				"POS Invoice",
+				"Subcontracting Receipt",
+			]
+			and self.voucher_type
+			and self.voucher_no
+		):
+			voucher_details = frappe.db.get_value(
+				self.voucher_type, self.voucher_no, ["is_return", "return_against"], as_dict=True
+			)
+			if voucher_details and voucher_details.get("is_return") and voucher_details.get("return_against"):
+				return voucher_details.get("return_against")
+
+		return return_aginst
+
 	def set_incoming_rate_for_inward_transaction(self, row=None, save=False):
 		valuation_field = "valuation_rate"
 		if self.voucher_type in ["Sales Invoice", "Delivery Note", "Quotation"]:
@@ -342,7 +438,9 @@ class SerialandBatchBundle(Document):
 			rate = frappe.db.get_value(child_table, self.voucher_detail_no, valuation_field)
 
 		for d in self.entries:
-			if (d.incoming_rate == rate) and d.qty and d.stock_value_difference:
+			if self.is_rejected:
+				rate = 0.0
+			elif (d.incoming_rate == rate) and d.qty and d.stock_value_difference:
 				continue
 
 			d.incoming_rate = flt(rate, precision)
@@ -391,7 +489,7 @@ class SerialandBatchBundle(Document):
 
 		# If user has changed the rate in the child table
 		if self.docstatus == 0:
-			self.set_incoming_rate(save=True, row=row)
+			self.set_incoming_rate(parent=parent, row=row, save=True)
 
 		if self.docstatus == 0 and parent.get("is_return") and parent.is_new():
 			self.reset_qty(row, qty_field=qty_field)
@@ -1296,8 +1394,12 @@ def add_serial_batch_ledgers(entries, child_row, doc, warehouse, do_not_save=Fal
 	if parent_doc and isinstance(parent_doc, str):
 		parent_doc = parse_json(parent_doc)
 
-	if frappe.db.exists("Serial and Batch Bundle", child_row.serial_and_batch_bundle):
-		sb_doc = update_serial_batch_no_ledgers(entries, child_row, parent_doc, warehouse)
+	bundle = child_row.serial_and_batch_bundle
+	if child_row.get("is_rejected"):
+		bundle = child_row.rejected_serial_and_batch_bundle
+
+	if frappe.db.exists("Serial and Batch Bundle", bundle):
+		sb_doc = update_serial_batch_no_ledgers(bundle, entries, child_row, parent_doc, warehouse)
 	else:
 		sb_doc = create_serial_batch_no_ledgers(
 			entries, child_row, parent_doc, warehouse, do_not_save=do_not_save
@@ -1329,6 +1431,15 @@ def create_serial_batch_no_ledgers(
 		}
 	)
 
+	batch_no = None
+
+	if (
+		not entries[0].get("batch_no")
+		and entries[0].get("serial_no")
+		and frappe.get_cached_value("Item", child_row.item_code, "has_batch_no")
+	):
+		batch_no = get_batch(child_row.item_code)
+
 	for row in entries:
 		row = frappe._dict(row)
 		doc.append(
@@ -1336,7 +1447,7 @@ def create_serial_batch_no_ledgers(
 			{
 				"qty": (flt(row.qty) or 1.0) * (1 if type_of_transaction == "Inward" else -1),
 				"warehouse": warehouse,
-				"batch_no": row.batch_no,
+				"batch_no": row.batch_no or batch_no,
 				"serial_no": row.serial_no,
 			},
 		)
@@ -1349,6 +1460,18 @@ def create_serial_batch_no_ledgers(
 	frappe.msgprint(_("Serial and Batch Bundle created"), alert=True)
 
 	return doc
+
+
+def get_batch(item_code):
+	from erpnext.stock.doctype.batch.batch import make_batch
+
+	return make_batch(
+		frappe._dict(
+			{
+				"item": item_code,
+			}
+		)
+	)
 
 
 def get_type_of_transaction(parent_doc, child_row):
@@ -1379,8 +1502,8 @@ def get_type_of_transaction(parent_doc, child_row):
 	return type_of_transaction
 
 
-def update_serial_batch_no_ledgers(entries, child_row, parent_doc, warehouse=None) -> object:
-	doc = frappe.get_doc("Serial and Batch Bundle", child_row.serial_and_batch_bundle)
+def update_serial_batch_no_ledgers(bundle, entries, child_row, parent_doc, warehouse=None) -> object:
+	doc = frappe.get_doc("Serial and Batch Bundle", bundle)
 	doc.voucher_detail_no = child_row.name
 	doc.posting_date = parent_doc.posting_date
 	doc.posting_time = parent_doc.posting_time
