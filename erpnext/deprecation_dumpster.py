@@ -109,3 +109,19 @@ def deprecation_warning(marked: str, graduation: str, msg: str):
 
 
 ### Party starts here
+@deprecated(
+	"erpnext.controllers.taxes_and_totals.get_itemised_taxable_amount",
+	"2024-11-07",
+	"v17",
+	"The field item_wise_tax_detail now already contains the net_amount per tax.",
+)
+def taxes_and_totals_get_itemised_taxable_amount(items):
+	import frappe
+
+	itemised_taxable_amount = frappe._dict()
+	for item in items:
+		item_code = item.item_code or item.item_name
+		itemised_taxable_amount.setdefault(item_code, 0)
+		itemised_taxable_amount[item_code] += item.net_amount
+
+	return itemised_taxable_amount

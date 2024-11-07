@@ -2071,12 +2071,12 @@ class TestSalesInvoice(IntegrationTestCase):
 			{
 				"item": "_Test Item",
 				"taxable_amount": 10000.0,
-				"Service Tax": {"tax_rate": 10.0, "tax_amount": 1000.0},
+				"Service Tax": {"tax_rate": 10.0, "tax_amount": 1000.0, "net_amount": 10000.0},
 			},
 			{
 				"item": "_Test Item 2",
 				"taxable_amount": 5000.0,
-				"Service Tax": {"tax_rate": 10.0, "tax_amount": 500.0},
+				"Service Tax": {"tax_rate": 10.0, "tax_amount": 500.0, "net_amount": 5000.0},
 			},
 		]
 

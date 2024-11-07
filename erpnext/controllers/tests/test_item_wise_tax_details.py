@@ -93,8 +93,12 @@ class TestTaxesAndTotals(FrappeTestCase):
 			self.assertIn(tax.description, expected_values)
 			item_wise_tax_detail = json.loads(tax.item_wise_tax_detail)
 			tax_detail = item_wise_tax_detail[self.doc.items[0].item_code]
-			self.assertAlmostEqual(tax_detail[0], expected_values[tax.description]["tax_rate"])
-			self.assertAlmostEqual(tax_detail[1], expected_values[tax.description]["tax_amount"])
-			self.assertAlmostEqual(tax_detail[2], expected_values[tax.description]["net_amount"])
+			self.assertAlmostEqual(tax_detail.get("tax_rate"), expected_values[tax.description]["tax_rate"])
+			self.assertAlmostEqual(
+				tax_detail.get("tax_amount"), expected_values[tax.description]["tax_amount"]
+			)
+			self.assertAlmostEqual(
+				tax_detail.get("net_amount"), expected_values[tax.description]["net_amount"]
+			)
 			# Check if net_total is set for each tax
 			self.assertEqual(tax.net_amount, expected_values[tax.description]["net_amount"])

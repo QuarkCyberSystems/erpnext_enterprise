@@ -447,6 +447,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 	get_current_tax_amount(item, tax, item_tax_map) {
 		var tax_rate = this._get_tax_rate(tax, item_tax_map);
 		var current_tax_amount = 0.0;
+		var current_net_amount = 0.0;
 
 		// To set row_id by default as previous row.
 		if(["On Previous Row Amount", "On Previous Row Total"].includes(tax.charge_type)) {
@@ -504,15 +505,20 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 			item_wise_tax_amount = flt(item_wise_tax_amount, precision("tax_amount", tax));
 			item_wise_net_amount = flt(item_wise_net_amount, precision("net_amount", tax));
 			if (tax_detail && tax_detail[key]) {
-				item_wise_tax_amount += flt(tax_detail[key][1], precision("tax_amount", tax));
-				item_wise_net_amount += flt(tax_detail[key][2], precision("net_amount", tax));
+				item_wise_tax_amount += flt(tax_detail[key].tax_amount, precision("tax_amount", tax));
+				item_wise_net_amount += flt(tax_detail[key].net_amount, precision("net_amount", tax));
 			}
 		} else {
 			if (tax_detail && tax_detail[key])
-				item_wise_tax_amount += tax_detail[key][1];
+				item_wise_tax_amount += tax_detail[key].tax_amount;
+				item_wise_net_amount += tax_detail[key].net_amount;
 		}
 
-		tax_detail[key] = [tax_rate, flt(item_wise_tax_amount, precision("base_tax_amount", tax)), flt(item_wise_net_amount, precision("base_net_amount", tax))];
+    tax_detail[key] = {
+      tax_rate: tax_rate,
+      tax_amount: flt(item_wise_tax_amount, precision("base_tax_amount", tax)),
+      net_amount: flt(item_wise_net_amount, precision("base_net_amount", tax)),
+    };
 	}
 
 	round_off_totals(tax) {
