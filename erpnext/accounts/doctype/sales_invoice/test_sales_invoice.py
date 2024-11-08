@@ -4175,6 +4175,25 @@ class TestSalesInvoice(IntegrationTestCase):
 		si.submit()
 		self.assertEqual(si.remarks, f"Against Customer Order Test PO dated {format_date(nowdate())}")
 
+	def test_gl_voucher_subtype(self):
+		si = create_sales_invoice()
+		gl_entries = frappe.get_all(
+			"GL Entry",
+			filters={"voucher_type": "Sales Invoice", "voucher_no": si.name},
+			pluck="voucher_subtype",
+		)
+
+		self.assertTrue(all([x == "Sales Invoice" for x in gl_entries]))
+
+		si = create_sales_invoice(is_return=1, qty=-1)
+		gl_entries = frappe.get_all(
+			"GL Entry",
+			filters={"voucher_type": "Sales Invoice", "voucher_no": si.name},
+			pluck="voucher_subtype",
+		)
+
+		self.assertTrue(all([x == "Credit Note" for x in gl_entries]))
+
 
 def set_advance_flag(company, flag, default_account):
 	frappe.db.set_value(
