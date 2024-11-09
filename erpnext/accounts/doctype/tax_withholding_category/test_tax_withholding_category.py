@@ -84,11 +84,17 @@ class TestTaxWithholdingCategory(IntegrationTestCase):
 		self.assertEqual(pi.grand_total, 18000)
 
 		# check gl entry for the purchase invoice
-		gl_entries = frappe.db.get_all("GL Entry", filters={"voucher_no": pi.name}, fields=["*"])
+		gl_entries = frappe.db.get_all(
+			"GL Entry",
+			filters={"voucher_no": pi.name},
+			fields=["account", "sum(debit) as debit", "sum(credit) as credit"],
+			group_by="account",
+		)
 		self.assertEqual(len(gl_entries), 3)
 		for d in gl_entries:
 			if d.account == pi.credit_to:
-				self.assertEqual(d.credit, 18000)
+				self.assertEqual(d.credit, 20000)
+				self.assertEqual(d.debit, 2000)
 			elif d.account == pi.items[0].get("expense_account"):
 				self.assertEqual(d.debit, 20000)
 			elif d.account == pi.taxes[0].get("account_head"):

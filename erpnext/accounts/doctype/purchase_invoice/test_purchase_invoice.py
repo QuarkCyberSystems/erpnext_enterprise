@@ -1551,6 +1551,61 @@ class TestPurchaseInvoice(IntegrationTestCase, StockTestMixin):
 		payment_entry.load_from_db()
 		self.assertEqual(payment_entry.taxes[0].allocated_amount, 0)
 
+	def test_purchase_gl_with_tax_withholding_tax(self):
+		company = "_Test Company"
+
+		tds_account_args = {
+			"doctype": "Account",
+			"account_name": "TDS Payable",
+			"account_type": "Tax",
+			"parent_account": frappe.db.get_value(
+				"Account", {"account_name": "Duties and Taxes", "company": company}
+			),
+			"company": company,
+		}
+
+		tds_account = create_account(**tds_account_args)
+		tax_withholding_category = "Test TDS - 194 - Dividends - Individual"
+
+		# Update tax withholding category with current fiscal year and rate details
+		create_tax_witholding_category(tax_withholding_category, company, tds_account)
+
+		# create a new supplier to test
+		supplier = create_supplier(
+			supplier_name="_Test TDS Advance Supplier",
+			tax_withholding_category=tax_withholding_category,
+		)
+
+		pi = make_purchase_invoice(
+			supplier=supplier.name,
+			rate=3000,
+			qty=1,
+			item="_Test Non Stock Item",
+			do_not_submit=1,
+		)
+		pi.apply_tds = 1
+		pi.tax_withholding_category = tax_withholding_category
+		pi.save()
+		pi.submit()
+
+		self.assertEqual(pi.taxes[0].tax_amount, 300)
+		self.assertEqual(pi.taxes[0].account_head, tds_account)
+
+		gl_entries = frappe.get_all(
+			"GL Entry",
+			filters={"voucher_no": pi.name, "voucher_type": "Purchase Invoice", "account": "Creditors - _TC"},
+			fields=["account", "against", "debit", "credit"],
+		)
+
+		for gle in gl_entries:
+			if gle.debit:
+				# GL Entry with TDS Amount
+				self.assertEqual(gle.against, tds_account)
+				self.assertEqual(gle.debit, 300)
+			else:
+				# GL Entry with Purchase Invoice Amount
+				self.assertEqual(gle.credit, 3000)
+
 	def test_provisional_accounting_entry(self):
 		setup_provisional_accounting()
 

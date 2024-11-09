@@ -235,6 +235,10 @@ def merge_similar_entries(gl_map, precision=None):
 	merge_properties = get_merge_properties(accounting_dimensions)
 
 	for entry in gl_map:
+		if entry._skip_merge:
+			merged_gl_map.append(entry)
+			continue
+
 		entry.merge_key = get_merge_key(entry, merge_properties)
 		# if there is already an entry in this account then just add it
 		# to that entry
