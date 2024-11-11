@@ -28,6 +28,7 @@ class TestItemWiseSalesRegister(AccountsTestMixin, IntegrationTestCase):
 					"parent_cost_center": self.cost_center,
 					"company": self.company,
 					"is_group": False,
+					"cost_center_name": cc_name,
 				}
 			)
 			cc = cc.save()
