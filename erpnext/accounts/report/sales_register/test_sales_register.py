@@ -60,21 +60,14 @@ class TestItemWiseSalesRegister(AccountsTestMixin, IntegrationTestCase):
 		self.assertEqual(len(report[1]), 1)
 
 		expected_result = {
-			"item_code": si.items[0].item_code,
-			"invoice": si.name,
-			"posting_date": getdate(),
-			"customer": si.customer,
-			"debit_to": si.debit_to,
-			"company": self.company,
-			"income_account": si.items[0].income_account,
-			"stock_qty": 1.0,
-			"stock_uom": si.items[0].stock_uom,
-			"rate": 98.0,
-			"amount": 98.0,
-			"total_tax": 0,
-			"total_other_charges": 0,
-			"total": 98.0,
-			"currency": "INR",
+			"voucher_type": si.doctype,
+			"voucher_no": si.name,
+			"posting_date": si.posting_date,
+			"customer": self.customer,
+			"receivable_account": self.debit_to,
+			"net_total": 98,
+			"grand_total": 98,
+			"credit": 98,
 		}
 
 		report_output = {k: v for k, v in report[1][0].items() if k in expected_result}
@@ -151,13 +144,12 @@ class TestItemWiseSalesRegister(AccountsTestMixin, IntegrationTestCase):
 			"customer": self.customer,
 			"receivable_account": self.debit_to,
 			"net_total": 77,
-			"cost_center": self.south_cc,
+			"cost_center": self.cost_center,
 			"credit": 77,
 		}
 		result_output = {k: v for k, v in result.items() if k in expected_result}
 		self.assertDictEqual(result_output, expected_result)
 
-		# Without cost center filter
 		filters = frappe._dict(
 			{
 				"from_date": today(),
