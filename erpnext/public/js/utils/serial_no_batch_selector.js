@@ -437,6 +437,11 @@ erpnext.SerialBatchPackageSelector = class SerialNoBatchBundleUpdate {
 					fieldname: "batch_no",
 					label: __("Batch No"),
 					in_list_view: 1,
+					get_route_options_for_new_doc: () => {
+						return {
+							item: this.item.item_code,
+						};
+					},
 					change() {
 						let doc = this.doc;
 						if (!doc.qty && me.item.type_of_transaction === "Outward") {
