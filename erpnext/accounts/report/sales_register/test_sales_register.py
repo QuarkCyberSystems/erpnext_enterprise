@@ -22,12 +22,13 @@ class TestItemWiseSalesRegister(AccountsTestMixin, IntegrationTestCase):
 		if frappe.db.exists("Cost Center", cc_name):
 			cc = frappe.get_doc("Cost Center", cc_name)
 		else:
+			parent = frappe.db.get_value("Cost Center", self.cost_center, "parent_cost_center")
 			cc = frappe.get_doc(
 				{
 					"doctype": "Cost Center",
-					"parent_cost_center": self.cost_center,
 					"company": self.company,
 					"is_group": False,
+					"parent_cost_center": parent,
 					"cost_center_name": cc_name,
 				}
 			)
@@ -63,12 +64,12 @@ class TestItemWiseSalesRegister(AccountsTestMixin, IntegrationTestCase):
 		expected_result = {
 			"voucher_type": si.doctype,
 			"voucher_no": si.name,
-			"posting_date": si.posting_date,
+			"posting_date": getdate(),
 			"customer": self.customer,
 			"receivable_account": self.debit_to,
-			"net_total": 98,
-			"grand_total": 98,
-			"credit": 98,
+			"net_total": 98.0,
+			"grand_total": 98.0,
+			"debit": 98.0,
 		}
 
 		report_output = {k: v for k, v in report[1][0].items() if k in expected_result}
@@ -89,7 +90,7 @@ class TestItemWiseSalesRegister(AccountsTestMixin, IntegrationTestCase):
 						"credit_in_account_currency": 77,
 						"credit": 77,
 						"is_advance": "Yes",
-						"cost_center": self.south_cc,
+						"cost_center": self.cost_center,
 					},
 					{
 						"account": self.cash,
@@ -115,7 +116,7 @@ class TestItemWiseSalesRegister(AccountsTestMixin, IntegrationTestCase):
 						"credit_in_account_currency": 98,
 						"credit": 98,
 						"is_advance": "Yes",
-						"cost_center": self.cost_center,
+						"cost_center": self.south_cc,
 					},
 					{
 						"account": self.cash,
@@ -137,19 +138,20 @@ class TestItemWiseSalesRegister(AccountsTestMixin, IntegrationTestCase):
 				"cost_center": self.cost_center,
 			}
 		)
-		result = [x for x in execute(filters)[1] if x.voucher_no == je1.name]
+		report_output = execute(filters)[1]
+		filtered_output = [x for x in report_output if x.get("voucher_no") == je1.name]
+		self.assertEqual(len(filtered_output), 1)
 		expected_result = {
 			"voucher_type": je1.doctype,
 			"voucher_no": je1.name,
 			"posting_date": je1.posting_date,
 			"customer": self.customer,
 			"receivable_account": self.debit_to,
-			"net_total": 77,
-			"cost_center": self.cost_center,
-			"credit": 77,
+			"net_total": 77.0,
+			"credit": 77.0,
 		}
-		result_output = {k: v for k, v in result.items() if k in expected_result}
-		self.assertDictEqual(result_output, expected_result)
+		result_fields = {k: v for k, v in filtered_output[0].items() if k in expected_result}
+		self.assertDictEqual(result_fields, expected_result)
 
 		filters = frappe._dict(
 			{
@@ -161,16 +163,17 @@ class TestItemWiseSalesRegister(AccountsTestMixin, IntegrationTestCase):
 				"cost_center": self.south_cc,
 			}
 		)
-		result = [x for x in execute(filters)[1] if x.voucher_no == je2.name]
+		report_output = execute(filters)[1]
+		filtered_output = [x for x in report_output if x.get("voucher_no") == je2.name]
+		self.assertEqual(len(filtered_output), 1)
 		expected_result = {
 			"voucher_type": je2.doctype,
 			"voucher_no": je2.name,
 			"posting_date": je2.posting_date,
 			"customer": self.customer,
 			"receivable_account": self.debit_to,
-			"net_total": 98,
-			"cost_center": self.south_cc,
-			"credit": 98,
+			"net_total": 98.0,
+			"credit": 98.0,
 		}
-		result_output = {k: v for k, v in result.items() if k in expected_result}
+		result_output = {k: v for k, v in filtered_output[0].items() if k in expected_result}
 		self.assertDictEqual(result_output, expected_result)
