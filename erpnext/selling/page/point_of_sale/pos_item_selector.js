@@ -138,7 +138,6 @@ erpnext.PointOfSale.ItemSelector = class {
 
 	make_search_bar() {
 		const me = this;
-		const doc = me.events.get_frm().doc;
 		this.$component.find(".search-field").html("");
 		this.$component.find(".item-group-field").html("");
 
@@ -163,6 +162,7 @@ erpnext.PointOfSale.ItemSelector = class {
 					me.filter_items();
 				},
 				get_query: function () {
+					const doc = me.events.get_frm().doc;
 					return {
 						query: "erpnext.selling.page.point_of_sale.point_of_sale.item_group_query",
 						filters: {
