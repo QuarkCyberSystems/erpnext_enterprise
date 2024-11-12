@@ -288,7 +288,7 @@ class SerialBatchBundle:
 				"Serial and Batch Bundle", self.sle.serial_and_batch_bundle, "docstatus"
 			)
 
-			if docstatus != 1:
+			if docstatus == 0:
 				self.submit_serial_and_batch_bundle()
 
 		if self.item_details.has_serial_no == 1:
@@ -311,7 +311,9 @@ class SerialBatchBundle:
 		if self.is_pos_transaction():
 			return
 
-		frappe.get_cached_doc("Serial and Batch Bundle", self.sle.serial_and_batch_bundle).cancel()
+		doc = frappe.get_cached_doc("Serial and Batch Bundle", self.sle.serial_and_batch_bundle)
+		if doc.docstatus == 1:
+			doc.cancel()
 
 	def is_pos_transaction(self):
 		if (
