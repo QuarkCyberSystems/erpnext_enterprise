@@ -35,6 +35,7 @@ def search_by_term(search_term, warehouse, price_list):
 		"description": item_doc.description,
 		"is_stock_item": item_doc.is_stock_item,
 		"item_code": item_doc.name,
+		"item_group": item_doc.item_group,
 		"item_image": item_doc.image,
 		"item_name": item_doc.item_name,
 		"serial_no": serial_no,
@@ -95,15 +96,7 @@ def search_by_term(search_term, warehouse, price_list):
 def filter_result_items(result, pos_profile):
 	if result and result.get("items"):
 		pos_item_groups = frappe.db.get_all("POS Item Group", {"parent": pos_profile}, pluck="item_group")
-		for i, item in enumerate(result.get("items")):
-			item_group = frappe.db.get_value(
-				"Item Group", frappe.db.get_value("Item", item.get("item_code"), "item_group"), "name"
-			)
-			if item_group in pos_item_groups:
-				continue
-			else:
-				if result.get("items"):
-					result.get("items").pop(i)
+		result["items"] = [item for item in result.get("items") if item.get("item_group") in pos_item_groups]
 
 
 @frappe.whitelist()
