@@ -15,8 +15,6 @@ Remember, deprecated doesn't mean useless - it just means these functions are en
 Enjoy your stay in the Deprecation Dumpster, where every function gets a second chance to shine (or at least, to not break everything).
 """
 
-import inspect
-import os
 import sys
 import warnings
 
@@ -77,20 +75,6 @@ def deprecated(original: str, marked: str, graduation: str, msg: str, stacklevel
 
 	def decorator(func):
 		# Get the filename of the caller
-		frame = inspect.currentframe()
-		caller_filepath = frame.f_back.f_code.co_filename
-		if os.path.basename(caller_filepath) != "deprecation_dumpster.py":
-			raise RuntimeError(
-				colorize("The deprecated function ", Color.YELLOW)
-				+ colorize(func.__name__, Color.CYAN)
-				+ colorize(" can only be called from ", Color.YELLOW)
-				+ colorize("erpnext/deprecation_dumpster.py\n", Color.CYAN)
-				+ colorize("Move the entire function there and import it back via adding\n ", Color.YELLOW)
-				+ colorize(f"from erpnext.deprecation_dumpster import {func.__name__}\n", Color.CYAN)
-				+ colorize("to file\n ", Color.YELLOW)
-				+ colorize(caller_filepath, Color.CYAN)
-			)
-
 		func.__name__ = original
 		wrapper = _deprecated(
 			colorize(f"It was marked on {marked} for removal from {graduation} with note: ", Color.RED)
