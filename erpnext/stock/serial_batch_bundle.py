@@ -124,7 +124,7 @@ class SerialBatchBundle:
 			"Outward": self.sle.actual_qty < 0,
 		}.get(sn_doc.type_of_transaction)
 
-		if not condition:
+		if not condition and self.sle.actual_qty:
 			correct_type = "Inward"
 			if sn_doc.type_of_transaction == "Inward":
 				correct_type = "Outward"
@@ -133,7 +133,7 @@ class SerialBatchBundle:
 			frappe.throw(_(msg), title=_("Incorrect Type of Transaction"))
 
 		precision = sn_doc.precision("total_qty")
-		if flt(sn_doc.total_qty, precision) != flt(self.sle.actual_qty, precision):
+		if self.sle.actual_qty and flt(sn_doc.total_qty, precision) != flt(self.sle.actual_qty, precision):
 			msg = f"Total qty {flt(sn_doc.total_qty, precision)} of Serial and Batch Bundle {link} is not equal to Actual Qty {flt(self.sle.actual_qty, precision)} in the {self.sle.voucher_type} {self.sle.voucher_no}"
 			frappe.throw(_(msg))
 

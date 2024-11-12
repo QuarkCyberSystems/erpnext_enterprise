@@ -689,6 +689,9 @@ class SerialandBatchBundle(Document):
 		serial_batches = {}
 		for row in self.entries:
 			if not row.qty and row.batch_no and not row.serial_no:
+				if self.voucher_type == "Stock Reconciliation" and self.type_of_transaction == "Inward":
+					continue
+
 				frappe.throw(
 					_("At row {0}: Qty is mandatory for the batch {1}").format(
 						bold(row.idx), bold(row.batch_no)

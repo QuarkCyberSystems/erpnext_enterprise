@@ -462,6 +462,8 @@ erpnext.SerialBatchPackageSelector = class SerialNoBatchBundleUpdate {
 							is_inward = true;
 						}
 
+						let include_expired_batches = me.include_expired_batches();
+
 						return {
 							query: "erpnext.controllers.queries.get_batch_no",
 							filters: {
@@ -469,6 +471,7 @@ erpnext.SerialBatchPackageSelector = class SerialNoBatchBundleUpdate {
 								warehouse:
 									this.item.s_warehouse || this.item.t_warehouse || this.item.warehouse,
 								is_inward: is_inward,
+								include_expired_batches: include_expired_batches,
 							},
 						};
 					},
@@ -495,6 +498,14 @@ erpnext.SerialBatchPackageSelector = class SerialNoBatchBundleUpdate {
 		});
 
 		return fields;
+	}
+
+	include_expired_batches() {
+		return (
+			this.frm.doc.doctype === "Stock Reconciliation" ||
+			(this.frm.doc.doctype === "Stock Entry" &&
+				["Material Receipt", "Material Transfer", "Material Issue"].includes(this.frm.doc.purpose))
+		);
 	}
 
 	get_auto_data() {
