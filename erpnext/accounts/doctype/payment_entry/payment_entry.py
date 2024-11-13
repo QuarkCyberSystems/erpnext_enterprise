@@ -1347,13 +1347,22 @@ class PaymentEntry(AccountsController):
 			base_unallocated_amount = self.unallocated_amount * exchange_rate
 
 			gle = party_gl_dict.copy()
-			gle.update(
-				{
-					dr_or_cr + "_in_account_currency": self.unallocated_amount,
-					dr_or_cr: base_unallocated_amount,
-				}
-			)
 
+			gle.update(
+				self.get_gl_dict(
+					{
+						"account": self.party_account,
+						"party_type": self.party_type,
+						"party": self.party,
+						"against": against_account,
+						"account_currency": self.party_account_currency,
+						"cost_center": self.cost_center,
+						dr_or_cr + "_in_account_currency": self.unallocated_amount,
+						dr_or_cr: base_unallocated_amount,
+					},
+					item=self,
+				)
+			)
 			if self.book_advance_payments_in_separate_party_account:
 				gle.update(
 					{
