@@ -968,7 +968,7 @@ class TestPaymentEntry(IntegrationTestCase):
 		save_new_records(self.globalTestRecords["Currency Exchange"])
 		paid_from = create_account(
 			parent_account="Current Liabilities - _TC",
-			account_name="Cash USD",
+			account_name="_Test Cash USD",
 			company="_Test Company",
 			account_type="Cash",
 			account_currency="USD",
@@ -1001,10 +1001,9 @@ class TestPaymentEntry(IntegrationTestCase):
 			.run()
 		)
 		expected_gl_entries = (
-			("_Test Payable USD - _TC", 8440.0, 0, 100.0, 0.0, 8440.0, 0.0),
-			(paid_from, 0, 8440.0, 0, 100.0, 0, 8440.0),
+			(paid_from, 0.0, 8440.0, 0.0, 100.0, 0.0, 8440.0),
+			("_Test Payable USD - _TC", 8440.0, 0.0, 100.0, 0.0, 8440.0, 0.0),
 		)
-
 		self.assertEqual(gl_entries, expected_gl_entries)
 
 	def test_multi_currency_payment_entry_with_taxes(self):
