@@ -119,11 +119,18 @@ erpnext.accounts.unreconcile_payment = {
 							return r.message;
 						};
 
+						const allocationsTableField = unreconcile_dialog_fields.find(
+							(field) => field.fieldname === "allocations"
+						);
+
+						if (allocationsTableField) {
+							allocationsTableField.cannot_add_rows = true;
+						}
+
 						let d = new frappe.ui.Dialog({
 							title: "UnReconcile Allocations",
 							fields: unreconcile_dialog_fields,
 							size: "large",
-							cannot_add_rows: true,
 							primary_action_label: "UnReconcile",
 							primary_action(values) {
 								let selected_allocations = values.allocations.filter((x) => x.__checked);
