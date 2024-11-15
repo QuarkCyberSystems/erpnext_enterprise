@@ -749,10 +749,6 @@ class SerialandBatchBundle(Document):
 				)
 
 	def validate_incorrect_serial_nos(self, serial_nos):
-		if self.voucher_type == "Stock Entry" and self.voucher_no:
-			if frappe.get_cached_value("Stock Entry", self.voucher_no, "purpose") == "Repack":
-				return
-
 		incorrect_serial_nos = frappe.get_all(
 			"Serial No",
 			filters={"name": ("in", serial_nos), "item_code": ("!=", self.item_code)},
