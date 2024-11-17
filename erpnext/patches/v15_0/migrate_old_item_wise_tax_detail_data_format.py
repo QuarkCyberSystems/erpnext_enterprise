@@ -7,25 +7,26 @@ from erpnext.controllers.taxes_and_totals import ItemWiseTaxDetail
 
 
 def execute():
-	# Get all DocTypes that have the 'item_wise_tax_details' field
+	# Get all DocTypes that have the 'item_wise_tax_detail' field
 	doctypes_with_tax_details = frappe.get_all(
-		"DocField", filters={"fieldname": "item_wise_tax_details"}, fields=["parent"], pluck="parent"
+		"DocField", filters={"fieldname": "item_wise_tax_detail"}, fields=["parent"], pluck="parent"
 	)
 	for doctype in doctypes_with_tax_details:
-		# Get all documents of this DocType that have data in 'item_wise_tax_details'
+		migrated_count = 0  # Counter for migrated records per DocType
+		# Get all documents of this DocType that have data in 'item_wise_tax_detail'
 		docs = frappe.get_all(
 			doctype,
-			filters={"item_wise_tax_details": ["is", "set"]},
-			fields=["name", "item_wise_tax_details"],
+			filters={"item_wise_tax_detail": ["is", "set"]},
+			fields=["name", "item_wise_tax_detail"],
 		)
 		for doc in docs:
-			if not doc.item_wise_tax_details:
+			if not doc.item_wise_tax_detail:
 				continue
 
 			updated_tax_details = {}
 			needs_update = False
 
-			for item, tax_data in json.loads(doc.item_wise_tax_details).items():
+			for item, tax_data in json.loads(doc.item_wise_tax_detail).items():
 				if isinstance(tax_data, list) and len(tax_data) == 2:
 					updated_tax_details[item] = ItemWiseTaxDetail(
 						tax_rate=tax_data[0],
@@ -33,6 +34,14 @@ def execute():
 						# can't be reliably reconstructed since it depends on the tax type
 						# (actual, net, previous line total, previous line net, etc)
 						net_amount=0.0,
+					)
+					needs_update = True
+				# intermediate patch version of the originating PR
+				elif isinstance(tax_data, list) and len(tax_data) == 3:
+					updated_tax_details[item] = ItemWiseTaxDetail(
+						tax_rate=tax_data[0],
+						tax_amount=tax_data[1],
+						net_amount=tax_data[2],
 					)
 					needs_update = True
 				elif isinstance(tax_data, str):
@@ -49,11 +58,11 @@ def execute():
 				frappe.db.set_value(
 					doctype,
 					doc.name,
-					"item_wise_tax_details",
+					"item_wise_tax_detail",
 					json.dumps(updated_tax_details),
 					update_modified=False,
 				)
+				migrated_count += 1  # Increment the counter for each migrated record
 
 		frappe.db.commit()
-
-	print("Migration of old item-wise tax data format completed for all relevant DocTypes.")
+		print(f"Migrated {migrated_count} records for DocType: {doctype}")
