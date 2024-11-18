@@ -1243,6 +1243,12 @@ class PaymentEntry(AccountsController):
 		if self.payment_type in ("Receive", "Pay") and not self.get("party_account_field"):
 			self.setup_party_account_field()
 
+		company_currency = erpnext.get_company_currency(self.company)
+		if self.paid_from_account_currency != company_currency:
+			self.currency = self.paid_from_account_currency
+		elif self.paid_to_account_currency != company_currency:
+			self.currency = self.paid_to_account_currency
+
 		gl_entries = []
 		self.add_party_gl_entries(gl_entries)
 		self.add_bank_gl_entries(gl_entries)
