@@ -1001,8 +1001,8 @@ class TestPaymentEntry(IntegrationTestCase):
 			.run()
 		)
 		expected_gl_entries = (
-			(paid_from, 0.0, 8440.0, 0.0, 100.0, 0.0, 8440.0),
-			("_Test Payable USD - _TC", 8440.0, 0.0, 100.0, 0.0, 8440.0, 0.0),
+			(paid_from, 0.0, 8440.0, 0.0, 100.0, 0.0, 100.0),
+			("_Test Payable USD - _TC", 8440.0, 0.0, 100.0, 0.0, 100.0, 0.0),
 		)
 		self.assertEqual(gl_entries, expected_gl_entries)
 
