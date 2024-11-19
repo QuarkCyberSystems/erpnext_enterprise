@@ -14,6 +14,7 @@ from frappe.model.utils import get_fetch_values
 from frappe.query_builder.functions import IfNull, Sum
 from frappe.utils import add_days, add_months, cint, cstr, flt, getdate, parse_json
 
+import erpnext
 from erpnext import get_company_currency
 from erpnext.accounts.doctype.pricing_rule.pricing_rule import (
 	get_pricing_rule_for_item,
@@ -40,21 +41,6 @@ purchase_doctypes = [
 ]
 
 
-def type_narrow_ctx_arg(func: callable) -> callable:
-	# conserve annotations for frappe.utils.typing_validations
-	@wraps(func, assigned=(a for a in WRAPPER_ASSIGNMENTS if a != "__annotations__"))
-	def wrapper(ctx: ItemDetailsCtx | Document | dict | str, *args, **kwargs):
-		ctx: ItemDetailsCtx = parse_json(ctx)
-		if isinstance(ctx, Document):
-			ctx = ctx.as_dict()
-
-		return func(ctx, *args, **kwargs)
-
-	# set annotations from function
-	wrapper.__annotations__.update({k: v for k, v in func.__annotations__.items() if k != "ctx"})
-	return wrapper
-
-
 def _preprocess_ctx(ctx):
 	if not ctx.price_list:
 		ctx.price_list = ctx.selling_price_list or ctx.buying_price_list
@@ -68,7 +54,7 @@ def _preprocess_ctx(ctx):
 
 
 @frappe.whitelist()
-@type_narrow_ctx_arg
+@erpnext.normalize_ctx_input(ItemDetailsCtx)
 def get_item_details(
 	ctx: ItemDetailsCtx, doc=None, for_validate=False, overwrite_warehouse=True
 ) -> ItemDetails:
@@ -468,7 +454,7 @@ def get_basic_details(ctx: ItemDetailsCtx, item, overwrite_warehouse=True) -> It
 from erpnext.deprecation_dumpster import get_item_warehouse
 
 
-@type_narrow_ctx_arg
+@erpnext.normalize_ctx_input(ItemDetailsCtx)
 def get_item_warehouse_(ctx: ItemDetailsCtx, item, overwrite_warehouse, defaults=None):
 	if not defaults:
 		defaults = frappe._dict(
@@ -583,7 +569,7 @@ def get_item_tax_info(company, tax_category, item_codes, item_rates=None, item_t
 	return out
 
 
-@type_narrow_ctx_arg
+@erpnext.normalize_ctx_input(ItemDetailsCtx)
 def get_item_tax_template(ctx: ItemDetailsCtx, item, out: ItemDetails):
 	"""
 	Determines item_tax template from item or parent item groups.
@@ -617,7 +603,7 @@ def get_item_tax_template(ctx: ItemDetailsCtx, item, out: ItemDetails):
 		out.update(get_fetch_values(ctx.get("child_doctype"), "item_tax_template", item_tax_template))
 
 
-@type_narrow_ctx_arg
+@erpnext.normalize_ctx_input(ItemDetailsCtx)
 def _get_item_tax_template(
 	ctx: ItemDetailsCtx, taxes, out: ItemDetails | None = None, for_validate=False
 ) -> None | str | list[str]:
@@ -684,7 +670,7 @@ def _get_item_tax_template(
 	return None
 
 
-@type_narrow_ctx_arg
+@erpnext.normalize_ctx_input(ItemDetailsCtx)
 def is_within_valid_range(ctx: ItemDetailsCtx, tax) -> bool:
 	"""
 	Accesses:
@@ -715,7 +701,7 @@ def get_item_tax_map(company, item_tax_template, as_json=True):
 
 
 @frappe.whitelist()
-@type_narrow_ctx_arg
+@erpnext.normalize_ctx_input(ItemDetailsCtx)
 def calculate_service_end_date(ctx: ItemDetailsCtx, item=None):
 	_preprocess_ctx(ctx)
 	if not item:
@@ -791,7 +777,7 @@ def get_default_deferred_account(ctx: ItemDetailsCtx, item, fieldname=None):
 		return None
 
 
-@type_narrow_ctx_arg
+@erpnext.normalize_ctx_input(ItemDetailsCtx)
 def get_default_cost_center(ctx: ItemDetailsCtx, item=None, item_group=None, brand=None, company=None):
 	cost_center = None
 
@@ -1007,7 +993,7 @@ def get_batch_based_item_price(pctx: ItemPriceCtx | dict | str, item_code) -> fl
 	return 0.0
 
 
-@type_narrow_ctx_arg
+@erpnext.normalize_ctx_input(ItemDetailsCtx)
 def get_price_list_rate_for(ctx: ItemDetailsCtx, item_code):
 	"""
 	:param customer: link to Customer DocType
@@ -1148,7 +1134,7 @@ def get_party_item_code(ctx: ItemDetailsCtx, item_doc, out: ItemDetails):
 from erpnext.deprecation_dumpster import get_pos_profile_item_details
 
 
-@type_narrow_ctx_arg
+@erpnext.normalize_ctx_input(ItemDetailsCtx)
 def get_pos_profile_item_details_(ctx: ItemDetailsCtx, company, pos_profile=None, update_data=False):
 	res = frappe._dict()
 
@@ -1278,7 +1264,7 @@ def get_batch_qty(batch_no, warehouse, item_code):
 
 
 @frappe.whitelist()
-@type_narrow_ctx_arg
+@erpnext.normalize_ctx_input(ItemDetailsCtx)
 def apply_price_list(ctx: ItemDetailsCtx, as_doc=False, doc=None):
 	"""Apply pricelist on a document-like dict object and return as
 	{'parent': dict, 'children': list}
@@ -1452,7 +1438,7 @@ def update_party_blanket_order(ctx: ItemDetailsCtx, out: ItemDetails | dict):
 
 
 @frappe.whitelist()
-@type_narrow_ctx_arg
+@erpnext.normalize_ctx_input(ItemDetailsCtx)
 def get_blanket_order_details(ctx: ItemDetailsCtx):
 	blanket_order_details = None
 
