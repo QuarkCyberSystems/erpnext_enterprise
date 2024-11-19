@@ -21,6 +21,8 @@ from erpnext.controllers.accounts_controller import (
 from erpnext.stock.get_item_details import _get_item_tax_template
 from erpnext.utilities.regional import temporary_flag
 
+logger = frappe.logger(__name__)
+
 ItemWiseTaxDetail = frappe._dict
 
 
@@ -379,8 +381,10 @@ class calculate_taxes_and_totals:
 			]
 		)
 
+		logger.debug(f"{self.doc} ...")
 		for n, item in enumerate(self._items):
 			item_tax_map = self._load_item_tax_rate(item.item_tax_rate)
+			logger.debug(f" Item {n}: {item.item_code}" + (f" - {item_tax_map}" if item_tax_map else ""))
 			for i, tax in enumerate(self.doc.get("taxes")):
 				# tax_amount represents the amount of tax for the current step
 				current_net_amount, current_tax_amount = self.get_current_tax_and_net_amount(
@@ -447,6 +451,9 @@ class calculate_taxes_and_totals:
 							self.doc.grand_total - flt(self.doc.discount_amount) - tax.total,
 							self.doc.precision("rounding_adjustment"),
 						)
+				logger.debug(
+					f"  net_amount: {current_net_amount:<20} tax_amount: {current_tax_amount:<20} - {tax.description}"
+				)
 
 	def get_tax_amount_if_for_valuation_or_deduction(self, tax_amount, tax):
 		# if just for valuation, do not add the tax amount in total
@@ -477,25 +484,26 @@ class calculate_taxes_and_totals:
 		current_net_amount = 0.0
 
 		if tax.charge_type == "Actual":
+			current_net_amount = item.net_amount
 			# distribute the tax amount proportionally to each item row
 			actual = flt(tax.tax_amount, tax.precision("tax_amount"))
 
 			if tax.get("is_tax_withholding_account") and item.meta.get_field("apply_tds"):
 				if not item.get("apply_tds") or not self.doc.tax_withholding_net_total:
 					current_tax_amount = 0.0
-					current_net_amount = 0.0
 				else:
-					current_net_amount = item.net_amount
-					current_tax_amount = current_net_amount * actual / self.doc.tax_withholding_net_total
+					current_tax_amount = item.net_amount * actual / self.doc.tax_withholding_net_total
 			else:
-				current_net_amount = item.net_amount
 				current_tax_amount = (
-					current_net_amount * actual / self.doc.net_total if self.doc.net_total else 0.0
+					item.net_amount * actual / self.doc.net_total if self.doc.net_total else 0.0
 				)
 
 		elif tax.charge_type == "On Net Total":
-			current_net_amount = item.net_amount
-			current_tax_amount = (tax_rate / 100.0) * current_net_amount
+			if not item_tax_map:
+				current_net_amount = item.net_amount
+			elif tax.account_head in item_tax_map:
+				current_net_amount = item.net_amount
+			current_tax_amount = (tax_rate / 100.0) * item.net_amount
 		elif tax.charge_type == "On Previous Row Amount":
 			current_net_amount = self.doc.get("taxes")[cint(tax.row_id) - 1].tax_amount_for_current_item
 			current_tax_amount = (tax_rate / 100.0) * current_net_amount
