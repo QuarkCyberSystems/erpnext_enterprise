@@ -860,7 +860,7 @@ def make_material_request(source_name, target_doc=None):
 		)
 
 		target.rate = flt(
-			get_price_list_rate(args=args, item_doc=frappe.get_cached_doc("Item", target.item_code)).get(
+			get_price_list_rate(args, item_doc=frappe.get_cached_doc("Item", target.item_code)).get(
 				"price_list_rate"
 			)
 		)

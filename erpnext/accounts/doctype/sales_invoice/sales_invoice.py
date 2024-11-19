@@ -766,7 +766,7 @@ class SalesInvoice(SellingController):
 				"Company", self.company, "default_cash_account"
 			)
 
-		from erpnext.stock.get_item_details import get_pos_profile, get_pos_profile_item_details
+		from erpnext.stock.get_item_details import get_pos_profile, get_pos_profile_item_details_
 
 		if not self.pos_profile and not self.flags.ignore_pos_profile:
 			pos_profile = get_pos_profile(self.company) or {}
@@ -834,8 +834,8 @@ class SalesInvoice(SellingController):
 			# set pos values in items
 			for item in self.get("items"):
 				if item.get("item_code"):
-					profile_details = get_pos_profile_item_details(
-						pos, frappe._dict(item.as_dict()), pos, update_data=True
+					profile_details = get_pos_profile_item_details_(
+						frappe._dict(item.as_dict()), pos, pos, update_data=True
 					)
 					for fname, val in profile_details.items():
 						if (not for_validate) or (for_validate and not item.get(fname)):

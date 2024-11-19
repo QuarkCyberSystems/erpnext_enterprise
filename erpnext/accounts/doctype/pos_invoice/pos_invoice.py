@@ -533,7 +533,7 @@ class POSInvoice(SalesInvoice):
 
 	def set_pos_fields(self, for_validate=False):
 		"""Set retail related fields from POS Profiles"""
-		from erpnext.stock.get_item_details import get_pos_profile, get_pos_profile_item_details
+		from erpnext.stock.get_item_details import get_pos_profile, get_pos_profile_item_details_
 
 		if not self.pos_profile:
 			pos_profile = get_pos_profile(self.company) or {}
@@ -602,8 +602,8 @@ class POSInvoice(SalesInvoice):
 			# set pos values in items
 			for item in self.get("items"):
 				if item.get("item_code"):
-					profile_details = get_pos_profile_item_details(
-						profile.get("company"), frappe._dict(item.as_dict()), profile
+					profile_details = get_pos_profile_item_details_(
+						frappe._dict(item.as_dict()), profile.get("company"), profile
 					)
 					for fname, val in profile_details.items():
 						if (not for_validate) or (for_validate and not item.get(fname)):

@@ -7,7 +7,7 @@ from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.utils import make_test_records_for_doctype
 
 from erpnext.stock.doctype.item_price.item_price import ItemPriceDuplicateItem
-from erpnext.stock.get_item_details import get_price_list_rate_for, process_args
+from erpnext.stock.get_item_details import get_price_list_rate_for
 
 
 class UnitTestItemPrice(UnitTestCase):
@@ -88,7 +88,7 @@ class TestItemPrice(IntegrationTestCase):
 			"qty": 10,
 		}
 
-		price = get_price_list_rate_for(process_args(args), doc.item_code)
+		price = get_price_list_rate_for(args, doc.item_code)
 		self.assertEqual(price, 20.0)
 
 	def test_price_with_no_qty(self):

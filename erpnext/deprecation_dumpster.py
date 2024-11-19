@@ -125,3 +125,27 @@ def taxes_and_totals_get_itemised_taxable_amount(items):
 		itemised_taxable_amount[item_code] += item.net_amount
 
 	return itemised_taxable_amount
+
+
+@deprecated(
+	"erpnext.stock.get_pos_profile_item_details",
+	"2024-11-19",
+	"v16",
+	"Use erpnext.stock.get_pos_profile_item_details_ with a flipped signature",
+)
+def get_pos_profile_item_details(company, ctx, pos_profile=None, update_data=False):
+	from erpnext.stock.get_item_details import get_pos_profile_item_details_
+
+	return get_pos_profile_item_details_(ctx, company, pos_profile=pos_profile, update_data=update_data)
+
+
+@deprecated(
+	"erpnext.stock.get_item_warehouse",
+	"2024-11-19",
+	"v16",
+	"Use erpnext.stock.get_item_warehouse_ with a flipped signature",
+)
+def get_item_warehouse(item, ctx, overwrite_warehouse, defaults=None):
+	from erpnext.stock.get_item_details import get_item_warehouse_
+
+	return get_item_warehouse_(ctx, item, overwrite_warehouse, defaults=defaults)
