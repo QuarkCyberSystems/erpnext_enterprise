@@ -1618,7 +1618,7 @@ class TestPurchaseReceipt(IntegrationTestCase):
 		self.assertTrue(return_pi.docstatus == 1)
 
 	def test_disable_last_purchase_rate(self):
-		from erpnext.stock.get_item_details import get_item_details
+		from erpnext.stock.get_item_details import ItemDetailsCtx, get_item_details
 
 		item = make_item(
 			"_Test Disable Last Purchase Rate",
@@ -1633,8 +1633,8 @@ class TestPurchaseReceipt(IntegrationTestCase):
 			item_code=item.name,
 		)
 
-		args = pr.items[0].as_dict()
-		args.update(
+		ctx = ItemDetailsCtx(pr.items[0].as_dict())
+		ctx.update(
 			{
 				"supplier": pr.supplier,
 				"doctype": pr.doctype,
@@ -1646,7 +1646,7 @@ class TestPurchaseReceipt(IntegrationTestCase):
 			}
 		)
 
-		res = get_item_details(args)
+		res = get_item_details(ctx)
 		self.assertEqual(res.get("last_purchase_rate"), 0)
 
 		frappe.db.set_single_value("Buying Settings", "disable_last_purchase_rate", 0)
@@ -1657,7 +1657,7 @@ class TestPurchaseReceipt(IntegrationTestCase):
 			item_code=item.name,
 		)
 
-		res = get_item_details(args)
+		res = get_item_details(ctx)
 		self.assertEqual(res.get("last_purchase_rate"), 100)
 
 	def test_validate_received_qty_for_internal_pr(self):

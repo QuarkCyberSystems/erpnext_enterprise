@@ -18,7 +18,7 @@ from erpnext.controllers.accounts_controller import (
 	validate_inclusive_tax,
 	validate_taxes_and_charges,
 )
-from erpnext.stock.get_item_details import _get_item_tax_template
+from erpnext.stock.get_item_details import ItemDetailsCtx, _get_item_tax_template
 from erpnext.utilities.regional import temporary_flag
 
 logger = frappe.logger(__name__)
@@ -103,15 +103,17 @@ class calculate_taxes_and_totals:
 		for item in self.doc.items:
 			if item.item_code and item.get("item_tax_template"):
 				item_doc = frappe.get_cached_doc("Item", item.item_code)
-				args = {
-					"net_rate": item.net_rate or item.rate,
-					"base_net_rate": item.base_net_rate or item.base_rate,
-					"tax_category": self.doc.get("tax_category"),
-					"posting_date": self.doc.get("posting_date"),
-					"bill_date": self.doc.get("bill_date"),
-					"transaction_date": self.doc.get("transaction_date"),
-					"company": self.doc.get("company"),
-				}
+				ctx = ItemDetailsCtx(
+					{
+						"net_rate": item.net_rate or item.rate,
+						"base_net_rate": item.base_net_rate or item.base_rate,
+						"tax_category": self.doc.get("tax_category"),
+						"posting_date": self.doc.get("posting_date"),
+						"bill_date": self.doc.get("bill_date"),
+						"transaction_date": self.doc.get("transaction_date"),
+						"company": self.doc.get("company"),
+					}
+				)
 
 				item_group = item_doc.item_group
 				item_group_taxes = []
@@ -127,7 +129,7 @@ class calculate_taxes_and_totals:
 					# No validation if no taxes in item or item group
 					continue
 
-				taxes = _get_item_tax_template(args, item_taxes + item_group_taxes, for_validate=True)
+				taxes = _get_item_tax_template(ctx, item_taxes + item_group_taxes, for_validate=True)
 
 				if taxes:
 					if item.item_tax_template not in taxes:

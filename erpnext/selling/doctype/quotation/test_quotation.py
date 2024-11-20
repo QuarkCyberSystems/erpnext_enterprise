@@ -54,7 +54,7 @@ class TestQuotation(IntegrationTestCase):
 	def test_gross_profit(self):
 		from erpnext.stock.doctype.item.test_item import make_item
 		from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
-		from erpnext.stock.get_item_details import insert_item_price
+		from erpnext.stock.get_item_details import ItemDetailsCtx, insert_item_price
 
 		item_doc = make_item("_Test Item for Gross Profit", {"is_stock_item": 1})
 		item_code = item_doc.name
@@ -63,7 +63,7 @@ class TestQuotation(IntegrationTestCase):
 		selling_price_list = frappe.get_all("Price List", filters={"selling": 1}, limit=1)[0].name
 		frappe.db.set_single_value("Stock Settings", "auto_insert_price_list_rate_if_missing", 1)
 		insert_item_price(
-			frappe._dict(
+			ItemDetailsCtx(
 				{
 					"item_code": item_code,
 					"price_list": selling_price_list,

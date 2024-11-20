@@ -62,6 +62,7 @@ from erpnext.setup.utils import get_exchange_rate
 from erpnext.stock.doctype.item.item import get_uom_conv_factor
 from erpnext.stock.doctype.packed_item.packed_item import make_packing_list
 from erpnext.stock.get_item_details import (
+	ItemDetailsCtx,
 	_get_item_tax_template,
 	get_conversion_factor,
 	get_item_details,
@@ -752,24 +753,28 @@ class AccountsController(TransactionBase):
 
 			for item in self.get("items"):
 				if item.get("item_code"):
-					args = parent_dict.copy()
-					args.update(item.as_dict())
+					ctx: ItemDetailsCtx = ItemDetailsCtx(parent_dict.copy())
+					ctx.update(item.as_dict())
 
-					args["doctype"] = self.doctype
-					args["name"] = self.name
-					args["child_doctype"] = item.doctype
-					args["child_docname"] = item.name
-					args["ignore_pricing_rule"] = (
-						self.ignore_pricing_rule if hasattr(self, "ignore_pricing_rule") else 0
+					ctx.update(
+						{
+							"doctype": self.doctype,
+							"name": self.name,
+							"child_doctype": item.doctype,
+							"child_docname": item.name,
+							"ignore_pricing_rule": (
+								self.ignore_pricing_rule if hasattr(self, "ignore_pricing_rule") else 0
+							),
+						}
 					)
 
-					if not args.get("transaction_date"):
-						args["transaction_date"] = args.get("posting_date")
+					if not ctx.transaction_date:
+						ctx.transaction_date = ctx.posting_date
 
 					if self.get("is_subcontracted"):
-						args["is_subcontracted"] = self.is_subcontracted
+						ctx.is_subcontracted = self.is_subcontracted
 
-					ret = get_item_details(args, self, for_validate=for_validate, overwrite_warehouse=False)
+					ret = get_item_details(ctx, self, for_validate=for_validate, overwrite_warehouse=False)
 					for fieldname, value in ret.items():
 						if item.meta.get_field(fieldname) and value is not None:
 							if item.get(fieldname) is None or fieldname in force_item_fields:
@@ -3161,14 +3166,16 @@ def get_supplier_block_status(party_name):
 
 
 def set_child_tax_template_and_map(item, child_item, parent_doc):
-	args = {
-		"item_code": item.item_code,
-		"posting_date": parent_doc.transaction_date,
-		"tax_category": parent_doc.get("tax_category"),
-		"company": parent_doc.get("company"),
-	}
+	ctx = ItemDetailsCtx(
+		{
+			"item_code": item.item_code,
+			"posting_date": parent_doc.transaction_date,
+			"tax_category": parent_doc.get("tax_category"),
+			"company": parent_doc.get("company"),
+		}
+	)
 
-	child_item.item_tax_template = _get_item_tax_template(args, item.taxes)
+	child_item.item_tax_template = _get_item_tax_template(ctx, item.taxes)
 	if child_item.get("item_tax_template"):
 		child_item.item_tax_rate = get_item_tax_map(
 			parent_doc.get("company"), child_item.item_tax_template, as_json=True

@@ -35,7 +35,12 @@ from erpnext.stock.doctype.stock_reservation_entry.stock_reservation_entry impor
 	get_sre_reserved_qty_details_for_voucher,
 	has_reserved_stock,
 )
-from erpnext.stock.get_item_details import get_bin_details, get_default_bom, get_price_list_rate
+from erpnext.stock.get_item_details import (
+	ItemDetailsCtx,
+	get_bin_details,
+	get_default_bom,
+	get_price_list_rate,
+)
 from erpnext.stock.stock_balance import get_reserved_qty, update_bin_qty
 
 form_grid_templates = {"items": "templates/form_grid/item_grid.html"}
@@ -849,8 +854,8 @@ def make_material_request(source_name, target_doc=None):
 			target.item_code, target.warehouse, source_parent.company, True
 		).get("actual_qty", 0)
 
-		args = target.as_dict().copy()
-		args.update(
+		ctx = ItemDetailsCtx(target.as_dict().copy())
+		ctx.update(
 			{
 				"company": source_parent.get("company"),
 				"price_list": frappe.db.get_single_value("Buying Settings", "buying_price_list"),
@@ -860,7 +865,7 @@ def make_material_request(source_name, target_doc=None):
 		)
 
 		target.rate = flt(
-			get_price_list_rate(args, item_doc=frappe.get_cached_doc("Item", target.item_code)).get(
+			get_price_list_rate(ctx, item_doc=frappe.get_cached_doc("Item", target.item_code)).get(
 				"price_list_rate"
 			)
 		)
