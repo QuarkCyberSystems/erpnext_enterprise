@@ -945,17 +945,18 @@ def validate_payment(doc, method=None):
 @frappe.whitelist()
 def get_open_payment_requests_query(doctype, txt, searchfield, start, page_len, filters):
 	# permission checks in `get_list()`
-	reference_doctype = filters.get("reference_doctype")
-	reference_name = filters.get("reference_doctype")
+	filters = frappe._dict(filters)
 
-	if not reference_doctype or not reference_name:
+	if not filters.reference_doctype or not filters.reference_name:
 		return []
+
+	if txt:
+		filters.name = ["like", f"%{txt}%"]
 
 	open_payment_requests = frappe.get_list(
 		"Payment Request",
 		filters={
-			"reference_doctype": filters["reference_doctype"],
-			"reference_name": filters["reference_name"],
+			**filters,
 			"status": ["!=", "Paid"],
 			"outstanding_amount": ["!=", 0],  # for compatibility with old data
 			"docstatus": 1,
