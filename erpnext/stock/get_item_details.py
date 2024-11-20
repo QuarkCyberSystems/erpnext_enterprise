@@ -1297,7 +1297,7 @@ def apply_price_list(ctx: ItemDetailsCtx, as_doc=False, doc=None):
 	children = []
 
 	if "items" in ctx:
-		item_list = ctx.items
+		item_list = ctx.get("items")
 		ctx.update(parent)
 
 		for item in item_list:
@@ -1309,8 +1309,8 @@ def apply_price_list(ctx: ItemDetailsCtx, as_doc=False, doc=None):
 	if as_doc:
 		ctx.price_list_currency = (parent.price_list_currency,)
 		ctx.plc_conversion_rate = parent.plc_conversion_rate
-		if ctx.items:
-			for i, item in enumerate(ctx.items):
+		if ctx.get("items"):
+			for i, item in enumerate(ctx.get("items")):
 				for fieldname in children[i]:
 					# if the field exists in the original doc
 					# update the value

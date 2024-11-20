@@ -531,7 +531,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 					child: item,
 					args: {
 						doc: me.frm.doc,
-						args: {
+						ctx: {
 							item_code: item.item_code,
 							barcode: item.barcode,
 							serial_no: item.serial_no,
@@ -1910,7 +1910,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 		me.in_apply_price_list = true;
 		return this.frm.call({
 			method: "erpnext.stock.get_item_details.apply_price_list",
-			args: {	args: args, doc: me.frm.doc },
+			args: {	ctx: args, doc: me.frm.doc },
 			callback: function(r) {
 				if (!r.exc) {
 					frappe.run_serially([
