@@ -550,7 +550,7 @@ def get_item_tax_info(company, tax_category, item_codes, item_rates=None, item_t
 		if not item_code or item_code[1] in out or not item_tax_templates.get(item_code[1]):
 			continue
 
-		out[item_code[1]] = {}
+		out[item_code[1]] = ItemDetails()
 		item = frappe.get_cached_doc("Item", item_code[0])
 		ctx: ItemDetailsCtx = {
 			"company": company,
