@@ -40,7 +40,7 @@
   "asset_quantity",
   "additional_asset_cost",
   "total_asset_cost",
-  "section_break_23",
+  "depreciation_tab",
   "calculate_depreciation",
   "column_break_33",
   "opening_accumulated_depreciation",
@@ -255,13 +255,6 @@
    "fieldtype": "Currency",
    "label": "Opening Accumulated Depreciation",
    "options": "Company:company:default_currency"
-  },
-  {
-   "collapsible": 1,
-   "collapsible_depends_on": "eval:doc.calculate_depreciation || doc.is_existing_asset",
-   "fieldname": "section_break_23",
-   "fieldtype": "Section Break",
-   "label": "Depreciation"
   },
   {
    "columns": 10,
@@ -545,6 +538,11 @@
    "fieldtype": "Tab Break",
    "label": "Connections",
    "show_dashboard": 1
+  },
+  {
+   "fieldname": "depreciation_tab",
+   "fieldtype": "Tab Break",
+   "label": "Depreciation Details"
   }
  ],
  "idx": 72,
@@ -588,7 +586,7 @@
    "link_fieldname": "target_asset"
   }
  ],
- "modified": "2024-11-18 12:51:49.862757",
+ "modified": "2024-11-20 11:52:06.332683",
  "modified_by": "Administrator",
  "module": "Assets",
  "name": "Asset",
