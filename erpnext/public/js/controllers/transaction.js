@@ -1914,8 +1914,14 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 			callback: function(r) {
 				if (!r.exc) {
 					frappe.run_serially([
-						() => me.frm.set_value("price_list_currency", r.message.parent.price_list_currency),
-						() => me.frm.set_value("plc_conversion_rate", r.message.parent.plc_conversion_rate),
+						() => {
+							if (r.message.parent.price_list_currency)
+								me.frm.set_value("price_list_currency", r.message.parent.price_list_currency);
+						},
+						() => {
+							if (r.message.parent.plc_conversion_rate)
+								me.frm.set_value("plc_conversion_rate", r.message.parent.plc_conversion_rate);
+						},
 						() => {
 							if(args.items.length) {
 								me._set_values_for_item_list(r.message.children);
