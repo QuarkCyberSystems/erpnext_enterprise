@@ -501,9 +501,7 @@ class calculate_taxes_and_totals:
 				)
 
 		elif tax.charge_type == "On Net Total":
-			if not item_tax_map:
-				current_net_amount = item.net_amount
-			elif tax.account_head in item_tax_map:
+			if tax.account_head in item_tax_map:
 				current_net_amount = item.net_amount
 			current_tax_amount = (tax_rate / 100.0) * item.net_amount
 		elif tax.charge_type == "On Previous Row Amount":

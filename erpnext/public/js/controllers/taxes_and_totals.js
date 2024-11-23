@@ -336,6 +336,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 					child.charge_type = "On Net Total";
 					child.account_head = tax;
 					child.rate = 0;
+					child.set_by_item_tax_template = true;
 				}
 			});
 		}

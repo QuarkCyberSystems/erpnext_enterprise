@@ -751,6 +751,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 					child.charge_type = "On Net Total";
 					child.account_head = tax;
 					child.rate = 0;
+					child.set_by_item_tax_template = true;
 				}
 			});
 		}
@@ -2076,7 +2077,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 			return this.frm.call({
 				method: "erpnext.stock.get_item_details.get_item_tax_info",
 				args: {
-					company: me.frm.doc.company,
+					doc: me.frm.doc,
 					tax_category: cstr(me.frm.doc.tax_category),
 					item_codes: item_codes,
 					item_rates: item_rates,
@@ -2107,7 +2108,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 			return this.frm.call({
 				method: "erpnext.stock.get_item_details.get_item_tax_map",
 				args: {
-					company: me.frm.doc.company,
+					doc: me.frm.doc,
 					item_tax_template: item.item_tax_template,
 					as_json: true
 				},

@@ -34,6 +34,7 @@ class AdvanceTaxesandCharges(Document):
 		parenttype: DF.Data
 		rate: DF.Float
 		row_id: DF.Data | None
+		set_by_item_tax_template: DF.Check
 		tax_amount: DF.Currency
 		total: DF.Currency
 	# end: auto-generated types
