@@ -1381,7 +1381,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 		if(child.service_start_date) {
 			frappe.call({
 				"method": "erpnext.stock.get_item_details.calculate_service_end_date",
-				args: {"args": child},
+				args: {ctx: child},
 				callback: function(r) {
 					frappe.model.set_value(cdt, cdn, "service_end_date", r.message.service_end_date);
 				}
@@ -1548,7 +1548,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 			frappe.call({
 				method: "erpnext.stock.get_item_details.get_batch_based_item_price",
 				args: {
-					params: params,
+					pctx: params,
 					item_code: row.item_code,
 				},
 				callback: function(r) {
@@ -2527,7 +2527,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 			frappe.call({
 				method: "erpnext.stock.get_item_details.get_blanket_order_details",
 				args: {
-					args:{
+					ctx:{
 						item_code: item.item_code,
 						customer: doc.customer,
 						supplier: doc.supplier,

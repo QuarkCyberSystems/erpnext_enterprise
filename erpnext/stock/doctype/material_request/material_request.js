@@ -236,7 +236,7 @@ frappe.ui.form.on("Material Request", {
 		frappe.call({
 			method: "erpnext.stock.get_item_details.get_item_details",
 			args: {
-				args: {
+				ctx: {
 					item_code: item.item_code,
 					from_warehouse: item.from_warehouse,
 					warehouse: item.warehouse,
