@@ -4,12 +4,18 @@ from collections import defaultdict
 import frappe
 from frappe.query_builder.functions import CombineDatetime, Sum
 from frappe.utils import flt
-from frappe.utils.deprecations import deprecated
 from pypika import Order
+
+from erpnext.deprecation_dumpster import deprecated
 
 
 class DeprecatedSerialNoValuation:
-	@deprecated
+	@deprecated(
+		"erpnext.stock.serial_batch_bundle.SerialNoValuation.calculate_stock_value_from_deprecarated_ledgers",
+		"unknown",
+		"v16",
+		"No known instructions.",
+	)
 	def calculate_stock_value_from_deprecarated_ledgers(self):
 		if not has_sle_for_serial_nos(self.sle.item_code):
 			return
@@ -35,7 +41,12 @@ class DeprecatedSerialNoValuation:
 
 		return serial_nos
 
-	@deprecated
+	@deprecated(
+		"erpnext.stock.serial_batch_bundle.SerialNoValuation.get_incoming_value_for_serial_nos",
+		"unknown",
+		"v16",
+		"No known instructions.",
+	)
 	def get_incoming_value_for_serial_nos(self, serial_nos):
 		from erpnext.stock.utils import get_combine_datetime
 
@@ -93,14 +104,24 @@ def has_sle_for_serial_nos(item_code):
 
 
 class DeprecatedBatchNoValuation:
-	@deprecated
+	@deprecated(
+		"erpnext.stock.serial_batch_bundle.BatchNoValuation.calculate_avg_rate_from_deprecarated_ledgers",
+		"unknown",
+		"v16",
+		"No known instructions.",
+	)
 	def calculate_avg_rate_from_deprecarated_ledgers(self):
 		entries = self.get_sle_for_batches()
 		for ledger in entries:
 			self.stock_value_differece[ledger.batch_no] += flt(ledger.batch_value)
 			self.available_qty[ledger.batch_no] += flt(ledger.batch_qty)
 
-	@deprecated
+	@deprecated(
+		"erpnext.stock.serial_batch_bundle.BatchNoValuation.get_sle_for_batches",
+		"unknown",
+		"v16",
+		"No known instructions.",
+	)
 	def get_sle_for_batches(self):
 		from erpnext.stock.utils import get_combine_datetime
 
@@ -147,7 +168,12 @@ class DeprecatedBatchNoValuation:
 
 		return query.run(as_dict=True)
 
-	@deprecated
+	@deprecated(
+		"erpnext.stock.serial_batch_bundle.BatchNoValuation.calculate_avg_rate_for_non_batchwise_valuation",
+		"unknown",
+		"v16",
+		"No known instructions.",
+	)
 	def calculate_avg_rate_for_non_batchwise_valuation(self):
 		if not self.non_batchwise_valuation_batches:
 			return
@@ -185,12 +211,22 @@ class DeprecatedBatchNoValuation:
 				},
 			)
 
-	@deprecated
+	@deprecated(
+		"erpnext.stock.serial_batch_bundle.BatchNoValuation.set_balance_value_for_non_batchwise_valuation_batches",
+		"unknown",
+		"v16",
+		"No known instructions.",
+	)
 	def set_balance_value_for_non_batchwise_valuation_batches(self):
 		self.set_balance_value_from_sl_entries()
 		self.set_balance_value_from_bundle()
 
-	@deprecated
+	@deprecated(
+		"erpnext.stock.serial_batch_bundle.BatchNoValuation.set_balance_value_from_sl_entries",
+		"unknown",
+		"v16",
+		"No known instructions.",
+	)
 	def set_balance_value_from_sl_entries(self) -> None:
 		from erpnext.stock.utils import get_combine_datetime
 
@@ -237,7 +273,12 @@ class DeprecatedBatchNoValuation:
 			self.non_batchwise_balance_qty[d.batch_no] += flt(d.batch_qty)
 			self.available_qty[d.batch_no] += flt(d.batch_qty)
 
-	@deprecated
+	@deprecated(
+		"erpnext.stock.serial_batch_bundle.BatchNoValuation.set_balance_value_from_bundle",
+		"unknown",
+		"v16",
+		"No known instructions.",
+	)
 	def set_balance_value_from_bundle(self) -> None:
 		bundle = frappe.qb.DocType("Serial and Batch Bundle")
 		bundle_child = frappe.qb.DocType("Serial and Batch Entry")

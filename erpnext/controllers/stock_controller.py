@@ -822,6 +822,9 @@ class StockController(AccountsController):
 		self.update_inventory_dimensions(d, sl_dict)
 
 		if self.docstatus == 2:
+			from erpnext.deprecation_dumpster import deprecation_warning
+
+			deprecation_warning("unknown", "v16", "No instructions.")
 			# To handle denormalized serial no records, will br deprecated in v16
 			for field in ["serial_no", "batch_no"]:
 				if d.get(field):
