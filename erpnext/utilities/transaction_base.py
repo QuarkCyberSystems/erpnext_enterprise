@@ -233,17 +233,8 @@ class TransactionBase(StatusUpdater):
 						)
 					)
 
-	@frappe.whitelist()
-	def item_code_trigger(self, item):
-		# 'item' - child table row from UI. Possibly has user-set values
-		# Convert it to Frappe doc for better attribute access
-		item = frappe.get_doc(item)
-
-		# Server side 'item' doc. Update this to reflect in UI
-		item_obj = self.get("items", {"name": item.name})[0]
-
-		# 'item_details' has values fetched by system for backend
-		item_details = get_item_details(
+	def fetch_item_details(self, item: dict) -> dict:
+		return get_item_details(
 			frappe._dict(
 				{
 					"item_code": item.get("item_code"),
@@ -294,6 +285,18 @@ class TransactionBase(StatusUpdater):
 				}
 			)
 		)
+
+	@frappe.whitelist()
+	def item_code_trigger(self, item):
+		# 'item' - child table row from UI. Possibly has user-set values
+		# Convert it to Frappe doc for better attribute access
+		item = frappe.get_doc(item)
+
+		# Server side 'item' doc. Update this to reflect in UI
+		item_obj = self.get("items", {"name": item.name})[0]
+
+		# 'item_details' has values fetched by system for backend
+		item_details = self.fetch_item_details(item)
 
 		self.set_fetched_values(item_obj, item_details)
 		self.set_item_rate_and_discounts(item, item_obj, item_details)
@@ -385,7 +388,8 @@ class TransactionBase(StatusUpdater):
 				_matches = [
 					x
 					for x in existing_free_items
-					if x.item_code == free_item.get('item_code') and x.pricing_rules == free_item.get('pricing_rules')
+					if x.item_code == free_item.get("item_code")
+					and x.pricing_rules == free_item.get("pricing_rules")
 				]
 				if _matches:
 					row_to_modify = _matches[0]
