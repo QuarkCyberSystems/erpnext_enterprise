@@ -300,22 +300,18 @@ class TransactionBase(StatusUpdater):
 
 		self.set_fetched_values(item_obj, item_details)
 		self.set_item_rate_and_discounts(item, item_obj, item_details)
-
 		self.add_taxes_from_item_template(item, item_obj, item_details)
 		self.add_free_item(item, item_obj, item_details)
-		return
-
-		# self.handle_internal_parties(item, item_details)
-		# if self.get("is_internal_customer") or self.get("is_internal_supplier"):
-		# TODO: this is already called in handle_internal_parties() -> price_list_rate, Remove?
-		# 	self.calculate_taxes_and_totals()
+		self.handle_internal_parties(item, item_obj, item_details)
+		self.conversion_factor(item, item_obj, item_details)
+		self.calculate_taxes_and_totals()
 
 	def set_fetched_values(self, item_obj: object, item_details: dict) -> None:
 		for k, v in item_details.items():
 			if hasattr(item_obj, k):
 				setattr(item_obj, k, v)
 
-	def handle_internal_parties(self, item, item_details):
+	def handle_internal_parties(self, item: object, item_obj: object, item_details: dict) -> None:
 		if (
 			self.get("is_internal_customer") or self.get("is_internal_supplier")
 		) and self.represents_company == self.company:
@@ -336,38 +332,25 @@ class TransactionBase(StatusUpdater):
 				}
 			)
 			rate = get_incoming_rate(args=args)
-			item.rate = rate * item.conversion_factor
+			item_obj.rate = rate * item.conversion_factor
 		else:
-			self.price_list_rate(item, item_details)
+			self.set_rate_based_on_price_list(item, item_obj, item_details)
 
 	def add_taxes_from_item_template(self, item: object, item_obj: object, item_details: dict) -> None:
 		if item_details.item_tax_rate and frappe.db.get_single_value(
 			"Accounts Settings", "add_taxes_from_item_tax_template"
 		):
 			item_tax_template = frappe.json.loads(item_details.item_tax_rate)
-			for tax_head, rate in item_tax_template.items():
+			for tax_head, _rate in item_tax_template.items():
 				found = [x for x in self.taxes if x.account_head == tax_head]
 				if not found:
 					self.append("taxes", {"charge_type": "On Net Total", "account_head": tax_head, "rate": 0})
 
-	def price_list_rate(self, item, item_details):
-		if item.doctype in [
-			"Quotation Item",
-			"Sales Order Item",
-			"Delivery Note Item",
-			"Sales Invoice Item",
-			"POS Invoice Item",
-			"Purchase Invoice Item",
-			"Purchase Order Item",
-			"Purchase Receipt Item",
-		]:
-			# self.apply_pricing_rule_on_item(item, item_details)
-			self.apply_pricing_rule_on_item(item)
-		else:
-			item.rate = flt(
+	def set_rate_based_on_price_list(self, item: object, item_obj: object, item_details: dict) -> None:
+		if item.price_list_rate and item.discount_percentage:
+			item_obj.rate = flt(
 				item.price_list_rate * (1 - item.discount_percentage / 100.0), item.precision("rate")
 			)
-			self.calculate_taxes_and_totals()
 
 	def copy_from_first_row(self, row, fields):
 		if self.items and row:
@@ -380,10 +363,6 @@ class TransactionBase(StatusUpdater):
 		free_items = item_details.get("free_item_data")
 		if free_items and len(free_items):
 			existing_free_items = [x for x in self.items if x.is_free_item]
-			existing_items = [
-				{"item_code": x.item_code, "pricing_rules": x.pricing_rules} for x in self.items
-			]
-
 			for free_item in free_items:
 				_matches = [
 					x
@@ -396,28 +375,34 @@ class TransactionBase(StatusUpdater):
 				else:
 					row_to_modify = self.append("items")
 
-				for k, v in free_item.items():
+				for k, _v in free_item.items():
 					setattr(row_to_modify, k, free_item.get(k))
 
 				self.copy_from_first_row(row_to_modify, ["expense_account", "income_account"])
 
-	def conversion_factor(self):
-		if frappe.get_meta(item.doctype).has_field("stock_qty"):
-			# frappe.model.round_floats_in(item, ["qty", "conversion_factor"]);
-			item.stock_qty = flt(item.qty * item.conversion_factor, item.precision("stock_qty"))
+	def conversion_factor(self, item: object, item_obj: object, item_details: dict) -> None:
+		if frappe.get_meta(item_obj.doctype).has_field("stock_qty"):
+			item_obj.stock_qty = flt(
+				item_obj.qty * item_obj.conversion_factor, item_obj.precision("stock_qty")
+			)
 
-			# this.toggle_conversion_factor(item);
 			if self.doctype != "Material Request":
-				item.total_weight = flt(item.stock_qty * item.weight_per_unit)
+				item_obj.total_weight = flt(item_obj.stock_qty * item_obj.weight_per_unit)
 				self.calculate_net_weight()
 
 			# TODO: for handling customization not to fetch price list rate
 			if frappe.flags.dont_fetch_price_list_rate:
 				return
 
-			if not dont_fetch_price_list_rate and frappe.meta.has_field(doc.doctype, "price_list_currency"):
-				self.apply_price_list(item, true)
-			self.calculate_stock_uom_rate(doc, cdt, cdn)
+			if not frappe.flags.dont_fetch_price_list_rate and frappe.get_meta(self.doctype).has_field(
+				"price_list_currency"
+			):
+				self._apply_price_list(item, item_obj, True)
+			self.calculate_stock_uom_rate(item_obj)
+
+	def calculate_stock_uom_rate(self, item_obj: object) -> None:
+		if item_obj.rate:
+			item_obj.stock_uom_rate = flt(item_obj.rate) / flt(item_obj.conversion_factor)
 
 	def set_item_rate_and_discounts(self, item: object, item_obj: object, item_details: dict) -> None:
 		effective_item_rate = item_details.price_list_rate
@@ -453,49 +438,53 @@ class TransactionBase(StatusUpdater):
 		self.total_net_weight = sum([x.total_weight for x in self.items])
 		self.apply_shipping_rule()
 
-	def apply_price_list(self, item, reset_plc_conversion):
-		# We need to reset plc_conversion_rate sometimes because the call to
-		# `erpnext.stock.get_item_details.apply_price_list` is sensitive to its value
-
+	def _apply_price_list(self, item: object, item_obj: object, reset_plc_conversion: bool) -> None:
 		if self.doctype == "Material Request":
 			return
 
 		if not reset_plc_conversion:
 			self.plc_conversion_rate = ""
 
-		if not (item.items or item.price_list):
+		if not self.items or not (item_obj.get("selling_price_list") or item_obj.get("buying_price_list")):
 			return
 
-		if self.in_apply_price_list:
+		if self.get("in_apply_price_list"):
 			return
 
 		self.in_apply_price_list = True
-		# return this.frm.call({
-		# 	method: "erpnext.stock.get_item_details.apply_price_list",
-		# 	args: {	args: args, doc: me.frm.doc },
-		# 	callback: function(r) {
-		# 		if (!r.exc) {
-		# 			frappe.run_serially([
-		# 				() => me.frm.set_value("price_list_currency", r.message.parent.price_list_currency),
-		# 				() => me.frm.set_value("plc_conversion_rate", r.message.parent.plc_conversion_rate),
-		# 				() => {
-		# 					if(args.items.length) {
-		# 						me._set_values_for_item_list(r.message.children);
-		# 						$.each(r.message.children || [], function(i, d) {
-		# 							me.apply_discount_on_item(d, d.doctype, d.name, 'discount_percentage');
-		# 						});
-		# 					}
-		# 				},
-		# 				() => { me.in_apply_price_list = false; }
-		# 			]);
 
-		# 		} else {
-		# 			me.in_apply_price_list = false;
-		# 		}
-		# 	}
-		# }).always(() => {
-		# 	me.in_apply_price_list = false;
-		# });
+		from erpnext.stock.get_item_details import apply_price_list
+
+		args = {
+			"items": [x.as_dict() for x in self.items],
+			"customer": self.customer or self.party_name,
+			"quotation_to": self.quotation_to,
+			"customer_group": self.customer_group,
+			"territory": self.territory,
+			"supplier": self.supplier,
+			"supplier_group": self.supplier_group,
+			"currency": self.currency,
+			"conversion_rate": self.conversion_rate,
+			"price_list": self.selling_price_list or self.buying_price_list,
+			"price_list_currency": self.price_list_currency,
+			"plc_conversion_rate": self.plc_conversion_rate,
+			"company": self.company,
+			"transaction_date": self.transaction_date or self.posting_date,
+			"campaign": self.campaign,
+			"sales_partner": self.sales_partner,
+			"ignore_pricing_rule": self.ignore_pricing_rule,
+			"doctype": self.doctype,
+			"name": self.name,
+			"is_return": self.is_return,
+			"update_stock": self.update_stock if self.doctype in ["Sales Invoice", "Purchase Invoice"] else 0,
+			"conversion_factor": self.conversion_factor,
+			"pos_profile": self.pos_profile if self.doctype == "Sales Invoice" else "",
+			"coupon_code": self.coupon_code,
+			"is_internal_supplier": self.is_internal_supplier,
+			"is_internal_customer": self.is_internal_customer,
+		}
+		# TODO: test method call impact on document
+		apply_price_list(cts=args, as_doc=True, doc=self)
 
 
 def delete_events(ref_type, ref_name):
