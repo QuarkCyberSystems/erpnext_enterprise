@@ -526,11 +526,16 @@ class GrossProfitGenerator:
 				if returned_item_row.qty != 0:
 					if row.qty >= abs(returned_item_row.qty):
 						row.qty += returned_item_row.qty
+						row.base_amount += flt(returned_item_row.base_amount, self.currency_precision)
 						returned_item_row.qty = 0
+						returned_item_row.base_amount = 0
+
 					else:
 						row.qty = 0
+						row.base_amount = 0
 						returned_item_row.qty += row.qty
-				row.base_amount += flt(returned_item_row.base_amount, self.currency_precision)
+						returned_item_row.base_amount += row.base_amount
+
 			row.buying_amount = flt(flt(row.qty) * flt(row.buying_rate), self.currency_precision)
 
 	def get_average_rate_based_on_group_by(self):
