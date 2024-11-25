@@ -134,6 +134,7 @@ class TestPOSInvoiceMergeLog(IntegrationTestCase):
 				},
 			)
 			inv.insert()
+			inv.payments[0].amount = inv.grand_total
 			inv.submit()
 
 			inv2 = create_pos_invoice(qty=1, rate=100, do_not_save=True)
@@ -150,6 +151,7 @@ class TestPOSInvoiceMergeLog(IntegrationTestCase):
 				},
 			)
 			inv2.insert()
+			inv2.payments[0].amount = inv.grand_total
 			inv2.submit()
 
 			consolidate_pos_invoices()
