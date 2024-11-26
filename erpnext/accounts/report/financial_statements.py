@@ -619,7 +619,7 @@ def get_cost_centers_with_children(cost_centers):
 def get_columns(periodicity, period_list, accumulated_values=1, company=None, cash_flow=False):
 	columns = [
 		{
-			"fieldname": "stub",
+			"fieldname": "account",
 			"label": _("Account") if not cash_flow else _("Section"),
 			"fieldtype": "Link",
 			"options": "Account",

@@ -33,7 +33,7 @@ erpnext.financial_statements = {
 
 			return value;
 		} else if (frappe.query_report.get_filter_value("selected_view") == "Margin" && data) {
-			if (column.fieldname == "stub" && data.account_name == __("Income")) {
+			if (column.fieldname == "account" && data.account_name == __("Income")) {
 				//Taking the total income from each column (for all the financial years) as the base (100%)
 				this.baseData = row;
 			}
@@ -52,7 +52,7 @@ erpnext.financial_statements = {
 			}
 		}
 
-		if (data && column.fieldname == "stub") {
+		if (data && column.fieldname == "account") {
 			// first column
 			value = data.section_name || data.account_name || value;
 
