@@ -26,20 +26,6 @@ frappe.ui.form.on("Sales Order", {
 			return doc.stock_qty <= doc.delivered_qty ? "green" : "orange";
 		});
 
-		frm.set_query("company_address", function (doc) {
-			if (!doc.company) {
-				frappe.throw(__("Please set Company"));
-			}
-
-			return {
-				query: "frappe.contacts.doctype.address.address.address_query",
-				filters: {
-					link_doctype: "Company",
-					link_name: doc.company,
-				},
-			};
-		});
-
 		frm.set_query("bom_no", "items", function (doc, cdt, cdn) {
 			var row = locals[cdt][cdn];
 			return {
