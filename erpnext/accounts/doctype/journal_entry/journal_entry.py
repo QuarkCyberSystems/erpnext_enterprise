@@ -127,9 +127,6 @@ class JournalEntry(AccountsController):
 		self.set_amounts_in_company_currency()
 		self.validate_debit_credit_amount()
 		self.set_total_debit_credit()
-		# Do not validate while importing via data import
-		if not frappe.flags.in_import:
-			self.validate_total_debit_and_credit()
 
 		if not frappe.flags.is_reverse_depr_entry:
 			self.validate_against_jv()
@@ -185,6 +182,10 @@ class JournalEntry(AccountsController):
 			return self._cancel()
 
 	def on_submit(self):
+		# Do not validate while importing via data import
+		if not frappe.flags.in_import:
+			self.validate_total_debit_and_credit()
+
 		self.validate_cheque_info()
 		self.check_credit_limit()
 		self.make_gl_entries()
