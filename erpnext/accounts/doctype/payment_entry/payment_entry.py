@@ -2971,6 +2971,7 @@ def get_open_payment_requests_for_references(references=None):
 		.where(Tuple(PR.reference_doctype, PR.reference_name).isin(list(refs)))
 		.where(PR.status != "Paid")
 		.where(PR.docstatus == 1)
+		.where(PR.outstanding_amount > 0)  # to avoid old PRs with 0 outstanding amount
 		.orderby(Coalesce(PR.transaction_date, PR.creation), order=frappe.qb.asc)
 	).run(as_dict=True)
 
