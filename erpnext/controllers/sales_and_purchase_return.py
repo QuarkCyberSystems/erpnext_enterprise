@@ -1036,7 +1036,7 @@ def filter_serial_batches(parent_doc, data, row, warehouse_field=None, qty_field
 				available_serial_nos.append(serial_no)
 
 		if available_serial_nos:
-			if parent_doc.doctype in ["Purchase Invoice", "Purchase Reecipt"]:
+			if parent_doc.doctype in ["Purchase Invoice", "Purchase Receipt"]:
 				available_serial_nos = get_available_serial_nos(available_serial_nos, warehouse)
 
 			if len(available_serial_nos) > qty:
@@ -1052,7 +1052,7 @@ def filter_serial_batches(parent_doc, data, row, warehouse_field=None, qty_field
 			if batch_qty <= 0:
 				continue
 
-			if parent_doc.doctype in ["Purchase Invoice", "Purchase Reecipt"]:
+			if parent_doc.doctype in ["Purchase Invoice", "Purchase Receipt"]:
 				batch_qty = get_available_batch_qty(
 					parent_doc,
 					batch_no,
