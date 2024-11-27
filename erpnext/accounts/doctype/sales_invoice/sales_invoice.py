@@ -98,6 +98,7 @@ class SalesInvoice(SellingController):
 		company: DF.Link
 		company_address: DF.Link | None
 		company_address_display: DF.TextEditor | None
+		company_contact_person: DF.Link | None
 		company_tax_id: DF.Data | None
 		contact_display: DF.SmallText | None
 		contact_email: DF.Data | None
@@ -153,7 +154,6 @@ class SalesInvoice(SellingController):
 		party_account_currency: DF.Link | None
 		payment_schedule: DF.Table[PaymentSchedule]
 		payment_terms_template: DF.Link | None
-		payment_url: DF.Data | None
 		payments: DF.Table[SalesInvoicePayment]
 		plc_conversion_rate: DF.Float
 		po_date: DF.Date | None

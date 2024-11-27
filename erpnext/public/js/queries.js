@@ -56,6 +56,17 @@ $.extend(erpnext.queries, {
 		}
 	},
 
+	company_contact_query: function (doc) {
+		if (!doc.company) {
+			frappe.throw(__("Please set {0}", [__(frappe.meta.get_label(doc.doctype, "company", doc.name))]));
+		}
+
+		return {
+			query: "frappe.contacts.doctype.contact.contact.contact_query",
+			filters: { link_doctype: "Company", link_name: doc.company },
+		};
+	},
+
 	address_query: function (doc) {
 		if (frappe.dynamic_link) {
 			if (!doc[frappe.dynamic_link.fieldname]) {
