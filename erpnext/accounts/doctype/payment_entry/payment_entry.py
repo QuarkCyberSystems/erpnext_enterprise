@@ -1848,7 +1848,7 @@ class PaymentEntry(AccountsController):
 			if paid_amount > total_negative_outstanding:
 				if total_negative_outstanding == 0:
 					frappe.msgprint(
-						_("Cannot {0} from {2} without any negative outstanding invoice").format(
+						_("Cannot {0} from {1} without any negative outstanding invoice").format(
 							self.payment_type,
 							self.party_type,
 						)
