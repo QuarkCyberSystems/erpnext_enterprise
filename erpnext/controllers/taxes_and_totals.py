@@ -8,7 +8,6 @@ import frappe
 from frappe import _, scrub
 from frappe.model.document import Document
 from frappe.utils import cint, flt, round_based_on_smallest_currency_fraction
-from frappe.utils.deprecations import deprecated
 
 import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_exchange_rate
@@ -18,6 +17,7 @@ from erpnext.controllers.accounts_controller import (
 	validate_inclusive_tax,
 	validate_taxes_and_charges,
 )
+from erpnext.deprecation_dumpster import deprecated
 from erpnext.stock.get_item_details import ItemDetailsCtx, _get_item_tax_template
 from erpnext.utilities.regional import temporary_flag
 
@@ -501,9 +501,7 @@ class calculate_taxes_and_totals:
 				)
 
 		elif tax.charge_type == "On Net Total":
-			if not item_tax_map:
-				current_net_amount = item.net_amount
-			elif tax.account_head in item_tax_map:
+			if tax.account_head in item_tax_map:
 				current_net_amount = item.net_amount
 			current_tax_amount = (tax_rate / 100.0) * item.net_amount
 		elif tax.charge_type == "On Previous Row Amount":
@@ -569,7 +567,12 @@ class calculate_taxes_and_totals:
 			tax.base_tax_amount = round(tax.base_tax_amount, 0)
 			tax.base_tax_amount_after_discount_amount = round(tax.base_tax_amount_after_discount_amount, 0)
 
-	@deprecated
+	@deprecated(
+		f"{__name__}.calculate_taxes_and_totals.manipulate_grand_total_for_inclusive_tax",
+		"unknown",
+		"v16",
+		"No known instructions.",
+	)
 	def manipulate_grand_total_for_inclusive_tax(self):
 		# for backward compatablility - if in case used by an external application
 		return self.adjust_grand_total_for_inclusive_tax()

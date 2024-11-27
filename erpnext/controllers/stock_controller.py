@@ -822,6 +822,9 @@ class StockController(AccountsController):
 		self.update_inventory_dimensions(d, sl_dict)
 
 		if self.docstatus == 2:
+			from erpnext.deprecation_dumpster import deprecation_warning
+
+			deprecation_warning("unknown", "v16", "No instructions.")
 			# To handle denormalized serial no records, will br deprecated in v16
 			for field in ["serial_no", "batch_no"]:
 				if d.get(field):
@@ -1008,11 +1011,13 @@ class StockController(AccountsController):
 	def validate_qi_presence(self, row):
 		"""Check if QI is present on row level. Warn on save and stop on submit if missing."""
 		if not row.quality_inspection:
-			msg = f"Row #{row.idx}: Quality Inspection is required for Item {frappe.bold(row.item_code)}"
+			msg = _("Row #{0}: Quality Inspection is required for Item {1}").format(
+				row.idx, frappe.bold(row.item_code)
+			)
 			if self.docstatus == 1:
-				frappe.throw(_(msg), title=_("Inspection Required"), exc=QualityInspectionRequiredError)
+				frappe.throw(msg, title=_("Inspection Required"), exc=QualityInspectionRequiredError)
 			else:
-				frappe.msgprint(_(msg), title=_("Inspection Required"), indicator="blue")
+				frappe.msgprint(msg, title=_("Inspection Required"), indicator="blue")
 
 	def validate_qi_submission(self, row):
 		"""Check if QI is submitted on row level, during submission"""
@@ -1021,11 +1026,13 @@ class StockController(AccountsController):
 
 		if qa_docstatus != 1:
 			link = frappe.utils.get_link_to_form("Quality Inspection", row.quality_inspection)
-			msg = f"Row #{row.idx}: Quality Inspection {link} is not submitted for the item: {row.item_code}"
+			msg = _("Row #{0}: Quality Inspection {1} is not submitted for the item: {2}").format(
+				row.idx, link, row.item_code
+			)
 			if action == "Stop":
-				frappe.throw(_(msg), title=_("Inspection Submission"), exc=QualityInspectionNotSubmittedError)
+				frappe.throw(msg, title=_("Inspection Submission"), exc=QualityInspectionNotSubmittedError)
 			else:
-				frappe.msgprint(_(msg), alert=True, indicator="orange")
+				frappe.msgprint(msg, alert=True, indicator="orange")
 
 	def validate_qi_rejection(self, row):
 		"""Check if QI is rejected on row level, during submission"""
@@ -1034,11 +1041,13 @@ class StockController(AccountsController):
 
 		if qa_status == "Rejected":
 			link = frappe.utils.get_link_to_form("Quality Inspection", row.quality_inspection)
-			msg = f"Row #{row.idx}: Quality Inspection {link} was rejected for item {row.item_code}"
+			msg = _("Row #{0}: Quality Inspection {1} was rejected for item {2}").format(
+				row.idx, link, row.item_code
+			)
 			if action == "Stop":
-				frappe.throw(_(msg), title=_("Inspection Rejected"), exc=QualityInspectionRejectedError)
+				frappe.throw(msg, title=_("Inspection Rejected"), exc=QualityInspectionRejectedError)
 			else:
-				frappe.msgprint(_(msg), alert=True, indicator="orange")
+				frappe.msgprint(msg, alert=True, indicator="orange")
 
 	def update_blanket_order(self):
 		blanket_orders = list(set([d.blanket_order for d in self.items if d.blanket_order]))

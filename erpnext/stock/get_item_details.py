@@ -98,8 +98,8 @@ def get_item_details(
 
 	get_item_tax_template(ctx, item, out)
 	out.item_tax_rate = get_item_tax_map(
-		ctx.company,
-		out.item_tax_template or ctx.item_tax_template,
+		doc=doc or ctx,
+		tax_template=out.item_tax_template or ctx.item_tax_template,
 		as_json=True,
 	)
 
@@ -528,7 +528,7 @@ def get_barcode_data(items_list=None, item_code=None):
 
 
 @frappe.whitelist()
-def get_item_tax_info(company, tax_category, item_codes, item_rates=None, item_tax_templates=None):
+def get_item_tax_info(doc, tax_category, item_codes, item_rates=None, item_tax_templates=None):
 	out = {}
 
 	if item_tax_templates is None:
@@ -537,14 +537,10 @@ def get_item_tax_info(company, tax_category, item_codes, item_rates=None, item_t
 	if item_rates is None:
 		item_rates = {}
 
-	if isinstance(item_codes, str):
-		item_codes = json.loads(item_codes)
-
-	if isinstance(item_rates, str):
-		item_rates = json.loads(item_rates)
-
-	if isinstance(item_tax_templates, str):
-		item_tax_templates = json.loads(item_tax_templates)
+	doc = parse_json(doc)
+	item_codes = parse_json(item_codes)
+	item_rates = parse_json(item_rates)
+	item_tax_templates = parse_json(item_tax_templates)
 
 	for item_code in item_codes:
 		if not item_code or item_code[1] in out or not item_tax_templates.get(item_code[1]):
@@ -553,7 +549,7 @@ def get_item_tax_info(company, tax_category, item_codes, item_rates=None, item_t
 		out[item_code[1]] = ItemDetails()
 		item = frappe.get_cached_doc("Item", item_code[0])
 		ctx: ItemDetailsCtx = {
-			"company": company,
+			"company": doc.company,
 			"tax_category": tax_category,
 			"base_net_rate": item_rates.get(item_code[1]),
 		}
@@ -563,7 +559,9 @@ def get_item_tax_info(company, tax_category, item_codes, item_rates=None, item_t
 
 		get_item_tax_template(ctx, item, out[item_code[1]])
 		out[item_code[1]]["item_tax_rate"] = get_item_tax_map(
-			company, out[item_code[1]].get("item_tax_template"), as_json=True
+			doc=doc,
+			tax_template=out[item_code[1]].get("item_tax_template"),
+			as_json=True,
 		)
 
 	return out
@@ -689,12 +687,16 @@ def is_within_valid_range(ctx: ItemDetailsCtx, tax) -> bool:
 
 
 @frappe.whitelist()
-def get_item_tax_map(company, item_tax_template, as_json=True):
+def get_item_tax_map(*, doc: str | dict | Document, tax_template: str | None = None, as_json=True):
+	doc = parse_json(doc)
 	item_tax_map = {}
-	if item_tax_template:
-		template = frappe.get_cached_doc("Item Tax Template", item_tax_template)
+	for t in (t for t in (doc.get("taxes") or []) if not t.set_by_item_tax_template):
+		item_tax_map[t.account_head] = t.rate
+
+	if tax_template:
+		template = frappe.get_cached_doc("Item Tax Template", tax_template)
 		for d in template.taxes:
-			if frappe.get_cached_value("Account", d.tax_type, "company") == company:
+			if frappe.get_cached_value("Account", d.tax_type, "company") == doc.get("company"):
 				item_tax_map[d.tax_type] = d.tax_rate
 
 	return json.dumps(item_tax_map) if as_json else item_tax_map

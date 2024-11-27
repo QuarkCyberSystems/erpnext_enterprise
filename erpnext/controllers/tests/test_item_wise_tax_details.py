@@ -79,7 +79,7 @@ class TestTaxesAndTotals(FrappeTestCase):
 				"rate": 50,
 			},
 		)
-
+		self.doc.set_missing_item_details()
 		calculate_taxes_and_totals(self.doc)
 
 		expected_values = {

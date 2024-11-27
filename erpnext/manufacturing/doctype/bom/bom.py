@@ -886,7 +886,7 @@ class BOM(WebsiteGenerator):
 		self.cur_exploded_items = {}
 		for d in self.get("items"):
 			if d.bom_no:
-				self.get_child_exploded_items(d.bom_no, d.stock_qty)
+				self.get_child_exploded_items(d.bom_no, d.stock_qty, d.operation)
 			elif d.item_code:
 				self.add_to_cur_exploded_items(
 					frappe._dict(
@@ -915,7 +915,7 @@ class BOM(WebsiteGenerator):
 		else:
 			self.cur_exploded_items[args.item_code] = args
 
-	def get_child_exploded_items(self, bom_no, stock_qty):
+	def get_child_exploded_items(self, bom_no, stock_qty, operation=None):
 		"""Add all items from Flat BOM of child BOM"""
 		# Did not use qty_consumed_per_unit in the query, as it leads to rounding loss
 		child_fb_items = frappe.db.sql(
@@ -949,7 +949,7 @@ class BOM(WebsiteGenerator):
 						"item_code": d["item_code"],
 						"item_name": d["item_name"],
 						"source_warehouse": d["source_warehouse"],
-						"operation": d["operation"],
+						"operation": d["operation"] or operation,
 						"description": d["description"],
 						"stock_uom": d["stock_uom"],
 						"stock_qty": d["qty_consumed_per_unit"] * stock_qty,

@@ -961,6 +961,7 @@ class AccountsController(TransactionBase):
 							"account_head": account_head,
 							"rate": 0,
 							"description": account_head,
+							"set_by_item_tax_template": 1,
 						},
 					)
 
@@ -3176,10 +3177,11 @@ def set_child_tax_template_and_map(item, child_item, parent_doc):
 	)
 
 	child_item.item_tax_template = _get_item_tax_template(ctx, item.taxes)
-	if child_item.get("item_tax_template"):
-		child_item.item_tax_rate = get_item_tax_map(
-			parent_doc.get("company"), child_item.item_tax_template, as_json=True
-		)
+	child_item.item_tax_rate = get_item_tax_map(
+		doc=parent_doc,
+		tax_template=child_item.item_tax_template,
+		as_json=True,
+	)
 
 
 def add_taxes_from_tax_template(child_item, parent_doc, db_insert=True):
@@ -3202,6 +3204,7 @@ def add_taxes_from_tax_template(child_item, parent_doc, db_insert=True):
 						"charge_type": "On Net Total",
 						"account_head": tax_type,
 						"rate": tax_rate,
+						"set_by_item_tax_template": 1,
 					}
 				)
 				if parent_doc.doctype == "Purchase Order":

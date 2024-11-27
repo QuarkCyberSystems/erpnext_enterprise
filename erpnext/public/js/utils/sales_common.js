@@ -52,6 +52,7 @@ erpnext.sales_common = {
 				me.frm.set_query("customer_address", erpnext.queries.address_query);
 				me.frm.set_query("shipping_address_name", erpnext.queries.address_query);
 				me.frm.set_query("dispatch_address_name", erpnext.queries.dispatch_address_query);
+				me.frm.set_query("company_address", erpnext.queries.company_address_query);
 
 				erpnext.accounts.dimensions.setup_dimension_filters(me.frm, me.frm.doctype);
 

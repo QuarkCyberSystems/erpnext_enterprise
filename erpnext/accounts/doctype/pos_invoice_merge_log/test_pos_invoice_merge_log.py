@@ -134,6 +134,7 @@ class TestPOSInvoiceMergeLog(IntegrationTestCase):
 				},
 			)
 			inv.insert()
+			inv.payments[0].amount = inv.grand_total
 			inv.submit()
 
 			inv2 = create_pos_invoice(qty=1, rate=100, do_not_save=True)
@@ -150,6 +151,7 @@ class TestPOSInvoiceMergeLog(IntegrationTestCase):
 				},
 			)
 			inv2.insert()
+			inv2.payments[0].amount = inv.grand_total
 			inv2.submit()
 
 			consolidate_pos_invoices()
@@ -157,16 +159,19 @@ class TestPOSInvoiceMergeLog(IntegrationTestCase):
 
 			consolidated_invoice = frappe.get_doc("Sales Invoice", inv.consolidated_invoice)
 			item_wise_tax_detail = json.loads(consolidated_invoice.get("taxes")[0].item_wise_tax_detail)
-
-			tax_data = item_wise_tax_detail.get("_Test Item")
-			self.assertEqual(tax_data.get("tax_rate"), 9)
-			self.assertEqual(tax_data.get("tax_amount"), 9)
-			self.assertEqual(tax_data.get("net_amount"), 100)
-
-			tax_data = item_wise_tax_detail.get("_Test Item 2")
-			self.assertEqual(tax_data.get("tax_rate"), 5)
-			self.assertEqual(tax_data.get("tax_amount"), 5)
-			self.assertEqual(tax_data.get("net_amount"), 100)
+			expected_item_wise_tax_detail = {
+				"_Test Item": {
+					"tax_rate": 9,
+					"tax_amount": 9,
+					"net_amount": 100,
+				},
+				"_Test Item 2": {
+					"tax_rate": 5,
+					"tax_amount": 5,
+					"net_amount": 100,
+				},
+			}
+			self.assertEqual(item_wise_tax_detail, expected_item_wise_tax_detail)
 		finally:
 			frappe.set_user("Administrator")
 			frappe.db.sql("delete from `tabPOS Profile`")

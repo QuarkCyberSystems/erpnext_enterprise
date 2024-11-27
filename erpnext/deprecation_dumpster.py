@@ -5,7 +5,7 @@ This file is the final resting place (or should we say, "retirement home"?) for 
 
 Each function or method that checks in here comes with its own personalized decorator, complete with:
 1. The date it was marked for deprecation (its "over the hill" birthday)
-2. The ERPNext version in which it will be removed (its "graduation" to the great codebase in the sky)
+2. The ERPNext version at the beginning of which it becomes an error and at the end of which it will be removed (its "graduation" to the great codebase in the sky)
 3. A user-facing note on alternative solutions (its "parting wisdom")
 
 Warning: The global namespace herein is more patched up than a sailor's favorite pair of jeans. Proceed with caution and a sense of humor!
@@ -15,52 +15,63 @@ Remember, deprecated doesn't mean useless - it just means these functions are en
 Enjoy your stay in the Deprecation Dumpster, where every function gets a second chance to shine (or at least, to not break everything).
 """
 
+import functools
+import re
 import sys
 import warnings
 
-
-def colorize(text, color_code):
-	if sys.stdout.isatty():
-		return f"\033[{color_code}m{text}\033[0m"
-	return text
+from frappe.deprecation_dumpster import Color, _deprecated, colorize
 
 
-class Color:
-	RED = 91
-	YELLOW = 93
-	CYAN = 96
+# we use Warning because DeprecationWarning has python default filters which would exclude them from showing
+# see also frappe.__init__ enabling them when a dev_server
+class ERPNextDeprecationError(Warning):
+	"""Deprecated feature in current version.
+
+	Raises an error by default but can be configured via PYTHONWARNINGS in an emergency.
+	"""
 
 
 class ERPNextDeprecationWarning(Warning):
-	...
+	"""Deprecated feature in next version"""
 
 
-try:
-	# since python 3.13, PEP 702
-	from warnings import deprecated as _deprecated
-except ImportError:
-	import functools
-	import warnings
-	from collections.abc import Callable
-	from typing import Optional, TypeVar, Union, overload
+class PendingERPNextDeprecationWarning(ERPNextDeprecationWarning):
+	"""Deprecated feature in develop beyond next version.
 
-	T = TypeVar("T", bound=Callable)
+	Warning ignored by default.
 
-	def _deprecated(message: str, category=ERPNextDeprecationWarning, stacklevel=1) -> Callable[[T], T]:
-		def decorator(func: T) -> T:
-			@functools.wraps(func)
-			def wrapper(*args, **kwargs):
-				if message:
-					warning_msg = f"{func.__name__} is deprecated.\n{message}"
-				else:
-					warning_msg = f"{func.__name__} is deprecated."
-				warnings.warn(warning_msg, category=category, stacklevel=stacklevel + 1)
-				return func(*args, **kwargs)
+	The deprecation decision may still be reverted or deferred at this stage.
+	Regardless, using the new variant is encouraged and stable.
+	"""
 
-			return wrapper
-			wrapper.__deprecated__ = True  # hint for the type checker
 
-		return decorator
+warnings.simplefilter("error", ERPNextDeprecationError)
+warnings.simplefilter("ignore", PendingERPNextDeprecationWarning)
+
+
+class V15ERPNextDeprecationWarning(ERPNextDeprecationError):
+	pass
+
+
+class V16ERPNextDeprecationWarning(ERPNextDeprecationWarning):
+	pass
+
+
+class V17ERPNextDeprecationWarning(PendingERPNextDeprecationWarning):
+	pass
+
+
+def __get_deprecation_class(graduation: str | None = None, class_name: str | None = None) -> type:
+	if graduation:
+		# Scrub the graduation string to ensure it's a valid class name
+		cleaned_graduation = re.sub(r"\W|^(?=\d)", "_", graduation.upper())
+		class_name = f"{cleaned_graduation}ERPNextDeprecationWarning"
+		current_module = sys.modules[__name__]
+	try:
+		return getattr(current_module, class_name)
+	except AttributeError:
+		return PendingDeprecationWarning
 
 
 def deprecated(original: str, marked: str, graduation: str, msg: str, stacklevel: int = 1):
@@ -79,6 +90,7 @@ def deprecated(original: str, marked: str, graduation: str, msg: str, stacklevel
 		wrapper = _deprecated(
 			colorize(f"It was marked on {marked} for removal from {graduation} with note: ", Color.RED)
 			+ colorize(f"{msg}", Color.YELLOW),
+			category=__get_deprecation_class(graduation),
 			stacklevel=stacklevel,
 		)
 
@@ -103,7 +115,7 @@ def deprecation_warning(marked: str, graduation: str, msg: str):
 			Color.RED,
 		)
 		+ colorize(f"{msg}\n", Color.YELLOW),
-		category=ERPNextDeprecationWarning,
+		category=__get_deprecation_class(graduation),
 		stacklevel=2,
 	)
 

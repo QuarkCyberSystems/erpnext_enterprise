@@ -240,6 +240,7 @@ class POSInvoice(SalesInvoice):
 			from erpnext.accounts.doctype.pricing_rule.utils import update_coupon_code_count
 
 			update_coupon_code_count(self.coupon_code, "used")
+		self.clear_unallocated_mode_of_payments()
 
 	def before_cancel(self):
 		if (
@@ -277,6 +278,12 @@ class POSInvoice(SalesInvoice):
 			update_coupon_code_count(self.coupon_code, "cancelled")
 
 		self.delink_serial_and_batch_bundle()
+
+	def clear_unallocated_mode_of_payments(self):
+		self.set("payments", self.get("payments", {"amount": ["not in", [0, None, ""]]}))
+
+		sip = frappe.qb.DocType("Sales Invoice Payment")
+		frappe.qb.from_(sip).delete().where(sip.parent == self.name).where(sip.amount == 0).run()
 
 	def delink_serial_and_batch_bundle(self):
 		for row in self.items:
