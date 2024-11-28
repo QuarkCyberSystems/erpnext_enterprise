@@ -71,7 +71,6 @@ def get_data(filters):
 
 	assets = [d.against_voucher for d in gl_entries]
 	assets_details = get_assets_details(assets)
-	print(gl_entries)
 
 	for d in gl_entries:
 		asset_data = assets_details.get(d.against_voucher)
