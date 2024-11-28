@@ -71,6 +71,7 @@ def get_data(filters):
 
 	assets = [d.against_voucher for d in gl_entries]
 	assets_details = get_assets_details(assets)
+	print(gl_entries)
 
 	for d in gl_entries:
 		asset_data = assets_details.get(d.against_voucher)
@@ -89,7 +90,9 @@ def get_data(filters):
 						& (DepreciationSchedule.schedule_date == d.posting_date)
 					)
 				).run(as_dict=True)
-				asset_data.accumulated_depreciation_amount = query[0]["accumulated_depreciation_amount"]
+				asset_data.accumulated_depreciation_amount = (
+					query[0]["accumulated_depreciation_amount"] if query else 0
+				)
 
 			else:
 				asset_data.accumulated_depreciation_amount += d.debit
