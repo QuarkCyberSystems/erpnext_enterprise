@@ -783,6 +783,8 @@ def get_existing_paid_amount(doctype, name):
 		.where(PL.against_voucher_type.eq(doctype))
 		.where(PL.against_voucher_no.eq(name))
 		.where(PL.amount < 0)
+		.where(PL.delinked == 0)
+		.where(PER.docstatus == 1)
 		.where(PER.payment_request.isnull())
 	)
 	response = query.run()
