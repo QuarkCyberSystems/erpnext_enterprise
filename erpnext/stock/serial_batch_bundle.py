@@ -478,7 +478,7 @@ def get_serial_or_batch_nos(bundle):
 		html = "<table class= 'table table-borderless' style='margin-top: 0px;margin-bottom: 0px;'>"
 		for d in data:
 			if d.serial_no:
-				html += f"<tr><td>{d.batch_no}</th><th>{d.serial_no}</th	><th>{abs(d.qty)}</th></tr>"
+				html += f"<tr><td>{d.batch_no}</td><td>{d.serial_no}</td><td>{abs(d.qty)}</td></tr>"
 			else:
 				html += f"<tr><td>{d.batch_no}</td><td>{abs(d.qty)}</td></tr>"
 
