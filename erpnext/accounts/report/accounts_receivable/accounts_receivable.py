@@ -1028,7 +1028,7 @@ class ReceivablePayableReport:
 			width=180,
 		)
 		self.add_column(
-			label=self.account_type + " Account",
+			label=_(self.account_type + " Account"),
 			fieldname="party_account",
 			fieldtype="Link",
 			options="Account",
