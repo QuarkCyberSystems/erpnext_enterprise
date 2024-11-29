@@ -185,6 +185,10 @@ frappe.ui.form.on("Payment Entry", {
 				filters: {
 					reference_doctype: row.reference_doctype,
 					reference_name: row.reference_name,
+					company: doc.company,
+					status: ["!=", "Paid"],
+					outstanding_amount: [">", 0], // for compatibility with old data
+					docstatus: 1,
 				},
 			};
 		});

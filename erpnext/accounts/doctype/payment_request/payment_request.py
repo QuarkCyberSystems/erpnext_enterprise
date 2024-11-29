@@ -987,12 +987,7 @@ def get_open_payment_requests_query(doctype, txt, searchfield, start, page_len, 
 
 	open_payment_requests = frappe.get_list(
 		"Payment Request",
-		filters={
-			**filters,
-			"status": ["!=", "Paid"],
-			"outstanding_amount": ["!=", 0],  # for compatibility with old data
-			"docstatus": 1,
-		},
+		filters=filters,
 		fields=["name", "grand_total", "outstanding_amount"],
 		order_by="transaction_date ASC,creation ASC",
 	)
