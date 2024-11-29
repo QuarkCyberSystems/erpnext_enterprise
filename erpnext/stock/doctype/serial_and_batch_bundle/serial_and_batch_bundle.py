@@ -607,8 +607,10 @@ class SerialandBatchBundle(Document):
 
 		precision = row.precision
 		if abs(abs(flt(self.total_qty, precision)) - abs(flt(qty, precision))) > 0.01:
+			total_qty = frappe.format_value(abs(flt(self.total_qty)), "Float", row)
+			set_qty = frappe.format_value(abs(flt(row.get(qty_field))), "Float", row)
 			self.throw_error_message(
-				f"Total quantity {abs(flt(self.total_qty))} in the Serial and Batch Bundle {bold(self.name)} does not match with the quantity {abs(flt(row.get(qty_field)))} for the Item {bold(self.item_code)} in the {self.voucher_type} # {self.voucher_no}"
+				f"Total quantity {total_qty} in the Serial and Batch Bundle {bold(self.name)} does not match with the quantity {set_qty} for the Item {bold(self.item_code)} in the {self.voucher_type} # {self.voucher_no}"
 			)
 
 	def get_qty_field(self, row, qty_field=None) -> str:
