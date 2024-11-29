@@ -972,6 +972,9 @@ class SerialandBatchBundle(Document):
 		):
 			return
 
+		if self.voucher_type in ["Sales Invoice", "Delivery Note"] and self.type_of_transaction == "Inward":
+			return
+
 		if not self.has_batch_no:
 			return
 
