@@ -322,7 +322,7 @@ erpnext.assets.AssetCapitalization = class AssetCapitalization extends erpnext.s
 				method: "erpnext.assets.doctype.asset_capitalization.asset_capitalization.get_consumed_stock_item_details",
 				child: row,
 				args: {
-					args: {
+					ctx: {
 						item_code: row.item_code,
 						warehouse: row.warehouse,
 						stock_qty: flt(row.stock_qty),
@@ -350,7 +350,7 @@ erpnext.assets.AssetCapitalization = class AssetCapitalization extends erpnext.s
 				method: "erpnext.assets.doctype.asset_capitalization.asset_capitalization.get_consumed_asset_details",
 				child: row,
 				args: {
-					args: {
+					ctx: {
 						asset: row.asset,
 						doctype: me.frm.doc.doctype,
 						name: me.frm.doc.name,
@@ -377,7 +377,7 @@ erpnext.assets.AssetCapitalization = class AssetCapitalization extends erpnext.s
 				method: "erpnext.assets.doctype.asset_capitalization.asset_capitalization.get_service_item_details",
 				child: row,
 				args: {
-					args: {
+					ctx: {
 						item_code: row.item_code,
 						qty: flt(row.qty),
 						expense_account: row.expense_account,
