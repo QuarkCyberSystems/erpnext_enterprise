@@ -8,25 +8,20 @@
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
-  "company",
+  "naming_series",
   "item_code",
   "item_name",
+  "asset_name",
+  "asset_category",
+  "location",
+  "image",
+  "column_break_3",
+  "status",
+  "company",
   "asset_owner",
   "asset_owner_company",
   "is_existing_asset",
   "is_composite_asset",
-  "supplier",
-  "customer",
-  "image",
-  "journal_entry_for_scrap",
-  "column_break_3",
-  "naming_series",
-  "asset_name",
-  "asset_category",
-  "location",
-  "split_from",
-  "custodian",
-  "department",
   "purchase_details_section",
   "purchase_receipt",
   "purchase_receipt_item",
@@ -34,12 +29,13 @@
   "purchase_invoice_item",
   "purchase_date",
   "available_for_use_date",
-  "disposal_date",
   "column_break_23",
   "gross_purchase_amount",
+  "purchase_amount",
   "asset_quantity",
   "additional_asset_cost",
   "total_asset_cost",
+  "disposal_date",
   "depreciation_tab",
   "calculate_depreciation",
   "column_break_33",
@@ -57,8 +53,6 @@
   "next_depreciation_date",
   "depreciation_schedule_sb",
   "depreciation_schedule_view",
-  "accounting_dimensions_tab",
-  "cost_center",
   "insurance_details_tab",
   "policy_number",
   "insurer",
@@ -68,21 +62,28 @@
   "insurance_end_date",
   "comprehensive_insurance",
   "other_info_tab",
-  "booked_fixed_asset",
-  "maintenance_required",
-  "column_break_51",
-  "status",
-  "purchase_amount",
+  "accounting_dimensions_section",
+  "cost_center",
+  "section_break_jtou",
+  "custodian",
   "default_finance_book",
   "depr_entry_posting_status",
+  "booked_fixed_asset",
+  "customer",
+  "supplier",
+  "column_break_51",
+  "department",
+  "split_from",
+  "journal_entry_for_scrap",
   "amended_from",
+  "maintenance_required",
   "connections_tab"
  ],
  "fields": [
   {
    "fieldname": "naming_series",
    "fieldtype": "Select",
-   "label": "Naming Series",
+   "label": "Series",
    "options": "ACC-ASS-.YYYY.-"
   },
   {
@@ -123,6 +124,7 @@
    "read_only": 1
   },
   {
+   "default": "Company",
    "fieldname": "asset_owner",
    "fieldtype": "Select",
    "label": "Asset Owner",
@@ -260,7 +262,6 @@
    "columns": 10,
    "fieldname": "finance_books",
    "fieldtype": "Table",
-   "label": "Finance Books",
    "options": "Asset Finance Book"
   },
   {
@@ -339,7 +340,6 @@
   {
    "allow_on_submit": 1,
    "default": "0",
-   "description": "Check if Asset requires Preventive Maintenance or Calibration",
    "fieldname": "maintenance_required",
    "fieldtype": "Check",
    "label": "Maintenance Required"
@@ -360,6 +360,7 @@
    "default": "0",
    "fieldname": "booked_fixed_asset",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Booked Fixed Asset",
    "no_copy": 1,
    "read_only": 1
@@ -519,14 +520,9 @@
    "options": "Purchase Invoice Item"
   },
   {
-   "fieldname": "accounting_dimensions_tab",
-   "fieldtype": "Tab Break",
-   "label": "Accounting Dimensions"
-  },
-  {
    "fieldname": "insurance_details_tab",
    "fieldtype": "Tab Break",
-   "label": "Insurance Details"
+   "label": "Insurance"
   },
   {
    "fieldname": "other_info_tab",
@@ -542,7 +538,17 @@
   {
    "fieldname": "depreciation_tab",
    "fieldtype": "Tab Break",
-   "label": "Depreciation Details"
+   "label": "Depreciation"
+  },
+  {
+   "fieldname": "accounting_dimensions_section",
+   "fieldtype": "Section Break",
+   "label": "Accounting Dimensions"
+  },
+  {
+   "fieldname": "section_break_jtou",
+   "fieldtype": "Section Break",
+   "label": "Additional Info"
   }
  ],
  "idx": 72,
@@ -586,7 +592,7 @@
    "link_fieldname": "target_asset"
   }
  ],
- "modified": "2024-11-20 11:52:06.332683",
+ "modified": "2024-11-29 14:25:56.436124",
  "modified_by": "Administrator",
  "module": "Assets",
  "name": "Asset",

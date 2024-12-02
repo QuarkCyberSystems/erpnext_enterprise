@@ -178,9 +178,17 @@ class WorkOrder(Document):
 		self.validate_workstation_type()
 		self.reset_use_multi_level_bom()
 
+		if self.source_warehouse:
+			self.set_warehouses()
+
 		validate_uom_is_integer(self, "stock_uom", ["qty", "produced_qty"])
 
 		self.set_required_items(reset_only_qty=len(self.get("required_items")))
+
+	def set_warehouses(self):
+		for row in self.required_items:
+			if not row.source_warehouse:
+				row.source_warehouse = self.source_warehouse
 
 	def reset_use_multi_level_bom(self):
 		if self.is_new():

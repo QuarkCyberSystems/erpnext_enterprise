@@ -432,8 +432,6 @@ class SerialandBatchBundle(Document):
 				valuation_field = "rate"
 				child_table = "Subcontracting Receipt Item"
 
-		precision = frappe.get_precision(child_table, valuation_field) or 2
-
 		if not rate and self.voucher_detail_no and self.voucher_no:
 			rate = frappe.db.get_value(child_table, self.voucher_detail_no, valuation_field)
 
@@ -443,9 +441,9 @@ class SerialandBatchBundle(Document):
 			elif (d.incoming_rate == rate) and d.qty and d.stock_value_difference:
 				continue
 
-			d.incoming_rate = flt(rate, precision)
+			d.incoming_rate = rate
 			if d.qty:
-				d.stock_value_difference = flt(d.qty) * flt(d.incoming_rate)
+				d.stock_value_difference = d.qty * d.incoming_rate
 
 			if save:
 				d.db_set(
@@ -609,8 +607,10 @@ class SerialandBatchBundle(Document):
 
 		precision = row.precision
 		if abs(abs(flt(self.total_qty, precision)) - abs(flt(qty, precision))) > 0.01:
+			total_qty = frappe.format_value(abs(flt(self.total_qty)), "Float", row)
+			set_qty = frappe.format_value(abs(flt(row.get(qty_field))), "Float", row)
 			self.throw_error_message(
-				f"Total quantity {abs(flt(self.total_qty))} in the Serial and Batch Bundle {bold(self.name)} does not match with the quantity {abs(flt(row.get(qty_field)))} for the Item {bold(self.item_code)} in the {self.voucher_type} # {self.voucher_no}"
+				f"Total quantity {total_qty} in the Serial and Batch Bundle {bold(self.name)} does not match with the quantity {set_qty} for the Item {bold(self.item_code)} in the {self.voucher_type} # {self.voucher_no}"
 			)
 
 	def get_qty_field(self, row, qty_field=None) -> str:
@@ -970,6 +970,9 @@ class SerialandBatchBundle(Document):
 			self.voucher_type in ["Purchase Invoice", "Purchase Receipt"]
 			and frappe.db.get_value(self.voucher_type, self.voucher_no, "docstatus") == 1
 		):
+			return
+
+		if self.voucher_type in ["Sales Invoice", "Delivery Note"] and self.type_of_transaction == "Inward":
 			return
 
 		if not self.has_batch_no:
