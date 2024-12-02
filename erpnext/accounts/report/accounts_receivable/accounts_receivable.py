@@ -1027,8 +1027,15 @@ class ReceivablePayableReport:
 			options="party_type",
 			width=180,
 		)
+		if self.account_type == "Receivable":
+			label = _("Receivable Account")
+		elif self.account_type == "Payable":
+			label = _("Payable Account")
+		else:
+			label = _("Party Account")
+
 		self.add_column(
-			label=_(self.account_type + " Account"),
+			label=label,
 			fieldname="party_account",
 			fieldtype="Link",
 			options="Account",
