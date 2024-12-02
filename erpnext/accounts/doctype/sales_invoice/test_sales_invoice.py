@@ -4276,6 +4276,20 @@ class TestSalesInvoice(IntegrationTestCase):
 
 		self.assertTrue(all([x == "Credit Note" for x in gl_entries]))
 
+	def test_total_billed_amount(self):
+		si = create_sales_invoice(do_not_submit=True)
+
+		project = frappe.new_doc("Project")
+		project.project_name = "Test Total Billed Amount"
+		project.save()
+
+		si.project = project.name
+		si.save()
+		si.submit()
+
+		doc = frappe.get_doc("Project", project.name)
+		self.assertEqual(doc.total_billed_amount, si.grand_total)
+
 
 def set_advance_flag(company, flag, default_account):
 	frappe.db.set_value(
