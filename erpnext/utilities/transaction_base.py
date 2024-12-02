@@ -7,6 +7,7 @@ import frappe.share
 from frappe import _
 from frappe.utils import cint, flt, get_time, now_datetime
 
+from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_dimensions
 from erpnext.controllers.status_updater import StatusUpdater
 from erpnext.stock.get_item_details import get_item_details
 from erpnext.stock.utils import get_incoming_rate
@@ -354,8 +355,7 @@ class TransactionBase(StatusUpdater):
 
 	def copy_from_first_row(self, row, fields):
 		if self.items and row:
-			# TODO: find a alternate mechanism for setting dimensions
-			fields.append("cost_center")
+			fields.extend([x.get("fieldname") for x in get_dimensions(True)[0]])
 			first_row = self.items[0]
 			[setattr(row, k, first_row.get(k)) for k in fields if hasattr(first_row, k)]
 
@@ -435,7 +435,7 @@ class TransactionBase(StatusUpdater):
 		item_obj.rate = item_rate
 
 	def calculate_net_weight(self):
-		self.total_net_weight = sum([x.total_weight for x in self.items])
+		self.total_net_weight = sum([x.get("total_weight") or 0 for x in self.items])
 		self.apply_shipping_rule()
 
 	def _apply_price_list(self, item: object, item_obj: object, reset_plc_conversion: bool) -> None:
