@@ -636,6 +636,7 @@ class GrossProfitGenerator:
 			if packed_item.get("parent_detail_docname") == row.item_row:
 				packed_item_row = row.copy()
 				packed_item_row.warehouse = packed_item.warehouse
+				packed_item_row.qty = packed_item.total_qty * -1
 				buying_amount += self.get_buying_amount(packed_item_row, packed_item.item_code)
 
 		return flt(buying_amount, self.currency_precision)
@@ -668,7 +669,9 @@ class GrossProfitGenerator:
 		else:
 			my_sle = self.get_stock_ledger_entries(item_code, row.warehouse)
 			if (row.update_stock or row.dn_detail) and my_sle:
-				parenttype, parent = row.parenttype, row.parent
+				parenttype = row.parenttype
+				parent = row.invoice or row.parent
+
 				if row.dn_detail:
 					parenttype, parent = "Delivery Note", row.delivery_note
 
@@ -963,30 +966,33 @@ class GrossProfitGenerator:
 			}
 		)
 
-	def get_bundle_item_row(self, product_bundle, item):
+	def get_bundle_item_row(self, row, item):
 		return frappe._dict(
 			{
-				"parent_invoice": product_bundle.item_code,
-				"indent": product_bundle.indent + 1,
+				"parent_invoice": row.item_code,
+				"parenttype": row.parenttype,
+				"indent": row.indent + 1,
 				"parent": None,
 				"invoice_or_item": item.item_code,
-				"posting_date": product_bundle.posting_date,
-				"posting_time": product_bundle.posting_time,
-				"project": product_bundle.project,
-				"customer": product_bundle.customer,
-				"customer_group": product_bundle.customer_group,
+				"posting_date": row.posting_date,
+				"posting_time": row.posting_time,
+				"project": row.project,
+				"customer": row.customer,
+				"customer_group": row.customer_group,
 				"item_code": item.item_code,
 				"item_name": item.item_name,
 				"description": item.description,
-				"warehouse": product_bundle.warehouse,
+				"warehouse": item.warehouse or row.warehouse,
+				"update_stock": row.update_stock,
 				"item_group": "",
 				"brand": "",
-				"dn_detail": product_bundle.dn_detail,
-				"delivery_note": product_bundle.delivery_note,
+				"dn_detail": row.dn_detail,
+				"delivery_note": row.delivery_note,
 				"qty": item.total_qty * -1,
-				"item_row": None,
-				"is_return": product_bundle.is_return,
-				"cost_center": product_bundle.cost_center,
+				"item_row": row.item_row,
+				"is_return": row.is_return,
+				"cost_center": row.cost_center,
+				"invoice": row.parent,
 			}
 		)
 
