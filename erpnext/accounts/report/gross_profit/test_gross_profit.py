@@ -1,6 +1,6 @@
 import frappe
 from frappe import qb
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import flt, nowdate
 
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_note
@@ -12,7 +12,7 @@ from erpnext.stock.doctype.item.test_item import create_item
 from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
 
 
-class TestGrossProfit(FrappeTestCase):
+class TestGrossProfit(IntegrationTestCase):
 	def setUp(self):
 		self.create_company()
 		self.create_item()
@@ -421,12 +421,12 @@ class TestGrossProfit(FrappeTestCase):
 			"item_name": self.item,
 			"warehouse": "Stores - _GP",
 			"qty": 0.0,
-			"avg._selling_rate": 0.0,
+			"avg._selling_rate": 100,
 			"valuation_rate": 0.0,
-			"selling_amount": -100.0,
+			"selling_amount": 0.0,
 			"buying_amount": 0.0,
-			"gross_profit": -100.0,
-			"gross_profit_%": 100.0,
+			"gross_profit": 0.0,
+			"gross_profit_%": 0.0,
 		}
 		gp_entry = [x for x in data if x.parent_invoice == sinv.name]
 		# Both items of Invoice should have '0' qty

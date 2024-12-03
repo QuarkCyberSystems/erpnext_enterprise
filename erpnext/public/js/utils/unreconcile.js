@@ -4,7 +4,8 @@ erpnext.accounts.unreconcile_payment = {
 	add_unreconcile_btn(frm) {
 		if (frm.doc.docstatus == 1) {
 			if (
-				(frm.doc.doctype == "Journal Entry" && frm.doc.voucher_type != "Journal Entry") ||
+				(frm.doc.doctype == "Journal Entry" &&
+					!["Journal Entry", "Bank Entry", "Cash Entry"].includes(frm.doc.voucher_type)) ||
 				!["Purchase Invoice", "Sales Invoice", "Journal Entry", "Payment Entry"].includes(
 					frm.doc.doctype
 				)
@@ -69,7 +70,7 @@ erpnext.accounts.unreconcile_payment = {
 				{
 					label: __("Voucher Type"),
 					fieldname: "voucher_type",
-					fieldtype: "Dynamic Link",
+					fieldtype: "Link",
 					options: "DocType",
 					in_list_view: 1,
 					read_only: 1,
@@ -77,7 +78,7 @@ erpnext.accounts.unreconcile_payment = {
 				{
 					label: __("Voucher No"),
 					fieldname: "voucher_no",
-					fieldtype: "Link",
+					fieldtype: "Dynamic Link",
 					options: "voucher_type",
 					in_list_view: 1,
 					read_only: 1,
@@ -99,6 +100,7 @@ erpnext.accounts.unreconcile_payment = {
 					fieldtype: "Table",
 					read_only: 1,
 					fields: child_table_fields,
+					cannot_add_rows: true,
 				},
 			];
 
@@ -122,7 +124,6 @@ erpnext.accounts.unreconcile_payment = {
 							title: "UnReconcile Allocations",
 							fields: unreconcile_dialog_fields,
 							size: "large",
-							cannot_add_rows: true,
 							primary_action_label: "UnReconcile",
 							primary_action(values) {
 								let selected_allocations = values.allocations.filter((x) => x.__checked);

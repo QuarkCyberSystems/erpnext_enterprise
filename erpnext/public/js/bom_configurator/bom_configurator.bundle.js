@@ -25,6 +25,9 @@ class BOMConfigurator {
 		};
 
 		frappe.views.trees["BOM Configurator"] = new frappe.views.TreeView(options);
+		let node = frappe.views.trees["BOM Configurator"].tree.root_node;
+		frappe.views.trees["BOM Configurator"].tree.show_toolbar(node);
+		frappe.views.trees["BOM Configurator"].tree.load_children(node, true);
 		this.tree_view = frappe.views.trees["BOM Configurator"];
 	}
 
@@ -138,7 +141,7 @@ class BOMConfigurator {
 								btnClass: "hidden-xs",
 							},
 							{
-								label: __("Expand All"),
+								label: __("Collapse All"),
 								click: function (node) {
 									let view = frappe.views.trees["BOM Configurator"];
 
@@ -289,7 +292,7 @@ class BOMConfigurator {
 		});
 	}
 
-	get_sub_assembly_modal_fields(view, is_root = false, read_only = false, show_operations_fields = false) {
+	get_sub_assembly_modal_fields(view, is_root = false, read_only = false) {
 		let fields = [
 			{
 				label: __("Sub Assembly Item"),
@@ -307,10 +310,17 @@ class BOMConfigurator {
 				fieldtype: "Float",
 				reqd: 1,
 				read_only: read_only,
+				change() {
+					this.layout.fields_dict.items.grid.data.forEach((row) => {
+						row.qty = flt(this.value);
+					});
+
+					this.layout.fields_dict.items.grid.refresh();
+				},
 			},
 		];
 
-		if (this.frm.doc.track_operations && (is_root || show_operations_fields)) {
+		if (is_root) {
 			fields.push(
 				...[
 					{ fieldtype: "Section Break" },
@@ -319,96 +329,21 @@ class BOMConfigurator {
 						fieldname: "operation",
 						fieldtype: "Link",
 						options: "Operation",
-						reqd: 1,
-					},
-					{
-						label: __("Operation Time"),
-						fieldname: "operation_time",
-						fieldtype: "Int",
-						reqd: 1,
-					},
-					{
-						label: __("Is Subcontracted"),
-						fieldname: "is_subcontracted",
-						fieldtype: "Check",
-					},
-					{ fieldtype: "Column Break" },
-					{
-						label: __("Workstation Type"),
-						fieldname: "workstation_type",
-						fieldtype: "Link",
-						options: "Workstation Type",
-					},
-					{
-						label: __("Workstation"),
-						fieldname: "workstation",
-						fieldtype: "Link",
-						options: "Workstation",
+						get_query() {
+							let doc = view.events.frm.doc;
+
+							if (doc.routing) {
+								return {
+									query: "erpnext.manufacturing.doctype.routing.routing.get_operations",
+									filters: {
+										routing: doc.routing,
+									},
+								};
+							}
+						},
 					},
 				]
 			);
-
-			if (this.frm.doc.track_semi_finished_goods) {
-				fields.push(
-					...[
-						{ label: __("Default Warehouse"), fieldtype: "Section Break", collapsible: 1 },
-						{
-							label: __("Skip Material Transfer"),
-							fieldname: "skip_material_transfer",
-							fieldtype: "Check",
-						},
-						{
-							label: __("Backflush Materials From WIP"),
-							fieldname: "backflush_from_wip_warehouse",
-							fieldtype: "Check",
-							depends_on: "eval:doc.skip_material_transfer",
-						},
-						{
-							label: __("Source Warehouse"),
-							fieldname: "source_warehouse",
-							fieldtype: "Link",
-							options: "Warehouse",
-							depends_on: "eval:!doc.backflush_from_wip_warehouse",
-							get_query() {
-								return {
-									filters: {
-										company: view.events.frm.doc.company,
-									},
-								};
-							},
-						},
-						{ fieldtype: "Column Break" },
-						{
-							label: __("Work In Progress Warehouse"),
-							fieldname: "wip_warehouse",
-							fieldtype: "Link",
-							options: "Warehouse",
-							depends_on:
-								"eval:!doc.skip_material_transfer || doc.backflush_from_wip_warehouse",
-							get_query() {
-								return {
-									filters: {
-										company: view.events.frm.doc.company,
-									},
-								};
-							},
-						},
-						{
-							label: __("Finished Good Warehouse"),
-							fieldname: "fg_warehouse",
-							fieldtype: "Link",
-							options: "Warehouse",
-							get_query() {
-								return {
-									filters: {
-										company: view.events.frm.doc.company,
-									},
-								};
-							},
-						},
-					]
-				);
-			}
 		}
 
 		fields.push(
@@ -451,7 +386,7 @@ class BOMConfigurator {
 
 	convert_to_sub_assembly(node, view) {
 		let dialog = new frappe.ui.Dialog({
-			fields: view.events.get_sub_assembly_modal_fields(view, node.is_root, true, true),
+			fields: view.events.get_sub_assembly_modal_fields(view, node.is_root, true),
 			title: __("Add Sub Assembly"),
 		});
 
@@ -463,6 +398,16 @@ class BOMConfigurator {
 		dialog.show();
 		dialog.set_primary_action(__("Add"), () => {
 			let bom_item = dialog.get_values();
+
+			if (!bom_item.item_code) {
+				frappe.throw(__("Sub Assembly Item is mandatory"));
+			}
+
+			bom_item.items.forEach((d) => {
+				if (!d.item_code) {
+					frappe.throw(__("Item is mandatory in Raw Materials table."));
+				}
+			});
 
 			if (dialog.operation && !dialog.workstation_type && !dialog.workstation) {
 				frappe.throw(__("Either Workstation or Workstation Type is mandatory"));
@@ -523,123 +468,6 @@ class BOMConfigurator {
 		let me = this;
 		let qty = node.data.qty || this.frm.doc.qty;
 		let fields = [{ label: __("Qty"), fieldname: "qty", default: qty, fieldtype: "Float", reqd: 1 }];
-
-		if (node.expandable && this.frm.doc.track_operations) {
-			let data = node.data.operation ? node.data : this.frm.doc;
-
-			fields = [
-				...fields,
-				...[
-					{ fieldtype: "Section Break" },
-					{
-						label: __("Operation"),
-						fieldname: "operation",
-						fieldtype: "Link",
-						options: "Operation",
-						default: data.operation,
-					},
-					{
-						label: __("Operation Time"),
-						fieldname: "operation_time",
-						fieldtype: "Float",
-						default: data.operation_time,
-					},
-					{
-						label: __("Is Subcontracted"),
-						fieldname: "is_subcontracted",
-						fieldtype: "Check",
-						hidden: node?.is_root || 0,
-						default: data.is_subcontracted,
-					},
-					{ fieldtype: "Column Break" },
-					{
-						label: __("Workstation Type"),
-						fieldname: "workstation_type",
-						fieldtype: "Link",
-						options: "Workstation Type",
-						default: data.workstation_type,
-					},
-					{
-						label: __("Workstation"),
-						fieldname: "workstation",
-						fieldtype: "Link",
-						options: "Workstation",
-						default: data.workstation,
-						get_query() {
-							let dialog = me.frm.edit_bom_dialog;
-							let workstation_type = dialog.get_value("workstation_type");
-
-							if (workstation_type) {
-								return {
-									filters: {
-										workstation_type: dialog.get_value("workstation_type"),
-									},
-								};
-							}
-						},
-					},
-					{ fieldtype: "Section Break" },
-					{
-						label: __("Skip Material Transfer"),
-						fieldname: "skip_material_transfer",
-						fieldtype: "Check",
-						default: data.skip_material_transfer,
-					},
-					{
-						label: __("Backflush Materials From WIP"),
-						fieldname: "backflush_from_wip_warehouse",
-						fieldtype: "Check",
-						depends_on: "eval:doc.skip_material_transfer",
-						default: data.backflush_from_wip_warehouse,
-					},
-					{
-						label: __("Source Warehouse"),
-						fieldname: "source_warehouse",
-						fieldtype: "Link",
-						options: "Warehouse",
-						default: data.source_warehouse,
-						depends_on: "eval:!doc.backflush_from_wip_warehouse",
-						get_query() {
-							return {
-								filters: {
-									company: me.frm.doc.company,
-								},
-							};
-						},
-					},
-					{ fieldtype: "Column Break" },
-					{
-						label: __("Work In Progress Warehouse"),
-						fieldname: "wip_warehouse",
-						fieldtype: "Link",
-						options: "Warehouse",
-						default: data.wip_warehouse,
-						depends_on: "eval:!doc.skip_material_transfer || doc.backflush_from_wip_warehouse",
-						get_query() {
-							return {
-								filters: {
-									company: me.frm.doc.company,
-								},
-							};
-						},
-					},
-					{
-						label: __("Finished Good Warehouse"),
-						fieldname: "fg_warehouse",
-						fieldtype: "Link",
-						options: "Warehouse",
-						default: data.fg_warehouse,
-						get_query() {
-							return {
-								filters: {
-									company: me.frm.doc.company,
-								},
-							};
-						},
-					},
-				],
-			];
-		}
 
 		this.frm.edit_bom_dialog = frappe.prompt(
 			fields,

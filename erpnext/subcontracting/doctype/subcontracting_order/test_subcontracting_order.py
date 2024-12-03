@@ -5,7 +5,7 @@ import copy
 from collections import defaultdict
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import flt
 
 from erpnext.buying.doctype.purchase_order.purchase_order import get_mapped_subcontracting_order
@@ -25,6 +25,7 @@ from erpnext.controllers.tests.test_subcontracting_controller import (
 	make_subcontracted_items,
 	set_backflush_based_on,
 )
+from erpnext.manufacturing.doctype.production_plan.test_production_plan import make_bom
 from erpnext.stock.doctype.item.test_item import make_item
 from erpnext.stock.doctype.stock_entry.test_stock_entry import make_stock_entry
 from erpnext.subcontracting.doctype.subcontracting_order.subcontracting_order import (
@@ -32,7 +33,16 @@ from erpnext.subcontracting.doctype.subcontracting_order.subcontracting_order im
 )
 
 
-class TestSubcontractingOrder(FrappeTestCase):
+class UnitTestSubcontractingOrder(UnitTestCase):
+	"""
+	Unit tests for SubcontractingOrder.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestSubcontractingOrder(IntegrationTestCase):
 	def setUp(self):
 		make_subcontracted_items()
 		make_raw_materials()
@@ -682,6 +692,28 @@ class TestSubcontractingOrder(FrappeTestCase):
 		new_requested_qty = flt(new_requested_qty)
 
 		self.assertEqual(requested_qty, new_requested_qty)
+
+	def test_subcontracting_order_rm_required_items_for_precision(self):
+		item_code = "Subcontracted Item SA9"
+		raw_materials = ["Subcontracted SRM Item 9"]
+		if not frappe.db.exists("BOM", {"item": item_code}):
+			make_bom(item=item_code, raw_materials=raw_materials, rate=100, rm_qty=1.04)
+
+		service_items = [
+			{
+				"warehouse": "_Test Warehouse - _TC",
+				"item_code": "Subcontracted Service Item 9",
+				"qty": 1,  # 202.0656,
+				"rate": 100,
+				"fg_item": "Subcontracted Item SA9",
+				"fg_item_qty": 202.0656,
+			},
+		]
+
+		sco = get_subcontracting_order(service_items=service_items)
+		sco.reload()
+
+		self.assertEqual(sco.supplied_items[0].required_qty, 210.149)
 
 
 def create_subcontracting_order(**args):

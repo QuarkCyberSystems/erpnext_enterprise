@@ -46,10 +46,10 @@ class Quotation(SellingController):
 		base_rounding_adjustment: DF.Currency
 		base_total: DF.Currency
 		base_total_taxes_and_charges: DF.Currency
-		campaign: DF.Link | None
 		company: DF.Link
 		company_address: DF.Link | None
 		company_address_display: DF.TextEditor | None
+		company_contact_person: DF.Link | None
 		competitors: DF.TableMultiSelect[CompetitorDetail]
 		contact_display: DF.SmallText | None
 		contact_email: DF.Data | None
@@ -61,6 +61,7 @@ class Quotation(SellingController):
 		customer_address: DF.Link | None
 		customer_group: DF.Link | None
 		customer_name: DF.Data | None
+		disable_rounded_total: DF.Check
 		discount_amount: DF.Currency
 		enq_det: DF.Text | None
 		grand_total: DF.Currency
@@ -96,7 +97,6 @@ class Quotation(SellingController):
 		shipping_address: DF.TextEditor | None
 		shipping_address_name: DF.Link | None
 		shipping_rule: DF.Link | None
-		source: DF.Link | None
 		status: DF.Literal[
 			"Draft", "Open", "Replied", "Partially Ordered", "Ordered", "Lost", "Cancelled", "Expired"
 		]
@@ -113,6 +113,10 @@ class Quotation(SellingController):
 		total_qty: DF.Float
 		total_taxes_and_charges: DF.Currency
 		transaction_date: DF.Date
+		utm_campaign: DF.Link | None
+		utm_content: DF.Data | None
+		utm_medium: DF.Link | None
+		utm_source: DF.Link | None
 		valid_till: DF.Date | None
 	# end: auto-generated types
 
@@ -220,6 +224,10 @@ class Quotation(SellingController):
 				"Lead", self.party_name, ["lead_name", "company_name"]
 			)
 			self.customer_name = company_name or lead_name
+		elif self.party_name and self.quotation_to == "Prospect":
+			self.customer_name = self.party_name
+		elif self.party_name and self.quotation_to == "CRM Deal":
+			self.customer_name = frappe.db.get_value("CRM Deal", self.party_name, "organization")
 
 	def update_opportunity(self, status):
 		for opportunity in set(d.prevdoc_docname for d in self.get("items")):
@@ -365,23 +373,24 @@ def _make_sales_order(source_name, target_doc=None, ignore_permissions=False):
 		if customer:
 			target.customer = customer.name
 			target.customer_name = customer.customer_name
+
+			# sales team
+			if not target.get("sales_team"):
+				for d in customer.get("sales_team") or []:
+					target.append(
+						"sales_team",
+						{
+							"sales_person": d.sales_person,
+							"allocated_percentage": d.allocated_percentage or None,
+							"commission_rate": d.commission_rate,
+						},
+					)
+
 		if source.referral_sales_partner:
 			target.sales_partner = source.referral_sales_partner
 			target.commission_rate = frappe.get_value(
 				"Sales Partner", source.referral_sales_partner, "commission_rate"
 			)
-
-		# sales team
-		if not target.get("sales_team"):
-			for d in customer.get("sales_team") or []:
-				target.append(
-					"sales_team",
-					{
-						"sales_person": d.sales_person,
-						"allocated_percentage": d.allocated_percentage or None,
-						"commission_rate": d.commission_rate,
-					},
-				)
 
 		target.flags.ignore_permissions = ignore_permissions
 		target.run_method("set_missing_values")
@@ -426,7 +435,7 @@ def _make_sales_order(source_name, target_doc=None, ignore_permissions=False):
 				"postprocess": update_item,
 				"condition": can_map_row,
 			},
-			"Sales Taxes and Charges": {"doctype": "Sales Taxes and Charges", "add_if_empty": True},
+			"Sales Taxes and Charges": {"doctype": "Sales Taxes and Charges", "reset_value": True},
 			"Sales Team": {"doctype": "Sales Team", "add_if_empty": True},
 			"Payment Schedule": {"doctype": "Payment Schedule", "add_if_empty": True},
 		},
@@ -491,7 +500,7 @@ def _make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 				"postprocess": update_item,
 				"condition": lambda row: not row.is_alternative,
 			},
-			"Sales Taxes and Charges": {"doctype": "Sales Taxes and Charges", "add_if_empty": True},
+			"Sales Taxes and Charges": {"doctype": "Sales Taxes and Charges", "reset_value": True},
 			"Sales Team": {"doctype": "Sales Team", "add_if_empty": True},
 		},
 		target_doc,
@@ -513,14 +522,23 @@ def _make_customer(source_name, ignore_permissions=False):
 	if quotation.quotation_to == "Customer":
 		return frappe.get_doc("Customer", quotation.party_name)
 
-	# If the Quotation is not to a Customer, it must be to a Lead.
-	# Check if a Customer already exists for the Lead.
-	existing_customer_for_lead = frappe.db.get_value("Customer", {"lead_name": quotation.party_name})
-	if existing_customer_for_lead:
-		return frappe.get_doc("Customer", existing_customer_for_lead)
+	# Check if a Customer already exists for the Lead or Prospect.
+	existing_customer = None
+	if quotation.quotation_to == "Lead":
+		existing_customer = frappe.db.get_value("Customer", {"lead_name": quotation.party_name})
+	elif quotation.quotation_to == "Prospect":
+		existing_customer = frappe.db.get_value("Customer", {"prospect_name": quotation.party_name})
 
-	# If no Customer exists for the Lead, create a new Customer.
-	return create_customer_from_lead(quotation.party_name, ignore_permissions=ignore_permissions)
+	if existing_customer:
+		return frappe.get_doc("Customer", existing_customer)
+
+	# If no Customer exists, create a new Customer or Prospect.
+	if quotation.quotation_to == "Lead":
+		return create_customer_from_lead(quotation.party_name, ignore_permissions=ignore_permissions)
+	elif quotation.quotation_to == "Prospect":
+		return create_customer_from_prospect(quotation.party_name, ignore_permissions=ignore_permissions)
+
+	return None
 
 
 def create_customer_from_lead(lead_name, ignore_permissions=False):
@@ -536,11 +554,24 @@ def create_customer_from_lead(lead_name, ignore_permissions=False):
 		handle_mandatory_error(e, customer, lead_name)
 
 
+def create_customer_from_prospect(prospect_name, ignore_permissions=False):
+	from erpnext.crm.doctype.prospect.prospect import make_customer as make_customer_from_prospect
+
+	customer = make_customer_from_prospect(prospect_name)
+	customer.flags.ignore_permissions = ignore_permissions
+
+	try:
+		customer.insert()
+		return customer
+	except frappe.MandatoryError as e:
+		handle_mandatory_error(e, customer, prospect_name)
+
+
 def handle_mandatory_error(e, customer, lead_name):
 	from frappe.utils import get_link_to_form
 
 	mandatory_fields = e.args[0].split(":")[1].split(",")
-	mandatory_fields = [customer.meta.get_label(field.strip()) for field in mandatory_fields]
+	mandatory_fields = [_(customer.meta.get_label(field.strip())) for field in mandatory_fields]
 
 	frappe.local.message_log = []
 	message = _("Could not auto create Customer due to the following missing mandatory field(s):") + "<br>"

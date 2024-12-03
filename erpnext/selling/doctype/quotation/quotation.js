@@ -24,20 +24,6 @@ frappe.ui.form.on("Quotation", {
 		frm.set_df_property("packed_items", "cannot_add_rows", true);
 		frm.set_df_property("packed_items", "cannot_delete_rows", true);
 
-		frm.set_query("company_address", function (doc) {
-			if (!doc.company) {
-				frappe.throw(__("Please set Company"));
-			}
-
-			return {
-				query: "frappe.contacts.doctype.address.address.address_query",
-				filters: {
-					link_doctype: "Company",
-					link_name: doc.company,
-				},
-			};
-		});
-
 		frm.set_query("serial_and_batch_bundle", "packed_items", (doc, cdt, cdn) => {
 			let row = locals[cdt][cdn];
 			return {
@@ -71,7 +57,7 @@ frappe.ui.form.on("Quotation", {
 		frm.trigger("set_label");
 		frm.trigger("toggle_reqd_lead_customer");
 		frm.trigger("set_dynamic_field_label");
-		frm.set_value("party_name", "");
+		// frm.set_value("party_name", ""); // removed to set party_name from url for crm integration
 		frm.set_value("customer_name", "");
 	},
 

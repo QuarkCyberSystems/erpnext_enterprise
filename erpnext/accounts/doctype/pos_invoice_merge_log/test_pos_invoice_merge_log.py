@@ -1,11 +1,9 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
-
 import json
-import unittest
 
 import frappe
-from frappe.tests.utils import change_settings
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 from erpnext.accounts.doctype.pos_closing_entry.test_pos_closing_entry import init_user_and_profile
 from erpnext.accounts.doctype.pos_invoice.pos_invoice import make_sales_return
@@ -19,7 +17,21 @@ from erpnext.stock.doctype.serial_and_batch_bundle.test_serial_and_batch_bundle 
 from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
 
 
-class TestPOSInvoiceMergeLog(unittest.TestCase):
+class UnitTestPosInvoiceMergeLog(UnitTestCase):
+	"""
+	Unit tests for PosInvoiceMergeLog.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestPOSInvoiceMergeLog(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.enterClassContext(cls.change_settings("Selling Settings", validate_selling_price=0))
+
 	def test_consolidated_invoice_creation(self):
 		frappe.db.sql("delete from `tabPOS Invoice`")
 
@@ -122,6 +134,7 @@ class TestPOSInvoiceMergeLog(unittest.TestCase):
 				},
 			)
 			inv.insert()
+			inv.payments[0].amount = inv.grand_total
 			inv.submit()
 
 			inv2 = create_pos_invoice(qty=1, rate=100, do_not_save=True)
@@ -138,6 +151,7 @@ class TestPOSInvoiceMergeLog(unittest.TestCase):
 				},
 			)
 			inv2.insert()
+			inv2.payments[0].amount = inv.grand_total
 			inv2.submit()
 
 			consolidate_pos_invoices()
@@ -145,14 +159,19 @@ class TestPOSInvoiceMergeLog(unittest.TestCase):
 
 			consolidated_invoice = frappe.get_doc("Sales Invoice", inv.consolidated_invoice)
 			item_wise_tax_detail = json.loads(consolidated_invoice.get("taxes")[0].item_wise_tax_detail)
-
-			tax_rate, amount = item_wise_tax_detail.get("_Test Item")
-			self.assertEqual(tax_rate, 9)
-			self.assertEqual(amount, 9)
-
-			tax_rate2, amount2 = item_wise_tax_detail.get("_Test Item 2")
-			self.assertEqual(tax_rate2, 5)
-			self.assertEqual(amount2, 5)
+			expected_item_wise_tax_detail = {
+				"_Test Item": {
+					"tax_rate": 9,
+					"tax_amount": 9,
+					"net_amount": 100,
+				},
+				"_Test Item 2": {
+					"tax_rate": 5,
+					"tax_amount": 5,
+					"net_amount": 100,
+				},
+			}
+			self.assertEqual(item_wise_tax_detail, expected_item_wise_tax_detail)
 		finally:
 			frappe.set_user("Administrator")
 			frappe.db.sql("delete from `tabPOS Profile`")
@@ -288,7 +307,7 @@ class TestPOSInvoiceMergeLog(unittest.TestCase):
 			frappe.db.sql("delete from `tabPOS Profile`")
 			frappe.db.sql("delete from `tabPOS Invoice`")
 
-	@change_settings(
+	@IntegrationTestCase.change_settings(
 		"System Settings", {"number_format": "#,###.###", "currency_precision": 3, "float_precision": 3}
 	)
 	def test_consolidation_round_off_error_3(self):
@@ -403,7 +422,7 @@ class TestPOSInvoiceMergeLog(unittest.TestCase):
 		frappe.db.sql("delete from `tabPOS Invoice`")
 
 		try:
-			se = make_serialized_item()
+			se = make_serialized_item(self)
 			serial_no = get_serial_nos_from_bundle(se.get("items")[0].serial_and_batch_bundle)[0]
 
 			init_user_and_profile()

@@ -5,7 +5,7 @@ import copy
 from collections import defaultdict
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import cint
 
 from erpnext.buying.doctype.purchase_order.test_purchase_order import create_purchase_order
@@ -25,7 +25,7 @@ from erpnext.subcontracting.doctype.subcontracting_order.subcontracting_order im
 )
 
 
-class TestSubcontractingController(FrappeTestCase):
+class TestSubcontractingController(IntegrationTestCase):
 	def setUp(self):
 		make_subcontracted_items()
 		make_raw_materials()
@@ -1234,6 +1234,7 @@ def make_subcontracted_items():
 		"Subcontracted Item SA6": {},
 		"Subcontracted Item SA7": {},
 		"Subcontracted Item SA8": {},
+		"Subcontracted Item SA9": {"stock_uom": "Litre"},
 	}
 
 	for item, properties in sub_contracted_items.items():
@@ -1254,6 +1255,7 @@ def make_raw_materials():
 		"Subcontracted SRM Item 4": {"has_serial_no": 1, "serial_no_series": "SRII.####"},
 		"Subcontracted SRM Item 5": {"has_serial_no": 1, "serial_no_series": "SRIID.####"},
 		"Subcontracted SRM Item 8": {},
+		"Subcontracted SRM Item 9": {"stock_uom": "Litre"},
 	}
 
 	for item, properties in raw_materials.items():
@@ -1280,6 +1282,7 @@ def make_service_items():
 		"Subcontracted Service Item 6": {},
 		"Subcontracted Service Item 7": {},
 		"Subcontracted Service Item 8": {},
+		"Subcontracted Service Item 9": {},
 	}
 
 	for item, properties in service_items.items():

@@ -35,6 +35,9 @@ def execute(filters=None):
 	if filters.get("party"):
 		filters.party = frappe.parse_json(filters.get("party"))
 
+	if filters.get("voucher_no") and not filters.get("group_by"):
+		filters.group_by = "Group by Voucher (Consolidated)"
+
 	validate_filters(filters, account_details)
 
 	validate_party(filters)
@@ -236,6 +239,23 @@ def get_conditions(filters):
 		if err_journals:
 			filters.update({"voucher_no_not_in": [x[0] for x in err_journals]})
 
+	if filters.get("ignore_cr_dr_notes"):
+		system_generated_cr_dr_journals = frappe.db.get_all(
+			"Journal Entry",
+			filters={
+				"company": filters.get("company"),
+				"docstatus": 1,
+				"voucher_type": ("in", ["Credit Note", "Debit Note"]),
+				"is_system_generated": 1,
+			},
+			as_list=True,
+		)
+		if system_generated_cr_dr_journals:
+			vouchers_to_ignore = (filters.get("voucher_no_not_in") or []) + [
+				x[0] for x in system_generated_cr_dr_journals
+			]
+			filters.update({"voucher_no_not_in": vouchers_to_ignore})
+
 	if filters.get("voucher_no_not_in"):
 		conditions.append("voucher_no not in %(voucher_no_not_in)s")
 
@@ -328,9 +348,17 @@ def get_accounts_with_children(accounts):
 	return frappe.qb.from_(doctype).select(doctype.name).where(Criterion.any(conditions)).run(pluck=True)
 
 
+def set_bill_no(gl_entries):
+	inv_details = get_supplier_invoice_details()
+	for gl in gl_entries:
+		gl["bill_no"] = inv_details.get(gl.get("against_voucher"), "")
+
+
 def get_data_with_opening_closing(filters, account_details, accounting_dimensions, gl_entries):
 	data = []
 	totals_dict = get_totals_dict()
+
+	set_bill_no(gl_entries)
 
 	gle_map = initialize_gle_map(gl_entries, filters, totals_dict)
 
@@ -522,7 +550,6 @@ def get_account_type_map(company):
 
 def get_result_as_list(data, filters):
 	balance, _balance_in_account_currency = 0, 0
-	inv_details = get_supplier_invoice_details()
 
 	for d in data:
 		if not d.get("posting_date"):
@@ -532,7 +559,6 @@ def get_result_as_list(data, filters):
 		d["balance"] = balance
 
 		d["account_currency"] = filters.account_currency
-		d["bill_no"] = inv_details.get(d.get("against_voucher"), "")
 
 	return data
 

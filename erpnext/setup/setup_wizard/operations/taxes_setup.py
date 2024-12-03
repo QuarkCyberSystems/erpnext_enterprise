@@ -86,7 +86,13 @@ def simple_to_detailed(templates):
 
 def from_detailed_data(company_name, data):
 	"""Create Taxes and Charges Templates from detailed data."""
-	coa_name = frappe.db.get_value("Company", company_name, "chart_of_accounts")
+	charts_company_name = company_name
+	if (
+		frappe.db.get_value("Company", company_name, "create_chart_of_accounts_based_on")
+		== "Existing Company"
+	):
+		charts_company_name = frappe.db.get_value("Company", company_name, "existing_company")
+	coa_name = frappe.db.get_value("Company", charts_company_name, "chart_of_accounts")
 	coa_data = data.get("chart_of_accounts", {})
 	tax_templates = coa_data.get(coa_name) or coa_data.get("*", {})
 	tax_categories = data.get("tax_categories")
@@ -163,7 +169,7 @@ def make_taxes_and_charges_template(company_name, doctype, template):
 	doc.flags.ignore_links = True
 	doc.flags.ignore_validate = True
 	doc.flags.ignore_mandatory = True
-	doc.insert(ignore_permissions=True)
+	doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 	return doc
 
 
@@ -196,7 +202,7 @@ def make_item_tax_template(company_name, template):
 	# Ingone validations to make doctypes faster
 	doc.flags.ignore_links = True
 	doc.flags.ignore_validate = True
-	doc.insert(ignore_permissions=True)
+	doc.insert(ignore_permissions=True, ignore_if_duplicate=True)
 	return doc
 
 
@@ -233,7 +239,7 @@ def get_or_create_account(company_name, account):
 	doc = frappe.get_doc(account)
 	doc.flags.ignore_links = True
 	doc.flags.ignore_validate = True
-	doc.insert(ignore_permissions=True, ignore_mandatory=True)
+	doc.insert(ignore_permissions=True, ignore_mandatory=True, ignore_if_duplicate=True)
 	return doc
 
 

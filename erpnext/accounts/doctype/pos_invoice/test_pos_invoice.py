@@ -1,11 +1,11 @@
 # Copyright (c) 2020, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
-
 import copy
 import unittest
 
 import frappe
 from frappe import _
+from frappe.tests import IntegrationTestCase
 
 from erpnext.accounts.doctype.pos_invoice.pos_invoice import make_sales_return
 from erpnext.accounts.doctype.pos_profile.test_pos_profile import make_pos_profile
@@ -20,9 +20,11 @@ from erpnext.stock.doctype.serial_and_batch_bundle.test_serial_and_batch_bundle 
 from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
 
 
-class TestPOSInvoice(unittest.TestCase):
+class TestPOSInvoice(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
+		cls.enterClassContext(cls.change_settings("Selling Settings", validate_selling_price=0))
 		make_stock_entry(target="_Test Warehouse - _TC", item_code="_Test Item", qty=800, basic_rate=100)
 		frappe.db.sql("delete from `tabTax Rule`")
 
@@ -248,6 +250,7 @@ class TestPOSInvoice(unittest.TestCase):
 		from erpnext.stock.doctype.stock_entry.test_stock_entry import make_serialized_item
 
 		se = make_serialized_item(
+			self,
 			company="_Test Company",
 			target_warehouse="Stores - _TC",
 			cost_center="Main - _TC",
@@ -289,6 +292,7 @@ class TestPOSInvoice(unittest.TestCase):
 		from erpnext.stock.doctype.stock_entry.test_stock_entry import make_serialized_item
 
 		se = make_serialized_item(
+			self,
 			company="_Test Company",
 			target_warehouse="Stores - _TC",
 			cost_center="Main - _TC",
@@ -377,6 +381,7 @@ class TestPOSInvoice(unittest.TestCase):
 		from erpnext.stock.doctype.stock_entry.test_stock_entry import make_serialized_item
 
 		se = make_serialized_item(
+			self,
 			company="_Test Company",
 			target_warehouse="Stores - _TC",
 			cost_center="Main - _TC",
@@ -431,6 +436,7 @@ class TestPOSInvoice(unittest.TestCase):
 		from erpnext.stock.doctype.stock_entry.test_stock_entry import make_serialized_item
 
 		se = make_serialized_item(
+			self,
 			company="_Test Company",
 			target_warehouse="Stores - _TC",
 			cost_center="Main - _TC",
@@ -482,6 +488,7 @@ class TestPOSInvoice(unittest.TestCase):
 		from erpnext.stock.doctype.stock_entry.test_stock_entry import make_serialized_item
 
 		se = make_serialized_item(
+			self,
 			company="_Test Company",
 			target_warehouse="Stores - _TC",
 			cost_center="Main - _TC",
@@ -512,6 +519,7 @@ class TestPOSInvoice(unittest.TestCase):
 		from erpnext.stock.doctype.stock_entry.test_stock_entry import make_serialized_item
 
 		se = make_serialized_item(
+			self,
 			company="_Test Company",
 			target_warehouse="Stores - _TC",
 			cost_center="Main - _TC",
@@ -780,8 +788,6 @@ class TestPOSInvoice(unittest.TestCase):
 		pos_inv1.submit()
 		pos_inv1.reload()
 
-		self.assertFalse(pos_inv1.items[0].serial_and_batch_bundle)
-
 		batches = get_auto_batch_nos(
 			frappe._dict({"item_code": "_BATCH ITEM Test For Reserve", "warehouse": "_Test Warehouse - _TC"})
 		)
@@ -903,7 +909,7 @@ class TestPOSInvoice(unittest.TestCase):
 
 		frappe.db.savepoint("before_test_delivered_serial_no_case")
 		try:
-			se = make_serialized_item()
+			se = make_serialized_item(self)
 			serial_no = get_serial_nos_from_bundle(se.get("items")[0].serial_and_batch_bundle)[0]
 
 			dn = create_delivery_note(item_code="_Test Serialized Item With Series", serial_no=[serial_no])
@@ -957,7 +963,7 @@ def create_pos_invoice(**args):
 	pos_inv.set_missing_values()
 
 	bundle_id = None
-	if args.get("batch_no") or args.get("serial_no"):
+	if not args.use_serial_batch_fields and (args.get("batch_no") or args.get("serial_no")):
 		type_of_transaction = args.type_of_transaction or "Outward"
 
 		if pos_inv.is_return:
@@ -998,6 +1004,9 @@ def create_pos_invoice(**args):
 		"expense_account": args.expense_account or "Cost of Goods Sold - _TC",
 		"cost_center": args.cost_center or "_Test Cost Center - _TC",
 		"serial_and_batch_bundle": bundle_id,
+		"use_serial_batch_fields": args.use_serial_batch_fields,
+		"serial_no": args.serial_no if args.use_serial_batch_fields else None,
+		"batch_no": args.batch_no if args.use_serial_batch_fields else None,
 	}
 	# append in pos invoice items without item_code by checking flag without_item_code
 	if args.without_item_code:
@@ -1023,6 +1032,8 @@ def create_pos_invoice(**args):
 		pos_inv.insert()
 		if not args.do_not_submit:
 			pos_inv.submit()
+			if args.use_serial_batch_fields:
+				pos_inv.reload()
 		else:
 			pos_inv.payment_schedule = []
 	else:

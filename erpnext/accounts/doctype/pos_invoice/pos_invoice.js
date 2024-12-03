@@ -40,10 +40,24 @@ erpnext.selling.POSInvoiceController = class POSInvoiceController extends erpnex
 			};
 		});
 
+		this.frm.set_query("item_code", "items", function (doc) {
+			return {
+				query: "erpnext.accounts.doctype.pos_invoice.pos_invoice.item_query",
+				filters: {
+					has_variants: ["=", 0],
+					is_sales_item: ["=", 1],
+					disabled: ["=", 0],
+					is_fixed_asset: ["=", 0],
+					pos_profile: ["=", doc.pos_profile],
+				},
+			};
+		});
+
 		erpnext.accounts.dimensions.setup_dimension_filters(this.frm, this.frm.doctype);
 	}
 
 	onload_post_render(frm) {
+		super.onload_post_render();
 		this.pos_profile(frm);
 	}
 
@@ -51,7 +65,7 @@ erpnext.selling.POSInvoiceController = class POSInvoiceController extends erpnex
 		super.refresh();
 
 		if (doc.docstatus == 1 && !doc.is_return) {
-			this.frm.add_custom_button(__("Return"), this.make_sales_return, __("Create"));
+			this.frm.add_custom_button(__("Return"), this.make_sales_return.bind(this), __("Create"));
 			this.frm.page.set_inner_btn_group_as_primary(__("Create"));
 		}
 

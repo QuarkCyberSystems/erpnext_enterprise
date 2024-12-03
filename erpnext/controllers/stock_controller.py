@@ -63,6 +63,33 @@ class StockController(AccountsController):
 		self.set_rate_of_stock_uom()
 		self.validate_internal_transfer()
 		self.validate_putaway_capacity()
+		self.reset_conversion_factor()
+
+	def reset_conversion_factor(self):
+		for row in self.get("items"):
+			if row.uom != row.stock_uom:
+				continue
+
+			if row.conversion_factor != 1.0:
+				row.conversion_factor = 1.0
+				frappe.msgprint(
+					_(
+						"Conversion factor for item {0} has been reset to 1.0 as the uom {1} is same as stock uom {2}."
+					).format(bold(row.item_code), bold(row.uom), bold(row.stock_uom)),
+					alert=True,
+				)
+
+	def validate_items_exist(self):
+		if not self.get("items"):
+			return
+
+		items = [d.item_code for d in self.get("items")]
+
+		exists_items = frappe.get_all("Item", filters={"name": ("in", items)}, pluck="name")
+		non_exists_items = set(items) - set(exists_items)
+
+		if non_exists_items:
+			frappe.throw(_("Items {0} do not exist in the Item master.").format(", ".join(non_exists_items)))
 
 	def validate_duplicate_serial_and_batch_bundle(self, table_name):
 		if not self.get(table_name):
@@ -307,6 +334,11 @@ class StockController(AccountsController):
 					}
 				)
 
+				if self.doctype in ["Sales Invoice", "Delivery Note"]:
+					row.db_set(
+						"incoming_rate", frappe.db.get_value("Serial and Batch Bundle", bundle, "avg_rate")
+					)
+
 	def get_reference_ids(self, table_name, qty_field=None, bundle_field=None) -> tuple[str, list[str]]:
 		field = {
 			"Sales Invoice": "sales_invoice_item",
@@ -345,6 +377,9 @@ class StockController(AccountsController):
 
 	@frappe.request_cache
 	def is_serial_batch_item(self, item_code) -> bool:
+		if not frappe.db.exists("Item", item_code):
+			frappe.throw(_("Item {0} does not exist.").format(bold(item_code)))
+
 		item_details = frappe.db.get_value("Item", item_code, ["has_serial_no", "has_batch_no"], as_dict=1)
 
 		if item_details.has_serial_no or item_details.has_batch_no:
@@ -787,6 +822,9 @@ class StockController(AccountsController):
 		self.update_inventory_dimensions(d, sl_dict)
 
 		if self.docstatus == 2:
+			from erpnext.deprecation_dumpster import deprecation_warning
+
+			deprecation_warning("unknown", "v16", "No instructions.")
 			# To handle denormalized serial no records, will br deprecated in v16
 			for field in ["serial_no", "batch_no"]:
 				if d.get(field):
@@ -802,6 +840,15 @@ class StockController(AccountsController):
 		dimensions = get_evaluated_inventory_dimension(row, sl_dict, parent_doc=self)
 		for dimension in dimensions:
 			if not dimension:
+				continue
+
+			if (
+				self.doctype in ["Purchase Invoice", "Purchase Receipt"]
+				and row.get("rejected_warehouse")
+				and sl_dict.get("warehouse") == row.get("rejected_warehouse")
+			):
+				fieldname = f"rejected_{dimension.source_fieldname}"
+				sl_dict[dimension.target_fieldname] = row.get(fieldname)
 				continue
 
 			if self.doctype in [
@@ -964,11 +1011,13 @@ class StockController(AccountsController):
 	def validate_qi_presence(self, row):
 		"""Check if QI is present on row level. Warn on save and stop on submit if missing."""
 		if not row.quality_inspection:
-			msg = f"Row #{row.idx}: Quality Inspection is required for Item {frappe.bold(row.item_code)}"
+			msg = _("Row #{0}: Quality Inspection is required for Item {1}").format(
+				row.idx, frappe.bold(row.item_code)
+			)
 			if self.docstatus == 1:
-				frappe.throw(_(msg), title=_("Inspection Required"), exc=QualityInspectionRequiredError)
+				frappe.throw(msg, title=_("Inspection Required"), exc=QualityInspectionRequiredError)
 			else:
-				frappe.msgprint(_(msg), title=_("Inspection Required"), indicator="blue")
+				frappe.msgprint(msg, title=_("Inspection Required"), indicator="blue")
 
 	def validate_qi_submission(self, row):
 		"""Check if QI is submitted on row level, during submission"""
@@ -977,11 +1026,13 @@ class StockController(AccountsController):
 
 		if qa_docstatus != 1:
 			link = frappe.utils.get_link_to_form("Quality Inspection", row.quality_inspection)
-			msg = f"Row #{row.idx}: Quality Inspection {link} is not submitted for the item: {row.item_code}"
+			msg = _("Row #{0}: Quality Inspection {1} is not submitted for the item: {2}").format(
+				row.idx, link, row.item_code
+			)
 			if action == "Stop":
-				frappe.throw(_(msg), title=_("Inspection Submission"), exc=QualityInspectionNotSubmittedError)
+				frappe.throw(msg, title=_("Inspection Submission"), exc=QualityInspectionNotSubmittedError)
 			else:
-				frappe.msgprint(_(msg), alert=True, indicator="orange")
+				frappe.msgprint(msg, alert=True, indicator="orange")
 
 	def validate_qi_rejection(self, row):
 		"""Check if QI is rejected on row level, during submission"""
@@ -990,11 +1041,13 @@ class StockController(AccountsController):
 
 		if qa_status == "Rejected":
 			link = frappe.utils.get_link_to_form("Quality Inspection", row.quality_inspection)
-			msg = f"Row #{row.idx}: Quality Inspection {link} was rejected for item {row.item_code}"
+			msg = _("Row #{0}: Quality Inspection {1} was rejected for item {2}").format(
+				row.idx, link, row.item_code
+			)
 			if action == "Stop":
-				frappe.throw(_(msg), title=_("Inspection Rejected"), exc=QualityInspectionRejectedError)
+				frappe.throw(msg, title=_("Inspection Rejected"), exc=QualityInspectionRejectedError)
 			else:
-				frappe.msgprint(_(msg), alert=True, indicator="orange")
+				frappe.msgprint(msg, alert=True, indicator="orange")
 
 	def update_blanket_order(self):
 		blanket_orders = list(set([d.blanket_order for d in self.items if d.blanket_order]))

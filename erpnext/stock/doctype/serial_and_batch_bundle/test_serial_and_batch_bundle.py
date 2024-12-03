@@ -4,7 +4,7 @@
 import json
 
 import frappe
-from frappe.tests.utils import FrappeTestCase, change_settings
+from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import flt, nowtime, today
 
 from erpnext.stock.doctype.item.test_item import make_item
@@ -16,7 +16,16 @@ from erpnext.stock.doctype.serial_and_batch_bundle.serial_and_batch_bundle impor
 from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
 
 
-class TestSerialandBatchBundle(FrappeTestCase):
+class UnitTestSerialAndBatchBundle(UnitTestCase):
+	"""
+	Unit tests for SerialAndBatchBundle.
+	Use this class for testing individual functions and methods.
+	"""
+
+	pass
+
+
+class TestSerialandBatchBundle(IntegrationTestCase):
 	def test_inward_outward_serial_valuation(self):
 		from erpnext.stock.doctype.delivery_note.test_delivery_note import create_delivery_note
 		from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import make_purchase_receipt
@@ -524,7 +533,9 @@ class TestSerialandBatchBundle(FrappeTestCase):
 		make_serial_nos(item_code, serial_nos)
 		self.assertTrue(frappe.db.exists("Serial No", serial_no_id))
 
-	@change_settings("Stock Settings", {"auto_create_serial_and_batch_bundle_for_outward": 1})
+	@IntegrationTestCase.change_settings(
+		"Stock Settings", {"auto_create_serial_and_batch_bundle_for_outward": 1}
+	)
 	def test_duplicate_serial_and_batch_bundle(self):
 		from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import make_purchase_receipt
 
@@ -700,6 +711,57 @@ class TestSerialandBatchBundle(FrappeTestCase):
 
 		serial_nos = get_serial_nos_from_bundle(se.items[0].serial_and_batch_bundle)
 		self.assertEqual(serial_nos, serial_nos1)
+
+	def test_auto_create_serial_and_batch_bundle_for_outward_for_batch_item(self):
+		item_code = make_item(
+			"Test Auto Create Batch Bundle for Outward 1",
+			properties={
+				"is_stock_item": 1,
+				"has_batch_no": 1,
+				"batch_number_series": "ACSBBO-TACSB-.#####",
+			},
+		).name
+
+		if not frappe.db.exists("Batch", "ACSBBO-TACSB-00001"):
+			frappe.get_doc(
+				{
+					"doctype": "Batch",
+					"batch_id": "ACSBBO-TACSB-00001",
+					"item": item_code,
+					"company": "_Test Company",
+				}
+			).insert(ignore_permissions=True)
+
+		make_stock_entry(
+			item_code=item_code,
+			qty=10,
+			target="_Test Warehouse - _TC",
+			rate=500,
+			use_serial_batch_fields=True,
+			batch_no="ACSBBO-TACSB-00001",
+		)
+
+		dispatch = make_stock_entry(
+			item_code=item_code,
+			qty=10,
+			target="_Test Warehouse - _TC",
+			rate=500,
+			do_not_submit=True,
+		)
+
+		original_value = frappe.db.get_single_value(
+			"Stock Settings", "auto_create_serial_and_batch_bundle_for_outward"
+		)
+
+		frappe.db.set_single_value("Stock Settings", "auto_create_serial_and_batch_bundle_for_outward", 0)
+		self.assertRaises(frappe.ValidationError, dispatch.submit)
+
+		frappe.db.set_single_value("Stock Settings", "auto_create_serial_and_batch_bundle_for_outward", 1)
+		dispatch.submit()
+
+		frappe.db.set_single_value(
+			"Stock Settings", "auto_create_serial_and_batch_bundle_for_outward", original_value
+		)
 
 
 def get_batch_from_bundle(bundle):

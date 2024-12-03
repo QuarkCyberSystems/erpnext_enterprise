@@ -29,7 +29,6 @@ frappe.ui.form.on("BOM", {
 					item: row.finished_good,
 					is_active: 1,
 					docstatus: 1,
-					track_semi_finished_goods: 0,
 				},
 			};
 		});

@@ -72,7 +72,7 @@ frappe.ui.form.on("Job Card", {
 		let has_items = frm.doc.items && frm.doc.items.length;
 		frm.trigger("make_fields_read_only");
 
-		if (!frm.is_new() && frm.doc.__onload.work_order_closed) {
+		if (!frm.is_new() && frm.doc.__onload?.work_order_closed) {
 			frm.disable_save();
 			return;
 		}
@@ -208,6 +208,48 @@ frappe.ui.form.on("Job Card", {
 				};
 			};
 		}
+	},
+
+	complete_job_card(frm) {
+		let fields = [
+			{
+				fieldtype: "Float",
+				label: __("Completed Quantity"),
+				fieldname: "qty",
+				reqd: 1,
+				default: frm.doc.for_quantity - frm.doc.manufactured_qty,
+			},
+			{
+				fieldtype: "Datetime",
+				label: __("End Time"),
+				fieldname: "end_time",
+				default: frappe.datetime.now_datetime(),
+			},
+		];
+
+		frappe.prompt(
+			fields,
+			(data) => {
+				if (data.qty <= 0) {
+					frappe.throw(__("Quantity should be greater than 0"));
+				}
+
+				frm.call({
+					method: "complete_job_card",
+					doc: frm.doc,
+					args: {
+						qty: data.qty,
+						end_time: data.end_time,
+					},
+					callback: function (r) {
+						frm.reload_doc();
+					},
+				});
+			},
+			__("Enter Value"),
+			__("Update"),
+			__("Set Finished Good Quantity")
+		);
 	},
 
 	make_subcontracting_po(frm) {

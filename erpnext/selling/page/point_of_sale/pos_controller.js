@@ -556,7 +556,7 @@ erpnext.PointOfSale.Controller = class {
 			const item_row_exists = !$.isEmptyObject(item_row);
 
 			const from_selector = field === "qty" && value === "+1";
-			if (from_selector) value = flt(item_row.stock_qty) + flt(value);
+			if (from_selector) value = flt(item_row.qty) + flt(value);
 
 			if (item_row_exists) {
 				if (field === "qty") value = flt(value);
@@ -593,6 +593,7 @@ erpnext.PointOfSale.Controller = class {
 					new_item["serial_no"] = serial_no;
 				}
 
+				new_item["use_serial_batch_fields"] = 1;
 				if (field === "serial_no") new_item["qty"] = value.split(`\n`).length || 0;
 
 				item_row = this.frm.add_child("items", new_item);
@@ -694,7 +695,7 @@ erpnext.PointOfSale.Controller = class {
 		const is_stock_item = resp[1];
 
 		frappe.dom.unfreeze();
-		const bold_uom = item_row.uom.bold();
+		const bold_uom = item_row.stock_uom.bold();
 		const bold_item_code = item_row.item_code.bold();
 		const bold_warehouse = warehouse.bold();
 		const bold_available_qty = available_qty.toString().bold();

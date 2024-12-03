@@ -87,17 +87,17 @@ frappe.ui.form.on("Production Plan", {
 		if (frm.doc.docstatus === 1) {
 			frm.trigger("show_progress");
 
-			if (frm.doc.status !== "Completed") {
-				frm.add_custom_button(
-					__("Production Plan Summary"),
-					() => {
-						frappe.set_route("query-report", "Production Plan Summary", {
-							production_plan: frm.doc.name,
-						});
-					},
-					__("View")
-				);
+			frm.add_custom_button(
+				__("Production Plan Summary"),
+				() => {
+					frappe.set_route("query-report", "Production Plan Summary", {
+						production_plan: frm.doc.name,
+					});
+				},
+				__("View")
+			);
 
+			if (frm.doc.status !== "Completed") {
 				if (frm.doc.status === "Closed") {
 					frm.add_custom_button(
 						__("Re-open"),
@@ -277,7 +277,7 @@ frappe.ui.form.on("Production Plan", {
 		frm.clear_table("prod_plan_references");
 
 		frappe.call({
-			method: "get_items",
+			method: "combine_so_items",
 			freeze: true,
 			doc: frm.doc,
 			callback: function () {
