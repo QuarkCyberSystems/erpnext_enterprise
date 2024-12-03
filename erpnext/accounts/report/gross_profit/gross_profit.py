@@ -421,10 +421,10 @@ class GrossProfitGenerator:
 		self.load_invoice_items()
 		self.get_delivery_notes()
 
+		self.load_product_bundle()
 		if filters.group_by == "Invoice":
 			self.group_items_by_invoice()
 
-		self.load_product_bundle()
 		self.load_non_stock_items()
 		self.get_returned_invoice_items()
 		self.process()
@@ -636,6 +636,7 @@ class GrossProfitGenerator:
 			if packed_item.get("parent_detail_docname") == row.item_row:
 				packed_item_row = row.copy()
 				packed_item_row.warehouse = packed_item.warehouse
+				packed_item_row.qty = packed_item.total_qty * -1
 				buying_amount += self.get_buying_amount(packed_item_row, packed_item.item_code)
 
 		return flt(buying_amount, self.currency_precision)
@@ -668,7 +669,9 @@ class GrossProfitGenerator:
 		else:
 			my_sle = self.get_stock_ledger_entries(item_code, row.warehouse)
 			if (row.update_stock or row.dn_detail) and my_sle:
-				parenttype, parent = row.parenttype, row.parent
+				parenttype = row.parenttype
+				parent = row.invoice or row.parent
+
 				if row.dn_detail:
 					parenttype, parent = "Delivery Note", row.delivery_note
 
@@ -851,6 +854,7 @@ class GrossProfitGenerator:
 				`tabSales Invoice`.project, `tabSales Invoice`.update_stock,
 				`tabSales Invoice`.customer, `tabSales Invoice`.customer_group,
 				`tabSales Invoice`.territory, `tabSales Invoice Item`.item_code,
+				`tabSales Invoice`.base_net_total as "invoice_base_net_total",
 				`tabSales Invoice Item`.item_name, `tabSales Invoice Item`.description,
 				`tabSales Invoice Item`.warehouse, `tabSales Invoice Item`.item_group,
 				`tabSales Invoice Item`.brand, `tabSales Invoice Item`.so_detail,
@@ -911,6 +915,7 @@ class GrossProfitGenerator:
 		"""
 
 		grouped = OrderedDict()
+		product_bundles = self.product_bundles.get("Sales Invoice", {})
 
 		for row in self.si_list:
 			# initialize list with a header row for each new parent
@@ -921,8 +926,7 @@ class GrossProfitGenerator:
 			)
 
 			# if item is a bundle, add it's components as seperate rows
-			if frappe.db.exists("Product Bundle", row.item_code):
-				bundled_items = self.get_bundle_items(row)
+			if bundled_items := product_bundles.get(row.parent, {}).get(row.item_code):
 				for x in bundled_items:
 					bundle_item = self.get_bundle_item_row(row, x)
 					grouped.get(row.parent).append(bundle_item)
@@ -958,46 +962,39 @@ class GrossProfitGenerator:
 				"item_row": None,
 				"is_return": row.is_return,
 				"cost_center": row.cost_center,
-				"base_net_amount": frappe.db.get_value("Sales Invoice", row.parent, "base_net_total"),
+				"base_net_amount": row.invoice_base_net_total,
 			}
 		)
 
-	def get_bundle_items(self, product_bundle):
-		return frappe.get_all(
-			"Product Bundle Item", filters={"parent": product_bundle.item_code}, fields=["item_code", "qty"]
-		)
-
-	def get_bundle_item_row(self, product_bundle, item):
-		item_name, description, item_group, brand = self.get_bundle_item_details(item.item_code)
-
+	def get_bundle_item_row(self, row, item):
 		return frappe._dict(
 			{
-				"parent_invoice": product_bundle.item_code,
-				"indent": product_bundle.indent + 1,
+				"parent_invoice": row.item_code,
+				"parenttype": row.parenttype,
+				"indent": row.indent + 1,
 				"parent": None,
 				"invoice_or_item": item.item_code,
-				"posting_date": product_bundle.posting_date,
-				"posting_time": product_bundle.posting_time,
-				"project": product_bundle.project,
-				"customer": product_bundle.customer,
-				"customer_group": product_bundle.customer_group,
+				"posting_date": row.posting_date,
+				"posting_time": row.posting_time,
+				"project": row.project,
+				"customer": row.customer,
+				"customer_group": row.customer_group,
 				"item_code": item.item_code,
-				"item_name": item_name,
-				"description": description,
-				"warehouse": product_bundle.warehouse,
-				"item_group": item_group,
-				"brand": brand,
-				"dn_detail": product_bundle.dn_detail,
-				"delivery_note": product_bundle.delivery_note,
-				"qty": (flt(product_bundle.qty) * flt(item.qty)),
-				"item_row": None,
-				"is_return": product_bundle.is_return,
-				"cost_center": product_bundle.cost_center,
+				"item_name": item.item_name,
+				"description": item.description,
+				"warehouse": item.warehouse or row.warehouse,
+				"update_stock": row.update_stock,
+				"item_group": "",
+				"brand": "",
+				"dn_detail": row.dn_detail,
+				"delivery_note": row.delivery_note,
+				"qty": item.total_qty * -1,
+				"item_row": row.item_row,
+				"is_return": row.is_return,
+				"cost_center": row.cost_center,
+				"invoice": row.parent,
 			}
 		)
-
-	def get_bundle_item_details(self, item_code):
-		return frappe.db.get_value("Item", item_code, ["item_name", "description", "item_group", "brand"])
 
 	def get_stock_ledger_entries(self, item_code, warehouse):
 		if item_code and warehouse:
