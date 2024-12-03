@@ -181,11 +181,12 @@ class JournalEntry(AccountsController):
 		else:
 			return self._cancel()
 
-	def on_submit(self):
+	def before_submit(self):
 		# Do not validate while importing via data import
 		if not frappe.flags.in_import:
 			self.validate_total_debit_and_credit()
 
+	def on_submit(self):
 		self.validate_cheque_info()
 		self.check_credit_limit()
 		self.make_gl_entries()
