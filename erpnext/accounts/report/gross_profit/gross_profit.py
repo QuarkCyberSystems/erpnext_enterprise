@@ -915,7 +915,7 @@ class GrossProfitGenerator:
 		"""
 
 		grouped = OrderedDict()
-		product_bundels = self.product_bundles.get("Sales Invoice", {})
+		product_bundles = self.product_bundles.get("Sales Invoice", {})
 
 		for row in self.si_list:
 			# initialize list with a header row for each new parent
@@ -926,7 +926,7 @@ class GrossProfitGenerator:
 			)
 
 			# if item is a bundle, add it's components as seperate rows
-			if bundled_items := product_bundels.get(row.parent, {}).get(row.item_code):
+			if bundled_items := product_bundles.get(row.parent, {}).get(row.item_code):
 				for x in bundled_items:
 					bundle_item = self.get_bundle_item_row(row, x)
 					grouped.get(row.parent).append(bundle_item)
