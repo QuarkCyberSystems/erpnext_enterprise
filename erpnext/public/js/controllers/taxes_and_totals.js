@@ -504,17 +504,16 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 				item_wise_tax_amount += flt(tax_detail[key].tax_amount, precision("tax_amount", tax));
 				item_wise_net_amount += flt(tax_detail[key].net_amount, precision("net_amount", tax));
 			}
-		} else {
-			if (tax_detail && tax_detail[key])
-				item_wise_tax_amount += tax_detail[key].tax_amount;
-				item_wise_net_amount += tax_detail[key].net_amount;
+		} else if (tax_detail && tax_detail[key]) {
+			item_wise_tax_amount += tax_detail[key].tax_amount;
+			item_wise_net_amount += tax_detail[key].net_amount;
 		}
 
-    tax_detail[key] = {
-      tax_rate: tax_rate,
-      tax_amount: flt(item_wise_tax_amount, precision("base_tax_amount", tax)),
-      net_amount: flt(item_wise_net_amount, precision("base_net_amount", tax)),
-    };
+		tax_detail[key] = {
+			tax_rate: tax_rate,
+			tax_amount: flt(item_wise_tax_amount, precision("base_tax_amount", tax)),
+			net_amount: flt(item_wise_net_amount, precision("base_net_amount", tax)),
+		};
 	}
 
 	round_off_totals(tax) {
