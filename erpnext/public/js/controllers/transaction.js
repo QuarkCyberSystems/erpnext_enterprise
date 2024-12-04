@@ -500,7 +500,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 		var item = frappe.get_doc(cdt, cdn);
 		frappe.call({
 			doc: doc,
-			method: "item_code_trigger",
+			method: "process_item_selection",
 			args: {
 				item: item
 			},

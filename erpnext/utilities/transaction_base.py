@@ -288,7 +288,7 @@ class TransactionBase(StatusUpdater):
 		)
 
 	@frappe.whitelist()
-	def item_code_trigger(self, item):
+	def process_item_selection(self, item):
 		# 'item' - child table row from UI. Possibly has user-set values
 		# Convert it to Frappe doc for better attribute access
 		item = frappe.get_doc(item)
