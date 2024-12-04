@@ -300,7 +300,8 @@ class TransactionBase(StatusUpdater):
 		item_details = self.fetch_item_details(item)
 
 		self.set_fetched_values(item_obj, item_details)
-		self.set_item_rate_and_discounts(item, item_obj, item_details)
+		self.set_item_rate_and_discounts(item_obj, item_details)
+		# self.set_item_rate_and_discounts(item, item_obj, item_details)
 		self.add_taxes_from_item_template(item, item_obj, item_details)
 		self.add_free_item(item, item_obj, item_details)
 		self.handle_internal_parties(item, item_obj, item_details)
@@ -404,30 +405,35 @@ class TransactionBase(StatusUpdater):
 		if item_obj.rate:
 			item_obj.stock_uom_rate = flt(item_obj.rate) / flt(item_obj.conversion_factor)
 
-	def set_item_rate_and_discounts(self, item: object, item_obj: object, item_details: dict) -> None:
+	def set_item_rate_and_discounts(self, item_obj: object, item_details: dict) -> None:
+		# def set_item_rate_and_discounts(self, item: object, item_obj: object, item_details: dict) -> None:
 		effective_item_rate = item_details.price_list_rate
 		item_rate = item_details.rate
 
 		# Field order precedance
 		# blanket_order_rate -> margin_type -> discount_percentage -> discount_amount
-		if item.parenttype in ["Sales Order", "Quotation"] and item.blanket_order_rate:
-			effective_item_rate = item.blanket_order_rate
+		if item_obj.parenttype in ["Sales Order", "Quotation"] and item_obj.blanket_order_rate:
+			effective_item_rate = item_obj.blanket_order_rate
 
-		if item.margin_type == "Percentage":
+		if item_obj.margin_type == "Percentage":
 			item_obj.rate_with_margin = flt(effective_item_rate) + flt(effective_item_rate) * (
-				flt(item.margin_rate_or_amount) / 100
+				flt(item_obj.margin_rate_or_amount) / 100
 			)
 		else:
-			item_obj.rate_with_margin = flt(effective_item_rate) + flt(item.margin_rate_or_amount)
+			item_obj.rate_with_margin = flt(effective_item_rate) + flt(item_obj.margin_rate_or_amount)
 
 		item_obj.base_rate_with_margin = flt(item_obj.rate_with_margin) * flt(self.conversion_rate)
 		item_rate = flt(item_obj.rate_with_margin, item_obj.precision("rate"))
 
-		if item.discount_percentage and not item.discount_amount:
-			item_obj.discount_amount = flt(item_obj.rate_with_margin) * flt(item.discount_percentage) / 100
+		if item_obj.discount_percentage and not item_obj.discount_amount:
+			item_obj.discount_amount = (
+				flt(item_obj.rate_with_margin) * flt(item_obj.discount_percentage) / 100
+			)
 
-		if item.discount_amount and item.discount_amount > 0:
-			item_rate = flt((item_obj.rate_with_margin) - (item_obj.discount_amount), item.precision("rate"))
+		if item_obj.discount_amount and item_obj.discount_amount > 0:
+			item_rate = flt(
+				(item_obj.rate_with_margin) - (item_obj.discount_amount), item_obj.precision("rate")
+			)
 			item_obj.discount_percentage = (
 				100 * flt(item_obj.discount_amount) / flt(item_obj.rate_with_margin)
 			)
