@@ -289,23 +289,18 @@ class TransactionBase(StatusUpdater):
 
 	@frappe.whitelist()
 	def process_item_selection(self, item):
-		# 'item' - child table row from UI. Possibly has user-set values
-		# Convert it to Frappe doc for better attribute access
-		item = frappe.get_doc(item)
-
 		# Server side 'item' doc. Update this to reflect in UI
-		item_obj = self.get("items", {"name": item.name})[0]
+		item_obj = self.get("items", {"name": item})[0]
 
 		# 'item_details' has values fetched by system for backend
-		item_details = self.fetch_item_details(item)
+		item_details = self.fetch_item_details(item_obj)
 
 		self.set_fetched_values(item_obj, item_details)
 		self.set_item_rate_and_discounts(item_obj, item_details)
-		# self.set_item_rate_and_discounts(item, item_obj, item_details)
-		self.add_taxes_from_item_template(item, item_obj, item_details)
-		self.add_free_item(item, item_obj, item_details)
-		self.handle_internal_parties(item, item_obj, item_details)
-		self.conversion_factor(item, item_obj, item_details)
+		self.add_taxes_from_item_template(item_obj, item_details)
+		self.add_free_item(item_obj, item_details)
+		self.handle_internal_parties(item_obj, item_details)
+		self.conversion_factor(item_obj, item_details)
 		self.calculate_taxes_and_totals()
 
 	def set_fetched_values(self, item_obj: object, item_details: dict) -> None:
@@ -313,32 +308,32 @@ class TransactionBase(StatusUpdater):
 			if hasattr(item_obj, k):
 				setattr(item_obj, k, v)
 
-	def handle_internal_parties(self, item: object, item_obj: object, item_details: dict) -> None:
+	def handle_internal_parties(self, item_obj: object, item_details: dict) -> None:
 		if (
 			self.get("is_internal_customer") or self.get("is_internal_supplier")
 		) and self.represents_company == self.company:
 			args = frappe._dict(
 				{
-					"item_code": item.item_code,
-					"warehouse": item.from_warehouse
+					"item_code": item_obj.item_code,
+					"warehouse": item_obj.from_warehouse
 					if self.doctype in ["Purchase Receipt", "Purchase Invoice"]
-					else item.warehouse,
+					else item_obj.warehouse,
 					"posting_date": self.posting_date,
 					"posting_time": self.posting_time,
-					"qty": item.qty * item.conversion_factor,
-					"serial_no": item.serial_no,
-					"batch_no": item.batch_no,
+					"qty": item_obj.qty * item_obj.conversion_factor,
+					"serial_no": item_obj.serial_no,
+					"batch_no": item_obj.batch_no,
 					"voucher_type": self.doctype,
 					"company": self.company,
-					"allow_zero_valuation_rate": item.allow_zero_valuation_rate,
+					"allow_zero_valuation_rate": item_obj.allow_zero_valuation_rate,
 				}
 			)
 			rate = get_incoming_rate(args=args)
-			item_obj.rate = rate * item.conversion_factor
+			item_obj.rate = rate * item_obj.conversion_factor
 		else:
-			self.set_rate_based_on_price_list(item, item_obj, item_details)
+			self.set_rate_based_on_price_list(item_obj, item_details)
 
-	def add_taxes_from_item_template(self, item: object, item_obj: object, item_details: dict) -> None:
+	def add_taxes_from_item_template(self, item_obj: object, item_details: dict) -> None:
 		if item_details.item_tax_rate and frappe.db.get_single_value(
 			"Accounts Settings", "add_taxes_from_item_tax_template"
 		):
@@ -348,10 +343,11 @@ class TransactionBase(StatusUpdater):
 				if not found:
 					self.append("taxes", {"charge_type": "On Net Total", "account_head": tax_head, "rate": 0})
 
-	def set_rate_based_on_price_list(self, item: object, item_obj: object, item_details: dict) -> None:
-		if item.price_list_rate and item.discount_percentage:
+	def set_rate_based_on_price_list(self, item_obj: object, item_details: dict) -> None:
+		if item_obj.price_list_rate and item_obj.discount_percentage:
 			item_obj.rate = flt(
-				item.price_list_rate * (1 - item.discount_percentage / 100.0), item.precision("rate")
+				item_obj.price_list_rate * (1 - item_obj.discount_percentage / 100.0),
+				item_obj.precision("rate"),
 			)
 
 	def copy_from_first_row(self, row, fields):
@@ -360,7 +356,7 @@ class TransactionBase(StatusUpdater):
 			first_row = self.items[0]
 			[setattr(row, k, first_row.get(k)) for k in fields if hasattr(first_row, k)]
 
-	def add_free_item(self, item: object, item_obj: object, item_details: dict) -> None:
+	def add_free_item(self, item_obj: object, item_details: dict) -> None:
 		free_items = item_details.get("free_item_data")
 		if free_items and len(free_items):
 			existing_free_items = [x for x in self.items if x.is_free_item]
@@ -381,7 +377,7 @@ class TransactionBase(StatusUpdater):
 
 				self.copy_from_first_row(row_to_modify, ["expense_account", "income_account"])
 
-	def conversion_factor(self, item: object, item_obj: object, item_details: dict) -> None:
+	def conversion_factor(self, item_obj: object, item_details: dict) -> None:
 		if frappe.get_meta(item_obj.doctype).has_field("stock_qty"):
 			item_obj.stock_qty = flt(
 				item_obj.qty * item_obj.conversion_factor, item_obj.precision("stock_qty")
@@ -398,7 +394,7 @@ class TransactionBase(StatusUpdater):
 			if not frappe.flags.dont_fetch_price_list_rate and frappe.get_meta(self.doctype).has_field(
 				"price_list_currency"
 			):
-				self._apply_price_list(item, item_obj, True)
+				self._apply_price_list(item_obj, True)
 			self.calculate_stock_uom_rate(item_obj)
 
 	def calculate_stock_uom_rate(self, item_obj: object) -> None:
@@ -444,7 +440,7 @@ class TransactionBase(StatusUpdater):
 		self.total_net_weight = sum([x.get("total_weight") or 0 for x in self.items])
 		self.apply_shipping_rule()
 
-	def _apply_price_list(self, item: object, item_obj: object, reset_plc_conversion: bool) -> None:
+	def _apply_price_list(self, item_obj: object, reset_plc_conversion: bool) -> None:
 		if self.doctype == "Material Request":
 			return
 

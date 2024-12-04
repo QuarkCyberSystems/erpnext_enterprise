@@ -502,7 +502,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 			doc: doc,
 			method: "process_item_selection",
 			args: {
-				item: item
+				item: item.name
 			},
 			callback: function(r) {
 				if(!r.exc) {
