@@ -1,7 +1,7 @@
 const INDICATORS = {
 	"Partially Paid": "orange",
 	Cancelled: "red",
-	Draft: "gray",
+	Draft: "red",
 	Failed: "red",
 	Initiated: "green",
 	Paid: "blue",
