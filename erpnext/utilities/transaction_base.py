@@ -292,7 +292,7 @@ class TransactionBase(StatusUpdater):
 		# Server side 'item' doc. Update this to reflect in UI
 		item_obj = self.get("items", {"name": item})[0]
 
-		# 'item_details' has values fetched by system for backend
+		# 'item_details' has latest item related values
 		item_details = self.fetch_item_details(item_obj)
 
 		self.set_fetched_values(item_obj, item_details)
@@ -402,7 +402,6 @@ class TransactionBase(StatusUpdater):
 			item_obj.stock_uom_rate = flt(item_obj.rate) / flt(item_obj.conversion_factor)
 
 	def set_item_rate_and_discounts(self, item_obj: object, item_details: dict) -> None:
-		# def set_item_rate_and_discounts(self, item: object, item_obj: object, item_details: dict) -> None:
 		effective_item_rate = item_details.price_list_rate
 		item_rate = item_details.rate
 
