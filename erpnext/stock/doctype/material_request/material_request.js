@@ -115,6 +115,14 @@ frappe.ui.form.on("Material Request", {
 
 			if (flt(frm.doc.per_received, precision) < 100) {
 				frm.add_custom_button(__("Stop"), () => frm.events.update_status(frm, "Stopped"));
+
+				if (frm.doc.material_request_type === "Purchase") {
+					frm.add_custom_button(
+						__("Purchase Order"),
+						() => frm.events.make_purchase_order(frm),
+						__("Create")
+					);
+				}
 			}
 
 			if (flt(frm.doc.per_ordered, precision) < 100) {
@@ -153,14 +161,6 @@ frappe.ui.form.on("Material Request", {
 					frm.add_custom_button(
 						__("Material Receipt"),
 						() => frm.events.make_stock_entry(frm),
-						__("Create")
-					);
-				}
-
-				if (frm.doc.material_request_type === "Purchase") {
-					frm.add_custom_button(
-						__("Purchase Order"),
-						() => frm.events.make_purchase_order(frm),
 						__("Create")
 					);
 				}
