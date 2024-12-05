@@ -972,7 +972,9 @@ erpnext.PointOfSale.ItemCart = class {
 				}
 
 				const elapsed_time = moment(res[0].posting_date + " " + res[0].posting_time).fromNow();
-				this.$customer_section.find(".customer-desc").html(`${__("Last transacted")} ${__(elapsed_time)}`);
+				this.$customer_section
+					.find(".customer-desc")
+					.html(`${__("Last transacted")} ${__(elapsed_time)}`);
 
 				res.forEach((invoice) => {
 					const posting_datetime = moment(invoice.posting_date + " " + invoice.posting_time).format(
