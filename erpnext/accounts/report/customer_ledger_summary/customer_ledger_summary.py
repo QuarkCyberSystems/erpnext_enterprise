@@ -19,12 +19,6 @@ class PartyLedgerSummaryReport:
 		self.filters.from_date = getdate(self.filters.from_date or nowdate())
 		self.filters.to_date = getdate(self.filters.to_date or nowdate())
 
-		if self.filters.get("cost_center"):
-			self.filters.cost_center = frappe.parse_json(self.filters.get("cost_center"))
-
-		if self.filters.get("project"):
-			self.filters.project = frappe.parse_json(self.filters.get("project"))
-
 		if not self.filters.get("company"):
 			self.filters["company"] = frappe.db.get_single_value("Global Defaults", "default_company")
 
@@ -271,7 +265,7 @@ class PartyLedgerSummaryReport:
 			f"""
 			select
 				gle.posting_date, gle.party, gle.voucher_type, gle.voucher_no, gle.against_voucher_type,
-				gle.against_voucher,  gle.cost_center, gle.project, gle.debit, gle.credit, gle.is_opening {join_field}
+				gle.against_voucher, gle.debit, gle.credit, gle.is_opening {join_field}
 			from `tabGL Entry` gle
 			{join}
 			where
@@ -347,25 +341,26 @@ class PartyLedgerSummaryReport:
 				)
 
 		if self.filters.get("cost_center"):
+			self.filters.cost_center = frappe.parse_json(self.filters.get("cost_center"))
 			self.filters.cost_center = get_cost_centers_with_children(self.filters.cost_center)
 			conditions.append("gle.cost_center in %(cost_center)s")
 
 		if self.filters.get("project"):
+			self.filters.project = frappe.parse_json(self.filters.get("project"))
 			conditions.append("gle.project in %(project)s")
 
 		accounting_dimensions = get_accounting_dimensions(as_list=False)
 
 		if accounting_dimensions:
 			for dimension in accounting_dimensions:
-				if not dimension.disabled and dimension.document_type != "Finance Book":
-					if self.filters.get(dimension.fieldname):
-						if frappe.get_cached_value("DocType", dimension.document_type, "is_tree"):
-							self.filters[dimension.fieldname] = get_dimension_with_children(
-								dimension.document_type, self.filters.get(dimension.fieldname)
-							)
-							conditions.append(f"{dimension.fieldname} in %({dimension.fieldname})s")
-						else:
-							conditions.append(f"{dimension.fieldname} in %({dimension.fieldname})s")
+				if self.filters.get(dimension.fieldname):
+					if frappe.get_cached_value("DocType", dimension.document_type, "is_tree"):
+						self.filters[dimension.fieldname] = get_dimension_with_children(
+							dimension.document_type, self.filters.get(dimension.fieldname)
+						)
+						conditions.append(f"{dimension.fieldname} in %({dimension.fieldname})s")
+					else:
+						conditions.append(f"{dimension.fieldname} in %({dimension.fieldname})s")
 
 		return " and ".join(conditions)
 
