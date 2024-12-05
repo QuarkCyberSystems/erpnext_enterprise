@@ -508,7 +508,7 @@ class SerialNoValuation(DeprecatedSerialNoValuation):
 			serial_nos = self.get_serial_nos()
 			for serial_no in serial_nos:
 				incoming_rate = self.get_incoming_rate_from_bundle(serial_no)
-				if not incoming_rate:
+				if incoming_rate is None:
 					continue
 
 				self.stock_value_change += incoming_rate
@@ -553,7 +553,7 @@ class SerialNoValuation(DeprecatedSerialNoValuation):
 			query = query.where(timestamp_condition)
 
 		incoming_rate = query.run()
-		return flt(incoming_rate[0][0]) if incoming_rate else 0.0
+		return flt(incoming_rate[0][0]) if incoming_rate else None
 
 	def get_serial_nos(self):
 		if self.sle.get("serial_nos"):
