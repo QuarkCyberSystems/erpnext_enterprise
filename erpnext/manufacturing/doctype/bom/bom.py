@@ -179,8 +179,13 @@ class BOM(WebsiteGenerator):
 
 		search_key = f"{self.doctype}-{self.item}%"
 		existing_boms = frappe.get_all(
-			"BOM", filters={"name": ("like", search_key), "amended_from": ["is", "not set"]}, pluck="name"
+			"BOM", filters={"name": search_key, "amended_from": ["is", "not set"]}, pluck="name"
 		)
+
+		if not existing_boms:
+			existing_boms = frappe.get_all(
+				"BOM", filters={"name": ("like", search_key), "amended_from": ["is", "not set"]}, pluck="name"
+			)
 
 		if existing_boms:
 			index = self.get_next_version_index(existing_boms)
