@@ -230,25 +230,30 @@ frappe.ui.form.on("BOM", {
 	},
 
 	make_work_order(frm) {
-		frm.events.setup_variant_prompt(frm, "Work Order", (frm, item, data, variant_items) => {
-			frappe.call({
-				method: "erpnext.manufacturing.doctype.work_order.work_order.make_work_order",
-				args: {
-					bom_no: frm.doc.name,
-					item: item,
-					qty: data.qty || 0.0,
-					project: frm.doc.project,
-					variant_items: variant_items,
-				},
-				freeze: true,
-				callback(r) {
-					if (r.message) {
-						let doc = frappe.model.sync(r.message)[0];
-						frappe.set_route("Form", doc.doctype, doc.name);
-					}
-				},
-			});
-		});
+		frm.events.setup_variant_prompt(
+			frm,
+			"Work Order",
+			(frm, item, data, variant_items, use_multi_level_bom) => {
+				frappe.call({
+					method: "erpnext.manufacturing.doctype.work_order.work_order.make_work_order",
+					args: {
+						bom_no: frm.doc.name,
+						item: item,
+						qty: data.qty || 0.0,
+						project: frm.doc.project,
+						variant_items: variant_items,
+						use_multi_level_bom: use_multi_level_bom,
+					},
+					freeze: true,
+					callback(r) {
+						if (r.message) {
+							let doc = frappe.model.sync(r.message)[0];
+							frappe.set_route("Form", doc.doctype, doc.name);
+						}
+					},
+				});
+			}
+		);
 	},
 
 	make_variant_bom(frm) {
@@ -296,6 +301,13 @@ frappe.ui.form.on("BOM", {
 					};
 				},
 			});
+
+			fields.push({
+				fieldtype: "Check",
+				label: __("Use Multi-Level BOM"),
+				fieldname: "use_multi_level_bom",
+				default: 1,
+			});
 		}
 
 		if (!skip_qty_field) {
@@ -333,6 +345,7 @@ frappe.ui.form.on("BOM", {
 				fieldname: "items",
 				fieldtype: "Table",
 				label: __("Raw Materials"),
+				depends_on: "eval:!doc.use_multi_level_bom",
 				fields: [
 					{
 						fieldname: "item_code",
@@ -395,14 +408,15 @@ frappe.ui.form.on("BOM", {
 			(data) => {
 				let item = data.item || frm.doc.item;
 				let variant_items = data.items || [];
+				let use_multi_level_bom = data.use_multi_level_bom || 0;
 
 				variant_items.forEach((d) => {
-					if (!d.variant_item_code) {
+					if (!d.variant_item_code && !use_multi_level_bom) {
 						frappe.throw(__("Select variant item code for the template item {0}", [d.item_code]));
 					}
 				});
 
-				callback(frm, item, data, variant_items);
+				callback(frm, item, data, variant_items, use_multi_level_bom);
 			},
 			__(title),
 			__("Create")
