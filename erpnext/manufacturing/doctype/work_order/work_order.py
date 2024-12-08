@@ -1399,7 +1399,9 @@ def add_variant_item(variant_items, wo_doc, bom_no, table_name="items"):
 		args["amount"] = flt(args.get("required_qty")) * flt(args.get("rate"))
 		args["uom"] = item_data.stock_uom
 
-		existing_row = get_template_rm_item(wo_doc, item.get("item_code"))
+		existing_row = (
+			get_template_rm_item(wo_doc, item.get("item_code")) if table_name == "required_items" else None
+		)
 		if existing_row:
 			existing_row.update(args)
 		else:
