@@ -89,6 +89,10 @@ class SerialandBatchBundle(Document):
 		self.validate_serial_and_batch_no()
 		self.validate_duplicate_serial_and_batch_no()
 		self.validate_voucher_no()
+
+		if self.docstatus == 0:
+			self.allow_existing_serial_nos()
+
 		if self.type_of_transaction == "Maintenance":
 			return
 
@@ -101,6 +105,42 @@ class SerialandBatchBundle(Document):
 		self.set_warehouse()
 		self.set_incoming_rate()
 		self.calculate_qty_and_amount()
+
+	def allow_existing_serial_nos(self):
+		if self.type_of_transaction == "Outward" or not self.has_serial_no:
+			return
+
+		if frappe.db.get_single_value("Stock Settings", "allow_existing_serial_no"):
+			return
+
+		if self.voucher_type not in ["Purchase Receipt", "Purchase Invoice", "Stock Entry"]:
+			return
+
+		if self.voucher_type == "Stock Entry" and frappe.get_cached_value(
+			"Stock Entry", self.voucher_no, "purpose"
+		) in ["Material Transfer", "Send to Subcontractor", "Material Transfer for Manufacture"]:
+			return
+
+		serial_nos = [d.serial_no for d in self.entries if d.serial_no]
+
+		data = frappe.get_all(
+			"Serial and Batch Entry",
+			filters={"serial_no": ("in", serial_nos), "docstatus": 1, "qty": ("<", 0)},
+			fields=["serial_no", "parent"],
+		)
+
+		note = "<br><br> <b>Note</b>:<br>"
+		for row in data:
+			frappe.throw(
+				_(
+					"You can't process the serial number {0} as it has already been used in the SABB {1}. {2} if you want to inward same serial number multiple times then enabled 'Allow existing Serial No to be Manufactured/Received again' in the {3}"
+				).format(
+					row.serial_no,
+					get_link_to_form("Serial and Batch Bundle", row.parent),
+					note,
+					get_link_to_form("Stock Settings", "Stock Settings"),
+				)
+			)
 
 	def reset_serial_batch_bundle(self):
 		if self.is_new() and self.amended_from:
@@ -136,7 +176,12 @@ class SerialandBatchBundle(Document):
 			return
 
 		serial_nos = [d.serial_no for d in self.entries if d.serial_no]
-		kwargs = {"item_code": self.item_code, "warehouse": self.warehouse}
+		kwargs = {
+			"item_code": self.item_code,
+			"warehouse": self.warehouse,
+			"check_serial_nos": True,
+			"serial_nos": serial_nos,
+		}
 		if self.voucher_type == "POS Invoice":
 			kwargs["ignore_voucher_nos"] = [self.voucher_no]
 
@@ -177,6 +222,7 @@ class SerialandBatchBundle(Document):
 				"posting_date": self.posting_date,
 				"posting_time": self.posting_time,
 				"serial_nos": serial_nos,
+				"check_serial_nos": True,
 			}
 		)
 
@@ -1683,7 +1729,7 @@ def get_serial_nos_based_on_posting_date(kwargs, ignore_serial_nos):
 	serial_nos = set()
 	data = get_stock_ledgers_for_serial_nos(kwargs)
 
-	bundle_wise_serial_nos = get_bundle_wise_serial_nos(data)
+	bundle_wise_serial_nos = get_bundle_wise_serial_nos(data, kwargs)
 	for d in data:
 		if d.serial_and_batch_bundle:
 			if sns := bundle_wise_serial_nos.get(d.serial_and_batch_bundle):
@@ -1707,16 +1753,21 @@ def get_serial_nos_based_on_posting_date(kwargs, ignore_serial_nos):
 	return serial_nos
 
 
-def get_bundle_wise_serial_nos(data):
+def get_bundle_wise_serial_nos(data, kwargs):
 	bundle_wise_serial_nos = defaultdict(list)
 	bundles = [d.serial_and_batch_bundle for d in data if d.serial_and_batch_bundle]
 	if not bundles:
 		return bundle_wise_serial_nos
 
+	filters = {"parent": ("in", bundles), "docstatus": 1, "serial_no": ("is", "set")}
+
+	if kwargs.get("check_serial_nos") and kwargs.get("serial_nos"):
+		filters["serial_no"] = ("in", kwargs.get("serial_nos"))
+
 	bundle_data = frappe.get_all(
 		"Serial and Batch Entry",
 		fields=["serial_no", "parent"],
-		filters={"parent": ("in", bundles), "docstatus": 1, "serial_no": ("is", "set")},
+		filters=filters,
 	)
 
 	for d in bundle_data:
@@ -2277,6 +2328,8 @@ def get_ledgers_from_serial_batch_bundle(**kwargs) -> list[frappe._dict]:
 
 
 def get_stock_ledgers_for_serial_nos(kwargs):
+	from erpnext.stock.utils import get_combine_datetime
+
 	stock_ledger_entry = frappe.qb.DocType("Stock Ledger Entry")
 
 	query = (
@@ -2287,15 +2340,16 @@ def get_stock_ledgers_for_serial_nos(kwargs):
 			stock_ledger_entry.serial_and_batch_bundle,
 		)
 		.where(stock_ledger_entry.is_cancelled == 0)
+		.orderby(stock_ledger_entry.posting_datetime)
 	)
 
 	if kwargs.get("posting_date"):
 		if kwargs.get("posting_time") is None:
 			kwargs.posting_time = nowtime()
 
-		timestamp_condition = CombineDatetime(
-			stock_ledger_entry.posting_date, stock_ledger_entry.posting_time
-		) <= CombineDatetime(kwargs.posting_date, kwargs.posting_time)
+		timestamp_condition = stock_ledger_entry.posting_datetime <= get_combine_datetime(
+			kwargs.posting_date, kwargs.posting_time
+		)
 
 		query = query.where(timestamp_condition)
 
