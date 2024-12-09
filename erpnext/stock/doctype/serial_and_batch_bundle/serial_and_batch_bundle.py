@@ -223,7 +223,7 @@ class SerialandBatchBundle(Document):
 				else:
 					valuation_rate = valuation_details["batches"].get(row.batch_no)
 
-				row.incoming_rate = valuation_rate
+				row.incoming_rate = flt(valuation_rate)
 				row.stock_value_difference = flt(row.qty) * flt(row.incoming_rate)
 
 				if save:
