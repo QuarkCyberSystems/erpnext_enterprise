@@ -2991,7 +2991,7 @@ def get_advance_payment_entries(
 		q = q.select((payment_entry.unallocated_amount).as_("amount"))
 		q = q.where(payment_entry.unallocated_amount > 0)
 
-		unallocated = list(q.run(as_dict=True, debug=True))
+		unallocated = list(q.run(as_dict=True))
 		payment_entries += unallocated
 	return payment_entries
 
@@ -3029,12 +3029,10 @@ def get_common_query(
 	account_condition = payment_entry[field].isin(party_account)
 	if default_advance_account:
 		q = q.where(
-			(
-				account_condition
-				| (
-					(payment_entry[field] == default_advance_account)
-					& (payment_entry.book_advance_payments_in_separate_party_account == 1)
-				)
+			account_condition
+			| (
+				(payment_entry[field] == default_advance_account)
+				& (payment_entry.book_advance_payments_in_separate_party_account == 1)
 			)
 		)
 
