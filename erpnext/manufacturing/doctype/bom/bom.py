@@ -217,6 +217,23 @@ class BOM(WebsiteGenerator):
 
 		return index
 
+	def onload(self):
+		super().onload()
+
+		self.set_onload_for_muulti_level_bom()
+
+	def set_onload_for_muulti_level_bom(self):
+		use_multi_level_bom = frappe.db.get_value(
+			"Property Setter",
+			{"field_name": "use_multi_level_bom", "doc_type": "Work Order", "property": "default"},
+			"value",
+		)
+
+		if use_multi_level_bom is None:
+			use_multi_level_bom = 1
+
+		self.set_onload("use_multi_level_bom", cint(use_multi_level_bom))
+
 	@staticmethod
 	def get_next_version_index(existing_boms: list[str]) -> int:
 		# split by "/" and "-"
