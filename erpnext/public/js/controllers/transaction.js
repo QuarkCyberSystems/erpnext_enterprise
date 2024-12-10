@@ -499,29 +499,24 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 	item_code(doc, cdt, cdn) {
 		var me = this;
 		// Experimental: This will be removed once stability is achieved.
-		frappe.db.get_single_value('Selling Settings', 'use_server_side_reactivity')
-			.then((value) => {
-				if (value) {
-					var item = frappe.get_doc(cdt, cdn);
-					frappe.call({
-						doc: doc,
-						method: "process_item_selection",
-						args: {
-							item: item.name
-						},
-						callback: function(r) {
-							if(!r.exc) {
-								cur_frm.refresh_fields();
-								refresh_field("items");
-							}
-						}
-					});
-				} else {
-					me.process_item_selection(doc, cdt, cdn);
+		if (frappe.boot.sysdefaults.use_server_side_reactivity) {
+			var item = frappe.get_doc(cdt, cdn);
+			frappe.call({
+				doc: doc,
+				method: "process_item_selection",
+				args: {
+					item: item.name
+				},
+				callback: function(r) {
+					if(!r.exc) {
+						cur_frm.refresh_fields();
+						refresh_field("items");
+					}
 				}
-
 			});
-
+		} else {
+			me.process_item_selection(doc, cdt, cdn);
+		}
 	}
 
 	process_item_selection(doc, cdt, cdn) {
