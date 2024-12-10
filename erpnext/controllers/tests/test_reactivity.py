@@ -3,6 +3,7 @@ from frappe import qb
 from frappe.tests import IntegrationTestCase
 from frappe.utils import getdate, today
 
+from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import disable_dimension
 from erpnext.accounts.test.accounts_mixin import AccountsTestMixin
 
 
@@ -18,7 +19,16 @@ class TestReactivity(AccountsTestMixin, IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
+	def disable_dimensions(self):
+		res = frappe.db.get_all("Accounting Dimension", filters={"disabled": False})
+		for x in res:
+			dim = frappe.get_doc("Accounting Dimension", x.name)
+			dim.disabled = True
+			dim.save()
+
 	def test_01_basic_item_details(self):
+		self.disable_dimensions()
+
 		# set Item Price
 		frappe.get_doc(
 			{
