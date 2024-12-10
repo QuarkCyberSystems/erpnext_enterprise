@@ -6,7 +6,7 @@ from frappe.utils import getdate, today
 from erpnext.accounts.test.accounts_mixin import AccountsTestMixin
 
 
-class TestAccountsController(AccountsTestMixin, IntegrationTestCase):
+class TestReactivity(AccountsTestMixin, IntegrationTestCase):
 	def setUp(self):
 		self.create_company()
 		self.create_customer()
@@ -48,3 +48,12 @@ class TestAccountsController(AccountsTestMixin, IntegrationTestCase):
 		itm.item_code = self.item
 		si.process_item_selection(si.items[0].name)
 		self.assertEqual(itm.rate, 90)
+
+		df = qb.DocType("DocField")
+		_res = (
+			qb.from_(df).select(df.fieldname).where(df.parent.eq("Sales Invoice Item") & df.reqd.eq(1)).run()
+		)
+		for field in _res:
+			with self.subTest(field=field):
+				self.assertIsNotNone(itm.get(field[0]))
+		si.save().submit()
