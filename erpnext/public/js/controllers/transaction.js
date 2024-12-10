@@ -509,8 +509,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 				},
 				callback: function(r) {
 					if(!r.exc) {
-						cur_frm.refresh_fields();
-						refresh_field("items");
+						me.frm.refresh_fields();
 					}
 				}
 			});
