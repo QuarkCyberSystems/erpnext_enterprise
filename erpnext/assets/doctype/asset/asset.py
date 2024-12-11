@@ -202,6 +202,7 @@ class Asset(AccountsController):
 		self.db_set("booked_fixed_asset", 0)
 		add_asset_activity(self.name, _("Asset cancelled"))
 
+	def after_insert(self):
 		if (
 			not frappe.db.exists(
 				{
