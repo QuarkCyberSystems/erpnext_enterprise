@@ -122,6 +122,17 @@ The ERPNext code is licensed as GNU General Public License (v3) and the Document
 
 By contributing to ERPNext, you agree that your contributions will be licensed under its GNU General Public License (v3).
 
+
 ## Logo and Trademark Policy
 
 Please read our [Logo and Trademark Policy](TRADEMARK_POLICY.md).
+
+<h2></h2>
+<div align="center" style="padding-top: 0.75rem;">
+	<a href="https://frappe.io" target="_blank">
+		<picture>
+			<source media="(prefers-color-scheme: dark)" srcset="https://frappe.io/files/Frappe-white.png">
+			<img src="https://frappe.io/files/Frappe-black.png" alt="Frappe Technologies" height="28"/>
+		</picture>
+	</a>
+</div>
