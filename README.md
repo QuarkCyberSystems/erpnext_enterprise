@@ -12,6 +12,7 @@
 [![codecov](https://codecov.io/gh/frappe/erpnext/branch/develop/graph/badge.svg?token=0TwvyUg3I5)](https://codecov.io/gh/frappe/erpnext)
 [![docker pulls](https://img.shields.io/docker/pulls/frappe/erpnext-worker.svg)](https://hub.docker.com/r/frappe/erpnext-worker)
 
+</div>
 <div align="center">
 	<a href="https://erpnext-demo.frappe.cloud/app/home">Live Demo</a>
 	-
