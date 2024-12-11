@@ -4,12 +4,10 @@
     </a>
     <h2>ERPNext</h2>
     <p align="center">
-        <p>ERP made simple</p>
+        <p>Powerful, Intuitive and Open-Source ERP</p>
     </p>
 
 [![CI](https://github.com/frappe/erpnext/actions/workflows/server-tests-mariadb.yml/badge.svg?event=schedule)](https://github.com/frappe/erpnext/actions/workflows/server-tests-mariadb.yml)
-[![Open Source Helpers](https://www.codetriage.com/frappe/erpnext/badges/users.svg)](https://www.codetriage.com/frappe/erpnext)
-[![codecov](https://codecov.io/gh/frappe/erpnext/branch/develop/graph/badge.svg?token=0TwvyUg3I5)](https://codecov.io/gh/frappe/erpnext)
 [![docker pulls](https://img.shields.io/docker/pulls/frappe/erpnext-worker.svg)](https://hub.docker.com/r/frappe/erpnext-worker)
 
 </div>
@@ -23,7 +21,7 @@
 
 # ERPNext
 
-100% OpenSource ERP system to help you run your business.
+100% Open-Source ERP system to help you run your business.
 
 ## Key Features
 
@@ -31,6 +29,9 @@
 - **Order Management**: Track inventory levels, replenish stock, and manage sales orders, customers, suppliers, shipments, deliverables, and order fulfillment.
 - **Manufacturing**: Simplifies the production cycle, helps track material consumption, exhibits capacity planning, handles subcontracting, and more!
 - **Asset Management**: From purchase to perishment, IT infrastructure to equipment. Cover every branch of your organization, all in one centralized system.
+- **Projects**: Delivery both internal and external Projects on time, budget and Profitability. Track tasks, timesheets, and issues by project.
+
+<a href="https://erpnext.com">And More</a>
 
 ## Under the Hood
 
@@ -57,7 +58,8 @@ It takes care of installation, setup, upgrades, monitoring, maintenance and supp
 
 
 
-### Containerized Installation
+### Self-hosting
+#### Docker
 
 Use docker to deploy ERPNext in production or for development of [Frappe](https://github.com/frappe/frappe) apps. See https://github.com/frappe/frappe_docker for more details.
 
@@ -113,14 +115,6 @@ bench --site erpnext.dev install-app erpnext
 1. [Issue Guidelines](https://github.com/frappe/erpnext/wiki/Issue-Guidelines)
 1. [Report Security Vulnerabilities](https://erpnext.com/security)
 1. [Pull Request Requirements](https://github.com/frappe/erpnext/wiki/Contribution-Guidelines)
-
-## License
-
-GNU/General Public License (see [license.txt](license.txt))
-
-The ERPNext code is licensed as GNU General Public License (v3) and the Documentation is licensed as Creative Commons (CC-BY-SA-3.0) and the copyright is owned by Frappe Technologies Pvt Ltd (Frappe) and Contributors.
-
-By contributing to ERPNext, you agree that your contributions will be licensed under its GNU General Public License (v3).
 
 
 ## Logo and Trademark Policy
