@@ -16,37 +16,41 @@
 
 </div>
 
-ERPNext as a monolith includes the following areas for managing businesses:
+# ERPNext
 
-1. [Accounting](https://erpnext.com/open-source-accounting)
-1. [Warehouse Management](https://erpnext.com/distribution/warehouse-management-system)
-1. [CRM](https://erpnext.com/open-source-crm)
-1. [Sales](https://erpnext.com/open-source-sales-purchase)
-1. [Purchase](https://erpnext.com/open-source-sales-purchase)
-1. [HRMS](https://erpnext.com/open-source-hrms)
-1. [Project Management](https://erpnext.com/open-source-projects)
-1. [Support](https://erpnext.com/open-source-help-desk-software)
-1. [Asset Management](https://erpnext.com/open-source-asset-management-software)
-1. [Quality Management](https://erpnext.com/docs/user/manual/en/quality-management)
-1. [Manufacturing](https://erpnext.com/open-source-manufacturing-erp-software)
-1. [Website Management](https://erpnext.com/open-source-website-builder-software)
-1. [Customize ERPNext](https://erpnext.com/docs/user/manual/en/customize-erpnext)
-1. [And More](https://erpnext.com/docs/user/manual/en/)
+100% OpenSource ERP system to help you run your business.
 
-ERPNext is built on the [Frappe Framework](https://github.com/frappe/frappe), a full-stack web app framework built with Python & JavaScript.
+## Key Features
 
-## Installation
+- **Accounting**: All the tools you need to manage cash flow in one place, right from recording transactions to summarizing and analyzing financial reports.
+- **Order Management**: Track inventory levels, replenish stock, and manage sales orders, customers, suppliers, shipments, deliverables, and order fulfillment.
+- **Manufacturing**: Simplifies the production cycle, helps track material consumption, exhibits capacity planning, handles subcontracting, and more!
+- **Asset Management**: From purchase to perishment, IT infrastructure to equipment. Cover every branch of your organization, all in one centralized system.
 
-<div align="center" style="max-height: 40px;">
-    <a href="https://frappecloud.com/erpnext/signup">
-        <img src=".github/try-on-f-cloud-button.svg" height="40">
-    </a>
-    <a href="https://labs.play-with-docker.com/?stack=https://raw.githubusercontent.com/frappe/frappe_docker/main/pwd.yml">
-      <img src="https://raw.githubusercontent.com/play-with-docker/stacks/master/assets/images/button.png" alt="Try in PWD" height="37"/>
-    </a>
+## Under the Hood
+
+- [**Frappe Framework**](https://github.com/frappe/frappe): A full-stack web application framework written in Python and Javascript. The framework provides a robust foundation for building web applications, including a database abstraction layer, user authentication, and a REST API.
+
+- [**Frappe UI**](https://github.com/frappe/frappe-ui): A Vue-based UI library, to provide a modern user interface. The Frappe UI library provides a variety of components that can be used to build single-page applications on top of the Frappe Framework.
+
+## Production Setup
+
+### Managed Hosting
+
+You can try [Frappe Cloud](https://frappecloud.com), a simple, user-friendly and sophisticated [open-source](https://github.com/frappe/press) platform to host Frappe applications with peace of mind.
+
+It takes care of installation, setup, upgrades, monitoring, maintenance and support of your Frappe deployments. It is a fully featured developer platform with an ability to manage and control multiple Frappe deployments.
+
+<div>
+	<a href="https://frappecloud.com/insights/signup" target="_blank">
+		<picture>
+			<source media="(prefers-color-scheme: dark)" srcset="https://frappe.io/files/try-on-fc-white.png">
+			<img src="https://frappe.io/files/try-on-fc-black.png" alt="Try on Frappe Cloud" height="28" />
+		</picture>
+	</a>
 </div>
 
-> Login for the PWD site: (username: Administrator, password: admin)
+
 
 ### Containerized Installation
 
@@ -58,6 +62,38 @@ The Easy Way: our install script for bench will install all dependencies (e.g. M
 
 New passwords will be created for the ERPNext "Administrator" user, the MariaDB root user, and the frappe user (the script displays the passwords and saves them to ~/frappe_passwords.txt).
 
+
+### Local
+
+To setup the repository locally follow the steps mentioned below:
+
+**Step 1**: Setup bench by following the [Installation Steps](https://frappeframework.com/docs/user/en/installation) and start the server
+
+```
+bench start
+```
+
+**Step 2**: In a separate terminal window, run the following commands:
+
+```
+# Create a new site
+bench new-site erpnext.dev
+
+# Map your site to localhost
+bench --site erpnext.dev add-to-hosts
+```
+
+**Step 3**: Get the Insights app and install it
+
+```
+# Get the Insights app
+bench get-app https://github.com/frappe/erpnext
+
+# Install the app
+bench --site erpnext.dev install-app erpnext
+```
+
+**Step 4**: Open the URL `http://erpnext.dev:8000/app` in your browser, you should see the app running
 
 ## Learning and community
 
