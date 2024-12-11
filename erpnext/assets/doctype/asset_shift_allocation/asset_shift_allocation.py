@@ -16,9 +16,9 @@ from frappe.utils import (
 from erpnext.assets.doctype.asset_activity.asset_activity import add_asset_activity
 from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_schedule import (
 	get_asset_depr_schedule_doc,
-	get_asset_shift_factors_map,
 	get_temp_asset_depr_schedule_doc,
 )
+from erpnext.assets.doctype.asset_depreciation_schedule.utils import get_asset_shift_factors_map
 
 
 class AssetShiftAllocation(Document):

@@ -61,6 +61,7 @@
   {
    "fieldname": "depreciation_start_date",
    "fieldtype": "Date",
+   "hidden": 1,
    "in_list_view": 1,
    "label": "Depreciation Posting Date",
    "mandatory_depends_on": "eval:parent.doctype == 'Asset'"
@@ -100,7 +101,7 @@
    "default": "0",
    "fieldname": "daily_prorata_based",
    "fieldtype": "Check",
-   "label": "Depreciate based on daily pro-rata"
+   "label": "Depreciate based on days per period"
   },
   {
    "default": "0",
