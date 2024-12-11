@@ -466,6 +466,7 @@ class StockReconciliation(StockController):
 				batch_no=item.batch_no,
 				inventory_dimensions_dict=inventory_dimensions_dict,
 				row=item,
+				company=self.company,
 			)
 
 			if (
@@ -974,6 +975,7 @@ class StockReconciliation(StockController):
 					self.posting_date,
 					self.posting_time,
 					row=row,
+					company=self.company,
 				)
 
 				current_qty = item_dict.get("qty")
@@ -1308,6 +1310,7 @@ def get_stock_balance_for(
 	with_valuation_rate: bool = True,
 	inventory_dimensions_dict=None,
 	row=None,
+	company=None,
 ):
 	frappe.has_permission("Stock Reconciliation", "write", throw=True)
 
@@ -1366,6 +1369,21 @@ def get_stock_balance_for(
 			)
 			or 0
 		)
+
+		if row.use_serial_batch_fields and row.batch_no:
+			rate = get_incoming_rate(
+				frappe._dict(
+					{
+						"item_code": row.item_code,
+						"warehouse": row.warehouse,
+						"qty": row.qty * -1,
+						"batch_no": row.batch_no,
+						"company": company,
+						"posting_date": posting_date,
+						"posting_time": posting_time,
+					}
+				)
+			)
 
 	return {
 		"qty": qty,
