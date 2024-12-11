@@ -202,17 +202,6 @@ class Asset(AccountsController):
 		self.db_set("booked_fixed_asset", 0)
 		add_asset_activity(self.name, _("Asset cancelled"))
 
-		# def after_insert(self):
-		# 	if self.calculate_depreciation and not self.split_from:
-		# 		asset_depr_schedules_names = make_draft_asset_depr_schedules(self)
-		# 		asset_depr_schedules_links = get_comma_separated_links(
-		# 			asset_depr_schedules_names, "Asset Depreciation Schedule"
-		# 		)
-		# 		frappe.msgprint(
-		# 			_(
-		# 				"Asset Depreciation Schedules created:<br>{0}<br><br>Please check, edit if needed, and submit the Asset."
-		# 			).format(asset_depr_schedules_links)
-		# 		)
 		if (
 			not frappe.db.exists(
 				{
@@ -357,22 +346,6 @@ class Asset(AccountsController):
 					_("Row #{}: Finance Book should not be empty since you're using multiple.").format(d.idx),
 					title=_("Missing Finance Book"),
 				)
-
-	# def set_depreciation_start_date(self):
-	# 	if not self.calculate_depreciation:
-	# 		return
-
-	# 	for d in self.get("finance_books"):
-	# 		if not d.depreciation_start_date:
-	# 			if self.is_existing_asset and self.opening_number_of_booked_depreciations:
-
-	# 				months = d.frequency_of_depreciation * self.opening_number_of_booked_depreciations
-	# 			else:
-	# 				months = d.frequency_of_depreciation
-
-	# 			d.depreciation_start_date = get_last_day(
-	# 				add_months(self.available_for_use_date, months)
-	# 			)
 
 	def validate_precision(self):
 		if self.gross_purchase_amount:
