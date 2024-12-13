@@ -806,6 +806,9 @@ class Asset(AccountsController):
 				return args.get("rate_of_depreciation")
 
 			if self.flags.increase_in_asset_value_due_to_repair:
+				if not flt(args.get("expected_value_after_useful_life")):
+					return args.get("rate_of_depreciation")
+
 				value = flt(args.get("expected_value_after_useful_life")) / flt(
 					args.get("value_after_depreciation")
 				)
