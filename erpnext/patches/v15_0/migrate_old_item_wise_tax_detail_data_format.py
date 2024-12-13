@@ -26,33 +26,42 @@ def execute():
 			updated_tax_details = {}
 			needs_update = False
 
-			for item, tax_data in json.loads(doc.item_wise_tax_detail).items():
-				if isinstance(tax_data, list) and len(tax_data) == 2:
-					updated_tax_details[item] = ItemWiseTaxDetail(
-						tax_rate=tax_data[0],
-						tax_amount=tax_data[1],
-						# can't be reliably reconstructed since it depends on the tax type
-						# (actual, net, previous line total, previous line net, etc)
-						net_amount=0.0,
-					)
-					needs_update = True
-				# intermediate patch version of the originating PR
-				elif isinstance(tax_data, list) and len(tax_data) == 3:
-					updated_tax_details[item] = ItemWiseTaxDetail(
-						tax_rate=tax_data[0],
-						tax_amount=tax_data[1],
-						net_amount=tax_data[2],
-					)
-					needs_update = True
-				elif isinstance(tax_data, str):
-					updated_tax_details[item] = ItemWiseTaxDetail(
-						tax_rate=flt(tax_data),
-						tax_amount=0.0,
-						net_amount=0.0,
-					)
-					needs_update = True
+			try:
+				item_iterator = json.loads(doc.item_wise_tax_detail).items()
+			except AttributeError as e:
+				# This is stale data from 2009 found in a database
+				if isinstance(json.loads(doc.item_wise_tax_detail), int | float):
+					needs_update = False
 				else:
-					updated_tax_details[item] = tax_data
+					raise e
+			else:
+				for item, tax_data in item_iterator:
+					if isinstance(tax_data, list) and len(tax_data) == 2:
+						updated_tax_details[item] = ItemWiseTaxDetail(
+							tax_rate=tax_data[0],
+							tax_amount=tax_data[1],
+							# can't be reliably reconstructed since it depends on the tax type
+							# (actual, net, previous line total, previous line net, etc)
+							net_amount=0.0,
+						)
+						needs_update = True
+					# intermediate patch version of the originating PR
+					elif isinstance(tax_data, list) and len(tax_data) == 3:
+						updated_tax_details[item] = ItemWiseTaxDetail(
+							tax_rate=tax_data[0],
+							tax_amount=tax_data[1],
+							net_amount=tax_data[2],
+						)
+						needs_update = True
+					elif isinstance(tax_data, str):
+						updated_tax_details[item] = ItemWiseTaxDetail(
+							tax_rate=flt(tax_data),
+							tax_amount=0.0,
+							net_amount=0.0,
+						)
+						needs_update = True
+					else:
+						updated_tax_details[item] = tax_data
 
 			if needs_update:
 				frappe.db.set_value(
