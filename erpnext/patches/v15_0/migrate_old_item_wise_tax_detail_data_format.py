@@ -30,9 +30,8 @@ def execute():
 				item_iterator = json.loads(doc.item_wise_tax_detail).items()
 			except AttributeError as e:
 				# This is stale data from 2009 found in a database
-				if json.loads(doc.item_wise_tax_detail) == 1:
-					# meaning: replace with an empty {}
-					needs_update = True
+				if isinstance(json.loads(doc.item_wise_tax_detail), int | float):
+					needs_update = False
 				else:
 					raise e
 			else:
