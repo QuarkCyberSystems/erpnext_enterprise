@@ -13,13 +13,8 @@
 </div>
 
 <div align="center">
-	<img src="./erpnext/public/images/v16/p_l_graph.png" alt="Profit and Loss"/>
-<details>
-<summary>More</summary>
-	<img src="./erpnext/public/images/v16/bom_browser.jpg" alt="BOM Browser"/>
-	<img src="./erpnext/public/images/v16/tasks.png" alt="Tasks"/>
+	<img src="./erpnext/public/images/v16/hero_image.png"/>
 </div>
-</details>
 
 <div align="center">
 	<a href="https://erpnext-demo.frappe.cloud/app/home">Live Demo</a>
@@ -35,7 +30,7 @@
 
 ## Motivation
 
-Running a business is a complex task - handling invoices, tracking stock, managing personnel and even more ad-hoc activities. In a market where software is sold separately to manage each of these tasks, ERPNext is the only 100% Open-Source ERP system that helps you run your business by doing all the above and more, for free.
+Running a business is a complex task - handling invoices, tracking stock, managing personnel and even more ad-hoc activities. In a market where software is sold separately to manage each of these tasks, ERPNext does all of the above and more, for free.
 
 ### Key Features
 
@@ -75,7 +70,22 @@ It takes care of installation, setup, upgrades, monitoring, maintenance and supp
 ### Self-hosting
 #### Docker
 
-Use docker to deploy ERPNext in production or for development of [Frappe](https://github.com/frappe/frappe) apps. See https://github.com/frappe/frappe_docker for more details.
+Prerequisites: docker, docker-compose, git. Refer [Docker Documentation](https://docs.docker.com) for more details on Docker setup.
+
+Run following commands:
+
+```
+git clone https://github.com/frappe/frappe_docker
+cd frappe_docker
+docker compose -f pwd.yml up -d
+```
+
+After a couple of minutes, site should be accessible on your localhost port: 8080. Use below default login credentials to access the site.
+- Username: Administrator
+- Password: admin
+
+See [Frappe Docker](https://github.com/frappe/frappe_docker?tab=readme-ov-file#to-run-on-arm64-architecture-follow-this-instructions) for ARM based docker setup.
+
 
 ### Manual Install
 
