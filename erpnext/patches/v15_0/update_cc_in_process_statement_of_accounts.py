@@ -1,10 +1,16 @@
 import frappe
+from frappe import qb
 
 
 def execute():
-	data = frappe.db.sql(
-		"""SELECT name, cc_to FROM `tabProcess Statement Of Accounts` WHERE cc_to IS NOT NULL""", as_dict=True
-	)
+	process_statement_of_accounts = qb.DocType("Process Statement Of Accounts")
+
+	data = (
+		frappe.qb.from_(process_statement_of_accounts)
+		.select(process_statement_of_accounts.name, process_statement_of_accounts.cc_to)
+		.where(process_statement_of_accounts.cc_to.isnotnull())
+	).run(as_dict=True)
+
 	for d in data:
 		doc = frappe.get_doc("Process Statement Of Accounts", d.name)
 		doc.append("cc_to", {"cc": d.cc_to})
