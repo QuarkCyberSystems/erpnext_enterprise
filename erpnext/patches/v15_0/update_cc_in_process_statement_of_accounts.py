@@ -1,9 +1,8 @@
 import frappe
-from frappe import qb
 
 
 def execute():
-	process_statement_of_accounts = qb.DocType("Process Statement Of Accounts")
+	process_statement_of_accounts = frappe.qb.DocType("Process Statement Of Accounts")
 
 	data = (
 		frappe.qb.from_(process_statement_of_accounts)
