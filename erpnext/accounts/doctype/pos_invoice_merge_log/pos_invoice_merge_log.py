@@ -133,6 +133,7 @@ class POSInvoiceMergeLog(Document):
 		self.update_pos_invoices(pos_invoice_docs)
 		self.serial_and_batch_bundle_reference_for_pos_invoice()
 		self.cancel_linked_invoices()
+		self.delink_serial_and_batch_bundle()
 
 	def process_merging_into_sales_invoice(self, data):
 		sales_invoice = self.get_new_sales_invoice()
@@ -320,6 +321,38 @@ class POSInvoiceMergeLog(Document):
 			for table_name in ["items", "packed_items"]:
 				pos_invoice.set_serial_and_batch_bundle(table_name)
 
+	def delink_serial_and_batch_bundle(self):
+		bundles = self.get_serial_and_batch_bundles()
+		if not bundles:
+			return
+
+		sle_table = frappe.qb.DocType("Stock Ledger Entry")
+		query = (
+			frappe.qb.update(sle_table)
+			.set(sle_table.serial_and_batch_bundle, None)
+			.where(sle_table.serial_and_batch_bundle.isin(bundles) & sle_table.is_cancelled == 1)
+		)
+
+		query.run()
+
+	def get_serial_and_batch_bundles(self):
+		pos_invoices = []
+		for d in self.pos_invoices:
+			pos_invoices.append(d.pos_invoice)
+
+		if pos_invoices:
+			return frappe.get_all(
+				"POS Invoice Item",
+				filters={
+					"docstatus": 1,
+					"parent": ["in", pos_invoices],
+					"serial_and_batch_bundle": ["is", "set"],
+				},
+				pluck="serial_and_batch_bundle",
+			)
+
+		return []
+
 	def cancel_linked_invoices(self):
 		for si_name in [self.consolidated_invoice, self.consolidated_credit_note]:
 			if not si_name:
@@ -503,6 +536,9 @@ def cancel_merge_logs(merge_logs, closing_entry=None):
 	try:
 		for log in merge_logs:
 			merge_log = frappe.get_doc("POS Invoice Merge Log", log)
+			if merge_log.docstatus == 2:
+				continue
+
 			merge_log.flags.ignore_permissions = True
 			merge_log.cancel()
 
