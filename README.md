@@ -13,11 +13,11 @@
 </div>
 
 <div align="center">
+	<img src="./erpnext/public/images/v16/p_l_graph.png" alt="Profit and Loss"/>
 <details>
-<summary>Screenshots</summary>
-	<img src="./erpnext/public/images/v16/p_l_graph.png" alt="Profit and Loss" width="72%"/>
-	<img src="./erpnext/public/images/v16/bom_browser.jpg" alt="BOM Browser" width="72%"/>
-	<img src="./erpnext/public/images/v16/tasks.png" alt="Tasks" width="72%"/>
+<summary>More</summary>
+	<img src="./erpnext/public/images/v16/bom_browser.jpg" alt="BOM Browser"/>
+	<img src="./erpnext/public/images/v16/tasks.png" alt="Tasks"/>
 </div>
 </details>
 
@@ -29,9 +29,13 @@
 	<a href="https://docs.erpnext.com">Documentation</a>
 </div>
 
-# ERPNext
+## ERPNext
 
 100% Open-Source ERP system to help you run your business.
+
+## Motivation
+
+Running a business is a complex task - handling invoices, tracking stock, managing personnel and even more ad-hoc activities. In a market where software is sold separately to manage each of these tasks, ERPNext is the only 100% Open-Source ERP system that helps you run your business by doing all the above and more, for free.
 
 ### Key Features
 
