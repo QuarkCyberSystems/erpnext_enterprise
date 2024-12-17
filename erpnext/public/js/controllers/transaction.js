@@ -2138,7 +2138,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 				method: "erpnext.stock.get_item_details.get_item_tax_map",
 				args: {
 					doc: me.frm.doc,
-					item_tax_template: item.item_tax_template,
+					tax_template: item.item_tax_template,
 					as_json: true
 				},
 				callback: function(r) {
