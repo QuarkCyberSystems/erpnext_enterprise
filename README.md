@@ -28,7 +28,7 @@
 
 100% Open-Source ERP system to help you run your business.
 
-## Motivation
+### Motivation
 
 Running a business is a complex task - handling invoices, tracking stock, managing personnel and even more ad-hoc activities. In a market where software is sold separately to manage each of these tasks, ERPNext does all of the above and more, for free.
 
@@ -67,7 +67,7 @@ It takes care of installation, setup, upgrades, monitoring, maintenance and supp
 
 
 
-### Self-hosting
+### Self-Hosted
 #### Docker
 
 Prerequisites: docker, docker-compose, git. Refer [Docker Documentation](https://docs.docker.com) for more details on Docker setup.
@@ -87,6 +87,7 @@ After a couple of minutes, site should be accessible on your localhost port: 808
 See [Frappe Docker](https://github.com/frappe/frappe_docker?tab=readme-ov-file#to-run-on-arm64-architecture-follow-this-instructions) for ARM based docker setup.
 
 
+## Development Setup
 ### Manual Install
 
 The Easy Way: our install script for bench will install all dependencies (e.g. MariaDB). See https://github.com/frappe/bench for more details.
