@@ -14,6 +14,13 @@
 
 <div align="center">
 	<img src="./erpnext/public/images/v16/hero_image.png"/>
+<details>
+
+<summary>More</summary>
+	<img src="https://erpnext.com/files/v16_bom_browser.jpg"/>
+	<img src="https://erpnext.com/files/v16_job_cards.png"/>
+</details>
+
 </div>
 
 <div align="center">
