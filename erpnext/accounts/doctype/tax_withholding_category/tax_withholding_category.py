@@ -539,7 +539,7 @@ def get_tds_amount(ldc, parties, inv, tax_details, vouchers):
 	)
 
 	supp_credit_amt = supp_jv_credit_amt
-	supp_credit_amt += inv.tax_withholding_net_total
+	supp_credit_amt += inv.get("tax_withholding_net_total", 0)
 
 	for type in payment_entry_amounts:
 		if type.payment_type == "Pay":
@@ -551,9 +551,9 @@ def get_tds_amount(ldc, parties, inv, tax_details, vouchers):
 	cumulative_threshold = tax_details.get("cumulative_threshold", 0)
 
 	if inv.doctype != "Payment Entry":
-		tax_withholding_net_total = inv.base_tax_withholding_net_total
+		tax_withholding_net_total = inv.get("base_tax_withholding_net_total", 0)
 	else:
-		tax_withholding_net_total = inv.tax_withholding_net_total
+		tax_withholding_net_total = inv.get("tax_withholding_net_total", 0)
 
 	if (threshold and tax_withholding_net_total >= threshold) or (
 		cumulative_threshold and (supp_credit_amt + supp_inv_credit_amt) >= cumulative_threshold
