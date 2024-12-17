@@ -505,9 +505,9 @@ class SerialandBatchBundle(Document):
 			elif (d.incoming_rate == rate) and d.qty and d.stock_value_difference:
 				continue
 
-			d.incoming_rate = rate
+			d.incoming_rate = flt(rate)
 			if d.qty:
-				d.stock_value_difference = d.qty * d.incoming_rate
+				d.stock_value_difference = flt(d.qty) * d.incoming_rate
 
 			if save:
 				d.db_set(
