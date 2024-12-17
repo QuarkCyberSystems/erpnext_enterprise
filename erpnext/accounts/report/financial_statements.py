@@ -527,8 +527,6 @@ def get_accounting_entries(
 		account_filter_query = get_account_filter_query(root_lft, root_rgt, root_type, gl_entry)
 		query = query.where(ExistsCriterion(account_filter_query))
 
-	query = query.get_sql()
-
 	from frappe.desk.reportview import build_match_conditions
 
 	match_conditions = build_match_conditions(doctype)
@@ -536,9 +534,9 @@ def get_accounting_entries(
 	if match_conditions:
 		query += "and" + match_conditions
 
-	entries = frappe.db.sql(query, as_dict=True)
+	query, params = query.walk()
 
-	return entries
+	return frappe.db.sql(query, params, as_dict=True)
 
 
 def get_account_filter_query(root_lft, root_rgt, root_type, gl_entry):
