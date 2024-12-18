@@ -402,24 +402,28 @@ class AssetDepreciationSchedule(Document):
 		"""
 		For the first row, if available for use date is mid of the month, then pro rata amount is needed
 		"""
+		pro_rata_amount_applicable = False
 		if (
 			(has_pro_rata or has_wdv_or_dd_non_yearly_pro_rata)
 			and not self.opening_accumulated_depreciation
 			and not self.flags.wdv_it_act_applied
 		):  # if not existing asset
 			from_date = asset_doc.available_for_use_date
+			pro_rata_amount_applicable = True
 		elif has_wdv_or_dd_non_yearly_pro_rata and self.opening_accumulated_depreciation:  # if existing asset
 			from_date = _get_modified_available_for_use_date_for_existing_assets(asset_doc, row)
+			pro_rata_amount_applicable = True
 
-		depreciation_amount, days, months = _get_pro_rata_amt(
-			row,
-			depreciation_amount,
-			from_date,
-			row.depreciation_start_date,
-			has_wdv_or_dd_non_yearly_pro_rata,
-		)
+		if pro_rata_amount_applicable:
+			depreciation_amount, days, months = _get_pro_rata_amt(
+				row,
+				depreciation_amount,
+				from_date,
+				row.depreciation_start_date,
+				has_wdv_or_dd_non_yearly_pro_rata,
+			)
 
-		self.validate_depreciation_amount_for_low_value_assets(asset_doc, row, depreciation_amount)
+			self.validate_depreciation_amount_for_low_value_assets(asset_doc, row, depreciation_amount)
 
 		return depreciation_amount
 
@@ -451,7 +455,13 @@ class AssetDepreciationSchedule(Document):
 		return depreciation_amount, schedule_date
 
 	def adjust_depr_amount_for_salvage_value(
-		row, depreciation_amount, value_after_depreciation, final_number_of_depreciations, row_no, skip_row
+		self,
+		row,
+		depreciation_amount,
+		value_after_depreciation,
+		final_number_of_depreciations,
+		row_no,
+		skip_row,
 	):
 		if (
 			row_no == cint(final_number_of_depreciations) - 1
