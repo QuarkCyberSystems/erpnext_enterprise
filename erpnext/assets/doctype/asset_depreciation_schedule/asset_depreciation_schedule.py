@@ -218,41 +218,24 @@ class AssetDepreciationSchedule(Document):
 		update_asset_finance_book_row,
 		value_after_depreciation,
 	):
-		# asset_doc.validate_asset_finance_books(row)
-
-		if not value_after_depreciation:
-			value_after_depreciation = _get_value_after_depreciation_for_making_schedule(asset_doc, row)
-		row.value_after_depreciation = value_after_depreciation
-
-		if update_asset_finance_book_row:
-			row.db_update()
-
+		row, value_after_depreciation = self.get_value_after_depreciation(
+			asset_doc, row, value_after_depreciation, update_asset_finance_book_row
+		)
 		final_number_of_depreciations, has_pro_rata = self.get_final_number_of_depreciations(asset_doc, row)
-
-		has_wdv_or_dd_non_yearly_pro_rata = False
-		if (
-			row.depreciation_method in ("Written Down Value", "Double Declining Balance")
-			and cint(row.frequency_of_depreciation) != 12
-		):
-			has_wdv_or_dd_non_yearly_pro_rata = _check_is_pro_rata(asset_doc, row, wdv_or_dd_non_yearly=True)
-
-		skip_row = False
+		has_wdv_or_dd_non_yearly_pro_rata = self.is_wdv_or_dd_non_yearly_pro_rata(asset_doc, row)
 		should_get_last_day = is_last_day_of_the_month(row.depreciation_start_date)
 
+		skip_row = False
 		depreciation_amount = 0
-
-		number_of_pending_depreciations = final_number_of_depreciations - start
-		yearly_opening_wdv = value_after_depreciation
-		self.current_fiscal_year_end_date = None
 		prev_per_day_depr = True
+		self.current_fiscal_year_end_date = None
+		yearly_opening_wdv = value_after_depreciation
+		number_of_pending_depreciations = final_number_of_depreciations - start
+
 		for n in range(start, final_number_of_depreciations):
 			# If depreciation is already completed (for double declining balance)
 			if skip_row:
 				continue
-
-			schedule_date = get_last_day(
-				add_months(row.depreciation_start_date, n * cint(row.frequency_of_depreciation))
-			)
 
 			if self.has_fiscal_year_changed(row, n):
 				yearly_opening_wdv = value_after_depreciation
@@ -273,7 +256,7 @@ class AssetDepreciationSchedule(Document):
 			)
 
 			schedule_date = self.get_next_schedule_date(
-				row, n, schedule_date, has_pro_rata, should_get_last_day, final_number_of_depreciations
+				row, n, has_pro_rata, should_get_last_day, final_number_of_depreciations
 			)
 
 			# if asset is being sold or scrapped
@@ -310,6 +293,18 @@ class AssetDepreciationSchedule(Document):
 			if flt(depreciation_amount, asset_doc.precision("gross_purchase_amount")) > 0:
 				self.add_depr_schedule_row(schedule_date, depreciation_amount, n)
 
+	def get_value_after_depreciation(
+		self, asset_doc, row, value_after_depreciation, update_asset_finance_book_row
+	):
+		if not value_after_depreciation:
+			value_after_depreciation = _get_value_after_depreciation_for_making_schedule(asset_doc, row)
+		row.value_after_depreciation = value_after_depreciation
+
+		if update_asset_finance_book_row:
+			row.db_update()
+
+		return row, value_after_depreciation
+
 	def get_final_number_of_depreciations(self, asset_doc, row):
 		final_number_of_depreciations = cint(row.total_number_of_depreciations) - cint(
 			self.opening_number_of_booked_depreciations
@@ -320,6 +315,16 @@ class AssetDepreciationSchedule(Document):
 			final_number_of_depreciations += 1
 
 		return final_number_of_depreciations, has_pro_rata
+
+	def is_wdv_or_dd_non_yearly_pro_rata(self, asset_doc, row):
+		has_wdv_or_dd_non_yearly_pro_rata = False
+		if (
+			row.depreciation_method in ("Written Down Value", "Double Declining Balance")
+			and cint(row.frequency_of_depreciation) != 12
+		):
+			has_wdv_or_dd_non_yearly_pro_rata = _check_is_pro_rata(asset_doc, row, wdv_or_dd_non_yearly=True)
+
+		return has_wdv_or_dd_non_yearly_pro_rata
 
 	def has_fiscal_year_changed(self, row, row_no):
 		fiscal_year_changed = False
@@ -345,7 +350,7 @@ class AssetDepreciationSchedule(Document):
 		return prev_depreciation_amount
 
 	def get_next_schedule_date(
-		self, row, n, schedule_date, has_pro_rata, should_get_last_day, final_number_of_depreciations=None
+		self, row, n, has_pro_rata, should_get_last_day, final_number_of_depreciations=None
 	):
 		if not has_pro_rata or (
 			n < (cint(final_number_of_depreciations) - 1) or final_number_of_depreciations == 2
@@ -450,6 +455,7 @@ class AssetDepreciationSchedule(Document):
 		else:
 			# if not existing asset, remaining amount of first row is depreciated in the last row
 			depreciation_amount -= self.get("depreciation_schedule")[0].depreciation_amount
+			days = date_diff(asset_doc.to_date, schedule_date) + 1
 
 		schedule_date = add_days(schedule_date, days - 1)
 		return depreciation_amount, schedule_date
