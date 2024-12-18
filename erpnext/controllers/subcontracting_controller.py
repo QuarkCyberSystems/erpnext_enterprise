@@ -103,6 +103,19 @@ class SubcontractingController(StockController):
 						_("Row {0}: Item {1} must be a subcontracted item.").format(item.idx, item.item_name)
 					)
 
+				if (
+					self.doctype not in "Subcontracting Receipt"
+					and item.qty
+					> flt(get_pending_sco_qty(self.purchase_order).get(item.purchase_order_item))
+					/ item.sc_conversion_factor
+				):
+					frappe.throw(
+						_(
+							"Row {0}: Item {1}'s quantity cannot be higher than the available quantity."
+						).format(item.idx, item.item_name)
+					)
+				item.amount = item.qty * item.rate
+
 				if item.bom:
 					is_active, bom_item = frappe.get_value("BOM", item.bom, ["is_active", "item"])
 
@@ -1114,6 +1127,12 @@ def get_item_details(items):
 		item_details[item.item_code] = item
 
 	return item_details
+
+
+def get_pending_sco_qty(po_name):
+	table = frappe.qb.DocType("Purchase Order Item")
+	query = frappe.qb.from_(table).select(table.name, table.qty, table.sco_qty).where(table.parent == po_name)
+	return {item.name: item.qty - item.sco_qty for item in query.run(as_dict=True)}
 
 
 @frappe.whitelist()
