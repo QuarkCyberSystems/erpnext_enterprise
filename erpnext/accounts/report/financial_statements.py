@@ -529,12 +529,11 @@ def get_accounting_entries(
 
 	from frappe.desk.reportview import build_match_conditions
 
+	query, params = query.walk()
 	match_conditions = build_match_conditions(doctype)
 
 	if match_conditions:
 		query += "and" + match_conditions
-
-	query, params = query.walk()
 
 	return frappe.db.sql(query, params, as_dict=True)
 
