@@ -725,15 +725,6 @@ class BatchNoValuation(DeprecatedBatchNoValuation):
 			stock_value_change = self.batch_avg_rate[batch_no] * ledger.qty
 			self.stock_value_change += stock_value_change
 
-			frappe.db.set_value(
-				"Serial and Batch Entry",
-				ledger.name,
-				{
-					"stock_value_difference": stock_value_change,
-					"incoming_rate": self.batch_avg_rate[batch_no],
-				},
-			)
-
 	def calculate_valuation_rate(self):
 		if not hasattr(self, "wh_data"):
 			return
@@ -947,12 +938,13 @@ class SerialBatchCreation:
 		if self.get("make_bundle_from_sle") and self.type_of_transaction == "Inward":
 			doc.flags.ignore_validate_serial_batch = True
 
-		doc.save()
-		self.validate_qty(doc)
-
 		if not hasattr(self, "do_not_submit") or not self.do_not_submit:
 			doc.flags.ignore_voucher_validation = True
 			doc.submit()
+		else:
+			doc.save()
+
+		self.validate_qty(doc)
 
 		return doc
 

@@ -989,18 +989,23 @@ class update_entries_after:
 		if not frappe.db.exists("Serial and Batch Bundle", sle.serial_and_batch_bundle):
 			return
 
-		doc = frappe.get_cached_doc("Serial and Batch Bundle", sle.serial_and_batch_bundle)
-
-		doc.set_incoming_rate(save=True, allow_negative_stock=self.allow_negative_stock)
-		doc.calculate_qty_and_amount(save=True)
+		if self.args.get("sle_id") and sle.actual_qty < 0:
+			doc = frappe.db.get_value(
+				"Serial and Batch Bundle",
+				sle.serial_and_batch_bundle,
+				["total_amount", "total_qty"],
+				as_dict=1,
+			)
+		else:
+			doc = frappe.get_doc("Serial and Batch Bundle", sle.serial_and_batch_bundle)
+			doc.set_incoming_rate(save=True, allow_negative_stock=self.allow_negative_stock)
+			doc.calculate_qty_and_amount(save=True)
 
 		self.wh_data.stock_value = round_off_if_near_zero(self.wh_data.stock_value + doc.total_amount)
-
-		precision = doc.precision("total_qty")
-		self.wh_data.qty_after_transaction += flt(doc.total_qty, precision)
-		if flt(self.wh_data.qty_after_transaction, precision):
-			self.wh_data.valuation_rate = flt(self.wh_data.stock_value, precision) / flt(
-				self.wh_data.qty_after_transaction, precision
+		self.wh_data.qty_after_transaction += flt(doc.total_qty, self.flt_precision)
+		if flt(self.wh_data.qty_after_transaction, self.flt_precision):
+			self.wh_data.valuation_rate = flt(self.wh_data.stock_value, self.flt_precision) / flt(
+				self.wh_data.qty_after_transaction, self.flt_precision
 			)
 
 	def update_valuation_rate_in_serial_and_batch_bundle(self, sle, valuation_rate):

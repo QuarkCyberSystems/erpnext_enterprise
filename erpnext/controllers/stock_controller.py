@@ -1761,6 +1761,9 @@ def make_bundle_for_material_transfer(**kwargs):
 	bundle_doc.calculate_qty_and_amount()
 	bundle_doc.flags.ignore_permissions = True
 	bundle_doc.flags.ignore_validate = True
-	bundle_doc.save(ignore_permissions=True)
+	if kwargs.do_not_submit:
+		bundle_doc.save(ignore_permissions=True)
+	else:
+		bundle_doc.submit()
 
 	return bundle_doc.name

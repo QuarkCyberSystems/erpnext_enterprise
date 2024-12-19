@@ -90,12 +90,10 @@ class SerialandBatchBundle(Document):
 		self.validate_duplicate_serial_and_batch_no()
 		self.validate_voucher_no()
 
-		if self.docstatus == 0:
-			self.allow_existing_serial_nos()
-
 		if self.type_of_transaction == "Maintenance":
 			return
 
+		self.allow_existing_serial_nos()
 		if not self.flags.ignore_validate_serial_batch or frappe.flags.in_test:
 			self.validate_serial_nos_duplicate()
 			self.check_future_entries_exists()
@@ -2101,6 +2099,8 @@ def update_available_batches(available_batches, *reserved_batches) -> None:
 
 
 def get_available_batches(kwargs):
+	from erpnext.stock.utils import get_combine_datetime
+
 	stock_ledger_entry = frappe.qb.DocType("Stock Ledger Entry")
 	batch_ledger = frappe.qb.DocType("Serial and Batch Entry")
 	batch_table = frappe.qb.DocType("Batch")
@@ -2128,9 +2128,9 @@ def get_available_batches(kwargs):
 		if kwargs.get("posting_time") is None:
 			kwargs.posting_time = nowtime()
 
-		timestamp_condition = CombineDatetime(
-			stock_ledger_entry.posting_date, stock_ledger_entry.posting_time
-		) <= CombineDatetime(kwargs.posting_date, kwargs.posting_time)
+		timestamp_condition = stock_ledger_entry.posting_datetime <= get_combine_datetime(
+			kwargs.posting_date, kwargs.posting_time
+		)
 
 		query = query.where(timestamp_condition)
 
