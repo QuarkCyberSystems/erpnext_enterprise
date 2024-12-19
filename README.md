@@ -40,7 +40,7 @@ Running a business is a complex task - handling invoices, tracking stock, managi
 - **Asset Management**: From purchase to perishment, IT infrastructure to equipment. Cover every branch of your organization, all in one centralized system.
 - **Projects**: Delivery both internal and external Projects on time, budget and Profitability. Track tasks, timesheets, and issues by project.
 
-<details>
+<details open>
 
 <summary>More</summary>
 	<img src="https://erpnext.com/files/v16_bom.png"/>
