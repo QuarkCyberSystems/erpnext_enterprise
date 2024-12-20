@@ -1,4 +1,5 @@
 import frappe
+from frappe import qb
 
 # from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_dimensions
 from erpnext.accounts.utils import get_fiscal_year
@@ -28,24 +29,48 @@ class BudgetValidation:
 		)
 
 	def get_budget_records(self):
-		self.budgets = []
-		for x in frappe.db.get_all(
-			"Budget", {"fiscal_year": self.fiscal_year, "docstatus": 1, "company": self.company}
-		):
-			self.budgets.append(frappe.get_doc("Budget", x.name))
+		bud = qb.DocType("Budget")
+		bud_acc = qb.DocType("Budget Account")
+		query = (
+			qb.from_(bud)
+			.inner_join(bud_acc)
+			.on(bud.name == bud_acc.parent)
+			.select(
+				bud.name,
+				bud.budget_against,
+				bud.company,
+				bud.applicable_on_material_request,
+				bud.action_if_annual_budget_exceeded_on_mr,
+				bud.action_if_accumulated_monthly_budget_exceeded_on_mr,
+				bud.applicable_on_purchase_order,
+				bud.action_if_annual_budget_exceeded_on_po,
+				bud.action_if_accumulated_monthly_budget_exceeded_on_po,
+				bud.applicable_on_booking_actual_expenses,
+				bud.action_if_annual_budget_exceeded,
+				bud.action_if_accumulated_monthly_budget_exceeded,
+				bud_acc.account,
+				bud_acc.budget_amount,
+			)
+			.where(bud.docstatus.eq(1) & bud.fiscal_year.eq(self.fiscal_year) & bud.company.eq(self.company))
+		)
+
+		# add dimension fields
+		for x in self.dimensions:
+			query = query.select(bud[x.get("fieldname")])
+
+		self.budgets = query.run(as_dict=True)
 
 	def generate_active_budget_keys(self):
 		"""
 		key structure - (dimension_type, dimension, GL account)
 		"""
-		self.active_keys = set()
 		self.get_budget_records()
+		_keys = []
 		for x in self.budgets:
 			budget_against = frappe.scrub(x.budget_against)
 			dimension = x.get(budget_against)
-			self.active_keys = self.active_keys | set(
-				[(budget_against, dimension, acc.account) for acc in x.accounts]
-			)
+			_keys.append((budget_against, dimension, x.account))
+		self.active_keys = set(_keys)
 
 	def generate_doc_dimension_keys(self):
 		"""
@@ -68,12 +93,11 @@ class BudgetValidation:
 		for x in self.budgets:
 			budget_against = frappe.scrub(x.budget_against)
 			dimension = x.get(budget_against)
-			for acc in x.accounts:
-				key = (budget_against, dimension, acc.account)
-				if key in self.overlap:
-					self.budget_map[key] = frappe._dict(
-						{"budget_amount": acc.budget_amount, "items_to_process": []}
-					)
+			key = (budget_against, dimension, x.account)
+			if key in self.overlap:
+				self.budget_map[key] = frappe._dict(
+					{"budget_amount": x.budget_amount, "items_to_process": []}
+				)
 
 		for itm in self.doc.items:
 			for dim in self.dimensions:
