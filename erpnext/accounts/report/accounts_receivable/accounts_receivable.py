@@ -150,6 +150,9 @@ class ReceivablePayableReport:
 			if key not in self.voucher_balance:
 				self.voucher_balance[key] = self.build_voucher_dict(ple)
 
+			if ple.voucher_type == ple.against_voucher_type and ple.voucher_no == ple.against_voucher_no:
+				self.voucher_balance[key].cost_center = ple.cost_center
+
 			self.get_invoices(ple)
 
 			if self.filters.get("group_by_party"):
