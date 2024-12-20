@@ -13,7 +13,10 @@ class BudgetValidation:
 		self.doc_date = (
 			doc.get("transaction_date") if doc.get("doctype") == "Purchase Order" else doc.get("posting_date")
 		)
-		self.fiscal_year = get_fiscal_year(self.doc_date)[0]
+		fy = get_fiscal_year(self.doc_date)
+		self.fiscal_year = fy[0]
+		self.fy_start_date = fy[1]
+		self.fy_end_date = fy[2]
 		self.get_dimensions()
 		# When GL Map is passed, there is a possibility of multiple fiscal year.
 		# TODO: need to handle it
@@ -109,9 +112,33 @@ class BudgetValidation:
 		self.build_to_validate_map()
 		self.validate_for_overbooking()
 
+	def get_ordered_amount(self):
+		items = set([x.item_code for x in self.doc.items])
+		exp_accounts = set([x.expense_account for x in self.doc.items])
+
+		po = qb.DocType("Purchase Order")
+		poi = qb.DocType("Purchase Order Item")
+
+		query = (
+			qb.from_(po)
+			.inner_join(poi)
+			.on(po.name == poi.parent)
+			.select(po.name)
+			.where(
+				po.docstatus.eq(1)
+				& (poi.amount > poi.billed_amt)
+				& po.status.ne("Closed")
+				& poi.item_code.isin(items)
+				& poi.expense_account.isin(exp_accounts)
+				& po.transaction_date[self.fy_start_date : self.fy_end_date]
+			)
+		)
+		print("Query:", query)
+
 	def validate_for_overbooking(self):
 		# TODO: Need to fetch historical amount and add them to the current document
 		# TODO: handle applicable checkboxes
-		for k, v in self.to_validate.items():
-			current_amount = sum([x.amount for x in v.get("items_to_process")])
-			print((k, v.get("budget_amount"), current_amount))
+		for v in self.to_validate.values():
+			v["current_amount"] = sum([x.amount for x in v.get("items_to_process")])
+
+		self.get_ordered_amount()
