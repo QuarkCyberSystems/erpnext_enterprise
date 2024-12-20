@@ -195,6 +195,7 @@ class TestSerialandBatchBundle(IntegrationTestCase):
 				}
 			)
 
+			doc.set_posting_datetime()
 			doc.flags.ignore_permissions = True
 			doc.flags.ignore_mandatory = True
 			doc.flags.ignore_links = True
@@ -597,6 +598,7 @@ class TestSerialandBatchBundle(IntegrationTestCase):
 					"company": "_Test Company",
 				}
 			)
+			doc.set_posting_datetime()
 			doc.flags.ignore_permissions = True
 			doc.flags.ignore_mandatory = True
 			doc.flags.ignore_links = True
