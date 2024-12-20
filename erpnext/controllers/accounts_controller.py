@@ -388,7 +388,7 @@ class AccountsController(TransactionBase):
 				(gle.voucher_type == self.doctype) & (gle.voucher_no == self.name)
 			).run()
 			sle = frappe.qb.DocType("Stock Ledger Entry")
-			frappe.qb.from_(gle).delete().where(
+			frappe.qb.from_(sle).delete().where(
 				(sle.voucher_type == self.doctype) & (sle.voucher_no == self.name)
 			).run()
 
