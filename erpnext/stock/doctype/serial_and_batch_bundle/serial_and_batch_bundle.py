@@ -807,7 +807,7 @@ class SerialandBatchBundle(Document):
 		)
 
 		for serial_no, batch_no in serial_batches.items():
-			if correct_batches.get(serial_no) != batch_no:
+			if correct_batches.get(serial_no) and correct_batches.get(serial_no) != batch_no:
 				self.throw_error_message(
 					f"Serial No {bold(serial_no)} does not belong to Batch No {bold(batch_no)}"
 				)
@@ -1186,19 +1186,19 @@ def parse_csv_file_to_get_serial_batch(reader):
 			continue
 
 		if has_serial_no or (has_serial_no and has_batch_no):
-			_dict = {"serial_no": row[0], "qty": 1}
+			_dict = {"serial_no": row[0].strip(), "qty": 1}
 
 			if has_batch_no:
 				_dict.update(
 					{
-						"batch_no": row[1],
+						"batch_no": row[1].strip(),
 						"qty": row[2],
 					}
 				)
 
 				batch_nos.append(
 					{
-						"batch_no": row[1],
+						"batch_no": row[1].strip(),
 						"qty": row[2],
 					}
 				)
@@ -1207,7 +1207,7 @@ def parse_csv_file_to_get_serial_batch(reader):
 		elif has_batch_no:
 			batch_nos.append(
 				{
-					"batch_no": row[0],
+					"batch_no": row[0].strip(),
 					"qty": row[1],
 				}
 			)
@@ -1251,7 +1251,7 @@ def make_serial_nos(item_code, serial_nos):
 		"Item", item_code, ["description", "item_code", "item_name", "warranty_period"], as_dict=1
 	)
 
-	serial_nos = [d.get("serial_no") for d in serial_nos if d.get("serial_no")]
+	serial_nos = [d.get("serial_no").strip() for d in serial_nos if d.get("serial_no")]
 	existing_serial_nos = frappe.get_all("Serial No", filters={"name": ("in", serial_nos)})
 
 	existing_serial_nos = [d.get("name") for d in existing_serial_nos if d.get("name")]
