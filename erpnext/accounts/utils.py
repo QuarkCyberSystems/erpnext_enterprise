@@ -113,7 +113,7 @@ def get_fiscal_years(
 	# No match for restricting selectors
 	if raise_on_missing:
 		error_msg = _("""{0} {1} is not in any active Fiscal Year""").format(
-			label, formatdate(transaction_date)
+			_(label), formatdate(transaction_date)
 		)
 		if company:
 			error_msg = _("""{0} for {1}""").format(error_msg, frappe.bold(company))
