@@ -181,7 +181,7 @@ def start_repost(account_repost_doc=str) -> None:
 					if not repost_doc.delete_cancelled_entries:
 						doc.make_gl_entries(1)
 					doc.make_gl_entries()
-				else:
+				elif doc.doctype in frappe.get_hooks("repost_allowed_doctypes"):
 					if hasattr(doc, "make_gl_entries") and callable(doc.make_gl_entries):
 						if not repost_doc.delete_cancelled_entries:
 							if "cancel" in inspect.getfullargspec(doc.make_gl_entries):
