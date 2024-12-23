@@ -130,8 +130,6 @@ class Asset(AccountsController):
 		self.set_missing_values()
 		self.validate_gross_and_purchase_amount()
 		self.validate_finance_books()
-		self.validate_expected_value_after_useful_life()
-		self.set_total_booked_depreciations()
 		self.total_asset_cost = self.gross_purchase_amount
 		self.status = self.get_status()
 
@@ -178,6 +176,8 @@ class Asset(AccountsController):
 
 	def on_update(self):
 		self.create_asset_depreciation_schedule()
+		self.validate_expected_value_after_useful_life()
+		self.set_total_booked_depreciations()
 
 	def on_submit(self):
 		self.validate_in_use_date()

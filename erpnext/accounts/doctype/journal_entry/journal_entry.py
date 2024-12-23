@@ -196,7 +196,6 @@ class JournalEntry(AccountsController):
 		self.update_asset_value()
 		self.update_inter_company_jv()
 		self.update_invoice_discounting()
-		self.update_booked_depreciation()
 
 	def on_update_after_submit(self):
 		# Flag will be set on Reconciliation
@@ -232,7 +231,6 @@ class JournalEntry(AccountsController):
 		self.unlink_inter_company_jv()
 		self.unlink_asset_adjustment_entry()
 		self.update_invoice_discounting()
-		self.update_booked_depreciation(1)
 
 	def get_title(self):
 		return self.pay_to_recd_from or self.accounts[0].account
@@ -405,6 +403,7 @@ class JournalEntry(AccountsController):
 					asset.db_set("value_after_depreciation", asset.value_after_depreciation - d.debit)
 
 				asset.set_status()
+				asset.set_total_booked_depreciations()
 
 	def update_inter_company_jv(self):
 		if self.voucher_type == "Inter Company Journal Entry" and self.inter_company_journal_entry_reference:
@@ -459,25 +458,6 @@ class JournalEntry(AccountsController):
 			if status:
 				inv_disc_doc.set_status(status=status)
 
-	def update_booked_depreciation(self, cancel=0):
-		for d in self.get("accounts"):
-			if (
-				self.voucher_type == "Depreciation Entry"
-				and d.reference_type == "Asset"
-				and d.reference_name
-				and frappe.get_cached_value("Account", d.account, "root_type") == "Expense"
-				and d.debit
-			):
-				asset = frappe.get_doc("Asset", d.reference_name)
-				for fb_row in asset.get("finance_books"):
-					if fb_row.finance_book == self.finance_book:
-						if cancel:
-							fb_row.total_number_of_booked_depreciations -= 1
-						else:
-							fb_row.total_number_of_booked_depreciations += 1
-						fb_row.db_update()
-						break
-
 	def unlink_advance_entry_reference(self):
 		for d in self.get("accounts"):
 			if d.is_advance == "Yes" and d.reference_type in ("Sales Invoice", "Purchase Invoice"):
@@ -530,6 +510,7 @@ class JournalEntry(AccountsController):
 				else:
 					asset.db_set("value_after_depreciation", asset.value_after_depreciation + d.debit)
 				asset.set_status()
+				asset.set_total_booked_depreciations()
 			elif self.voucher_type == "Journal Entry" and d.reference_type == "Asset" and d.reference_name:
 				journal_entry_for_scrap = frappe.db.get_value(
 					"Asset", d.reference_name, "journal_entry_for_scrap"

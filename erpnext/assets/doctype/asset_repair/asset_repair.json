@@ -27,7 +27,7 @@
   "column_break_ajbh",
   "column_break_hkem",
   "repair_cost",
-  "asset_depreciation_details_section",
+  "accounting_dimensions_section",
   "cost_center",
   "column_break_14",
   "project",
@@ -187,12 +187,6 @@
   },
   {
    "depends_on": "capitalize_repair_cost",
-   "fieldname": "asset_depreciation_details_section",
-   "fieldtype": "Section Break",
-   "label": "Asset Depreciation Details"
-  },
-  {
-   "depends_on": "capitalize_repair_cost",
    "fieldname": "increase_in_asset_life",
    "fieldtype": "Int",
    "label": "Increase In Asset Life(Months)",
@@ -253,12 +247,18 @@
   {
    "fieldname": "column_break_xebe",
    "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "capitalize_repair_cost",
+   "fieldname": "accounting_dimensions_section",
+   "fieldtype": "Section Break",
+   "label": "Accounting Dimensions"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-12-20 13:10:31.540666",
+ "modified": "2024-12-23 18:08:35.159964",
  "modified_by": "Administrator",
  "module": "Assets",
  "name": "Asset Repair",

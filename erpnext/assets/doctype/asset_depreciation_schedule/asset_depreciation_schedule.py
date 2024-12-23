@@ -351,11 +351,11 @@ class AssetDepreciationSchedule(Document):
 		return has_wdv_or_dd_non_yearly_pro_rata
 
 	def get_number_of_pending_months(self, asset_doc, row, start):
-		print(row.total_number_of_depreciations)
 		total_months = cint(row.total_number_of_depreciations) * cint(row.frequency_of_depreciation) + cint(
 			row.increase_in_asset_life
 		)
 		depr_booked_for_months = 0
+		last_depr_date = None
 		if start > 0:
 			last_depr_date = self.depreciation_schedule[start - 1].schedule_date
 		elif asset_doc.opening_number_of_booked_depreciations > 0:
@@ -363,7 +363,7 @@ class AssetDepreciationSchedule(Document):
 
 		if last_depr_date:
 			depr_booked_for_months = date_diff(last_depr_date, asset_doc.available_for_use_date) / (365 / 12)
-		print(total_months, depr_booked_for_months)
+
 		return total_months - depr_booked_for_months
 
 	def has_fiscal_year_changed(self, row, row_no):
@@ -516,7 +516,7 @@ class AssetDepreciationSchedule(Document):
 		return depreciation_amount, skip_row
 
 	def validate_depreciation_amount_for_low_value_assets(self, asset_doc, row, depreciation_amount):
-		""" "
+		"""
 		If gross purchase amount is too low, then depreciation amount
 		can come zero sometimes based on the frequency and number of depreciations.
 		"""
@@ -553,42 +553,23 @@ class AssetDepreciationSchedule(Document):
 		row,
 		date_of_disposal=None,
 		date_of_return=None,
-		ignore_booked_entry=False,
 	):
-		straight_line_idx = [
-			d.idx
-			for d in self.get("depreciation_schedule")
-			if self.depreciation_method == "Straight Line" or self.depreciation_method == "Manual"
-		]
-
-		accumulated_depreciation = None
+		accumulated_depreciation = flt(self.opening_accumulated_depreciation)
 		value_after_depreciation = flt(row.value_after_depreciation)
 
 		for i, d in enumerate(self.get("depreciation_schedule")):
-			if ignore_booked_entry and d.journal_entry:
+			if d.journal_entry:
+				accumulated_depreciation = d.accumulated_depreciation_amount
 				continue
 
-			if not accumulated_depreciation:
-				if i > 0 and (
-					asset_doc.flags.decrease_in_asset_value_due_to_value_adjustment
-					or asset_doc.flags.increase_in_asset_value_due_to_repair
-				):
-					accumulated_depreciation = self.get("depreciation_schedule")[
-						i - 1
-					].accumulated_depreciation_amount
-				else:
-					accumulated_depreciation = flt(
-						self.opening_accumulated_depreciation,
-						asset_doc.precision("opening_accumulated_depreciation"),
-					)
-
-			value_after_depreciation -= flt(d.depreciation_amount)
-			value_after_depreciation = flt(value_after_depreciation, d.precision("depreciation_amount"))
+			value_after_depreciation = flt(
+				value_after_depreciation - flt(d.depreciation_amount), d.precision("depreciation_amount")
+			)
 
 			# for the last row, if depreciation method = Straight Line
 			if (
-				straight_line_idx
-				and i == max(straight_line_idx) - 1
+				self.depreciation_method in ("Straight Line", "Manual")
+				and i == len(self.get("depreciation_schedule")) - 1
 				and not date_of_disposal
 				and not date_of_return
 				and not row.shift_based
@@ -757,7 +738,6 @@ def make_new_active_asset_depr_schedules_and_cancel_current_ones(
 	date_of_disposal=None,
 	date_of_return=None,
 	value_after_depreciation=None,
-	ignore_booked_entry=False,
 	difference_amount=None,
 ):
 	for row in asset_doc.get("finance_books"):
@@ -773,6 +753,7 @@ def make_new_active_asset_depr_schedules_and_cancel_current_ones(
 			)
 
 		new_asset_depr_schedule_doc = frappe.copy_doc(current_asset_depr_schedule_doc)
+
 		if asset_doc.flags.decrease_in_asset_value_due_to_value_adjustment and not value_after_depreciation:
 			value_after_depreciation = row.value_after_depreciation - difference_amount
 
@@ -790,7 +771,7 @@ def make_new_active_asset_depr_schedules_and_cancel_current_ones(
 			asset_doc, row, date_of_disposal, value_after_depreciation=value_after_depreciation
 		)
 		new_asset_depr_schedule_doc.set_accumulated_depreciation(
-			asset_doc, row, date_of_disposal, date_of_return, ignore_booked_entry
+			asset_doc, row, date_of_disposal, date_of_return
 		)
 
 		new_asset_depr_schedule_doc.notes = notes

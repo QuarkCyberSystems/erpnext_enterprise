@@ -148,15 +148,12 @@ class AssetRepair(AccountsController):
 		self.decrease_stock_quantity()
 
 		if self.get("capitalize_repair_cost"):
-			self.asset_doc.flags.ignore_validate_update_after_submit = True
 			self.update_asset_value()
 			self.make_gl_entries()
 			self.set_increase_in_asset_life()
 
 			depreciation_note = self.get_depreciation_note()
-			make_new_active_asset_depr_schedules_and_cancel_current_ones(
-				self.asset_doc, depreciation_note, ignore_booked_entry=True
-			)
+			make_new_active_asset_depr_schedules_and_cancel_current_ones(self.asset_doc, depreciation_note)
 			self.add_asset_activity()
 
 	def on_cancel(self):
@@ -164,16 +161,13 @@ class AssetRepair(AccountsController):
 
 		if self.get("capitalize_repair_cost"):
 			self.asset_doc.flags.increase_in_asset_value_due_to_repair = True
-			self.asset_doc.flags.ignore_validate_update_after_submit = True
 
 			self.update_asset_value()
 			self.make_gl_entries(cancel=True)
 			self.set_increase_in_asset_life()
 
 			depreciation_note = self.get_depreciation_note()
-			make_new_active_asset_depr_schedules_and_cancel_current_ones(
-				self.asset_doc, depreciation_note, ignore_booked_entry=True
-			)
+			make_new_active_asset_depr_schedules_and_cancel_current_ones(self.asset_doc, depreciation_note)
 			self.add_asset_activity()
 
 	def after_delete(self):
@@ -184,16 +178,16 @@ class AssetRepair(AccountsController):
 			frappe.throw(_("Please update Repair Status."))
 
 	def update_asset_value(self):
-		if self.docstaus == 2:
-			self.total_repair_cost *= -1
+		total_repair_cost = self.total_repair_cost if self.docstatus == 1 else -1 * self.total_repair_cost
 
-		self.asset_doc.total_asset_cost += flt(self.total_repair_cost)
-		self.asset_doc.additional_asset_cost += flt(self.total_repair_cost)
+		self.asset_doc.total_asset_cost += flt(total_repair_cost)
+		self.asset_doc.additional_asset_cost += flt(total_repair_cost)
 
 		if self.asset_doc.calculate_depreciation:
 			for row in self.asset_doc.finance_books:
-				row.value_after_depreciation += flt(self.total_repair_cost)
+				row.value_after_depreciation += flt(total_repair_cost)
 
+		self.asset_doc.flags.ignore_validate_update_after_submit = True
 		self.asset_doc.save()
 
 	def get_total_value_of_stock_consumed(self):
@@ -377,9 +371,8 @@ class AssetRepair(AccountsController):
 	def add_asset_activity(self, subject=None):
 		if not subject:
 			subject = _("Asset updated due to Asset Repair {0} {1}.").format(
-				get_link_to_form(
-					self.doctype, self.name, "submission" if self.docstatus == 1 else "cancellation"
-				),
+				get_link_to_form(self.doctype, self.name),
+				"submission" if self.docstatus == 1 else "cancellation",
 			)
 
 		add_asset_activity(self.asset, subject)
