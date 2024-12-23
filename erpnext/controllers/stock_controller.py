@@ -1002,6 +1002,9 @@ class StockController(AccountsController):
 			elif self.doctype == "Stock Entry" and row.t_warehouse:
 				qi_required = True  # inward stock needs inspection
 
+			if row.get("is_scrap_item"):
+				continue
+
 			if qi_required:  # validate row only if inspection is required on item level
 				self.validate_qi_presence(row)
 				if self.docstatus == 1:
