@@ -1228,6 +1228,8 @@ class AccountsController(TransactionBase):
 
 	def get_advance_entries(self, include_unallocated=True):
 		party_account = []
+		default_advance_account = None
+
 		if self.doctype == "Sales Invoice":
 			party_type = "Customer"
 			party = self.customer
@@ -1243,9 +1245,13 @@ class AccountsController(TransactionBase):
 			order_doctype = "Purchase Order"
 			party_account.append(self.credit_to)
 
-		party_account.extend(
-			get_party_account(party_type, party=party, company=self.company, include_advance=True)
+		party_accounts = get_party_account(
+			party_type, party=party, company=self.company, include_advance=True
 		)
+
+		if party_accounts:
+			party_account.append(party_accounts[0])
+			default_advance_account = party_accounts[1] if len(party_accounts) == 2 else None
 
 		order_list = list(set(d.get(order_field) for d in self.get("items") if d.get(order_field)))
 
@@ -1254,7 +1260,13 @@ class AccountsController(TransactionBase):
 		)
 
 		payment_entries = get_advance_payment_entries_for_regional(
-			party_type, party, party_account, order_doctype, order_list, include_unallocated
+			party_type,
+			party,
+			party_account,
+			order_doctype,
+			order_list,
+			default_advance_account,
+			include_unallocated,
 		)
 
 		res = journal_entries + payment_entries
