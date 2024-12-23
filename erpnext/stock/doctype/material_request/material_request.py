@@ -18,6 +18,9 @@ from erpnext.controllers.buying_controller import BuyingController
 from erpnext.manufacturing.doctype.work_order.work_order import get_item_details
 from erpnext.stock.doctype.item.item import get_item_defaults
 from erpnext.stock.stock_balance import get_indented_qty, update_bin_qty
+from erpnext.subcontracting.doctype.subcontracting_bom.subcontracting_bom import (
+	get_subcontracting_boms_for_finished_goods,
+)
 
 form_grid_templates = {"items": "templates/form_grid/material_request_grid.html"}
 
@@ -40,7 +43,12 @@ class MaterialRequest(BuyingController):
 		job_card: DF.Link | None
 		letter_head: DF.Link | None
 		material_request_type: DF.Literal[
-			"Purchase", "Material Transfer", "Material Issue", "Manufacture", "Customer Provided"
+			"Purchase",
+			"Material Transfer",
+			"Material Issue",
+			"Manufacture",
+			"Subcontracting",
+			"Customer Provided",
 		]
 		naming_series: DF.Literal["MAT-MR-.YYYY.-"]
 		per_ordered: DF.Percent
@@ -385,6 +393,22 @@ def update_item(obj, target, source_parent):
 	if getdate(target.schedule_date) < getdate(nowdate()):
 		target.schedule_date = None
 
+	if target.fg_item:
+		target.fg_item_qty = obj.stock_qty
+		if sc_bom := get_subcontracting_boms_for_finished_goods(target.fg_item):
+			target.item_code = sc_bom.service_item
+			target.uom = sc_bom.service_item_uom
+			target.conversion_factor = (
+				frappe.db.get_value(
+					"UOM Conversion Detail",
+					{"parent": sc_bom.service_item, "uom": sc_bom.service_item_uom},
+					"conversion_factor",
+				)
+				or 1
+			)
+			target.qty = target.fg_item_qty * sc_bom.conversion_factor
+			target.stock_qty = target.qty * target.conversion_factor
+
 
 def get_list_context(context=None):
 	from erpnext.controllers.website_list_for_contact import get_list_context
@@ -416,11 +440,18 @@ def make_purchase_order(source_name, target_doc=None, args=None):
 	if isinstance(args, str):
 		args = json.loads(args)
 
+	is_subcontracted = (
+		frappe.db.get_value("Material Request", source_name, "material_request_type") == "Subcontracting"
+	)
+
 	def postprocess(source, target_doc):
+		target_doc.is_subcontracted = is_subcontracted
 		if frappe.flags.args and frappe.flags.args.default_supplier:
 			# items only for given default supplier
 			supplier_items = []
 			for d in target_doc.items:
+				if is_subcontracted and not d.item_code:
+					continue
 				default_supplier = get_item_defaults(d.item_code, target_doc.company).get("default_supplier")
 				if frappe.flags.args.default_supplier == default_supplier:
 					supplier_items.append(d)
@@ -436,25 +467,37 @@ def make_purchase_order(source_name, target_doc=None, args=None):
 
 		return qty < d.stock_qty and child_filter
 
+	def generate_field_map():
+		field_map = [
+			["name", "material_request_item"],
+			["parent", "material_request"],
+			["sales_order", "sales_order"],
+			["sales_order_item", "sales_order_item"],
+			["wip_composite_asset", "wip_composite_asset"],
+		]
+
+		if is_subcontracted:
+			field_map.extend([["item_code", "fg_item"], ["qty", "fg_item_qty"]])
+		else:
+			field_map.extend([["uom", "stock_uom"], ["uom", "uom"]])
+
+		return field_map
+
 	doclist = get_mapped_doc(
 		"Material Request",
 		source_name,
 		{
 			"Material Request": {
 				"doctype": "Purchase Order",
-				"validation": {"docstatus": ["=", 1], "material_request_type": ["=", "Purchase"]},
+				"validation": {
+					"docstatus": ["=", 1],
+					"material_request_type": ["in", ["Purchase", "Subcontracting"]],
+				},
 			},
 			"Material Request Item": {
 				"doctype": "Purchase Order Item",
-				"field_map": [
-					["name", "material_request_item"],
-					["parent", "material_request"],
-					["uom", "stock_uom"],
-					["uom", "uom"],
-					["sales_order", "sales_order"],
-					["sales_order_item", "sales_order_item"],
-					["wip_composite_asset", "wip_composite_asset"],
-				],
+				"field_map": generate_field_map(),
+				"field_no_map": ["item_code", "item_name", "qty"] if is_subcontracted else [],
 				"postprocess": update_item,
 				"condition": select_item,
 			},

@@ -421,6 +421,13 @@ class StatusUpdater(Document):
 			if d.doctype != args["source_dt"]:
 				continue
 
+			if (
+				d.get("material_request")
+				and frappe.db.get_value("Material Request", d.material_request, "material_request_type")
+				== "Subcontracting"
+			):
+				args.update({"source_field": "fg_item_qty"})
+
 			self._update_modified(args, update_modified)
 
 			# updates qty in the child table
