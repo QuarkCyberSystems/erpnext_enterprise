@@ -4,6 +4,7 @@ from frappe.utils import (
 	add_months,
 	add_years,
 	cint,
+	cstr,
 	date_diff,
 	flt,
 	get_last_day,
@@ -16,7 +17,7 @@ import erpnext
 def get_depreciation_amount(
 	asset_depr_schedule,
 	asset,
-	depreciable_value,
+	value_after_depreciation,
 	yearly_opening_wdv,
 	fb_row,
 	schedule_idx=0,
@@ -27,13 +28,18 @@ def get_depreciation_amount(
 ):
 	if fb_row.depreciation_method in ("Straight Line", "Manual"):
 		return get_straight_line_or_manual_depr_amount(
-			asset_depr_schedule, asset, fb_row, schedule_idx, number_of_pending_depreciations
+			asset_depr_schedule,
+			asset,
+			fb_row,
+			schedule_idx,
+			value_after_depreciation,
+			number_of_pending_depreciations,
 		), None
 	else:
 		return get_wdv_or_dd_depr_amount(
 			asset,
 			fb_row,
-			depreciable_value,
+			value_after_depreciation,
 			yearly_opening_wdv,
 			schedule_idx,
 			prev_depreciation_amount,
@@ -44,83 +50,59 @@ def get_depreciation_amount(
 
 
 def get_straight_line_or_manual_depr_amount(
-	asset_depr_schedule, asset, row, schedule_idx, number_of_pending_depreciations
+	asset_depr_schedule,
+	asset,
+	fb_row,
+	schedule_idx,
+	value_after_depreciation,
+	number_of_pending_depreciations,
 ):
-	if row.shift_based:
-		return get_shift_depr_amount(asset_depr_schedule, asset, row, schedule_idx)
+	if fb_row.shift_based:
+		return get_shift_depr_amount(asset_depr_schedule, asset, fb_row, schedule_idx)
 
-	# if the Depreciation Schedule is being modified after Asset Repair due to increase in asset life and value
-	if asset.flags.increase_in_asset_life:
-		return (flt(row.value_after_depreciation) - flt(row.expected_value_after_useful_life)) / (
-			date_diff(asset.to_date, asset.available_for_use_date) / 365
+	if fb_row.daily_prorata_based:
+		amount = flt(asset.gross_purchase_amount) - flt(fb_row.expected_value_after_useful_life)
+		return get_daily_prorata_based_straight_line_depr(
+			asset, fb_row, schedule_idx, number_of_pending_depreciations, amount
 		)
-	# if the Depreciation Schedule is being modified after Asset Repair due to increase in asset value
-	elif asset.flags.increase_in_asset_value_due_to_repair:
-		return (flt(row.value_after_depreciation) - flt(row.expected_value_after_useful_life)) / flt(
-			number_of_pending_depreciations
-		)
-	# if the Depreciation Schedule is being modified after Asset Value Adjustment due to decrease in asset value
-	elif asset.flags.decrease_in_asset_value_due_to_value_adjustment:
-		if row.daily_prorata_based:
-			amount = flt(row.value_after_depreciation) - flt(row.expected_value_after_useful_life)
-
-			return get_daily_prorata_based_straight_line_depr(
-				asset,
-				row,
-				schedule_idx,
-				number_of_pending_depreciations,
-				amount,
-			)
-		else:
-			return (
-				flt(row.value_after_depreciation) - flt(row.expected_value_after_useful_life)
-			) / number_of_pending_depreciations
-	# if the Depreciation Schedule is being prepared for the first time
 	else:
-		if row.daily_prorata_based:
-			amount = flt(asset.gross_purchase_amount) - flt(row.expected_value_after_useful_life)
-			return get_daily_prorata_based_straight_line_depr(
-				asset, row, schedule_idx, number_of_pending_depreciations, amount
-			)
-		else:
-			depreciation_amount = (
-				flt(asset.gross_purchase_amount) - flt(row.expected_value_after_useful_life)
-			) / flt(row.total_number_of_depreciations)
-			return depreciation_amount
+		return (flt(fb_row.value_after_depreciation) - flt(fb_row.expected_value_after_useful_life)) / (
+			flt(number_of_pending_depreciations) / flt(fb_row.frequency_of_depreciation)
+		)
 
 
 def get_daily_prorata_based_straight_line_depr(
-	asset, row, schedule_idx, number_of_pending_depreciations, amount
+	asset, fb_row, schedule_idx, number_of_pending_depreciations, amount
 ):
-	daily_depr_amount = get_daily_depr_amount(asset, row, schedule_idx, amount)
+	daily_depr_amount = get_daily_depr_amount(asset, fb_row, schedule_idx, amount)
 
 	from_date, total_depreciable_days = _get_total_days(
-		row.depreciation_start_date, schedule_idx, row.frequency_of_depreciation
+		fb_row.depreciation_start_date, schedule_idx, fb_row.frequency_of_depreciation
 	)
 	return daily_depr_amount * total_depreciable_days
 
 
-def get_daily_depr_amount(asset, row, schedule_idx, amount):
+def get_daily_depr_amount(asset, fb_row, schedule_idx, amount):
 	if cint(frappe.db.get_single_value("Accounts Settings", "calculate_depr_using_total_days")):
 		total_days = (
 			date_diff(
 				get_last_day(
 					add_months(
-						row.depreciation_start_date,
+						fb_row.depreciation_start_date,
 						flt(
-							row.total_number_of_depreciations
+							fb_row.total_number_of_depreciations
 							- asset.opening_number_of_booked_depreciations
 							- 1
 						)
-						* row.frequency_of_depreciation,
+						* fb_row.frequency_of_depreciation,
 					)
 				),
 				add_days(
 					get_last_day(
 						add_months(
-							row.depreciation_start_date,
+							fb_row.depreciation_start_date,
 							(
-								row.frequency_of_depreciation
+								fb_row.frequency_of_depreciation
 								* (asset.opening_number_of_booked_depreciations + 1)
 							)
 							* -1,
@@ -136,8 +118,8 @@ def get_daily_depr_amount(asset, row, schedule_idx, amount):
 	else:
 		total_years = (
 			flt(
-				(row.total_number_of_depreciations - row.total_number_of_booked_depreciations)
-				* row.frequency_of_depreciation
+				(fb_row.total_number_of_depreciations - fb_row.total_number_of_booked_depreciations)
+				* fb_row.frequency_of_depreciation
 			)
 			/ 12
 		)
@@ -145,24 +127,24 @@ def get_daily_depr_amount(asset, row, schedule_idx, amount):
 		every_year_depr = amount / total_years
 
 		depr_period_start_date = add_days(
-			get_last_day(add_months(row.depreciation_start_date, row.frequency_of_depreciation * -1)), 1
+			get_last_day(add_months(fb_row.depreciation_start_date, fb_row.frequency_of_depreciation * -1)), 1
 		)
 
 		year_start_date = add_years(
-			depr_period_start_date, ((row.frequency_of_depreciation * schedule_idx) // 12)
+			depr_period_start_date, ((fb_row.frequency_of_depreciation * schedule_idx) // 12)
 		)
 		year_end_date = add_days(add_years(year_start_date, 1), -1)
 
 		return every_year_depr / (date_diff(year_end_date, year_start_date) + 1)
 
 
-def get_shift_depr_amount(asset_depr_schedule, asset, row, schedule_idx):
+def get_shift_depr_amount(asset_depr_schedule, asset, fb_row, schedule_idx):
 	if asset_depr_schedule.get("__islocal") and not asset.flags.shift_allocation:
 		return (
 			flt(asset.gross_purchase_amount)
 			- flt(asset.opening_accumulated_depreciation)
-			- flt(row.expected_value_after_useful_life)
-		) / flt(row.total_number_of_depreciations - asset.opening_number_of_booked_depreciations)
+			- flt(fb_row.expected_value_after_useful_life)
+		) / flt(fb_row.total_number_of_depreciations - asset.opening_number_of_booked_depreciations)
 
 	asset_shift_factors_map = get_asset_shift_factors_map()
 	shift = (
@@ -181,7 +163,7 @@ def get_shift_depr_amount(asset_depr_schedule, asset, row, schedule_idx):
 		(
 			flt(asset.gross_purchase_amount)
 			- flt(asset.opening_accumulated_depreciation)
-			- flt(row.expected_value_after_useful_life)
+			- flt(fb_row.expected_value_after_useful_life)
 		)
 		/ flt(shift_factors_sum)
 	) * shift_factor
@@ -195,7 +177,7 @@ def get_asset_shift_factors_map():
 def get_wdv_or_dd_depr_amount(
 	asset,
 	fb_row,
-	depreciable_value,
+	value_after_depreciation,
 	yearly_opening_wdv,
 	schedule_idx,
 	prev_depreciation_amount,
@@ -206,7 +188,7 @@ def get_wdv_or_dd_depr_amount(
 	return get_default_wdv_or_dd_depr_amount(
 		asset,
 		fb_row,
-		depreciable_value,
+		value_after_depreciation,
 		schedule_idx,
 		prev_depreciation_amount,
 		has_wdv_or_dd_non_yearly_pro_rata,
@@ -218,7 +200,7 @@ def get_wdv_or_dd_depr_amount(
 def get_default_wdv_or_dd_depr_amount(
 	asset,
 	fb_row,
-	depreciable_value,
+	value_after_depreciation,
 	schedule_idx,
 	prev_depreciation_amount,
 	has_wdv_or_dd_non_yearly_pro_rata,
@@ -229,7 +211,7 @@ def get_default_wdv_or_dd_depr_amount(
 		return _get_default_wdv_or_dd_depr_amount(
 			asset,
 			fb_row,
-			depreciable_value,
+			value_after_depreciation,
 			schedule_idx,
 			prev_depreciation_amount,
 			has_wdv_or_dd_non_yearly_pro_rata,
@@ -239,7 +221,7 @@ def get_default_wdv_or_dd_depr_amount(
 		return _get_daily_prorata_based_default_wdv_or_dd_depr_amount(
 			asset,
 			fb_row,
-			depreciable_value,
+			value_after_depreciation,
 			schedule_idx,
 			prev_depreciation_amount,
 			has_wdv_or_dd_non_yearly_pro_rata,
@@ -251,21 +233,21 @@ def get_default_wdv_or_dd_depr_amount(
 def _get_default_wdv_or_dd_depr_amount(
 	asset,
 	fb_row,
-	depreciable_value,
+	value_after_depreciation,
 	schedule_idx,
 	prev_depreciation_amount,
 	has_wdv_or_dd_non_yearly_pro_rata,
 	asset_depr_schedule,
 ):
 	if cint(fb_row.frequency_of_depreciation) == 12:
-		return flt(depreciable_value) * (flt(fb_row.rate_of_depreciation) / 100)
+		return flt(value_after_depreciation) * (flt(fb_row.rate_of_depreciation) / 100)
 	else:
 		if has_wdv_or_dd_non_yearly_pro_rata:
 			if schedule_idx == 0:
-				return flt(depreciable_value) * (flt(fb_row.rate_of_depreciation) / 100)
+				return flt(value_after_depreciation) * (flt(fb_row.rate_of_depreciation) / 100)
 			elif schedule_idx % (12 / cint(fb_row.frequency_of_depreciation)) == 1:
 				return (
-					flt(depreciable_value)
+					flt(value_after_depreciation)
 					* flt(fb_row.frequency_of_depreciation)
 					* (flt(fb_row.rate_of_depreciation) / 1200)
 				)
@@ -274,7 +256,7 @@ def _get_default_wdv_or_dd_depr_amount(
 		else:
 			if schedule_idx % (12 / cint(fb_row.frequency_of_depreciation)) == 0:
 				return (
-					flt(depreciable_value)
+					flt(value_after_depreciation)
 					* flt(fb_row.frequency_of_depreciation)
 					* (flt(fb_row.rate_of_depreciation) / 1200)
 				)
@@ -285,7 +267,7 @@ def _get_default_wdv_or_dd_depr_amount(
 def _get_daily_prorata_based_default_wdv_or_dd_depr_amount(
 	asset,
 	fb_row,
-	depreciable_value,
+	value_after_depreciation,
 	schedule_idx,
 	prev_depreciation_amount,
 	has_wdv_or_dd_non_yearly_pro_rata,
@@ -294,20 +276,20 @@ def _get_daily_prorata_based_default_wdv_or_dd_depr_amount(
 ):
 	if has_wdv_or_dd_non_yearly_pro_rata:  # If applicable days for ther first month is less than full month
 		if schedule_idx == 0:
-			return flt(depreciable_value) * (flt(fb_row.rate_of_depreciation) / 100), None
+			return flt(value_after_depreciation) * (flt(fb_row.rate_of_depreciation) / 100), None
 
 		elif schedule_idx % (12 / cint(fb_row.frequency_of_depreciation)) == 1:  # Year changes
-			return get_monthly_depr_amount(fb_row, schedule_idx, depreciable_value)
+			return get_monthly_depr_amount(fb_row, schedule_idx, value_after_depreciation)
 		else:
 			return get_monthly_depr_amount_based_on_prev_per_day_depr(fb_row, schedule_idx, prev_per_day_depr)
 	else:
 		if schedule_idx % (12 / cint(fb_row.frequency_of_depreciation)) == 0:  # year changes
-			return get_monthly_depr_amount(fb_row, schedule_idx, depreciable_value)
+			return get_monthly_depr_amount(fb_row, schedule_idx, value_after_depreciation)
 		else:
 			return get_monthly_depr_amount_based_on_prev_per_day_depr(fb_row, schedule_idx, prev_per_day_depr)
 
 
-def get_monthly_depr_amount(fb_row, schedule_idx, depreciable_value):
+def get_monthly_depr_amount(fb_row, schedule_idx, value_after_depreciation):
 	"""
 	Returns monthly depreciation amount when year changes
 	1. Calculate per day depr based on new year
@@ -316,7 +298,7 @@ def get_monthly_depr_amount(fb_row, schedule_idx, depreciable_value):
 	from_date, days_in_month = _get_total_days(
 		fb_row.depreciation_start_date, schedule_idx, cint(fb_row.frequency_of_depreciation)
 	)
-	per_day_depr = get_per_day_depr(fb_row, depreciable_value, from_date)
+	per_day_depr = get_per_day_depr(fb_row, value_after_depreciation, from_date)
 	return (per_day_depr * days_in_month), per_day_depr
 
 
@@ -333,12 +315,12 @@ def get_monthly_depr_amount_based_on_prev_per_day_depr(fb_row, schedule_idx, pre
 
 def get_per_day_depr(
 	fb_row,
-	depreciable_value,
+	value_after_depreciation,
 	from_date,
 ):
 	to_date = add_days(add_years(from_date, 1), -1)
 	total_days = date_diff(to_date, from_date) + 1
-	per_day_depr = (flt(depreciable_value) * (flt(fb_row.rate_of_depreciation) / 100)) / total_days
+	per_day_depr = (flt(value_after_depreciation) * (flt(fb_row.rate_of_depreciation) / 100)) / total_days
 	return per_day_depr
 
 

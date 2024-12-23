@@ -419,5 +419,6 @@ def get_expense_accounts(doctype, txt, searchfield, start, page_len, filters):
 	return (
 		frappe.qb.from_(PurchaseInvoiceItem)
 		.select(PurchaseInvoiceItem.expense_account)
+		.distinct()
 		.where(PurchaseInvoiceItem.parent == filters.get("purchase_invoice"))
 	).run(as_list=1)
