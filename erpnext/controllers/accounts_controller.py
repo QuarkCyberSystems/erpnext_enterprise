@@ -1233,7 +1233,7 @@ class AccountsController(TransactionBase):
 		party_account = []
 		default_advance_account = None
 
-		if self.doctype == "Sales Invoice":
+		if self.doctype in ["Sales Invoice", "POS Invoice"]:
 			party_type = "Customer"
 			party = self.customer
 			amount_field = "credit_in_account_currency"
