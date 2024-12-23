@@ -344,7 +344,7 @@ class AssetDepreciationSchedule(Document):
 					date_of_disposal,
 					original_schedule_date=schedule_date,
 				)
-
+				depreciation_amount = flt(depreciation_amount, asset_doc.precision("gross_purchase_amount"))
 				if depreciation_amount > 0:
 					self.add_depr_schedule_row(date_of_disposal, depreciation_amount, n)
 
