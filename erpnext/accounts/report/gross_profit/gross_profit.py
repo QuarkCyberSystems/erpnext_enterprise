@@ -637,6 +637,7 @@ class GrossProfitGenerator:
 				packed_item_row = row.copy()
 				packed_item_row.warehouse = packed_item.warehouse
 				packed_item_row.qty = packed_item.total_qty * -1
+				packed_item_row.serial_and_batch_bundle = packed_item.serial_and_batch_bundle
 				buying_amount += self.get_buying_amount(packed_item_row, packed_item.item_code)
 
 		return flt(buying_amount, self.currency_precision)
@@ -728,6 +729,7 @@ class GrossProfitGenerator:
 					"voucher_no": row.parent,
 					"allow_zero_valuation": True,
 					"company": self.filters.company,
+					"item_code": item_code,
 				}
 			)
 
@@ -997,6 +999,7 @@ class GrossProfitGenerator:
 				"is_return": row.is_return,
 				"cost_center": row.cost_center,
 				"invoice": row.parent,
+				"serial_and_batch_bundle": row.serial_and_batch_bundle,
 			}
 		)
 
@@ -1048,6 +1051,7 @@ class GrossProfitGenerator:
 				pki.rate,
 				(pki.rate * pki.qty).as_("base_amount"),
 				pki.parent_detail_docname,
+				pki.serial_and_batch_bundle,
 			)
 			.where(pki.docstatus == 1)
 		)
