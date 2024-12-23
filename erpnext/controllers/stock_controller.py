@@ -156,7 +156,7 @@ class StockController(AccountsController):
 		from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos
 
 		is_material_issue = False
-		if self.doctype == "Stock Entry" and self.purpose == "Material Issue":
+		if self.doctype == "Stock Entry" and self.purpose in ["Material Issue", "Material Transfer"]:
 			is_material_issue = True
 
 		for d in self.get("items"):

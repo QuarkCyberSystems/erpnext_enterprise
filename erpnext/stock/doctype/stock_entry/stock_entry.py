@@ -2999,16 +2999,44 @@ def get_uom_details(item_code, uom, qty):
 
 @frappe.whitelist()
 def get_expired_batch_items():
-	return frappe.db.sql(
-		"""select b.item, sum(sle.actual_qty) as qty, sle.batch_no, sle.warehouse, sle.stock_uom\
-	from `tabBatch` b, `tabStock Ledger Entry` sle
-	where b.expiry_date <= %s
-	and b.expiry_date is not NULL
-	and b.batch_id = sle.batch_no and sle.is_cancelled = 0
-	group by sle.warehouse, sle.item_code, sle.batch_no""",
-		(nowdate()),
-		as_dict=1,
+	from erpnext.stock.doctype.serial_and_batch_bundle.serial_and_batch_bundle import get_auto_batch_nos
+
+	expired_batches = get_expired_batches()
+	if not expired_batches:
+		return []
+
+	expired_batches_stock = get_auto_batch_nos(
+		frappe._dict(
+			{
+				"batch_no": list(expired_batches.keys()),
+				"for_stock_levels": True,
+			}
+		)
 	)
+
+	for row in expired_batches_stock:
+		row.update(expired_batches.get(row.batch_no))
+
+	return expired_batches_stock
+
+
+def get_expired_batches():
+	batch = frappe.qb.DocType("Batch")
+
+	data = (
+		frappe.qb.from_(batch)
+		.select(batch.item, batch.name.as_("batch_no"), batch.stock_uom)
+		.where((batch.expiry_date <= nowdate()) & (batch.expiry_date.isnotnull()))
+	).run(as_dict=True)
+
+	if not data:
+		return []
+
+	expired_batches = frappe._dict()
+	for row in data:
+		expired_batches[row.batch_no] = row
+
+	return expired_batches
 
 
 @frappe.whitelist()
