@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: info@erpnext.com\n"
 "POT-Creation-Date: 2024-12-22 09:34+0000\n"
-"PO-Revision-Date: 2024-12-23 12:02\n"
+"PO-Revision-Date: 2024-12-24 12:26\n"
 "Last-Translator: info@erpnext.com\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -1367,11 +1367,11 @@ msgstr "ارزش حساب"
 
 #: erpnext/accounts/doctype/account/account.py:293
 msgid "Account balance already in Credit, you are not allowed to set 'Balance Must Be' as 'Debit'"
-msgstr "تراز حساب در حال حاضر اعتبار است، شما مجاز نیستید \"موجودی باید\" را به عنوان \"بدهی\" تنظیم کنید"
+msgstr "تراز حساب در حال حاضر بستانکاری است، شما مجاز نیستید \"موجودی باید\" را به عنوان \"بدهکاری\" تنظیم کنید"
 
 #: erpnext/accounts/doctype/account/account.py:287
 msgid "Account balance already in Debit, you are not allowed to set 'Balance Must Be' as 'Credit'"
-msgstr "موجودی حساب در حال حاضر در Debit است، شما مجاز به تنظیم \"Balance Must Be\" به عنوان \"Credit\" نیستید."
+msgstr "موجودی حساب در حال حاضر در بدهکاری است، شما مجاز به تنظیم \"تراز باید\" به عنوان \"بستانکاری\" نیستید"
 
 #. Label of the account_for_change_amount (Link) field in DocType 'POS Invoice'
 #. Label of the account_for_change_amount (Link) field in DocType 'POS Profile'
@@ -2007,7 +2007,7 @@ msgstr "حساب های دریافتنی"
 #. Discounting'
 #: erpnext/accounts/doctype/invoice_discounting/invoice_discounting.json
 msgid "Accounts Receivable Credit Account"
-msgstr "حساب های دریافتنی حساب اعتباری"
+msgstr "حساب های دریافتنی حساب بستانکار"
 
 #. Label of the accounts_receivable_discounted (Link) field in DocType 'Invoice
 #. Discounting'
@@ -3508,7 +3508,7 @@ msgstr "در مقابل ثبت دفتر روزنامه {0} هیچ ورودی {1}
 
 #: erpnext/accounts/doctype/gl_entry/gl_entry.py:363
 msgid "Against Journal Entry {0} is already adjusted against some other voucher"
-msgstr "در مقابل ثبت دفتر روزنامه {0} قبلاً با کوپن دیگری تنظیم شده است"
+msgstr "در مقابل ثبت دفتر روزنامه {0} قبلاً با سند مالی دیگری تنظیم شده است"
 
 #. Label of the against_sales_invoice (Link) field in DocType 'Delivery Note
 #. Item'
@@ -3546,7 +3546,7 @@ msgstr "در مقابل فاکتور تامین کننده {0}"
 #: erpnext/accounts/doctype/gl_entry/gl_entry.json
 #: erpnext/accounts/report/general_ledger/general_ledger.py:691
 msgid "Against Voucher"
-msgstr "در مقابل کوپن"
+msgstr "در مقابل سند مالی"
 
 #. Label of the against_voucher_no (Dynamic Link) field in DocType 'Advance
 #. Payment Ledger Entry'
@@ -3558,7 +3558,7 @@ msgstr "در مقابل کوپن"
 #: erpnext/accounts/report/payment_ledger/payment_ledger.js:70
 #: erpnext/accounts/report/payment_ledger/payment_ledger.py:186
 msgid "Against Voucher No"
-msgstr "در مقابل کوپن شماره"
+msgstr "در مقابل سند مالی شماره"
 
 #. Label of the against_voucher_type (Link) field in DocType 'Advance Payment
 #. Ledger Entry'
@@ -3571,7 +3571,7 @@ msgstr "در مقابل کوپن شماره"
 #: erpnext/accounts/report/general_ledger/general_ledger.py:689
 #: erpnext/accounts/report/payment_ledger/payment_ledger.py:177
 msgid "Against Voucher Type"
-msgstr "در مقابل نوع کوپن"
+msgstr "در مقابل نوع سند مالی"
 
 #: erpnext/accounts/report/payment_period_based_on_invoice_date/payment_period_based_on_invoice_date.py:113
 #: erpnext/manufacturing/report/work_order_summary/work_order_summary.js:58
@@ -9011,7 +9011,7 @@ msgstr "اگر بر اساس روش پرداخت گروه بندی شود، نم
 
 #: erpnext/accounts/report/general_ledger/general_ledger.py:73
 msgid "Can not filter based on Voucher No, if grouped by Voucher"
-msgstr "اگر بر اساس کوپن گروه بندی شود، نمی توان بر اساس شماره کوپن فیلتر کرد"
+msgstr "اگر بر اساس سند مالی گروه بندی شود، نمی توان بر اساس شماره سند مالی فیلتر کرد"
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.py:1294
 #: erpnext/accounts/doctype/payment_entry/payment_entry.py:2857
@@ -9201,7 +9201,7 @@ msgstr "نمی تواند کارمند را برکناری دهد"
 
 #: erpnext/accounts/doctype/repost_accounting_ledger/repost_accounting_ledger.py:68
 msgid "Cannot Resubmit Ledger entries for vouchers in Closed fiscal year."
-msgstr "نمی‌توان ورودی‌های دفتر کل را برای کوپن‌ها در سال مالی بسته دوباره ارسال کرد."
+msgstr "نمی‌توان ورودی‌های دفتر کل را برای اسناد مالی در سال مالی بسته شده دوباره ارسال کرد."
 
 #: erpnext/stock/doctype/stock_reservation_entry/stock_reservation_entry.py:96
 msgid "Cannot amend {0} {1}, please create a new one instead."
@@ -10248,7 +10248,7 @@ msgstr "بسته شدن"
 #: erpnext/accounts/report/trial_balance/trial_balance.py:452
 #: erpnext/accounts/report/trial_balance_for_party/trial_balance_for_party.py:213
 msgid "Closing (Cr)"
-msgstr "اختتامیه (بستانکاری)"
+msgstr "اختتامیه (بس)"
 
 #: erpnext/accounts/report/trial_balance/trial_balance.py:445
 #: erpnext/accounts/report/trial_balance_for_party/trial_balance_for_party.py:206
@@ -11021,7 +11021,7 @@ msgstr "آدرس صورتحساب شرکت"
 #: erpnext/selling/doctype/sales_order/sales_order.json
 #: erpnext/stock/doctype/delivery_note/delivery_note.json
 msgid "Company Contact Person"
-msgstr ""
+msgstr "شخص تماس شرکت"
 
 #. Label of the company_description (Text Editor) field in DocType 'Company'
 #: erpnext/setup/doctype/company/company.json
@@ -11515,7 +11515,7 @@ msgstr "اتصالات"
 
 #: erpnext/accounts/report/general_ledger/general_ledger.js:172
 msgid "Consider Accounting Dimensions"
-msgstr "ابعاد حسابداری را در نظر بگیرید"
+msgstr "در نظر گرفتن ابعاد حسابداری"
 
 #. Label of the consider_party_ledger_amount (Check) field in DocType 'Tax
 #. Withholding Category'
@@ -11571,7 +11571,7 @@ msgstr "تلفیقی"
 #. Merge Log'
 #: erpnext/accounts/doctype/pos_invoice_merge_log/pos_invoice_merge_log.json
 msgid "Consolidated Credit Note"
-msgstr "یادداشت اعتباری تلفیقی"
+msgstr "یادداشت بستانکاری تلفیقی"
 
 #. Name of a report
 #. Label of a Link in the Financial Reports Workspace
@@ -12564,7 +12564,7 @@ msgstr "به‌روزرسانی خودکار شیفت‌ها ممکن نیست. 
 
 #: erpnext/stock/doctype/delivery_note/delivery_note.py:804
 msgid "Could not create Credit Note automatically, please uncheck 'Issue Credit Note' and submit again"
-msgstr "یادداشت اعتباری به‌طور خودکار ایجاد نشد، لطفاً علامت «صدور یادداشت اعتبار» را بردارید و دوباره ارسال کنید"
+msgstr "یادداشت بستانکاری به‌طور خودکار ایجاد نشد، لطفاً علامت «صدور یادداشت بستانکاری» را بردارید و دوباره ارسال کنید"
 
 #: erpnext/erpnext_integrations/doctype/plaid_settings/plaid_settings.py:353
 msgid "Could not detect the Company for updating Bank Accounts"
@@ -12672,7 +12672,7 @@ msgstr "نوع کوپن"
 #: erpnext/accounts/doctype/bank_clearance/bank_clearance.py:81
 #: erpnext/templates/form_grid/bank_reconciliation_grid.html:16
 msgid "Cr"
-msgstr "بستانکاری"
+msgstr "بس"
 
 #: erpnext/accounts/doctype/account/account_tree.js:209
 #: erpnext/accounts/doctype/account/account_tree.js:216
@@ -13183,26 +13183,26 @@ msgstr ""
 #: erpnext/accounts/report/trial_balance_for_party/trial_balance_for_party.py:199
 #: erpnext/accounts/report/voucher_wise_balance/voucher_wise_balance.py:34
 msgid "Credit"
-msgstr "اعتبار"
+msgstr "بستانکار"
 
 #: erpnext/accounts/report/general_ledger/general_ledger.py:642
 msgid "Credit (Transaction)"
-msgstr "اعتبار (تراکنش)"
+msgstr "بستانکار (تراکنش)"
 
 #: erpnext/accounts/report/general_ledger/general_ledger.py:619
 msgid "Credit ({0})"
-msgstr "اعتبار ({0})"
+msgstr "بستانکار ({0})"
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.js:574
 msgid "Credit Account"
-msgstr "حساب اعتباری"
+msgstr "حساب بستانکار"
 
 #. Label of the credit (Currency) field in DocType 'Account Closing Balance'
 #. Label of the credit (Currency) field in DocType 'GL Entry'
 #: erpnext/accounts/doctype/account_closing_balance/account_closing_balance.json
 #: erpnext/accounts/doctype/gl_entry/gl_entry.json
 msgid "Credit Amount"
-msgstr "مبلغ اعتبار"
+msgstr "مبلغ بستانکار"
 
 #. Label of the credit_in_account_currency (Currency) field in DocType 'Account
 #. Closing Balance'
@@ -13211,17 +13211,17 @@ msgstr "مبلغ اعتبار"
 #: erpnext/accounts/doctype/account_closing_balance/account_closing_balance.json
 #: erpnext/accounts/doctype/gl_entry/gl_entry.json
 msgid "Credit Amount in Account Currency"
-msgstr "مبلغ اعتبار به ارز حساب"
+msgstr "مبلغ بستانکار به ارز حساب"
 
 #. Label of the credit_in_transaction_currency (Currency) field in DocType 'GL
 #. Entry'
 #: erpnext/accounts/doctype/gl_entry/gl_entry.json
 msgid "Credit Amount in Transaction Currency"
-msgstr "مبلغ اعتبار به ارز تراکنش"
+msgstr "مبلغ بستانکار به ارز تراکنش"
 
 #: erpnext/selling/report/customer_credit_balance/customer_credit_balance.py:67
 msgid "Credit Balance"
-msgstr "مانده اعتباری"
+msgstr "تراز بستانکار"
 
 #: erpnext/setup/setup_wizard/operations/install_fixtures.py:241
 msgid "Credit Card"
@@ -13311,12 +13311,12 @@ msgstr "ماه های اعتباری"
 #: erpnext/stock/doctype/delivery_note/delivery_note.js:89
 #: erpnext/stock/doctype/stock_entry/stock_entry.json
 msgid "Credit Note"
-msgstr "یادداشت اعتباری"
+msgstr "یادداشت بستانکاری"
 
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts_accounts_receivable.html:201
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:162
 msgid "Credit Note Amount"
-msgstr "مبلغ یادداشت اعتباری"
+msgstr "مبلغ یادداشت بستانکاری"
 
 #. Option for the 'Status' (Select) field in DocType 'POS Invoice'
 #. Option for the 'Status' (Select) field in DocType 'Sales Invoice'
@@ -13324,7 +13324,7 @@ msgstr "مبلغ یادداشت اعتباری"
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:257
 msgid "Credit Note Issued"
-msgstr "حواله بستانکاری صادر شد"
+msgstr "یادداشت بستانکاری صادر شد"
 
 #. Description of the 'Update Outstanding for Self' (Check) field in DocType
 #. 'Sales Invoice'
@@ -13334,7 +13334,7 @@ msgstr ""
 
 #: erpnext/stock/doctype/delivery_note/delivery_note.py:801
 msgid "Credit Note {0} has been created automatically"
-msgstr "یادداشت اعتباری {0} به طور خودکار ایجاد شده است"
+msgstr "یادداشت بستانکاری {0} به طور خودکار ایجاد شده است"
 
 #. Label of the credit_to (Link) field in DocType 'Purchase Invoice'
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.json
@@ -13342,12 +13342,12 @@ msgstr "یادداشت اعتباری {0} به طور خودکار ایجاد ش
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.py:375
 #: erpnext/controllers/accounts_controller.py:2043
 msgid "Credit To"
-msgstr "اعتبار به"
+msgstr "بستانکار به"
 
 #. Label of the credit (Currency) field in DocType 'Journal Entry Account'
 #: erpnext/accounts/doctype/journal_entry_account/journal_entry_account.json
 msgid "Credit in Company Currency"
-msgstr "اعتبار به ارز شرکت"
+msgstr "بستانکار به ارز شرکت"
 
 #: erpnext/selling/doctype/customer/customer.py:521
 #: erpnext/selling/doctype/customer/customer.py:576
@@ -13365,7 +13365,7 @@ msgstr "به سقف اعتبار مشتری {0} رسیده است"
 #: erpnext/accounts/doctype/account/chart_of_accounts/verified/standard_chart_of_accounts.py:87
 #: erpnext/accounts/doctype/account/chart_of_accounts/verified/standard_chart_of_accounts_with_account_number.py:118
 msgid "Creditors"
-msgstr "طلبکاران"
+msgstr "بستانکاران"
 
 #. Description of the 'Tally Creditors Account' (Data) field in DocType 'Tally
 #. Migration'
@@ -14072,7 +14072,7 @@ msgstr "ایمیل تماس با مشتری"
 #: erpnext/selling/report/customer_credit_balance/customer_credit_balance.json
 #: erpnext/selling/workspace/selling/selling.json
 msgid "Customer Credit Balance"
-msgstr "موجودی اعتبار مشتری"
+msgstr "تراز اعتبار مشتری"
 
 #. Name of a DocType
 #: erpnext/selling/doctype/customer_credit_limit/customer_credit_limit.json
@@ -14883,15 +14883,15 @@ msgstr "مدیر محترم سیستم"
 #: erpnext/accounts/report/trial_balance_for_party/trial_balance_for_party.py:192
 #: erpnext/accounts/report/voucher_wise_balance/voucher_wise_balance.py:27
 msgid "Debit"
-msgstr "بدهی"
+msgstr "بدهکار"
 
 #: erpnext/accounts/report/general_ledger/general_ledger.py:635
 msgid "Debit (Transaction)"
-msgstr "بدهی (تراکنش)"
+msgstr "بدهکار (تراکنش)"
 
 #: erpnext/accounts/report/general_ledger/general_ledger.py:613
 msgid "Debit ({0})"
-msgstr "بدهی ({0})"
+msgstr "بدهکار ({0})"
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.js:564
 msgid "Debit Account"
@@ -14902,7 +14902,7 @@ msgstr "حساب بدهکار"
 #: erpnext/accounts/doctype/account_closing_balance/account_closing_balance.json
 #: erpnext/accounts/doctype/gl_entry/gl_entry.json
 msgid "Debit Amount"
-msgstr "مبلغ بدهی"
+msgstr "مبلغ بدهکار"
 
 #. Label of the debit_in_account_currency (Currency) field in DocType 'Account
 #. Closing Balance'
@@ -14917,7 +14917,7 @@ msgstr "مبلغ بدهکار به ارز حساب"
 #. Entry'
 #: erpnext/accounts/doctype/gl_entry/gl_entry.json
 msgid "Debit Amount in Transaction Currency"
-msgstr "مبلغ بدهی به ارز تراکنش"
+msgstr "مبلغ بدهکار به ارز تراکنش"
 
 #. Option for the 'Entry Type' (Select) field in DocType 'Journal Entry'
 #. Option for the 'Journal Entry Type' (Select) field in DocType 'Journal Entry
@@ -14931,12 +14931,12 @@ msgstr "مبلغ بدهی به ارز تراکنش"
 #: erpnext/setup/setup_wizard/operations/install_fixtures.py:289
 #: erpnext/stock/doctype/purchase_receipt/purchase_receipt.js:61
 msgid "Debit Note"
-msgstr "یادداشت بدهی"
+msgstr "یادداشت بدهکاری"
 
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts_accounts_receivable.html:203
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.html:162
 msgid "Debit Note Amount"
-msgstr "مبلغ یادداشت بدهی"
+msgstr "مبلغ یادداشت بدهکاری"
 
 #. Option for the 'Status' (Select) field in DocType 'Purchase Invoice'
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.json
@@ -14990,11 +14990,11 @@ msgstr ""
 
 #: erpnext/accounts/party.py:572
 msgid "Debtor/Creditor"
-msgstr ""
+msgstr "بدهکار/ بستانکار"
 
 #: erpnext/accounts/party.py:575
 msgid "Debtor/Creditor Advance"
-msgstr ""
+msgstr "پیش پرداخت بدهکار/ بستانکار"
 
 #: erpnext/accounts/doctype/account/chart_of_accounts/verified/standard_chart_of_accounts.py:12
 #: erpnext/accounts/doctype/account/chart_of_accounts/verified/standard_chart_of_accounts_with_account_number.py:13
@@ -16091,7 +16091,7 @@ msgstr "زمان خروج"
 #. Ledger Entry'
 #: erpnext/stock/doctype/stock_ledger_entry/stock_ledger_entry.json
 msgid "Dependant SLE Voucher Detail No"
-msgstr "شماره جزئیات کوپن SLE وابسته"
+msgstr "شماره جزئیات سند مالی SLE وابسته"
 
 #. Label of the sb_depends_on (Section Break) field in DocType 'Task'
 #: erpnext/projects/doctype/task/task.json
@@ -20189,7 +20189,7 @@ msgstr "سال مالی شروع می شود"
 #. 'Accounts Settings'
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 msgid "Financial reports will be generated using GL Entry doctypes (should be enabled if Period Closing Voucher is not posted for all years sequentially or missing) "
-msgstr "گزارش‌های مالی با استفاده از اسناد ثبت دفتر کل ایجاد می‌شوند (اگر کوپن پایان دوره برای همه سال‌ها به‌طور متوالی پست نشده باشد یا مفقود شده باشد، باید فعال شود) "
+msgstr "گزارش‌های مالی با استفاده از اسناد ثبت دفتر کل ایجاد می‌شوند (اگر سند مالی پایان دوره برای همه سال‌ها به‌طور متوالی پست نشده باشد یا مفقود شده باشد، باید فعال شود) "
 
 #: erpnext/manufacturing/doctype/work_order/work_order.js:720
 #: erpnext/manufacturing/doctype/work_order/work_order.js:735
@@ -21281,7 +21281,7 @@ msgstr "از مقدار"
 #. Reservation Entry'
 #: erpnext/stock/doctype/stock_reservation_entry/stock_reservation_entry.json
 msgid "From Voucher Detail No"
-msgstr "از جزئیات کوپن شماره"
+msgstr "از جزئیات سند مالی شماره"
 
 #. Label of the from_voucher_no (Dynamic Link) field in DocType 'Stock
 #. Reservation Entry'
@@ -21289,7 +21289,7 @@ msgstr "از جزئیات کوپن شماره"
 #: erpnext/stock/report/reserved_stock/reserved_stock.js:103
 #: erpnext/stock/report/reserved_stock/reserved_stock.py:164
 msgid "From Voucher No"
-msgstr "از کوپن شماره"
+msgstr "از سند مالی شماره"
 
 #. Label of the from_voucher_type (Select) field in DocType 'Stock Reservation
 #. Entry'
@@ -21297,7 +21297,7 @@ msgstr "از کوپن شماره"
 #: erpnext/stock/report/reserved_stock/reserved_stock.js:92
 #: erpnext/stock/report/reserved_stock/reserved_stock.py:158
 msgid "From Voucher Type"
-msgstr "از نوع کوپن"
+msgstr "از نوع سند مالی"
 
 #. Label of the from_warehouse (Link) field in DocType 'Purchase Invoice Item'
 #. Label of the from_warehouse (Link) field in DocType 'Purchase Order Item'
@@ -22368,14 +22368,14 @@ msgstr "گروه بندی بر اساس تامین کننده"
 #: erpnext/accounts/report/accounts_receivable/accounts_receivable.js:172
 #: erpnext/accounts/report/general_ledger/general_ledger.js:120
 msgid "Group by Voucher"
-msgstr "گروه بندی بر اساس کوپن"
+msgstr "گروه بندی بر اساس سند مالی"
 
 #. Option for the 'Group By' (Select) field in DocType 'Process Statement Of
 #. Accounts'
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.json
 #: erpnext/accounts/report/general_ledger/general_ledger.js:124
 msgid "Group by Voucher (Consolidated)"
-msgstr "گروه بر اساس کوپن (تلفیقی)"
+msgstr "گروه بر اساس سند مالی (تلفیقی)"
 
 #: erpnext/stock/utils.py:430
 msgid "Group node warehouse is not allowed to select for transactions"
@@ -23339,7 +23339,7 @@ msgstr "موجودی خالی را نادیده بگیرید"
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.json
 #: erpnext/accounts/report/general_ledger/general_ledger.js:209
 msgid "Ignore Exchange Rate Revaluation Journals"
-msgstr ""
+msgstr "نادیده گرفتن دفتر روزنامه های تجدید ارزیابی نرخ ارز"
 
 #: erpnext/selling/doctype/sales_order/sales_order.js:976
 msgid "Ignore Existing Ordered Qty"
@@ -23384,7 +23384,7 @@ msgstr "نادیده گرفتن قانون قیمت گذاری فعال است. 
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.json
 #: erpnext/accounts/report/general_ledger/general_ledger.js:214
 msgid "Ignore System Generated Credit / Debit Notes"
-msgstr ""
+msgstr "نادیده گرفتن یادداشت های بستانکاری / بدهکاری ایجاد شده توسط سیستم"
 
 #. Label of the ignore_user_time_overlap (Check) field in DocType 'Projects
 #. Settings'
@@ -23396,7 +23396,7 @@ msgstr "نادیده گرفتن همپوشانی زمان کاربر"
 #. Ledger'
 #: erpnext/accounts/doctype/repost_payment_ledger/repost_payment_ledger.json
 msgid "Ignore Voucher Type filter and Select Vouchers Manually"
-msgstr "فیلتر نوع کوپن را نادیده بگیرید و کوپن ها را به صورت دستی انتخاب کنید"
+msgstr "فیلتر نوع سند مالی را نادیده بگیرید و اسناد مالی را به صورت دستی انتخاب کنید"
 
 #. Label of the ignore_workstation_time_overlap (Check) field in DocType
 #. 'Projects Settings'
@@ -23969,7 +23969,7 @@ msgstr "دارایی های پیش فرض FB را شامل شود"
 #: erpnext/accounts/report/profit_and_loss_statement/profit_and_loss_statement.js:30
 #: erpnext/accounts/report/trial_balance/trial_balance.js:104
 msgid "Include Default FB Entries"
-msgstr "شامل ورودی های پیش فرض FB"
+msgstr "شامل ثبت های پیش فرض دفتر مالی"
 
 #: erpnext/stock/report/stock_ledger_variance/stock_ledger_variance.js:71
 msgid "Include Disabled"
@@ -25502,7 +25502,7 @@ msgstr "متوقف شده"
 #. 'Account Closing Balance'
 #: erpnext/accounts/doctype/account_closing_balance/account_closing_balance.json
 msgid "Is Period Closing Voucher Entry"
-msgstr "ثبت کوپن پایان دوره است"
+msgstr "ثبت سند مالی پایان دوره است"
 
 #. Label of the po_required (Select) field in DocType 'Buying Settings'
 #: erpnext/buying/doctype/buying_settings/buying_settings.json
@@ -25557,12 +25557,12 @@ msgstr "بازگشت است"
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.json
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 msgid "Is Return (Credit Note)"
-msgstr "بازگشتی است (یادداشت اعتباری)"
+msgstr "بازگشتی است (یادداشت بستانکاری)"
 
 #. Label of the is_return (Check) field in DocType 'Purchase Invoice'
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.json
 msgid "Is Return (Debit Note)"
-msgstr "بازگشتی است (یادداشت بدهی)"
+msgstr "بازگشتی است (یادداشت بدهکاری)"
 
 #. Label of the so_required (Select) field in DocType 'Selling Settings'
 #: erpnext/selling/doctype/selling_settings/selling_settings.json
@@ -25682,7 +25682,7 @@ msgstr "تجزیه و تحلیل مشکل"
 #. Label of the issue_credit_note (Check) field in DocType 'Delivery Note'
 #: erpnext/stock/doctype/delivery_note/delivery_note.json
 msgid "Issue Credit Note"
-msgstr "صدور یادداشت اعتباری"
+msgstr "صدور یادداشت بستانکاری"
 
 #. Label of the complaint_date (Date) field in DocType 'Warranty Claim'
 #: erpnext/support/doctype/warranty_claim/warranty_claim.json
@@ -25729,7 +25729,7 @@ msgstr "نوع مشکل"
 #. DocType 'Sales Invoice'
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 msgid "Issue a debit note with 0 qty against an existing Sales Invoice"
-msgstr "در مقابل فاکتور فروش موجود، یک برگه بدهی با مقدار 0 صادر کنید"
+msgstr "در مقابل فاکتور فروش موجود، یک یادداشت بدهکاری با مقدار 0 صادر کنید"
 
 #. Option for the 'Current State' (Select) field in DocType 'Share Balance'
 #. Option for the 'Status' (Select) field in DocType 'Material Request'
@@ -27462,7 +27462,7 @@ msgstr "نوع ثبت دفتر روزنامه باید به عنوان ورود�
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.py:666
 msgid "Journal Entry {0} does not have account {1} or already matched against other voucher"
-msgstr "ثبت دفتر روزنامه {0} دارای حساب {1} نیست یا قبلاً با سایر کوپن مطابقت دارد"
+msgstr "ثبت دفتر روزنامه {0} دارای حساب {1} نیست یا قبلاً با سند مالی دیگری مطابقت دارد"
 
 #: erpnext/accounts/doctype/exchange_rate_revaluation/exchange_rate_revaluation.js:97
 msgid "Journal entries have been created"
@@ -27652,7 +27652,7 @@ msgstr "مالیات و عوارض هزینه تمام شده تا درب انب
 #: erpnext/stock/doctype/purchase_receipt/purchase_receipt.js:104
 #: erpnext/stock/workspace/stock/stock.json
 msgid "Landed Cost Voucher"
-msgstr "کوپن هزینه تمام شده تا درب انبار"
+msgstr "سند مالی هزینه تمام شده تا درب انبار"
 
 #. Label of the landed_cost_voucher_amount (Currency) field in DocType
 #. 'Purchase Invoice Item'
@@ -27661,7 +27661,7 @@ msgstr "کوپن هزینه تمام شده تا درب انبار"
 #: erpnext/accounts/doctype/purchase_invoice_item/purchase_invoice_item.json
 #: erpnext/stock/doctype/purchase_receipt_item/purchase_receipt_item.json
 msgid "Landed Cost Voucher Amount"
-msgstr "مبلغ کوپن هزینه تمام شده تا درب انبار"
+msgstr "مبلغ سند مالی هزینه تمام شده تا درب انبار"
 
 #. Option for the 'Orientation' (Select) field in DocType 'Process Statement Of
 #. Accounts'
@@ -32760,7 +32760,7 @@ msgstr "افتتاحیه و اختتامیه"
 #: erpnext/accounts/report/trial_balance/trial_balance.py:424
 #: erpnext/accounts/report/trial_balance_for_party/trial_balance_for_party.py:185
 msgid "Opening (Cr)"
-msgstr "افتتاحیه (بستانکاری)"
+msgstr "افتتاحیه (بس)"
 
 #: erpnext/accounts/report/trial_balance/trial_balance.py:417
 #: erpnext/accounts/report/trial_balance_for_party/trial_balance_for_party.py:178
@@ -32823,7 +32823,7 @@ msgstr "ثبت افتتاحیه"
 
 #: erpnext/accounts/general_ledger.py:724
 msgid "Opening Entry can not be created after Period Closing Voucher is created."
-msgstr "پس از ایجاد کوپن بسته شدن دوره، ورودی باز نمی تواند ایجاد شود."
+msgstr "پس از ایجاد سند مالی اختتامیه دوره، ثبت افتتاحیه نمی تواند ایجاد شود."
 
 #: erpnext/accounts/doctype/opening_invoice_creation_tool/opening_invoice_creation_tool.py:282
 msgid "Opening Invoice Creation In Progress"
@@ -35756,7 +35756,7 @@ msgstr "تنظیمات اختتامیه دوره"
 #: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.json
 #: erpnext/accounts/workspace/accounting/accounting.json
 msgid "Period Closing Voucher"
-msgstr "کوپن پایان دوره"
+msgstr "سند مالی پایان دوره"
 
 #. Label of the period_details_section (Section Break) field in DocType 'POS
 #. Closing Entry'
@@ -36393,7 +36393,7 @@ msgstr "لطفاً مشتری از سرنخ {0} ایجاد کنید."
 
 #: erpnext/stock/doctype/landed_cost_voucher/landed_cost_voucher.py:117
 msgid "Please create Landed Cost Vouchers against Invoices that have 'Update Stock' enabled."
-msgstr "لطفاً در برابر فاکتورهایی که «به‌روزرسانی موجودی» را فعال کرده‌اند، کوپن‌های هزینه تمام شده تا درب انبار ایجاد کنید."
+msgstr "لطفاً در برابر فاکتورهایی که «به‌روزرسانی موجودی» را فعال کرده‌اند، اسناد مالی هزینه تمام شده تا درب انبار ایجاد کنید."
 
 #: erpnext/accounts/doctype/accounting_dimension/accounting_dimension.py:71
 msgid "Please create a new Accounting Dimension if required."
@@ -38596,7 +38596,7 @@ msgstr "در حال پردازش فروش! لطفا صبر کنید..."
 
 #: erpnext/erpnext_integrations/doctype/tally_migration/tally_migration.py:586
 msgid "Processing Vouchers"
-msgstr "پردازش کوپن ها"
+msgstr "پردازش اسناد مالی"
 
 #: erpnext/regional/doctype/import_supplier_invoice/import_supplier_invoice.py:52
 msgid "Processing XML Files"
@@ -39378,7 +39378,7 @@ msgstr "حساب هزینه موقت"
 #: erpnext/accounts/report/balance_sheet/balance_sheet.py:153
 #: erpnext/accounts/report/balance_sheet/balance_sheet.py:220
 msgid "Provisional Profit / Loss (Credit)"
-msgstr "سود / زیان موقت (اعتبار)"
+msgstr "سود / زیان موقت (بستانکار)"
 
 #. Name of a UOM
 #: erpnext/setup/setup_wizard/data/uom_data.json
@@ -43691,7 +43691,7 @@ msgstr "برگشت"
 
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.js:97
 msgid "Return / Credit Note"
-msgstr "یادداشت برگشتی / اعتباری"
+msgstr "یادداشت برگشتی / بستانکاری"
 
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.js:122
 msgid "Return / Debit Note"
@@ -44415,7 +44415,7 @@ msgstr "ردیف #{0}: مورد {1} یک کالای موجودی نیست"
 
 #: erpnext/accounts/doctype/payment_entry/payment_entry.py:745
 msgid "Row #{0}: Journal Entry {1} does not have account {2} or already matched against another voucher"
-msgstr "ردیف #{0}: ثبت دفتر روزنامه {1} دارای حساب {2} نیست یا قبلاً با کوپن دیگری مطابقت دارد"
+msgstr "ردیف #{0}: ثبت دفتر روزنامه {1} دارای حساب {2} نیست یا قبلاً با سند مالی دیگری مطابقت دارد"
 
 #: erpnext/selling/doctype/sales_order/sales_order.py:567
 msgid "Row #{0}: Not allowed to change Supplier as Purchase Order already exists"
@@ -44758,7 +44758,7 @@ msgstr "ردیف {0}: نوع فعالیت اجباری است."
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.py:617
 msgid "Row {0}: Advance against Customer must be credit"
-msgstr "ردیف {0}: پیش پرداخت در برابر مشتری باید اعتبار باشد"
+msgstr "ردیف {0}: پیش پرداخت در برابر مشتری باید بستانکار باشد"
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.py:619
 msgid "Row {0}: Advance against Supplier must be debit"
@@ -44799,7 +44799,7 @@ msgstr "ردیف {0}: مرکز هزینه برای یک مورد {1} لازم ا
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.py:716
 msgid "Row {0}: Credit entry can not be linked with a {1}"
-msgstr "ردیف {0}: ثبت اعتبار را نمی توان با {1} پیوند داد"
+msgstr "ردیف {0}: ثبت بستانکار را نمی توان با {1} پیوند داد"
 
 #: erpnext/manufacturing/doctype/bom/bom.py:466
 msgid "Row {0}: Currency of the BOM #{1} should be equal to the selected currency {2}"
@@ -46697,7 +46697,7 @@ msgstr ""
 
 #: erpnext/public/js/bank_reconciliation_tool/dialog_manager.js:251
 msgid "Select Vouchers to Match"
-msgstr "کوپن‌ها را برای مطابقت انتخاب کنید"
+msgstr "اسناد مالی را برای مطابقت انتخاب کنید"
 
 #: erpnext/public/js/stock_analytics.js:72
 msgid "Select Warehouse..."
@@ -46846,7 +46846,7 @@ msgstr "لیست قیمت انتخاب شده باید دارای فیلدهای
 #. Ledger'
 #: erpnext/accounts/doctype/repost_payment_ledger/repost_payment_ledger.json
 msgid "Selected Vouchers"
-msgstr "کوپن های انتخاب شده"
+msgstr "اسناد مالی انتخاب شده"
 
 #: erpnext/www/book_appointment/index.html:43
 msgid "Selected date is"
@@ -48454,7 +48454,7 @@ msgstr "نمایش فیلد بارکد در معاملات موجودی"
 
 #: erpnext/accounts/report/general_ledger/general_ledger.js:189
 msgid "Show Cancelled Entries"
-msgstr "نمایش ورودی های لغو شده"
+msgstr "نمایش ثبت های لغو شده"
 
 #: erpnext/templates/pages/projects.js:61
 msgid "Show Completed"
@@ -51775,12 +51775,12 @@ msgstr "شرکت تالی"
 #. Migration'
 #: erpnext/erpnext_integrations/doctype/tally_migration/tally_migration.json
 msgid "Tally Creditors Account"
-msgstr "حساب اعتباردهندگان"
+msgstr "حساب بستانکاران"
 
 #. Label of the tally_debtors_account (Data) field in DocType 'Tally Migration'
 #: erpnext/erpnext_integrations/doctype/tally_migration/tally_migration.json
 msgid "Tally Debtors Account"
-msgstr "حساب بدهکاران"
+msgstr "حساب بدهکاران Tally"
 
 #. Name of a DocType
 #: erpnext/erpnext_integrations/doctype/tally_migration/tally_migration.json
@@ -52346,7 +52346,7 @@ msgstr "نوع مالیات"
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.json
 #: erpnext/accounts/doctype/tax_withheld_vouchers/tax_withheld_vouchers.json
 msgid "Tax Withheld Vouchers"
-msgstr "کوپن های مالیاتی کسر شده"
+msgstr "اسناد مالی مالیات کسر شده"
 
 #: erpnext/accounts/report/tax_withholding_details/tax_withholding_details.py:339
 msgid "Tax Withholding"
@@ -54550,7 +54550,7 @@ msgstr "مجموع (ارز شرکت)"
 #: erpnext/accounts/report/balance_sheet/balance_sheet.py:120
 #: erpnext/accounts/report/balance_sheet/balance_sheet.py:121
 msgid "Total (Credit)"
-msgstr "مجموع (اعتبار)"
+msgstr "مجموع (بستانکار)"
 
 #: erpnext/templates/print_formats/includes/total.html:4
 msgid "Total (Without Tax)"
@@ -54765,7 +54765,7 @@ msgstr "مبلغ کل هزینه (از طریق جدول زمانی)"
 #. Label of the total_credit (Currency) field in DocType 'Journal Entry'
 #: erpnext/accounts/doctype/journal_entry/journal_entry.json
 msgid "Total Credit"
-msgstr "کل اعتبار"
+msgstr "کل بستانکار"
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.py:260
 msgid "Total Credit/ Debit Amount should be same as linked Journal Entry"
@@ -54774,7 +54774,7 @@ msgstr "مجموع مبلغ اعتبار/ بدهی باید مانند ثبت د
 #. Label of the total_debit (Currency) field in DocType 'Journal Entry'
 #: erpnext/accounts/doctype/journal_entry/journal_entry.json
 msgid "Total Debit"
-msgstr "کل بدهی"
+msgstr "کل بدهکاری"
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.py:877
 msgid "Total Debit must be equal to Total Credit. The difference is {0}"
@@ -56095,7 +56095,7 @@ msgstr "رفع انسداد فاکتور"
 #: erpnext/accounts/report/consolidated_financial_statement/consolidated_financial_statement.py:86
 #: erpnext/accounts/report/consolidated_financial_statement/consolidated_financial_statement.py:87
 msgid "Unclosed Fiscal Years Profit / Loss (Credit)"
-msgstr "سود / زیان سالهای مالی بسته نشده (اعتبار)"
+msgstr "سود / زیان سالهای مالی بسته نشده (بستانکار)"
 
 #. Label of the undeposited_funds_account (Link) field in DocType 'QuickBooks
 #. Migrator'
@@ -57423,7 +57423,7 @@ msgstr "از طریق پورتال مشتری"
 #. Valuation'
 #: erpnext/stock/doctype/repost_item_valuation/repost_item_valuation.json
 msgid "Via Landed Cost Voucher"
-msgstr "از طریق کوپن هزینه تمام شده تا درب انبار"
+msgstr "از طریق سند مالی هزینه تمام شده تا درب انبار"
 
 #: erpnext/setup/setup_wizard/data/designation.txt:31
 msgid "Vice President"
@@ -57569,12 +57569,12 @@ msgstr "ولت-آمپر"
 #: erpnext/accounts/report/purchase_register/purchase_register.py:163
 #: erpnext/accounts/report/sales_register/sales_register.py:179
 msgid "Voucher"
-msgstr "کوپن"
+msgstr "سند مالی"
 
 #: erpnext/stock/report/stock_ledger/stock_ledger.js:79
 #: erpnext/stock/report/stock_ledger/stock_ledger.py:322
 msgid "Voucher #"
-msgstr "# کوپن"
+msgstr "# سند مالی"
 
 #. Label of the voucher_detail_no (Data) field in DocType 'GL Entry'
 #. Label of the voucher_detail_no (Data) field in DocType 'Payment Ledger
@@ -57590,13 +57590,13 @@ msgstr "# کوپن"
 #: erpnext/stock/doctype/stock_ledger_entry/stock_ledger_entry.json
 #: erpnext/stock/doctype/stock_reservation_entry/stock_reservation_entry.json
 msgid "Voucher Detail No"
-msgstr "شماره جزئیات کوپن"
+msgstr "شماره جزئیات سند مالی"
 
 #. Label of the voucher_name (Dynamic Link) field in DocType 'Tax Withheld
 #. Vouchers'
 #: erpnext/accounts/doctype/tax_withheld_vouchers/tax_withheld_vouchers.json
 msgid "Voucher Name"
-msgstr "نام کوپن"
+msgstr "نام سند مالی"
 
 #. Label of the voucher_no (Dynamic Link) field in DocType 'Advance Payment
 #. Ledger Entry'
@@ -57653,23 +57653,23 @@ msgstr "نام کوپن"
 #: erpnext/stock/report/stock_ledger_invariant_check/stock_ledger_invariant_check.py:165
 #: erpnext/stock/report/stock_ledger_variance/stock_ledger_variance.py:74
 msgid "Voucher No"
-msgstr "شماره کوپن"
+msgstr "شماره سند مالی"
 
 #: erpnext/stock/doctype/serial_and_batch_bundle/serial_and_batch_bundle.py:998
 msgid "Voucher No is mandatory"
-msgstr ""
+msgstr "شماره سند مالی الزامی است"
 
 #. Label of the voucher_qty (Float) field in DocType 'Stock Reservation Entry'
 #: erpnext/stock/doctype/stock_reservation_entry/stock_reservation_entry.json
 #: erpnext/stock/report/reserved_stock/reserved_stock.py:117
 msgid "Voucher Qty"
-msgstr "مقدار کوپن"
+msgstr "مقدار سند مالی"
 
 #. Label of the voucher_subtype (Small Text) field in DocType 'GL Entry'
 #: erpnext/accounts/doctype/gl_entry/gl_entry.json
 #: erpnext/accounts/report/general_ledger/general_ledger.py:660
 msgid "Voucher Subtype"
-msgstr "زیرنوع کوپن"
+msgstr "زیرنوع سند مالی"
 
 #. Label of the voucher_type (Link) field in DocType 'Advance Payment Ledger
 #. Entry'
@@ -57724,20 +57724,20 @@ msgstr "زیرنوع کوپن"
 #: erpnext/stock/report/stock_ledger_invariant_check/stock_ledger_invariant_check.py:159
 #: erpnext/stock/report/stock_ledger_variance/stock_ledger_variance.py:68
 msgid "Voucher Type"
-msgstr "نوع کوپن"
+msgstr "نوع سند مالی"
 
 #: erpnext/accounts/doctype/bank_transaction/bank_transaction.py:182
 msgid "Voucher {0} is over-allocated by {1}"
-msgstr "کوپن {0} توسط {1} بیش از حد تخصیص داده شده است"
+msgstr "سند مالی {0} توسط {1} بیش از حد تخصیص داده شده است"
 
 #: erpnext/accounts/doctype/bank_transaction/bank_transaction.py:256
 msgid "Voucher {0} value is broken: {1}"
-msgstr "ارزش کوپن {0} خراب است: {1}"
+msgstr "ارزش سند مالی {0} خراب است: {1}"
 
 #. Name of a report
 #: erpnext/accounts/report/voucher_wise_balance/voucher_wise_balance.json
 msgid "Voucher-wise Balance"
-msgstr "تراز مبتنی بر کوپن"
+msgstr "تراز مبتنی بر سند مالی"
 
 #. Label of the vouchers (Table) field in DocType 'Repost Accounting Ledger'
 #. Label of the selected_vouchers_section (Section Break) field in DocType
@@ -57747,7 +57747,7 @@ msgstr "تراز مبتنی بر کوپن"
 #: erpnext/accounts/doctype/repost_payment_ledger/repost_payment_ledger.json
 #: erpnext/erpnext_integrations/doctype/tally_migration/tally_migration.json
 msgid "Vouchers"
-msgstr "کوپن"
+msgstr "اسناد مالی"
 
 #: erpnext/patches/v15_0/remove_exotel_integration.py:32
 msgid "WARNING: Exotel app has been separated from ERPNext, please install the app to continue using Exotel integration."
@@ -59182,7 +59182,7 @@ msgstr "می توانید حساب مادر را به حساب ترازنامه 
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.py:652
 msgid "You can not enter current voucher in 'Against Journal Entry' column"
-msgstr "شما نمی توانید کوپن فعلی را در ستون \"در مقابل ثبت دفتر روزنامه\" وارد کنید"
+msgstr "شما نمی توانید سند مالی فعلی را در ستون \"در مقابل ثبت دفتر روزنامه\" وارد کنید"
 
 #: erpnext/accounts/doctype/subscription/subscription.py:174
 msgid "You can only have Plans with the same billing cycle in a Subscription"
@@ -60235,7 +60235,7 @@ msgstr "{0} {1}: مشتری در مقابل حساب دریافتنی {2} الز
 
 #: erpnext/accounts/doctype/gl_entry/gl_entry.py:154
 msgid "{0} {1}: Either debit or credit amount is required for {2}"
-msgstr "{0} {1}: مبلغ بدهی یا اعتباری برای {2} مورد نیاز است"
+msgstr "{0} {1}: مبلغ بدهکاری یا بستانکاری برای {2} مورد نیاز است"
 
 #: erpnext/accounts/doctype/gl_entry/gl_entry.py:138
 msgid "{0} {1}: Supplier is required against Payable account {2}"
