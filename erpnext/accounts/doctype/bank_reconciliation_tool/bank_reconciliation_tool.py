@@ -480,8 +480,12 @@ def get_linked_payments(
 def subtract_allocations(gl_account, vouchers):
 	"Look up & subtract any existing Bank Transaction allocations"
 	copied = []
+
+	voucher_docs = [(voucher.get("doctype"), voucher.get("name")) for voucher in vouchers]
+	voucher_allocated_amounts = get_total_allocated_amount(voucher_docs)
+
 	for voucher in vouchers:
-		rows = get_total_allocated_amount(voucher.get("doctype"), voucher.get("name"))
+		rows = voucher_allocated_amounts.get((voucher.get("doctype"), voucher.get("name"))) or []
 		filtered_row = list(filter(lambda row: row.get("gl_account") == gl_account, rows))
 
 		if amount := None if not filtered_row else filtered_row[0]["total"]:
