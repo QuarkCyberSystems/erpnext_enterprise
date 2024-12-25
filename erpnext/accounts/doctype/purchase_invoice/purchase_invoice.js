@@ -721,6 +721,14 @@ frappe.ui.form.on("Purchase Invoice", {
 					if (response) frm.set_value("credit_to", response.message);
 				},
 			});
+
+			frappe.call({
+				method: "erpnext.setup.doctype.company.company.get_default_company_address",
+				args: { name: frm.doc.company },
+				callback: (r) => {
+					frm.set_value("billing_address", r.message || "");
+				},
+			});
 		}
 	},
 });
