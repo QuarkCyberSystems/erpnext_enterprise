@@ -938,7 +938,7 @@ class update_entries_after:
 				# else it remains the same as that of previous entry
 				self.wh_data.valuation_rate = new_stock_value / new_stock_qty
 
-		if not self.wh_data.valuation_rate and sle.voucher_detail_no:
+		if self.wh_data.valuation_rate is None and sle.voucher_detail_no:
 			allow_zero_rate = self.check_if_allow_zero_valuation_rate(sle.voucher_type, sle.voucher_detail_no)
 			if not allow_zero_rate:
 				self.wh_data.valuation_rate = self.get_fallback_rate(sle)
