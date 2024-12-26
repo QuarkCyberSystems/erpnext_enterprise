@@ -223,18 +223,17 @@ class InventoryDimension(Document):
 			self.add_transfer_field(self.document_type, dimension_fields)
 			custom_fields.setdefault(self.document_type, dimension_fields)
 
-		if (
-			dimension_fields
-			and not frappe.db.get_value(
-				"Custom Field", {"dt": "Stock Ledger Entry", "fieldname": self.target_fieldname}
-			)
-			and not field_exists("Stock Ledger Entry", self.target_fieldname)
-		):
-			dimension_field = dimension_fields[1]
-			dimension_field["mandatory_depends_on"] = ""
-			dimension_field["reqd"] = 0
-			dimension_field["fieldname"] = self.target_fieldname
-			custom_fields["Stock Ledger Entry"] = dimension_field
+		for dt in ["Stock Ledger Entry", "Stock Closing Balance"]:
+			if (
+				dimension_fields
+				and not frappe.db.get_value("Custom Field", {"dt": dt, "fieldname": self.target_fieldname})
+				and not field_exists(dt, self.target_fieldname)
+			):
+				dimension_field = dimension_fields[1]
+				dimension_field["mandatory_depends_on"] = ""
+				dimension_field["reqd"] = 0
+				dimension_field["fieldname"] = self.target_fieldname
+				custom_fields[dt] = dimension_field
 
 		filter_custom_fields = {}
 		if custom_fields:
@@ -390,8 +389,10 @@ def get_inventory_dimensions():
 				"distinct target_fieldname as fieldname",
 				"reference_document as doctype",
 				"validate_negative_stock",
+				"name as dimension_name",
 			],
 			filters={"disabled": 0},
+			order_by="creation",
 		)
 
 		frappe.local.inventory_dimensions = dimensions
