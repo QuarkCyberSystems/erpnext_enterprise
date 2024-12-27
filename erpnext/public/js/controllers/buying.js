@@ -145,6 +145,18 @@ erpnext.buying = {
 				});
 			}
 
+			company(){
+				if(this.frm.doc.doctype == "Material Request") return;
+
+				frappe.call({
+					method: "erpnext.setup.doctype.company.company.get_default_company_address",
+					args: { name: this.frm.doc.company, existing_address:this.frm.doc.billing_address },
+					callback: (r) => {
+						this.frm.set_value("billing_address", r.message || "");
+					},
+				});
+			}
+
 			supplier_address() {
 				erpnext.utils.get_address_display(this.frm);
 				erpnext.utils.set_taxes_from_address(this.frm, "supplier_address", "supplier_address", "supplier_address");
