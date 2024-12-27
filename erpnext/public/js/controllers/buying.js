@@ -146,7 +146,7 @@ erpnext.buying = {
 			}
 
 			company(){
-				if(this.frm.doc.doctype == "Material Request") return;
+				if(!frappe.meta.has_field(this.frm.doc.doctype, "billing_address")) return;
 
 				frappe.call({
 					method: "erpnext.setup.doctype.company.company.get_default_company_address",
