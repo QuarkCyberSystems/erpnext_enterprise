@@ -809,6 +809,7 @@ def raise_work_orders(material_request):
 				)
 
 				wo_order.set_work_order_operations()
+				wo_order.flags.ignore_validate = True
 				wo_order.flags.ignore_mandatory = True
 				wo_order.save()
 
