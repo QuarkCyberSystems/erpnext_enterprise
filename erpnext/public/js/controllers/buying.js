@@ -25,6 +25,14 @@ erpnext.buying = {
 					};
 				});
 
+				this.frm.set_query("project", function (doc) {
+					return {
+						filters: {
+							company: doc.company,
+						},
+					};
+				});
+
 				if (this.frm.doc.__islocal
 					&& frappe.meta.has_field(this.frm.doc.doctype, "disable_rounded_total")) {
 
