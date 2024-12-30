@@ -159,6 +159,24 @@ class MaterialRequest(BuyingController):
 		self.reset_default_field_value("set_warehouse", "items", "warehouse")
 		self.reset_default_field_value("set_from_warehouse", "items", "from_warehouse")
 
+		self.validate_pp_qty()
+
+	def validate_pp_qty(self):
+		for item in self.items:
+			if item.material_request_plan_item:
+				qty_from_pp = frappe.db.get_value(
+					"Material Request Plan Item",
+					item.material_request_plan_item,
+					["quantity", "requested_qty"],
+					as_dict=1,
+				)
+				if item.qty > (qty_from_pp.quantity - qty_from_pp.requested_qty):
+					frappe.throw(
+						_("Quantity cannot be greater than {0} for Item {1}").format(
+							qty_from_pp.quantity - qty_from_pp.requested_qty, item.item_code
+						)
+					)
+
 	def before_update_after_submit(self):
 		self.validate_schedule_date()
 
@@ -233,7 +251,7 @@ class MaterialRequest(BuyingController):
 				)
 
 	def on_cancel(self):
-		self.update_requested_qty_in_production_plan()
+		self.update_requested_qty_in_production_plan(cancel=True)
 		self.update_requested_qty()
 
 	def get_mr_items_ordered_qty(self, mr_items):
@@ -337,11 +355,14 @@ class MaterialRequest(BuyingController):
 				},
 			)
 
-	def update_requested_qty_in_production_plan(self):
+	def update_requested_qty_in_production_plan(self, cancel=False):
 		production_plans = []
 		for d in self.get("items"):
 			if d.production_plan and d.material_request_plan_item:
-				qty = d.qty if self.docstatus == 1 else 0
+				requested_qty = frappe.get_value(
+					"Material Request Plan Item", d.material_request_plan_item, "requested_qty"
+				)
+				qty = (requested_qty + d.qty) if not cancel else (requested_qty - d.qty)
 				frappe.db.set_value(
 					"Material Request Plan Item", d.material_request_plan_item, "requested_qty", qty
 				)

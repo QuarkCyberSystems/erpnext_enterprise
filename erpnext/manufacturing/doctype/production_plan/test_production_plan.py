@@ -449,10 +449,37 @@ class TestProductionPlan(IntegrationTestCase):
 		self.assertEqual(plan.sub_assembly_items[0].supplier, "_Test Supplier")
 
 	def test_production_plan_for_subcontracting_po(self):
+		from erpnext.controllers.status_updater import OverAllowanceError
 		from erpnext.manufacturing.doctype.bom.test_bom import create_nested_bom
 		from erpnext.subcontracting.doctype.subcontracting_bom.test_subcontracting_bom import (
 			create_subcontracting_bom,
 		)
+
+		def make_purchase_receipt_from_po(po_doc):
+			from erpnext.buying.doctype.purchase_order.purchase_order import make_subcontracting_order
+			from erpnext.controllers.subcontracting_controller import make_rm_stock_entry
+			from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import make_purchase_receipt
+			from erpnext.subcontracting.doctype.subcontracting_order.subcontracting_order import (
+				make_subcontracting_receipt,
+			)
+			from erpnext.subcontracting.doctype.subcontracting_receipt.subcontracting_receipt import (
+				make_purchase_receipt as scr_make_purchase_receipt,
+			)
+
+			sco = make_subcontracting_order(po_doc.name)
+			sco.supplier_warehouse = "Work In Progress - _TC1"
+			sco.items[0].warehouse = "Finished Goods - _TC1"
+			sco.submit()
+			make_purchase_receipt(
+				qty=10,
+				item_code="Test Motherboard Wires 1",
+				company="_Test Company 1",
+				warehouse="Work In Progress - _TC1",
+			).submit()
+			make_rm_stock_entry(sco.name)
+			scr = make_subcontracting_receipt(sco.name)
+			scr.submit()
+			scr_make_purchase_receipt(scr.name).submit()
 
 		fg_item = "Test Motherboard 1"
 		bom_tree_1 = {"Test Laptop 1": {fg_item: {"Test Motherboard Wires 1": {}}}}
@@ -478,7 +505,12 @@ class TestProductionPlan(IntegrationTestCase):
 		)
 
 		plan = create_production_plan(
-			item_code="Test Laptop 1", planned_qty=10, use_multi_level_bom=1, do_not_submit=True
+			item_code="Test Laptop 1",
+			planned_qty=10,
+			use_multi_level_bom=1,
+			do_not_submit=True,
+			company="_Test Company 1",
+			skip_getting_mr_items=True,
 		)
 		plan.get_sub_assembly_items()
 		plan.set_default_supplier_for_subcontracting_order()
@@ -492,9 +524,107 @@ class TestProductionPlan(IntegrationTestCase):
 		self.assertEqual(po_doc.supplier, "_Test Supplier")
 		self.assertEqual(po_doc.items[0].qty, 10.0)
 		self.assertEqual(po_doc.items[0].fg_item_qty, 10.0)
-		self.assertEqual(po_doc.items[0].fg_item_qty, 10.0)
 		self.assertEqual(po_doc.items[0].fg_item, fg_item)
 		self.assertEqual(po_doc.items[0].item_code, service_item)
+
+		po_doc.items[0].qty = 11
+		po_doc.items[0].fg_item_qty = 11
+
+		# Test - 1 : Quantity of item cannot exceed quantity in production plan
+		self.assertRaises(OverAllowanceError, po_doc.submit)
+
+		po_doc.cancel()
+		po_doc = frappe.copy_doc(po_doc)
+		po_doc.items[0].qty = 5
+		po_doc.items[0].fg_item_qty = 5
+		po_doc.submit()
+		make_purchase_receipt_from_po(po_doc)
+
+		plan.make_work_order()
+		po = frappe.db.get_value("Purchase Order Item", {"production_plan": plan.name}, "parent")
+		po_doc = frappe.get_doc("Purchase Order", po)
+
+		# Test - 2 : Quantity of item in new PO should be the available quantity from Production Plan
+		self.assertEqual(po_doc.items[0].qty, 5.0)
+
+		po_doc.submit()
+		plan.make_work_order()
+
+		# Test - 3 : New POs should not be created since the quantity is already fulfilled
+		self.assertEqual(
+			frappe.db.count("Purchase Order Item", {"production_plan": plan.name, "docstatus": 1}), 2
+		)  # 2 since we have already created and submitted 2 POs
+
+	def test_production_plan_for_mr_items(self):
+		from erpnext.manufacturing.doctype.bom.test_bom import create_nested_bom
+
+		def setup_item(fg_item):
+			item_doc = frappe.get_doc("Item", fg_item)
+			company = "_Test Company"
+
+			item_doc.is_sub_contracted_item = 1
+			for row in item_doc.item_defaults:
+				if row.company == company and not row.default_supplier:
+					row.default_supplier = "_Test Supplier"
+
+			if not item_doc.item_defaults:
+				item_doc.append("item_defaults", {"company": company, "default_supplier": "_Test Supplier"})
+
+			item_doc.save()
+
+		fg_item = "Test Motherboard 1"
+		fg_item_2 = "Test CPU 1"
+		bom_tree_1 = {
+			"Test Laptop 1": {fg_item: {"Test Motherboard Wires 1": {}}, fg_item_2: {"Test Pins 1": {}}}
+		}
+		create_nested_bom(bom_tree_1, prefix="")
+
+		setup_item(fg_item)
+		setup_item(fg_item_2)
+
+		plan = create_production_plan(
+			item_code="Test Laptop 1", planned_qty=10, use_multi_level_bom=1, do_not_submit=True
+		)
+		plan.get_sub_assembly_items()
+		plan.set_default_supplier_for_subcontracting_order()
+		plan.submit()
+
+		plan.make_material_request()
+		mr_item = frappe.db.get_value("Material Request Item", {"production_plan": plan.name}, "parent")
+		mr_doc = frappe.get_doc("Material Request", mr_item)
+		mr_doc.submit()
+		plan.reload()
+		plan.make_material_request()
+
+		# Test 1 : No more MRs should be created as quantity from Production Plan is fulfilled
+		self.assertEqual(frappe.db.count("Material Request Item", {"production_plan": plan.name}), 2)
+
+		mr_doc.cancel()
+		plan.reload()
+
+		# Test 2 : Requested quantity should be updated in Production Plan on cancellation of MR
+		self.assertEqual(plan.mr_items[0].requested_qty, 0)
+
+		plan.make_material_request()
+		mr_item = frappe.db.get_value("Material Request Item", {"production_plan": plan.name}, "parent")
+		mr_doc = frappe.get_doc("Material Request", mr_item)
+		mr_doc.items[0].qty = 5
+		mr_doc.submit()
+		plan.reload()
+		plan.make_material_request()
+		mr_item = frappe.db.get_value("Material Request Item", {"production_plan": plan.name}, "parent")
+		mr_doc = frappe.get_doc("Material Request", mr_item)
+
+		# Test 3 : Since Item 2 has been fully requested, it should not be included in the new MR by default
+		self.assertEqual(len(mr_doc.items), 1)
+
+		# Test 4 : Quantity in new MR should be the available quantity from Production Plan
+		self.assertEqual(mr_doc.items[0].qty, 5.0)
+
+		mr_doc.items[0].qty = 6
+
+		# Test 5 : Quantity of item cannot exceed available quantity from Production Plan
+		self.assertRaises(frappe.ValidationError, mr_doc.submit)
 
 	def test_production_plan_combine_subassembly(self):
 		"""
