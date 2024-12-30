@@ -1519,7 +1519,7 @@ class TestPaymentEntry(IntegrationTestCase):
 			parent_account="Current Liabilities - _TC",
 			account_name="Advances Paid",
 			company=company,
-			account_type="Liability",
+			account_type="Payable",
 		)
 
 		frappe.db.set_value(
