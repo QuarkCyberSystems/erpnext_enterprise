@@ -726,7 +726,7 @@ def get_pe_matching_query(
 			(ref_rank + amount_rank + party_rank + 1).as_("rank"),
 			ConstantColumn("Payment Entry").as_("doctype"),
 			pe.name,
-			pe.paid_amount_after_tax.as_("paid_amount"),
+			pe.base_paid_amount_after_tax.as_("paid_amount"),
 			pe.reference_no,
 			pe.reference_date,
 			pe.party,
