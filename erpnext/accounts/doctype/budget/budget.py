@@ -493,16 +493,17 @@ def get_accumulated_monthly_budget(monthly_distribution, posting_date, fiscal_ye
 		mdp = frappe.qb.DocType("Monthly Distribution Percentage")
 		md = frappe.qb.DocType("Monthly Distribution")
 
-		query = (
+		res = (
 			frappe.qb.from_(mdp)
 			.join(md)
 			.on(mdp.parent == md.name)
 			.select(mdp.month, mdp.percentage_allocation)
 			.where(md.fiscal_year == fiscal_year)
 			.where(md.name == monthly_distribution)
+			.run(as_dict=True)
 		)
 
-		for d in query.run(as_dict=True):
+		for d in res:
 			distribution.setdefault(d.month, d.percentage_allocation)
 
 	dt = frappe.get_cached_value("Fiscal Year", fiscal_year, "year_start_date")
