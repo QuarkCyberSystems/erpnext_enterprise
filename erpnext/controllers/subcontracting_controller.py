@@ -104,7 +104,7 @@ class SubcontractingController(StockController):
 					)
 
 				if (
-					not item.sc_conversion_factor
+					self.doctype == "Subcontracting Order" and not item.sc_conversion_factor
 				):  # this condition will only be true if user has recently updated from develop branch
 					service_item_qty = frappe.get_value(
 						"Subcontracting Order Service Item",
