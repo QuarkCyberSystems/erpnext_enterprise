@@ -19,6 +19,7 @@ from frappe.utils import (
 )
 
 import erpnext
+from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import get_dimensions
 from erpnext.accounts.general_ledger import make_reverse_gl_entries
 from erpnext.assets.doctype.asset.depreciation import (
 	get_comma_separated_links,
@@ -888,6 +889,7 @@ def get_asset_naming_series():
 
 @frappe.whitelist()
 def make_sales_invoice(asset, item_code, company, serial_no=None):
+	asset_doc = frappe.get_doc("Asset", asset)
 	si = frappe.new_doc("Sales Invoice")
 	si.company = company
 	si.currency = frappe.get_cached_value("Company", company, "default_currency")
@@ -904,6 +906,16 @@ def make_sales_invoice(asset, item_code, company, serial_no=None):
 			"qty": 1,
 		},
 	)
+
+	accounting_dimensions = get_dimensions(with_cost_center_and_project=True)
+	for dimension in accounting_dimensions[0]:
+		si.update(
+			{
+				dimension["fieldname"]: asset_doc.get(dimension["fieldname"])
+				or dimension.get("default_dimension")
+			}
+		)
+
 	si.set_missing_values()
 	return si
 
