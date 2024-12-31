@@ -18,10 +18,11 @@ def execute(filters=None):
 
 	columns = get_columns(filters)
 	data = get_data(filters)
-	update_received_amount(data)
 
 	if not data:
 		return [], [], None, []
+
+	update_received_amount(data)
 
 	data, chart_data = prepare_data(data, filters)
 
