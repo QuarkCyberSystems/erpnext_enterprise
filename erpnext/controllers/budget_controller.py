@@ -1,11 +1,15 @@
 from collections import OrderedDict
 
 import frappe
-from frappe import qb
+from frappe import _, qb
 from frappe.query_builder import Criterion
 from frappe.query_builder.functions import IfNull, Sum
 
 from erpnext.accounts.utils import get_fiscal_year
+
+
+class BudgetExceededError(frappe.ValidationError):
+	pass
 
 
 class BudgetValidation:
@@ -104,6 +108,7 @@ class BudgetValidation:
 			self.to_validate[key] = OrderedDict(
 				{
 					"budget_amount": self.budget_map[key].budget_amount,
+					"budget_doc": self.budget_map[key],
 					"items_to_process": self.doc_or_item_map[key],
 					"requested_amount": 0,
 					"ordered_amount": 0,
@@ -179,18 +184,31 @@ class BudgetValidation:
 			if requested_amount:
 				self.to_validate[key]["requested_amount"] = requested_amount[0].amount
 
+	def stop_or_warn(self, validation_map):
+		msg = []
+		if validation_map.get("budget_doc").applicable_on_purchase_order and validation_map.get(
+			"ordered_amount"
+		) > validation_map.get("budget_amount"):
+			# TODO: handle monthly accumulation
+			# action_if_accumulated_monthly_budget_exceeded_on_po,
+			if validation_map.get("budget_doc").action_if_annual_budget_exceeded_on_po == "Warn":
+				msg.append("some warning message")
+
+			if validation_map.get("budget_doc").action_if_annual_budget_exceeded_on_po == "Stop":
+				frappe.throw("Booking gone above budget", BudgetExceededError, title=_("Budget Exceeded"))
+
 	def validate_for_overbooking(self):
-		# TODO: Need to fetch historical amount and add them to the current document
+		# TODO: Need to fetch historical amount and add them to the current document; GL effect is pending
 		# TODO: handle applicable checkboxes
-		for k, v in self.to_validate.items():
+		for key, v in self.to_validate.items():
 			# Amt from current Purchase Order is included in `self.ordered_amount` as doc is
 			# in submitted status by the time the validation occurs
 			if self.doc.doctype == "Purchase Order":
-				self.get_ordered_amount(k)
+				self.get_ordered_amount(key)
 
 			if self.doc.doctype == "Material Request":
-				self.get_requested_amount(k)
+				self.get_requested_amount(key)
+
+			self.stop_or_warn(v)
 
 			v["current_amount"] = sum([x.amount for x in v.get("items_to_process")])
-
-		print(self.to_validate)
