@@ -104,6 +104,16 @@ class SubcontractingController(StockController):
 					)
 
 				if (
+					self.doctype == "Subcontracting Order" and not item.sc_conversion_factor
+				):  # this condition will only be true if user has recently updated from develop branch
+					service_item_qty = frappe.get_value(
+						"Subcontracting Order Service Item",
+						filters={"purchase_order_item": item.purchase_order_item, "parent": self.name},
+						fieldname=["qty"],
+					)
+					item.sc_conversion_factor = service_item_qty / item.qty
+
+				if (
 					self.doctype not in "Subcontracting Receipt"
 					and item.qty
 					> flt(get_pending_sco_qty(self.purchase_order).get(item.purchase_order_item))
