@@ -105,6 +105,8 @@ class BudgetValidation:
 				{
 					"budget_amount": self.budget_map[key].budget_amount,
 					"items_to_process": self.doc_or_item_map[key],
+					"requested_amount": 0,
+					"ordered_amount": 0,
 				}
 			)
 
@@ -116,9 +118,6 @@ class BudgetValidation:
 
 	def get_ordered_amount(self, key: tuple | None = None):
 		if key:
-			# Initialize
-			self.to_validate[key]["ordered_amount"] = 0
-
 			items = set([x.item_code for x in self.doc.items])
 			exp_accounts = set([x.expense_account for x in self.doc.items])
 
@@ -128,11 +127,11 @@ class BudgetValidation:
 			conditions = []
 			conditions.append(po.company.eq(self.company))
 			conditions.append(po.docstatus.eq(1))
+			conditions.append(po.status.ne("Closed"))
+			conditions.append(po.transaction_date[self.fy_start_date : self.fy_end_date])
 			conditions.append(poi.amount.gt(poi.billed_amt))
 			conditions.append(poi.expense_account.isin(exp_accounts))
 			conditions.append(poi.item_code.isin(items))
-			conditions.append(po.status.ne("Closed"))
-			conditions.append(po.transaction_date[self.fy_start_date : self.fy_end_date])
 
 			# key structure - (dimension_type, dimension, GL account)
 			conditions.append(poi[key[0]].eq(key[1]))
@@ -146,18 +145,51 @@ class BudgetValidation:
 				.run(as_dict=True)
 			)
 			if ordered_amount:
-				self.to_validate[key]["ordered_amount"] = 0
+				self.to_validate[key]["ordered_amount"] = ordered_amount[0].amount
+
+	def get_requested_amount(self, key: tuple | None = None):
+		if key:
+			items = set([x.item_code for x in self.doc.items])
+			exp_accounts = set([x.expense_account for x in self.doc.items])
+
+			mr = qb.DocType("Material Request")
+			mri = qb.DocType("Material Request Item")
+
+			conditions = []
+			conditions.append(mr.company.eq(self.company))
+			conditions.append(mr.docstatus.eq(1))
+			conditions.append(mr.material_request_type.eq("Purchase"))
+			conditions.append(mr.status.ne("Stopped"))
+			conditions.append(mr.transaction_date[self.fy_start_date : self.fy_end_date])
+			conditions.append(mri.amount.gt(mri.billed_amt))
+			conditions.append(mri.expense_account.isin(exp_accounts))
+			conditions.append(mri.item_code.isin(items))
+
+			# key structure - (dimension_type, dimension, GL account)
+			conditions.append(mri[key[0]].eq(key[1]))
+
+			requested_amount = (
+				qb.from_(mr)
+				.inner_join(mri)
+				.on(mr.name == mri.parent)
+				.select((Sum(IfNull(mri.stock_qty, 0) - IfNull(mri.ordered_qty, 0)) * mri.rate).as_("amount"))
+				.where(Criterion.all(conditions))
+				.run(as_dict=True)
+			)
+			if requested_amount:
+				self.to_validate[key]["requested_amount"] = requested_amount[0].amount
 
 	def validate_for_overbooking(self):
 		# TODO: Need to fetch historical amount and add them to the current document
 		# TODO: handle applicable checkboxes
-		self.ordered_amount = frappe._dict()
-
 		for k, v in self.to_validate.items():
 			# Amt from current Purchase Order is included in `self.ordered_amount` as doc is
 			# in submitted status by the time the validation occurs
 			if self.doc.doctype == "Purchase Order":
 				self.get_ordered_amount(k)
+
+			if self.doc.doctype == "Material Request":
+				self.get_requested_amount(k)
 
 			v["current_amount"] = sum([x.amount for x in v.get("items_to_process")])
 
