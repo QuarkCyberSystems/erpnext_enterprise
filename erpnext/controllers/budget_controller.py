@@ -2,6 +2,8 @@ from collections import OrderedDict
 
 import frappe
 from frappe import qb
+from frappe.query_builder import Criterion
+from frappe.query_builder.functions import IfNull, Sum
 
 from erpnext.accounts.utils import get_fiscal_year
 
@@ -94,7 +96,7 @@ class BudgetValidation:
 					self.doc_or_item_map.setdefault(key, []).append(itm)
 		self.doc_or_item_keys = self.doc_or_item_map.keys()
 
-	def build_to_validate_map(self):
+	def build_validation_map(self):
 		self.overlap = self.budget_keys & self.doc_or_item_keys
 		self.to_validate = OrderedDict()
 
@@ -109,36 +111,54 @@ class BudgetValidation:
 	def validate(self):
 		self.build_budget_keys_and_map()
 		self.build_doc_or_item_keys_and_map()
-		self.build_to_validate_map()
+		self.build_validation_map()
 		self.validate_for_overbooking()
 
-	def get_ordered_amount(self):
-		items = set([x.item_code for x in self.doc.items])
-		exp_accounts = set([x.expense_account for x in self.doc.items])
+	def get_ordered_amount(self, key: tuple | None = None):
+		if key:
+			# Initialize
+			self.to_validate[key]["ordered_amount"] = 0
 
-		po = qb.DocType("Purchase Order")
-		poi = qb.DocType("Purchase Order Item")
+			items = set([x.item_code for x in self.doc.items])
+			exp_accounts = set([x.expense_account for x in self.doc.items])
 
-		query = (
-			qb.from_(po)
-			.inner_join(poi)
-			.on(po.name == poi.parent)
-			.select(po.name)
-			.where(
-				po.docstatus.eq(1)
-				& (poi.amount > poi.billed_amt)
-				& po.status.ne("Closed")
-				& poi.item_code.isin(items)
-				& poi.expense_account.isin(exp_accounts)
-				& po.transaction_date[self.fy_start_date : self.fy_end_date]
+			po = qb.DocType("Purchase Order")
+			poi = qb.DocType("Purchase Order Item")
+
+			conditions = []
+			conditions.append(po.company.eq(self.company))
+			conditions.append(po.docstatus.eq(1))
+			conditions.append(poi.amount.gt(poi.billed_amt))
+			conditions.append(poi.expense_account.isin(exp_accounts))
+			conditions.append(poi.item_code.isin(items))
+			conditions.append(po.status.ne("Closed"))
+			conditions.append(po.transaction_date[self.fy_start_date : self.fy_end_date])
+
+			# key structure - (dimension_type, dimension, GL account)
+			conditions.append(poi[key[0]].eq(key[1]))
+
+			ordered_amount = (
+				qb.from_(po)
+				.inner_join(poi)
+				.on(po.name == poi.parent)
+				.select(Sum(IfNull(poi.amount, 0) - IfNull(poi.billed_amt, 0)).as_("amount"))
+				.where(Criterion.all(conditions))
+				.run(as_dict=True)
 			)
-		)
-		print("Query:", query)
+			if ordered_amount:
+				self.to_validate[key]["ordered_amount"] = 0
 
 	def validate_for_overbooking(self):
 		# TODO: Need to fetch historical amount and add them to the current document
 		# TODO: handle applicable checkboxes
-		for v in self.to_validate.values():
+		self.ordered_amount = frappe._dict()
+
+		for k, v in self.to_validate.items():
+			# Amt from current Purchase Order is included in `self.ordered_amount` as doc is
+			# in submitted status by the time the validation occurs
+			if self.doc.doctype == "Purchase Order":
+				self.get_ordered_amount(k)
+
 			v["current_amount"] = sum([x.amount for x in v.get("items_to_process")])
 
-		self.get_ordered_amount()
+		print(self.to_validate)

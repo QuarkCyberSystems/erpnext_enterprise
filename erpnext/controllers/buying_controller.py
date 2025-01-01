@@ -775,6 +775,12 @@ class BuyingController(SubcontractingController):
 			self.update_fixed_asset(field, delete_asset=True)
 
 	def validate_budget(self):
+		from erpnext.controllers.budget_controller import BudgetValidation
+
+		val = BudgetValidation(self)
+		val.validate()
+		return
+
 		if self.docstatus == 1:
 			for data in self.get("items"):
 				args = data.as_dict()

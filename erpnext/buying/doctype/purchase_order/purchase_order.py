@@ -481,12 +481,6 @@ class PurchaseOrder(BuyingController):
 		self.notify_update()
 		clear_doctype_notifications(self)
 
-	def validate_budget(self):
-		from erpnext.controllers.budget_controller import BudgetValidation
-		val = BudgetValidation(self)
-		val.validate()
-		frappe.throw("stop")
-
 	def on_submit(self):
 		super().on_submit()
 
