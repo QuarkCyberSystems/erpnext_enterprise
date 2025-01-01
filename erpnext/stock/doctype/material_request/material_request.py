@@ -162,18 +162,23 @@ class MaterialRequest(BuyingController):
 		self.validate_pp_qty()
 
 	def validate_pp_qty(self):
-		for item in self.items:
-			if item.material_request_plan_item:
-				qty_from_pp = frappe.db.get_value(
-					"Material Request Plan Item",
-					item.material_request_plan_item,
-					["quantity", "requested_qty"],
-					as_dict=1,
-				)
-				if item.qty > (qty_from_pp.quantity - qty_from_pp.requested_qty):
+		items_from_pp = [item for item in self.items if item.material_request_plan_item]
+		if items_from_pp:
+			items_mr_plan_items = [item.material_request_plan_item for item in items_from_pp]
+			table = frappe.qb.DocType("Material Request Plan Item")
+			query = (
+				frappe.qb.from_(table)
+				.select(table.name, (table.quantity - table.requested_qty).as_("available_qty"))
+				.where(table.name.isin(items_mr_plan_items))
+			)
+			result = query.run(as_dict=True)
+
+			for item in items_from_pp:
+				row = next(r for r in result if r.name == item.material_request_plan_item)
+				if item.qty > row.available_qty:
 					frappe.throw(
 						_("Quantity cannot be greater than {0} for Item {1}").format(
-							qty_from_pp.quantity - qty_from_pp.requested_qty, item.item_code
+							row.available_qty, item.item_code
 						)
 					)
 

@@ -116,7 +116,7 @@ def get_production_plan_sub_assembly_item_details(filters, row, production_plan_
 					"pending_qty": flt(item.qty)
 					- flt(order_details.get((docname, item.production_item), {}).get("produced_qty", 0)),
 				}
-				if data[-1] and data[-1]["indent"] == data_to_append["indent"]:
+				if data[-1] and data[-1]["item_code"] == item.production_item:
 					data_to_append["pending_qty"] = data[-1]["pending_qty"] - data_to_append["produced_qty"]
 				data.append(data_to_append)
 
@@ -124,7 +124,7 @@ def get_production_plan_sub_assembly_item_details(filters, row, production_plan_
 def get_work_order_details(filters, order_details):
 	for row in frappe.get_all(
 		"Work Order",
-		filters={"production_plan": filters.get("production_plan")},
+		filters={"production_plan": filters.get("production_plan"), "docstatus": 1},
 		fields=["name", "produced_qty", "production_plan", "production_item", "sales_order"],
 	):
 		order_details.setdefault((row.name, row.production_item), row)
@@ -133,11 +133,11 @@ def get_work_order_details(filters, order_details):
 def get_purchase_order_details(filters, order_details):
 	for row in frappe.get_all(
 		"Purchase Order Item",
-		filters={"production_plan": filters.get("production_plan")},
-		fields=["parent", "received_qty as produced_qty", "item_code", "fg_item", "fg_item_qty"],
+		filters={"production_plan": filters.get("production_plan"), "docstatus": 1},
+		fields=["parent", "qty", "received_qty as produced_qty", "item_code", "fg_item", "fg_item_qty"],
 	):
 		if row.fg_item:
-			row.produced_qty /= row.produced_qty / row.fg_item_qty or 1
+			row.produced_qty /= row.qty / row.fg_item_qty or 1
 		order_details.setdefault((row.parent, row.fg_item or row.item_code), row)
 
 

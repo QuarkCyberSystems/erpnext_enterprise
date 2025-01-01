@@ -789,23 +789,10 @@ class ProductionPlan(Document):
 			items_to_remove = defaultdict(list)
 			for supplier, items in subcontracted_po.items():
 				for item in items:
-					table = frappe.qb.DocType("Purchase Order Item")
-					total_received_qty = (
-						frappe.qb.from_(table)
-						.select(
-							Sum(table.received_qty / (table.received_qty / table.fg_item_qty)).as_(
-								"total_received_qty"
-							)
-						)
-						.where(
-							(table.production_plan_sub_assembly_item == item.name) & (table.docstatus == 1)
-						)
-					).run(as_dict=True)[0].total_received_qty or 0
-
-					if item.qty == total_received_qty:
+					if item.qty == item.received_qty:
 						items_to_remove[supplier].append(item)
-					elif total_received_qty:
-						item.qty -= total_received_qty
+					elif item.received_qty:
+						item.qty -= item.received_qty
 
 				subcontracted_po[supplier] = [item for item in items if item not in items_to_remove[supplier]]
 
