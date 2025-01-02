@@ -201,19 +201,19 @@ class StatusUpdater(Document):
 		Get the status of the document.
 
 		Returns:
-		                                dict: A dictionary containing the status. This allows callers to receive
-		                                a dictionary for efficient bulk updates, for example when `per_billed`
-		                                and other status fields also need to be updated.
+		dict: A dictionary containing the status. This allows callers to receive
+		a dictionary for efficient bulk updates, for example when `per_billed`
+		and other status fields also need to be updated.
 
 		Note:
-		                                Can be overriden on a doctype to implement more localized status updater logic.
+		Can be overriden on a doctype to implement more localized status updater logic.
 
 		Example:
-		                                {
-		                                                                "status": "Draft",
-		                                                                "per_billed": 50,
-		                                                                "billing_status": "Partly Billed"
-		                                }
+		{
+		"status": "Draft",
+		"per_billed": 50,
+		"billing_status": "Partly Billed"
+		}
 		"""
 		if self.doctype not in status_map:
 			return {"status": self.status}
