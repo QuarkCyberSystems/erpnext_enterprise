@@ -385,39 +385,36 @@ class PurchaseReceipt(BuyingController):
 		self.reserve_stock_for_sales_order()
 		self.update_received_qty_if_from_pp()
 
-	def update_received_qty_if_from_pp(self, cancel=False):
+	def update_received_qty_if_from_pp(self):
 		from frappe.query_builder.functions import Sum
 
-		items_with_po_item = [item for item in self.items if item.purchase_order_item]
-		if items_with_po_item:
-			po_items = [item.purchase_order_item for item in items_with_po_item]
+		items_from_po = [item.purchase_order_item for item in self.items if item.purchase_order_item]
+		if items_from_po:
 			table = frappe.qb.DocType("Purchase Order Item")
-			query = (
+			subquery = (
 				frappe.qb.from_(table)
-				.select(
-					table.name,
-					(table.qty / table.fg_item_qty).as_("sc_conversion_factor"),
-					table.production_plan_sub_assembly_item,
-					Sum(table.received_qty).as_("received_qty"),
-				)
-				.where(table.name.isin(po_items))
-				.groupby(table.name)
+				.select(table.production_plan_sub_assembly_item)
+				.distinct()
+				.where(table.name.isin(items_from_po) & table.production_plan_sub_assembly_item.isnotnull())
 			)
-			result = query.run(as_dict=True)
-
-			for item in items_with_po_item:
-				row = next(d for d in result if d.name == item.purchase_order_item)
-				if row.production_plan_sub_assembly_item:
-					received_qty = (
-						(row.received_qty + (item.qty / row.sc_conversion_factor))
-						if not cancel
-						else (row.received_qty - (item.qty / row.sc_conversion_factor))
+			result = subquery.run(as_dict=True)
+			if result:
+				result = [item.production_plan_sub_assembly_item for item in result]
+				query = (
+					frappe.qb.from_(table)
+					.select(
+						table.production_plan_sub_assembly_item,
+						Sum(table.received_qty / (table.qty / table.fg_item_qty)).as_("received_qty"),
 					)
+					.where(table.production_plan_sub_assembly_item.isin(result))
+					.groupby(table.production_plan_sub_assembly_item)
+				)
+				for row in query.run(as_dict=True):
 					frappe.set_value(
 						"Production Plan Sub Assembly Item",
 						row.production_plan_sub_assembly_item,
 						"received_qty",
-						received_qty,
+						row.received_qty,
 					)
 
 	def check_next_docstatus(self):
@@ -460,7 +457,7 @@ class PurchaseReceipt(BuyingController):
 		)
 		self.delete_auto_created_batches()
 		self.set_consumed_qty_in_subcontract_order()
-		self.update_received_qty_if_from_pp(cancel=True)
+		self.update_received_qty_if_from_pp()
 
 	def get_gl_entries(self, warehouse_account=None, via_landed_cost_voucher=False):
 		from erpnext.accounts.general_ledger import process_gl_map

@@ -540,6 +540,7 @@ class TestProductionPlan(IntegrationTestCase):
 		po_doc.submit()
 		make_purchase_receipt_from_po(po_doc)
 
+		plan.reload()
 		plan.make_work_order()
 		po = frappe.db.get_value("Purchase Order Item", {"production_plan": plan.name}, "parent")
 		po_doc = frappe.get_doc("Purchase Order", po)
