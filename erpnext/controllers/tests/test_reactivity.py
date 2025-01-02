@@ -56,7 +56,7 @@ class TestReactivity(AccountsTestMixin, IntegrationTestCase):
 		)
 		itm = si.append("items")
 		itm.item_code = self.item
-		si.process_item_selection(si.items[0].name)
+		si.process_item_selection(itm.idx)
 		self.assertEqual(itm.rate, 90)
 
 		df = qb.DocType("DocField")
