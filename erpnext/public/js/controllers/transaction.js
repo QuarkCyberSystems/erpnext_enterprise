@@ -837,7 +837,6 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 	}
 
 	validate() {
-		this.apply_pricing_rule()
 		this.calculate_taxes_and_totals(false);
 	}
 
