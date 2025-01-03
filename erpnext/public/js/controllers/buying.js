@@ -158,7 +158,11 @@ erpnext.buying = {
 
 				frappe.call({
 					method: "erpnext.setup.doctype.company.company.get_billing_shipping_address",
-					args: { name: this.frm.doc.company, existing_address:this.frm.doc.billing_address },
+					args: {
+						name: this.frm.doc.company,
+						billing_address:this.frm.doc.billing_address,
+						shipping_address: this.frm.doc.shipping_address
+					},
 					callback: (r) => {
 						this.frm.set_value("billing_address", r.message.primary_address || "");
 
