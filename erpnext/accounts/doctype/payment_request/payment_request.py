@@ -221,6 +221,7 @@ class PaymentRequest(Document):
 			sender=self.email_to,
 			currency=self.currency,
 			payment_gateway=self.payment_gateway,
+			phone_number=self.phone_number,
 		)
 
 		controller.validate_transaction_currency(self.currency)
@@ -643,6 +644,7 @@ def make_payment_request(**args):
 					or args.order_type == "Shopping Cart"  # compat for webshop app
 					or gateway_account.get("payment_channel", "Email") != "Email"
 				),
+				"phone_number": args.get("phone_number") if args.get("phone_number") else None,
 			}
 		)
 
