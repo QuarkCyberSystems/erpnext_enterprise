@@ -178,6 +178,7 @@ class TestStockAgeing(IntegrationTestCase):
 				name="Flask Item",
 				actual_qty=0,
 				qty_after_transaction=1000,
+				stock_value_difference=2000,
 				warehouse="WH 1",
 				posting_date="2021-12-01",
 				voucher_type="Stock Reconciliation",
@@ -189,6 +190,7 @@ class TestStockAgeing(IntegrationTestCase):
 				name="Flask Item",
 				actual_qty=0,
 				qty_after_transaction=400,
+				stock_value_difference=(-1200),
 				warehouse="WH 1",
 				posting_date="2021-12-02",
 				voucher_type="Stock Reconciliation",
@@ -200,6 +202,7 @@ class TestStockAgeing(IntegrationTestCase):
 				name="Flask Item",
 				actual_qty=(-10),
 				qty_after_transaction=390,
+				stock_value_difference=(-20),
 				warehouse="WH 1",
 				posting_date="2021-12-03",
 				voucher_type="Stock Entry",
@@ -216,6 +219,7 @@ class TestStockAgeing(IntegrationTestCase):
 		self.assertEqual(result["qty_after_transaction"], result["total_qty"])
 		self.assertEqual(result["total_qty"], 390.0)
 		self.assertEqual(queue[0][0], 390.0)
+		self.assertEqual(queue[0][2], 780)
 
 	def test_sequential_stock_reco_different_warehouse(self):
 		"""
