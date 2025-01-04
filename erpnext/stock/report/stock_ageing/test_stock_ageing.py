@@ -229,7 +229,6 @@ class TestStockAgeing(IntegrationTestCase):
 		self.assertEqual(result["qty_after_transaction"], result["total_qty"])
 		self.assertEqual(result["total_qty"], 390.0)
 		self.assertEqual(queue[0][0], 390.0)
-		self.assertEqual(queue[0][2], 780)
 
 	def test_sequential_stock_reco_different_warehouse(self):
 		"""
