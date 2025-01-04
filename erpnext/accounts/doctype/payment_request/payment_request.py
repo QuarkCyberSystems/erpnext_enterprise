@@ -81,6 +81,7 @@ class PaymentRequest(Document):
 		payment_order: DF.Link | None
 		payment_request_type: DF.Literal["Outward", "Inward"]
 		payment_url: DF.Data | None
+		phone_number: DF.Data | None
 		print_format: DF.Literal[None]
 		project: DF.Link | None
 		reference_doctype: DF.Link | None
