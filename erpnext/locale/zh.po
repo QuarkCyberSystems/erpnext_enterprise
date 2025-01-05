@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: info@erpnext.com\n"
-"POT-Creation-Date: 2024-12-29 09:34+0000\n"
-"PO-Revision-Date: 2024-12-29 14:16\n"
+"POT-Creation-Date: 2025-01-05 09:35+0000\n"
+"PO-Revision-Date: 2025-01-05 15:06\n"
 "Last-Translator: info@erpnext.com\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -253,11 +253,11 @@ msgstr "“开始日期”必须晚于“结束日期”"
 msgid "'Has Serial No' can not be 'Yes' for non-stock item"
 msgstr "非库存商品的“是否有序列号”不能为“是”"
 
-#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:92
+#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:151
 msgid "'Inspection Required before Delivery' has disabled for the item {0}, no need to create the QI"
 msgstr ""
 
-#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:83
+#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:142
 msgid "'Inspection Required before Purchase' has disabled for the item {0}, no need to create the QI"
 msgstr ""
 
@@ -1061,7 +1061,7 @@ msgstr ""
 
 #. Label of the qty (Float) field in DocType 'Purchase Receipt Item'
 #. Label of the qty (Float) field in DocType 'Subcontracting Receipt Item'
-#: erpnext/public/js/controllers/transaction.js:2319
+#: erpnext/public/js/controllers/transaction.js:2320
 #: erpnext/stock/doctype/purchase_receipt_item/purchase_receipt_item.json
 #: erpnext/subcontracting/doctype/subcontracting_receipt_item/subcontracting_receipt_item.json
 msgid "Accepted Quantity"
@@ -1098,6 +1098,10 @@ msgstr ""
 #. Description of the 'Common Code' (Data) field in DocType 'UOM'
 #: erpnext/setup/doctype/uom/uom.json
 msgid "According to CEFACT/ICG/2010/IC013 or CEFACT/ICG/2010/IC010"
+msgstr ""
+
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:760
+msgid "According to the BOM {0}, the Item '{1}' is missing in the stock entry."
 msgstr ""
 
 #. Name of a DocType
@@ -1379,7 +1383,7 @@ msgstr "必须输入帐户才能获得付款条目"
 msgid "Account is not set for the dashboard chart {0}"
 msgstr "没有为仪表板图表{0}设置帐户"
 
-#: erpnext/assets/doctype/asset/asset.py:699
+#: erpnext/assets/doctype/asset/asset.py:700
 msgid "Account not Found"
 msgstr ""
 
@@ -1444,7 +1448,7 @@ msgstr "科目{0}已多次输入"
 msgid "Account {0} is added in the child company {1}"
 msgstr "子公司{1}中添加了帐户{0}"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:398
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:403
 msgid "Account {0} is frozen"
 msgstr "科目{0}已冻结"
 
@@ -1569,12 +1573,12 @@ msgstr ""
 msgid "Accounting Dimension"
 msgstr "会计维度"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:203
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:207
 #: erpnext/accounts/doctype/payment_ledger_entry/payment_ledger_entry.py:153
 msgid "Accounting Dimension <b>{0}</b> is required for 'Balance Sheet' account {1}."
 msgstr "“资产负债表”帐户{1}需要会计维度<b>{0</b> }。"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:189
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:193
 #: erpnext/accounts/doctype/payment_ledger_entry/payment_ledger_entry.py:140
 msgid "Accounting Dimension <b>{0}</b> is required for 'Profit and Loss' account {1}."
 msgstr "“损益表”科目 {1} 需要会计维度 <b>{0}</b>。"
@@ -1747,8 +1751,8 @@ msgstr ""
 msgid "Accounting Entries"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:733
-#: erpnext/assets/doctype/asset/asset.py:748
+#: erpnext/assets/doctype/asset/asset.py:734
+#: erpnext/assets/doctype/asset/asset.py:749
 #: erpnext/assets/doctype/asset_capitalization/asset_capitalization.py:586
 msgid "Accounting Entry for Asset"
 msgstr "资产会计分录"
@@ -1769,8 +1773,8 @@ msgstr "服务会计分录"
 #: erpnext/controllers/stock_controller.py:534
 #: erpnext/controllers/stock_controller.py:551
 #: erpnext/stock/doctype/purchase_receipt/purchase_receipt.py:823
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1577
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1591
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1553
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1567
 #: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.py:561
 msgid "Accounting Entry for Stock"
 msgstr "库存的会计分录"
@@ -2276,7 +2280,7 @@ msgstr ""
 #: erpnext/accounts/doctype/account/account.js:88
 #: erpnext/accounts/doctype/account/account.js:116
 #: erpnext/accounts/doctype/journal_entry/journal_entry.js:53
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:242
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:254
 #: erpnext/accounts/doctype/subscription/subscription.js:38
 #: erpnext/accounts/doctype/subscription/subscription.js:44
 #: erpnext/accounts/doctype/subscription/subscription.js:50
@@ -2552,7 +2556,7 @@ msgstr ""
 msgid "Actual qty in stock"
 msgstr "实际库存数量"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1485
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1497
 #: erpnext/public/js/controllers/accounts.js:176
 msgid "Actual type tax cannot be included in Item rate in row {0}"
 msgstr "实际类型税不能被包含在连续的物料等级中{0}"
@@ -3360,7 +3364,7 @@ msgstr ""
 msgid "Advance amount"
 msgstr ""
 
-#: erpnext/controllers/taxes_and_totals.py:807
+#: erpnext/controllers/taxes_and_totals.py:816
 msgid "Advance amount cannot be greater than {0} {1}"
 msgstr "预付金额不能大于{0} {1}"
 
@@ -3495,7 +3499,7 @@ msgstr ""
 msgid "Against Journal Entry {0} does not have any unmatched {1} entry"
 msgstr "针对的手工凭证{0}没有不符合的{1}分录"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:363
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:368
 msgid "Against Journal Entry {0} is already adjusted against some other voucher"
 msgstr "针对的手工凭证{0}已经被其他凭证调整"
 
@@ -3867,11 +3871,11 @@ msgstr "所有商品均已开票/退货"
 msgid "All items have already been received"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:2395
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:2371
 msgid "All items have already been transferred for this Work Order."
 msgstr "所有物料已发料到该工单。"
 
-#: erpnext/public/js/controllers/transaction.js:2408
+#: erpnext/public/js/controllers/transaction.js:2415
 msgid "All items in this document already have a linked Quality Inspection."
 msgstr ""
 
@@ -3904,7 +3908,7 @@ msgstr "分配"
 msgid "Allocate Advances Automatically (FIFO)"
 msgstr ""
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:898
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:910
 msgid "Allocate Payment Amount"
 msgstr "分配付款金额"
 
@@ -3914,7 +3918,7 @@ msgstr "分配付款金额"
 msgid "Allocate Payment Based On Payment Terms"
 msgstr ""
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1706
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1718
 msgid "Allocate Payment Request"
 msgstr ""
 
@@ -3945,7 +3949,7 @@ msgstr ""
 #: erpnext/accounts/doctype/advance_taxes_and_charges/advance_taxes_and_charges.json
 #: erpnext/accounts/doctype/bank_transaction/bank_transaction.json
 #: erpnext/accounts/doctype/bank_transaction_payments/bank_transaction_payments.json
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1697
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1709
 #: erpnext/accounts/doctype/payment_reconciliation_allocation/payment_reconciliation_allocation.json
 #: erpnext/accounts/doctype/process_payment_reconciliation_log_allocations/process_payment_reconciliation_log_allocations.json
 #: erpnext/accounts/doctype/purchase_invoice_advance/purchase_invoice_advance.json
@@ -4676,7 +4680,7 @@ msgstr ""
 #: erpnext/buying/doctype/purchase_receipt_item_supplied/purchase_receipt_item_supplied.json
 #: erpnext/buying/doctype/supplier_quotation_item/supplier_quotation_item.json
 #: erpnext/buying/report/item_wise_purchase_history/item_wise_purchase_history.py:72
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:272
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:273
 #: erpnext/crm/doctype/opportunity_item/opportunity_item.json
 #: erpnext/crm/doctype/prospect_opportunity/prospect_opportunity.json
 #: erpnext/manufacturing/doctype/bom_creator_item/bom_creator_item.json
@@ -4815,7 +4819,7 @@ msgstr ""
 msgid "Amount in {0}"
 msgstr ""
 
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:186
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:187
 #: erpnext/selling/report/sales_order_analysis/sales_order_analysis.py:209
 msgid "Amount to Bill"
 msgstr ""
@@ -4880,7 +4884,7 @@ msgctxt "<a href='/app/error-log' class='variant-click'>Error Log</a>"
 msgid "An error has occurred during {0}. Check {1} for more details"
 msgstr ""
 
-#: erpnext/public/js/controllers/buying.js:292
+#: erpnext/public/js/controllers/buying.js:312
 #: erpnext/public/js/utils/sales_common.js:432
 msgid "An error occurred during the update process"
 msgstr "更新过程中发生错误"
@@ -5579,8 +5583,8 @@ msgstr ""
 msgid "Asset Depreciation Schedule {0} for Asset {1} and Finance Book {2} already exists."
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:145
-#: erpnext/assets/doctype/asset/asset.py:184
+#: erpnext/assets/doctype/asset/asset.py:146
+#: erpnext/assets/doctype/asset/asset.py:185
 msgid "Asset Depreciation Schedules created:<br>{0}<br><br>Please check, edit if needed, and submit the Asset."
 msgstr ""
 
@@ -5657,7 +5661,7 @@ msgstr "资产移动"
 msgid "Asset Movement Item"
 msgstr "资产变动项目"
 
-#: erpnext/assets/doctype/asset/asset.py:970
+#: erpnext/assets/doctype/asset/asset.py:982
 msgid "Asset Movement record {0} created"
 msgstr "资产移动记录{0}创建"
 
@@ -5791,11 +5795,11 @@ msgstr "资产价值调整不能在资产购买日期<b>{0}</b>之前过账。"
 msgid "Asset Value Analytics"
 msgstr "资产价值分析"
 
-#: erpnext/assets/doctype/asset/asset.py:175
+#: erpnext/assets/doctype/asset/asset.py:176
 msgid "Asset cancelled"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:531
+#: erpnext/assets/doctype/asset/asset.py:532
 msgid "Asset cannot be cancelled, as it is already {0}"
 msgstr "资产不能被取消，因为它已经是{0}"
 
@@ -5807,7 +5811,7 @@ msgstr ""
 msgid "Asset capitalized after Asset Capitalization {0} was submitted"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:197
+#: erpnext/assets/doctype/asset/asset.py:198
 msgid "Asset created"
 msgstr ""
 
@@ -5815,7 +5819,7 @@ msgstr ""
 msgid "Asset created after Asset Capitalization {0} was submitted"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:1219
+#: erpnext/assets/doctype/asset/asset.py:1231
 msgid "Asset created after being split from Asset {0}"
 msgstr ""
 
@@ -5823,7 +5827,7 @@ msgstr ""
 msgid "Asset decapitalized after Asset Capitalization {0} was submitted"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:200
+#: erpnext/assets/doctype/asset/asset.py:201
 msgid "Asset deleted"
 msgstr ""
 
@@ -5863,7 +5867,7 @@ msgstr "通过资产手工凭证报废{0}"
 msgid "Asset sold"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:163
+#: erpnext/assets/doctype/asset/asset.py:164
 msgid "Asset submitted"
 msgstr ""
 
@@ -5871,7 +5875,7 @@ msgstr ""
 msgid "Asset transferred to Location {0}"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:1153
+#: erpnext/assets/doctype/asset/asset.py:1165
 msgid "Asset updated after being split into Asset {0}"
 msgstr ""
 
@@ -5950,11 +5954,11 @@ msgstr ""
 msgid "Assets"
 msgstr "资产"
 
-#: erpnext/controllers/buying_controller.py:793
+#: erpnext/controllers/buying_controller.py:795
 msgid "Assets not created for {0}. You will have to create asset manually."
 msgstr "未为{0}创建资产。您将必须手动创建资产。"
 
-#: erpnext/controllers/buying_controller.py:781
+#: erpnext/controllers/buying_controller.py:783
 msgid "Asset{} {assets_link} created for {}"
 msgstr "为{}创建的资产{} {assets_link}"
 
@@ -6008,7 +6012,7 @@ msgstr ""
 msgid "At least one account with exchange gain or loss is required"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:1076
+#: erpnext/assets/doctype/asset/asset.py:1088
 msgid "At least one asset has to be selected."
 msgstr ""
 
@@ -6033,7 +6037,7 @@ msgstr "应选择至少一个适用模块"
 msgid "At least one of the Selling or Buying must be selected"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:631
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:596
 msgid "At least one warehouse is mandatory"
 msgstr ""
 
@@ -6303,7 +6307,7 @@ msgstr ""
 msgid "Auto Reconcile Payments"
 msgstr ""
 
-#: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.py:408
+#: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.py:411
 msgid "Auto Reconciliation"
 msgstr ""
 
@@ -6384,7 +6388,7 @@ msgstr ""
 msgid "Auto re-order"
 msgstr ""
 
-#: erpnext/public/js/controllers/buying.js:290
+#: erpnext/public/js/controllers/buying.js:310
 #: erpnext/public/js/utils/sales_common.js:427
 msgid "Auto repeat document updated"
 msgstr "自动重复文件更新"
@@ -6546,11 +6550,11 @@ msgstr "可用库存"
 msgid "Available Stock for Packing Items"
 msgstr "库存可用打包物料"
 
-#: erpnext/assets/doctype/asset/asset.py:271
+#: erpnext/assets/doctype/asset/asset.py:272
 msgid "Available for use date is required"
 msgstr "需要使用可用日期"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:762
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:727
 msgid "Available quantity is {0}, you need {1}"
 msgstr "可用数量为{0}，您需要{1}"
 
@@ -6563,7 +6567,7 @@ msgstr "可用{0}"
 msgid "Available-for-use Date"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:365
+#: erpnext/assets/doctype/asset/asset.py:366
 msgid "Available-for-use Date should be after purchase date"
 msgstr "可供使用的日期应在购买日期之后"
 
@@ -7072,7 +7076,7 @@ msgstr ""
 msgid "Balance Value"
 msgstr "结余金额"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:314
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:319
 msgid "Balance for Account {0} must always be {1}"
 msgstr "科目{0}的余额必须是{1}"
 
@@ -7661,7 +7665,7 @@ msgstr "物料批号到期状态"
 #: erpnext/manufacturing/doctype/job_card/job_card.json
 #: erpnext/manufacturing/report/cost_of_poor_quality_report/cost_of_poor_quality_report.js:89
 #: erpnext/manufacturing/report/cost_of_poor_quality_report/cost_of_poor_quality_report.py:115
-#: erpnext/public/js/controllers/transaction.js:2345
+#: erpnext/public/js/controllers/transaction.js:2346
 #: erpnext/public/js/utils/barcode_scanner.js:260
 #: erpnext/public/js/utils/serial_no_batch_selector.js:438
 #: erpnext/stock/doctype/delivery_note_item/delivery_note_item.json
@@ -7772,12 +7776,12 @@ msgstr ""
 msgid "Batch {0} is not available in warehouse {1}"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:2558
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:2534
 #: erpnext/stock/doctype/stock_ledger_entry/stock_ledger_entry.py:283
 msgid "Batch {0} of Item {1} has expired."
 msgstr "物料{1}的批号{0} 已过期。"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:2564
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:2540
 msgid "Batch {0} of Item {1} is disabled."
 msgstr "项目{1}的批处理{0}已禁用。"
 
@@ -7860,8 +7864,8 @@ msgstr "已开票"
 #: erpnext/accounts/report/received_items_to_be_billed/received_items_to_be_billed.py:50
 #: erpnext/buying/doctype/purchase_order_item/purchase_order_item.json
 #: erpnext/buying/report/item_wise_purchase_history/item_wise_purchase_history.py:125
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:186
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:280
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:187
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:281
 #: erpnext/selling/report/item_wise_sales_history/item_wise_sales_history.py:107
 #: erpnext/selling/report/sales_order_analysis/sales_order_analysis.py:209
 #: erpnext/selling/report/sales_order_analysis/sales_order_analysis.py:298
@@ -7882,7 +7886,7 @@ msgstr ""
 msgid "Billed Items To Be Received"
 msgstr ""
 
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:258
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:259
 #: erpnext/selling/report/sales_order_analysis/sales_order_analysis.py:276
 msgid "Billed Qty"
 msgstr "开票数量"
@@ -9011,7 +9015,7 @@ msgstr "按凭证分类后不能根据凭证编号过滤"
 msgid "Can only make payment against unbilled {0}"
 msgstr "只能为未开票{0}付款"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1453
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1465
 #: erpnext/controllers/accounts_controller.py:2789
 #: erpnext/public/js/controllers/accounts.js:90
 msgid "Can refer row only if the charge type is 'On Previous Row Amount' or 'Previous Row Total'"
@@ -9220,11 +9224,11 @@ msgstr "不能取消，因为提交的仓储记录{0}已经存在"
 msgid "Cannot cancel the transaction. Reposting of item valuation on submission is not completed yet."
 msgstr ""
 
-#: erpnext/controllers/buying_controller.py:871
+#: erpnext/controllers/buying_controller.py:880
 msgid "Cannot cancel this document as it is linked with submitted asset {0}. Please cancel it to continue."
 msgstr "由于该文档与已提交的资产{0}链接，因此无法取消。请取消它以继续。"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:348
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:347
 msgid "Cannot cancel transaction for Completed Work Order."
 msgstr "无法取消已完成工单的交易。"
 
@@ -9298,7 +9302,7 @@ msgstr "已有报价的情况下，不能更改状态为遗失。"
 msgid "Cannot deduct when category is for 'Valuation' or 'Valuation and Total'"
 msgstr "分类是“估值”或“估值和总计”的时候不能扣税。"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1803
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1815
 msgid "Cannot delete Exchange Gain/Loss row"
 msgstr ""
 
@@ -9351,7 +9355,7 @@ msgstr ""
 msgid "Cannot receive from customer against negative outstanding"
 msgstr ""
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1470
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1482
 #: erpnext/controllers/accounts_controller.py:2804
 #: erpnext/public/js/controllers/accounts.js:100
 msgid "Cannot refer row number greater than or equal to current row number for this Charge type"
@@ -9365,8 +9369,8 @@ msgstr ""
 msgid "Cannot retrieve link token. Check Error Log for more information"
 msgstr ""
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1462
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1641
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1474
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1653
 #: erpnext/accounts/doctype/payment_entry/payment_entry.py:1803
 #: erpnext/controllers/accounts_controller.py:2794
 #: erpnext/public/js/controllers/accounts.js:94
@@ -9956,7 +9960,7 @@ msgstr ""
 
 #. Label of the reference_date (Date) field in DocType 'Payment Entry'
 #: erpnext/accounts/doctype/payment_entry/payment_entry.json
-#: erpnext/public/js/controllers/transaction.js:2256
+#: erpnext/public/js/controllers/transaction.js:2257
 msgid "Cheque/Reference Date"
 msgstr "支票/参考日期"
 
@@ -10000,6 +10004,13 @@ msgstr ""
 #. Label of the child_docname (Data) field in DocType 'Pricing Rule Detail'
 #: erpnext/accounts/doctype/pricing_rule_detail/pricing_rule_detail.json
 msgid "Child Docname"
+msgstr ""
+
+#. Label of the child_row_reference (Data) field in DocType 'Quality
+#. Inspection'
+#: erpnext/public/js/controllers/transaction.js:2352
+#: erpnext/stock/doctype/quality_inspection/quality_inspection.json
+msgid "Child Row Reference"
 msgstr ""
 
 #: erpnext/projects/doctype/task/task.py:283
@@ -10769,7 +10780,7 @@ msgstr ""
 #: erpnext/buying/report/procurement_tracker/procurement_tracker.js:8
 #: erpnext/buying/report/purchase_analytics/purchase_analytics.js:49
 #: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.js:8
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:311
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:312
 #: erpnext/buying/report/requested_items_to_order_and_receive/requested_items_to_order_and_receive.js:8
 #: erpnext/buying/report/requested_items_to_order_and_receive/requested_items_to_order_and_receive.py:266
 #: erpnext/buying/report/subcontract_order_summary/subcontract_order_summary.js:7
@@ -11111,7 +11122,7 @@ msgstr ""
 msgid "Company name not same"
 msgstr "公司名称不一样"
 
-#: erpnext/assets/doctype/asset/asset.py:209
+#: erpnext/assets/doctype/asset/asset.py:210
 msgid "Company of asset {0} and purchase document {1} doesn't matches."
 msgstr "资产{0}和购买凭证{1}的公司不匹配。"
 
@@ -11945,7 +11956,7 @@ msgid "Content Type"
 msgstr ""
 
 #: erpnext/erpnext_integrations/doctype/plaid_settings/plaid_settings.js:162
-#: erpnext/public/js/controllers/transaction.js:2269
+#: erpnext/public/js/controllers/transaction.js:2270
 #: erpnext/selling/doctype/quotation/quotation.js:345
 msgid "Continue"
 msgstr "继续"
@@ -12436,11 +12447,11 @@ msgstr "有交易的成本中心不能转化为总账"
 msgid "Cost Center {0} cannot be used for allocation as it is used as main cost center in other allocation record."
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:247
+#: erpnext/assets/doctype/asset/asset.py:248
 msgid "Cost Center {} doesn't belong to Company {}"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:254
+#: erpnext/assets/doctype/asset/asset.py:255
 msgid "Cost Center {} is a group cost center and group cost centers cannot be used in transactions"
 msgstr ""
 
@@ -12745,7 +12756,7 @@ msgstr "信用"
 #: erpnext/public/js/communication.js:41
 #: erpnext/public/js/controllers/transaction.js:309
 #: erpnext/public/js/controllers/transaction.js:310
-#: erpnext/public/js/controllers/transaction.js:2386
+#: erpnext/public/js/controllers/transaction.js:2393
 #: erpnext/selling/doctype/customer/customer.js:176
 #: erpnext/selling/doctype/quotation/quotation.js:113
 #: erpnext/selling/doctype/quotation/quotation.js:122
@@ -14645,7 +14656,7 @@ msgstr ""
 #: erpnext/buying/doctype/purchase_order/purchase_order.json
 #: erpnext/buying/doctype/request_for_quotation/request_for_quotation.json
 #: erpnext/buying/doctype/supplier_quotation/supplier_quotation.json
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:197
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:198
 #: erpnext/buying/report/requested_items_to_order_and_receive/requested_items_to_order_and_receive.py:190
 #: erpnext/buying/report/subcontracted_item_to_be_received/subcontracted_item_to_be_received.py:28
 #: erpnext/buying/report/subcontracted_raw_materials_to_be_transferred/subcontracted_raw_materials_to_be_transferred.py:28
@@ -16237,19 +16248,19 @@ msgstr ""
 msgid "Depreciation Posting Date cannot be before Available-for-use Date"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:276
+#: erpnext/assets/doctype/asset/asset.py:277
 msgid "Depreciation Row {0}: Depreciation Posting Date cannot be before Available-for-use Date"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:516
+#: erpnext/assets/doctype/asset/asset.py:517
 msgid "Depreciation Row {0}: Expected value after useful life must be greater than or equal to {1}"
 msgstr "折旧行{0}：使用寿命后的预期值必须大于或等于{1}"
 
-#: erpnext/assets/doctype/asset/asset.py:475
+#: erpnext/assets/doctype/asset/asset.py:476
 msgid "Depreciation Row {0}: Next Depreciation Date cannot be before Available-for-use Date"
 msgstr "折旧行{0}：下一个折旧日期不能在可供使用的日期之前"
 
-#: erpnext/assets/doctype/asset/asset.py:466
+#: erpnext/assets/doctype/asset/asset.py:467
 msgid "Depreciation Row {0}: Next Depreciation Date cannot be before Purchase Date"
 msgstr "折旧行{0}：下一个折旧日期不能在采购日期之前"
 
@@ -16276,7 +16287,7 @@ msgstr "折旧计划"
 msgid "Depreciation Schedule View"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:359
+#: erpnext/assets/doctype/asset/asset.py:360
 msgid "Depreciation cannot be calculated for fully depreciated assets"
 msgstr ""
 
@@ -16498,7 +16509,7 @@ msgstr ""
 #: erpnext/projects/doctype/task_type/task_type.json
 #: erpnext/projects/doctype/timesheet_detail/timesheet_detail.json
 #: erpnext/public/js/bank_reconciliation_tool/data_table_manager.js:55
-#: erpnext/public/js/controllers/transaction.js:2333
+#: erpnext/public/js/controllers/transaction.js:2334
 #: erpnext/selling/doctype/installation_note_item/installation_note_item.json
 #: erpnext/selling/doctype/product_bundle/product_bundle.json
 #: erpnext/selling/doctype/product_bundle_item/product_bundle_item.json
@@ -16677,7 +16688,7 @@ msgstr ""
 msgid "Difference Account"
 msgstr "差异科目"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:561
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:526
 msgid "Difference Account must be a Asset/Liability type account, since this Stock Entry is an Opening Entry"
 msgstr "差异账户必须是资产/负债类型账户，因为此库存分录是开仓分录"
 
@@ -17447,7 +17458,7 @@ msgstr "难道你真的想恢复这个报废的资产？"
 msgid "Do you still want to enable negative inventory?"
 msgstr ""
 
-#: erpnext/public/js/controllers/transaction.js:1063
+#: erpnext/public/js/controllers/transaction.js:1064
 msgid "Do you want to clear the selected {0}?"
 msgstr ""
 
@@ -17847,7 +17858,7 @@ msgstr "到期/参照日期不能迟于{0}"
 #: erpnext/accounts/doctype/journal_entry/journal_entry.json
 #: erpnext/accounts/doctype/opening_invoice_creation_tool_item/opening_invoice_creation_tool_item.json
 #: erpnext/accounts/doctype/overdue_payment/overdue_payment.json
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:862
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:874
 #: erpnext/accounts/doctype/payment_entry_reference/payment_entry_reference.json
 #: erpnext/accounts/doctype/payment_ledger_entry/payment_ledger_entry.json
 #: erpnext/accounts/doctype/payment_schedule/payment_schedule.json
@@ -17944,7 +17955,7 @@ msgstr ""
 msgid "Duplicate Entry. Please check Authorization Rule {0}"
 msgstr "重复的条目，请检查授权规则{0}"
 
-#: erpnext/assets/doctype/asset/asset.py:300
+#: erpnext/assets/doctype/asset/asset.py:301
 msgid "Duplicate Finance Book"
 msgstr ""
 
@@ -18919,7 +18930,7 @@ msgstr "输入客户的电话号码"
 msgid "Enter date to scrap asset"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:357
+#: erpnext/assets/doctype/asset/asset.py:358
 msgid "Enter depreciation details"
 msgstr "输入折旧信息"
 
@@ -19104,7 +19115,7 @@ msgid "Error: This asset already has {0} depreciation periods booked.\n"
 "\t\t\t\tPlease correct the dates accordingly."
 msgstr ""
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:950
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:962
 msgid "Error: {0} is mandatory field"
 msgstr "错误：{0}是必填字段"
 
@@ -19964,7 +19975,7 @@ msgid "Fetching Error"
 msgstr ""
 
 #: erpnext/accounts/doctype/dunning/dunning.js:135
-#: erpnext/public/js/controllers/transaction.js:1223
+#: erpnext/public/js/controllers/transaction.js:1224
 msgid "Fetching exchange rates ..."
 msgstr ""
 
@@ -20078,7 +20089,7 @@ msgstr ""
 #. Payment Ledger'
 #. Label of the filters (Section Break) field in DocType 'Tax Rule'
 #. Label of the filters (Section Break) field in DocType 'Production Plan'
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:925
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:937
 #: erpnext/accounts/doctype/payment_reconciliation/payment_reconciliation.json
 #: erpnext/accounts/doctype/pos_profile/pos_profile.json
 #: erpnext/accounts/doctype/process_payment_reconciliation/process_payment_reconciliation.json
@@ -20351,7 +20362,7 @@ msgstr "成品仓库"
 msgid "Finished Goods based Operating Cost"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1341
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1317
 msgid "Finished Item {0} does not match with Work Order {1}"
 msgstr ""
 
@@ -20487,7 +20498,7 @@ msgstr "固定资产"
 #. Capitalization Asset Item'
 #. Label of the fixed_asset_account (Link) field in DocType 'Asset Category
 #. Account'
-#: erpnext/assets/doctype/asset/asset.py:695
+#: erpnext/assets/doctype/asset/asset.py:696
 #: erpnext/assets/doctype/asset_capitalization_asset_item/asset_capitalization_asset_item.json
 #: erpnext/assets/doctype/asset_category_account/asset_category_account.json
 msgid "Fixed Asset Account"
@@ -20588,11 +20599,11 @@ msgstr "以下物料需求数量已自动根据重订货水平相应增加了"
 msgid "Following fields are mandatory to create address:"
 msgstr "必须填写以下字段才能创建地址："
 
-#: erpnext/controllers/buying_controller.py:965
+#: erpnext/controllers/buying_controller.py:974
 msgid "Following item {0} is not marked as {1} item. You can enable them as {1} item from its Item master"
 msgstr "下列项目{0}未标记为{1}项目。您可以从项目主文件中将它们作为{1}项启用"
 
-#: erpnext/controllers/buying_controller.py:961
+#: erpnext/controllers/buying_controller.py:970
 msgid "Following items {0} are not marked as {1} item. You can enable them as {1} item from its Item master"
 msgstr "以下项{0}未标记为{1}项。您可以从项目主文件中将它们作为{1}项启用"
 
@@ -20678,7 +20689,7 @@ msgstr ""
 msgid "For Production"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:648
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:613
 msgid "For Quantity (Manufactured Qty) is mandatory"
 msgstr "数量（制造数量）字段必填"
 
@@ -20746,7 +20757,7 @@ msgstr ""
 msgid "For operation {0}: Quantity ({1}) can not be greater than pending quantity({2})"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1379
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1355
 msgid "For quantity {0} should not be greater than allowed quantity {1}"
 msgstr ""
 
@@ -20755,7 +20766,7 @@ msgstr ""
 msgid "For reference"
 msgstr ""
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1492
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1504
 #: erpnext/public/js/controllers/accounts.js:182
 msgid "For row {0} in {1}. To include {2} in Item rate, rows {3} must also be included"
 msgstr "对于{1}中的行{0}。要包括物料率中{2}，行{3}也必须包括"
@@ -20773,7 +20784,7 @@ msgstr "对于“其他应用规则”条件，字段{0}是必填字段"
 msgid "For the convenience of customers, these codes can be used in print formats like Invoices and Delivery Notes"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:789
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:751
 msgid "For the item {0}, the quantity should be {1} according to the BOM {2}."
 msgstr ""
 
@@ -20992,8 +21003,8 @@ msgstr ""
 #: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.json
 #: erpnext/accounts/doctype/bisect_accounting_statements/bisect_accounting_statements.json
 #: erpnext/accounts/doctype/loyalty_program/loyalty_program.json
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:856
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:863
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:868
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:875
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.json
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.json
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.json
@@ -21335,7 +21346,7 @@ msgstr ""
 msgid "From Warehouse"
 msgstr ""
 
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:35
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:36
 #: erpnext/buying/report/requested_items_to_order_and_receive/requested_items_to_order_and_receive.py:32
 #: erpnext/selling/report/sales_order_analysis/sales_order_analysis.py:37
 msgid "From and To Dates are required."
@@ -21345,7 +21356,7 @@ msgstr "必须提供“自”和“至”日期"
 msgid "From and To dates are required"
 msgstr ""
 
-#: erpnext/manufacturing/doctype/blanket_order/blanket_order.py:48
+#: erpnext/manufacturing/doctype/blanket_order/blanket_order.py:50
 msgid "From date cannot be greater than To date"
 msgstr "从日期不能大于到日期"
 
@@ -21797,7 +21808,7 @@ msgstr "获取物料"
 #: erpnext/maintenance/doctype/maintenance_visit/maintenance_visit.js:119
 #: erpnext/maintenance/doctype/maintenance_visit/maintenance_visit.js:142
 #: erpnext/manufacturing/doctype/production_plan/production_plan.json
-#: erpnext/public/js/controllers/buying.js:262
+#: erpnext/public/js/controllers/buying.js:282
 #: erpnext/selling/doctype/quotation/quotation.js:155
 #: erpnext/selling/doctype/sales_order/sales_order.js:163
 #: erpnext/selling/doctype/sales_order/sales_order.js:800
@@ -21837,7 +21848,7 @@ msgstr "从针对此供应商的物料请求中获取物料"
 msgid "Get Items from Open Material Requests"
 msgstr ""
 
-#: erpnext/public/js/controllers/buying.js:504
+#: erpnext/public/js/controllers/buying.js:524
 msgid "Get Items from Product Bundle"
 msgstr "从产品包获取物料"
 
@@ -22021,7 +22032,7 @@ msgstr "货物正在运送中"
 msgid "Goods Transferred"
 msgstr "货物转移"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1738
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1714
 msgid "Goods are already received against the outward entry {0}"
 msgstr "已收到针对外向条目{0}的货物"
 
@@ -22198,7 +22209,7 @@ msgstr ""
 msgid "Grant Commission"
 msgstr ""
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:869
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:881
 msgid "Greater Than Amount"
 msgstr "大于金额"
 
@@ -22284,11 +22295,11 @@ msgstr "总采购金额"
 msgid "Gross Purchase Amount Too Low: {0} cannot be depreciated over {1} cycles with a frequency of {2} depreciations."
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:327
+#: erpnext/assets/doctype/asset/asset.py:328
 msgid "Gross Purchase Amount is mandatory"
 msgstr "总消费金额字段必填"
 
-#: erpnext/assets/doctype/asset/asset.py:372
+#: erpnext/assets/doctype/asset/asset.py:373
 msgid "Gross Purchase Amount should be <b>equal</b> to purchase amount of one single Asset."
 msgstr ""
 
@@ -24203,7 +24214,7 @@ msgstr "来自{0}的来电"
 msgid "Incorrect Balance Qty After Transaction"
 msgstr ""
 
-#: erpnext/controllers/subcontracting_controller.py:843
+#: erpnext/controllers/subcontracting_controller.py:853
 msgid "Incorrect Batch Consumed"
 msgstr ""
 
@@ -24211,11 +24222,11 @@ msgstr ""
 msgid "Incorrect Check in (group) Warehouse for Reorder"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:794
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:756
 msgid "Incorrect Component Quantity"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:279
+#: erpnext/assets/doctype/asset/asset.py:280
 #: erpnext/assets/doctype/asset_value_adjustment/asset_value_adjustment.py:77
 msgid "Incorrect Date"
 msgstr "日期不正确"
@@ -24242,7 +24253,7 @@ msgstr ""
 msgid "Incorrect Serial No Valuation"
 msgstr ""
 
-#: erpnext/controllers/subcontracting_controller.py:856
+#: erpnext/controllers/subcontracting_controller.py:866
 msgid "Incorrect Serial Number Consumed"
 msgstr ""
 
@@ -24350,7 +24361,7 @@ msgstr "间接收益"
 msgid "Individual"
 msgstr "个人"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:295
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:300
 msgid "Individual GL Entry cannot be cancelled."
 msgstr ""
 
@@ -24522,7 +24533,7 @@ msgstr "权限不足"
 #: erpnext/stock/doctype/pick_list/pick_list.py:101
 #: erpnext/stock/doctype/pick_list/pick_list.py:117
 #: erpnext/stock/doctype/pick_list/pick_list.py:896
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:766
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:731
 #: erpnext/stock/serial_batch_bundle.py:985 erpnext/stock/stock_ledger.py:1517
 #: erpnext/stock/stock_ledger.py:1990
 msgid "Insufficient Stock"
@@ -24764,7 +24775,7 @@ msgstr ""
 msgid "Invalid Barcode. There is no Item attached to this barcode."
 msgstr "无效的条形码。该条形码没有附件。"
 
-#: erpnext/public/js/controllers/transaction.js:2571
+#: erpnext/public/js/controllers/transaction.js:2578
 msgid "Invalid Blanket Order for the selected Customer and Item"
 msgstr "无效框架订单对所选客户和物料无效"
 
@@ -24776,8 +24787,8 @@ msgstr "无效的子程序"
 msgid "Invalid Company for Inter Company Transaction."
 msgstr "公司间交易的公司无效。"
 
-#: erpnext/assets/doctype/asset/asset.py:250
-#: erpnext/assets/doctype/asset/asset.py:257
+#: erpnext/assets/doctype/asset/asset.py:251
+#: erpnext/assets/doctype/asset/asset.py:258
 #: erpnext/controllers/accounts_controller.py:2841
 msgid "Invalid Cost Center"
 msgstr ""
@@ -24802,12 +24813,12 @@ msgstr ""
 msgid "Invalid Document Type"
 msgstr ""
 
-#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:252
-#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:257
+#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:314
+#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:319
 msgid "Invalid Formula"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:377
+#: erpnext/assets/doctype/asset/asset.py:378
 msgid "Invalid Gross Purchase Amount"
 msgstr "无效的总购买金额"
 
@@ -24841,7 +24852,7 @@ msgstr "无效的POS发票"
 msgid "Invalid Parent Account"
 msgstr "无效的上级帐户"
 
-#: erpnext/public/js/controllers/buying.js:333
+#: erpnext/public/js/controllers/buying.js:353
 msgid "Invalid Part Number"
 msgstr "无效的零件号"
 
@@ -24873,9 +24884,9 @@ msgstr ""
 msgid "Invalid Quantity"
 msgstr "无效数量"
 
-#: erpnext/assets/doctype/asset/asset.py:424
-#: erpnext/assets/doctype/asset/asset.py:431
-#: erpnext/assets/doctype/asset/asset.py:461
+#: erpnext/assets/doctype/asset/asset.py:425
+#: erpnext/assets/doctype/asset/asset.py:432
+#: erpnext/assets/doctype/asset/asset.py:462
 msgid "Invalid Schedule"
 msgstr ""
 
@@ -24883,7 +24894,7 @@ msgstr ""
 msgid "Invalid Selling Price"
 msgstr "无效的售价"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1418
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1394
 msgid "Invalid Serial and Batch Bundle"
 msgstr ""
 
@@ -25799,7 +25810,7 @@ msgstr ""
 msgid "It can take upto few hours for accurate stock values to be visible after merging items."
 msgstr ""
 
-#: erpnext/public/js/controllers/transaction.js:2032
+#: erpnext/public/js/controllers/transaction.js:2033
 msgid "It is needed to fetch Item Details."
 msgstr "需要获取物料详细信息。"
 
@@ -25849,7 +25860,7 @@ msgstr ""
 #: erpnext/buying/report/supplier_quotation_comparison/supplier_quotation_comparison.js:33
 #: erpnext/buying/report/supplier_quotation_comparison/supplier_quotation_comparison.py:202
 #: erpnext/buying/workspace/buying/buying.json
-#: erpnext/controllers/taxes_and_totals.py:1084
+#: erpnext/controllers/taxes_and_totals.py:1093
 #: erpnext/manufacturing/doctype/blanket_order/blanket_order.json
 #: erpnext/manufacturing/doctype/bom/bom.js:938
 #: erpnext/manufacturing/doctype/bom/bom.json
@@ -26093,7 +26104,7 @@ msgstr ""
 #: erpnext/buying/doctype/request_for_quotation_item/request_for_quotation_item.json
 #: erpnext/buying/doctype/supplier_quotation_item/supplier_quotation_item.json
 #: erpnext/buying/report/item_wise_purchase_history/item_wise_purchase_history.py:26
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:226
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:227
 #: erpnext/buying/report/requested_items_to_order_and_receive/requested_items_to_order_and_receive.py:198
 #: erpnext/buying/report/subcontracted_raw_materials_to_be_transferred/subcontracted_raw_materials_to_be_transferred.py:36
 #: erpnext/crm/doctype/opportunity_item/opportunity_item.json
@@ -26124,7 +26135,7 @@ msgstr ""
 #: erpnext/manufacturing/report/quality_inspection_summary/quality_inspection_summary.py:86
 #: erpnext/manufacturing/report/work_order_stock_report/work_order_stock_report.py:119
 #: erpnext/projects/doctype/timesheet/timesheet.js:213
-#: erpnext/public/js/controllers/transaction.js:2307
+#: erpnext/public/js/controllers/transaction.js:2308
 #: erpnext/public/js/utils.js:495 erpnext/public/js/utils.js:650
 #: erpnext/regional/doctype/import_supplier_invoice/import_supplier_invoice.json
 #: erpnext/selling/doctype/installation_note_item/installation_note_item.json
@@ -26200,7 +26211,7 @@ msgstr "物料代码不能因序列号改变"
 msgid "Item Code required at Row No {0}"
 msgstr "行{0}中的物料代码是必须项"
 
-#: erpnext/selling/page/point_of_sale/pos_controller.js:707
+#: erpnext/selling/page/point_of_sale/pos_controller.js:708
 #: erpnext/selling/page/point_of_sale/pos_item_details.js:263
 msgid "Item Code: {0} is not available under warehouse {1}."
 msgstr "项目代码：{0}在仓库{1}下不可用。"
@@ -26552,7 +26563,7 @@ msgstr "产品制造商"
 #: erpnext/manufacturing/report/production_planning_report/production_planning_report.py:359
 #: erpnext/manufacturing/report/quality_inspection_summary/quality_inspection_summary.py:92
 #: erpnext/manufacturing/report/work_order_consumed_materials/work_order_consumed_materials.py:128
-#: erpnext/public/js/controllers/transaction.js:2313
+#: erpnext/public/js/controllers/transaction.js:2314
 #: erpnext/selling/doctype/quotation_item/quotation_item.json
 #: erpnext/selling/doctype/sales_order_item/sales_order_item.json
 #: erpnext/selling/report/customer_wise_item_price/customer_wise_item_price.py:35
@@ -26631,7 +26642,7 @@ msgstr ""
 msgid "Item Price Stock"
 msgstr "物料价格与库存"
 
-#: erpnext/stock/get_item_details.py:930
+#: erpnext/stock/get_item_details.py:932
 msgid "Item Price added for {0} in Price List {1}"
 msgstr "物料价格{0}自动添加到价格清单{1}中了，以备以后订单使用"
 
@@ -26639,7 +26650,7 @@ msgstr "物料价格{0}自动添加到价格清单{1}中了，以备以后订单
 msgid "Item Price appears multiple times based on Price List, Supplier/Customer, Currency, Item, Batch, UOM, Qty, and Dates."
 msgstr ""
 
-#: erpnext/stock/get_item_details.py:912
+#: erpnext/stock/get_item_details.py:914
 msgid "Item Price updated for {0} in Price List {1}"
 msgstr "物料价格{0}更新到价格清单{1}中了，之后的订单会使用新价格"
 
@@ -26882,7 +26893,7 @@ msgstr ""
 msgid "Item and Warranty Details"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:2537
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:2513
 msgid "Item for row {0} does not match Material Request"
 msgstr "第{0}行的项目与物料请求不匹配"
 
@@ -26916,7 +26927,7 @@ msgstr ""
 msgid "Item qty can not be updated as raw materials are already processed."
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:871
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:847
 msgid "Item rate has been updated to zero as Allow Zero Valuation Rate is checked for item {0}"
 msgstr ""
 
@@ -26941,11 +26952,11 @@ msgstr "相同属性物料变体{0}已存在"
 msgid "Item {0} cannot be added as a sub-assembly of itself"
 msgstr ""
 
-#: erpnext/manufacturing/doctype/blanket_order/blanket_order.py:189
+#: erpnext/manufacturing/doctype/blanket_order/blanket_order.py:191
 msgid "Item {0} cannot be ordered more than {1} against Blanket Order {2}."
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:232
+#: erpnext/assets/doctype/asset/asset.py:233
 #: erpnext/stock/doctype/item/item.py:628
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:167
 msgid "Item {0} does not exist"
@@ -26967,7 +26978,7 @@ msgstr ""
 msgid "Item {0} has already been returned"
 msgstr "物料{0}已被退回"
 
-#: erpnext/assets/doctype/asset/asset.py:234
+#: erpnext/assets/doctype/asset/asset.py:235
 msgid "Item {0} has been disabled"
 msgstr "物料{0}已被禁用"
 
@@ -27003,11 +27014,11 @@ msgstr "物料{0}不是有序列号的物料"
 msgid "Item {0} is not a stock Item"
 msgstr "物料{0}不是库存物料"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1655
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1631
 msgid "Item {0} is not active or end of life has been reached"
 msgstr "物料{0}处于非活动或寿命终止状态"
 
-#: erpnext/assets/doctype/asset/asset.py:236
+#: erpnext/assets/doctype/asset/asset.py:237
 msgid "Item {0} must be a Fixed Asset Item"
 msgstr "物料{0}必须被定义为是固定资产"
 
@@ -27019,11 +27030,11 @@ msgstr ""
 msgid "Item {0} must be a Sub-contracted Item"
 msgstr "项目{0}必须是外包项目"
 
-#: erpnext/assets/doctype/asset/asset.py:238
+#: erpnext/assets/doctype/asset/asset.py:239
 msgid "Item {0} must be a non-stock item"
 msgstr "物料{0}必须是一个非库存物料"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1158
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1134
 msgid "Item {0} not found in 'Raw Materials Supplied' table in {1} {2}"
 msgstr ""
 
@@ -27039,7 +27050,7 @@ msgstr "物料{0}的订单数量{1}不能小于最低订货量{2}（物料主数
 msgid "Item {0}: {1} qty produced. "
 msgstr "项目{0}：产生了{1}数量。"
 
-#: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:1327
+#: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:1328
 msgid "Item {} does not exist."
 msgstr ""
 
@@ -27189,7 +27200,7 @@ msgstr ""
 msgid "Items for Raw Material Request"
 msgstr "原料要求的项目"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:867
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:843
 msgid "Items rate has been updated to zero as Allow Zero Valuation Rate is checked for the following items: {0}"
 msgstr ""
 
@@ -27996,7 +28007,7 @@ msgid "Leave blank to use the standard Delivery Note format"
 msgstr ""
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.js:30
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:391
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:403
 #: erpnext/accounts/doctype/period_closing_voucher/period_closing_voucher.js:43
 msgid "Ledger"
 msgstr "分类账"
@@ -28078,7 +28089,7 @@ msgstr ""
 msgid "Length (cm)"
 msgstr ""
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:874
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:886
 msgid "Less Than Amount"
 msgstr "少于金额"
 
@@ -29010,7 +29021,7 @@ msgstr ""
 
 #. Label of the reqd (Check) field in DocType 'POS Field'
 #. Label of the reqd (Check) field in DocType 'Inventory Dimension'
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:251
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:263
 #: erpnext/accounts/doctype/pos_field/pos_field.json
 #: erpnext/accounts/doctype/promotional_scheme/promotional_scheme.py:147
 #: erpnext/buying/doctype/supplier_quotation/supplier_quotation.js:69
@@ -29019,7 +29030,7 @@ msgstr ""
 #: erpnext/manufacturing/doctype/bom/bom.py:261
 #: erpnext/manufacturing/doctype/bom_update_log/bom_update_log.py:71
 #: erpnext/public/js/controllers/accounts.js:249
-#: erpnext/public/js/controllers/transaction.js:2693
+#: erpnext/public/js/controllers/transaction.js:2700
 #: erpnext/public/js/utils/party.js:317
 #: erpnext/stock/doctype/delivery_note/delivery_note.js:164
 #: erpnext/stock/doctype/inventory_dimension/inventory_dimension.json
@@ -29137,8 +29148,8 @@ msgstr "无法创建手动输入！禁用自动输入帐户设置中的递延会
 #: erpnext/stock/doctype/material_request_item/material_request_item.json
 #: erpnext/stock/doctype/purchase_receipt_item/purchase_receipt_item.json
 #: erpnext/stock/doctype/stock_entry/stock_entry.json
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:948
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:959
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:924
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:935
 #: erpnext/stock/doctype/stock_entry_type/stock_entry_type.json
 #: erpnext/subcontracting/doctype/subcontracting_order_item/subcontracting_order_item.json
 #: erpnext/subcontracting/doctype/subcontracting_receipt_item/subcontracting_receipt_item.json
@@ -29224,7 +29235,7 @@ msgstr "制造商"
 msgid "Manufacturer Part Number"
 msgstr "制造商零件编号"
 
-#: erpnext/public/js/controllers/buying.js:332
+#: erpnext/public/js/controllers/buying.js:352
 msgid "Manufacturer Part Number <b>{0}</b> is invalid"
 msgstr "制造商零件编号<b>{0}</b>无效"
 
@@ -29274,7 +29285,7 @@ msgstr ""
 msgid "Manufacturing Manager"
 msgstr "生产经理"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1865
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1841
 msgid "Manufacturing Quantity is mandatory"
 msgstr "生产数量为必须项"
 
@@ -29491,7 +29502,7 @@ msgstr "材料消耗"
 #. Option for the 'Purpose' (Select) field in DocType 'Stock Entry Type'
 #: erpnext/setup/setup_wizard/operations/install_fixtures.py:121
 #: erpnext/stock/doctype/stock_entry/stock_entry.json
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:949
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:925
 #: erpnext/stock/doctype/stock_entry_type/stock_entry_type.json
 msgid "Material Consumption for Manufacture"
 msgstr ""
@@ -29683,7 +29694,7 @@ msgstr "销售订单{2}中物料{1}的最大材料申请量为{0}"
 msgid "Material Request used to make this Stock Entry"
 msgstr ""
 
-#: erpnext/controllers/subcontracting_controller.py:1109
+#: erpnext/controllers/subcontracting_controller.py:1119
 msgid "Material Request {0} is cancelled or stopped"
 msgstr "材料申请{0}已取消或已停止"
 
@@ -29779,7 +29790,7 @@ msgstr ""
 msgid "Material to Supplier"
 msgstr "给供应商的材料"
 
-#: erpnext/controllers/subcontracting_controller.py:1320
+#: erpnext/controllers/subcontracting_controller.py:1330
 msgid "Materials are already received against the {0} {1}"
 msgstr ""
 
@@ -29869,11 +29880,11 @@ msgstr ""
 msgid "Maximum Payment Amount"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:3086
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:3062
 msgid "Maximum Samples - {0} can be retained for Batch {1} and Item {2}."
 msgstr "可以为批次{1}和物料{2}保留最大样本数量{0}。"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:3077
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:3053
 msgid "Maximum Samples - {0} have already been retained for Batch {1} and Item {2} in Batch {3}."
 msgstr "批次{1}和批次{3}中的项目{2}已保留最大样本数量{0}。"
 
@@ -30359,11 +30370,11 @@ msgstr ""
 msgid "Miscellaneous Expenses"
 msgstr "杂项费用"
 
-#: erpnext/controllers/buying_controller.py:490
+#: erpnext/controllers/buying_controller.py:491
 msgid "Mismatch"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:1328
+#: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:1329
 msgid "Missing"
 msgstr ""
 
@@ -30380,8 +30391,8 @@ msgstr "帐户遗失"
 msgid "Missing Asset"
 msgstr ""
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:174
-#: erpnext/assets/doctype/asset/asset.py:266
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:178
+#: erpnext/assets/doctype/asset/asset.py:267
 msgid "Missing Cost Center"
 msgstr ""
 
@@ -30389,16 +30400,20 @@ msgstr ""
 msgid "Missing Default in Company"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:308
+#: erpnext/assets/doctype/asset/asset.py:309
 msgid "Missing Finance Book"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1357
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1333
 msgid "Missing Finished Good"
 msgstr ""
 
-#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:237
+#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:299
 msgid "Missing Formula"
+msgstr ""
+
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:763
+msgid "Missing Item"
 msgstr ""
 
 #: erpnext/assets/doctype/asset_repair/asset_repair.py:217
@@ -30890,7 +30905,7 @@ msgstr ""
 msgid "Multiple fiscal years exist for the date {0}. Please set company in Fiscal Year"
 msgstr "多个会计年度的日期{0}存在。请设置公司财年"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1364
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1340
 msgid "Multiple items cannot be marked as finished item"
 msgstr ""
 
@@ -31662,7 +31677,7 @@ msgstr "没有条码为{0}的物料"
 msgid "No Item with Serial No {0}"
 msgstr "没有序列号为{0}的物料"
 
-#: erpnext/controllers/subcontracting_controller.py:1238
+#: erpnext/controllers/subcontracting_controller.py:1248
 msgid "No Items selected for transfer."
 msgstr ""
 
@@ -31788,7 +31803,7 @@ msgstr ""
 msgid "No failed logs"
 msgstr ""
 
-#: erpnext/controllers/subcontracting_controller.py:1147
+#: erpnext/controllers/subcontracting_controller.py:1157
 msgid "No item available for transfer."
 msgstr ""
 
@@ -31813,7 +31828,7 @@ msgstr ""
 msgid "No items to be received are overdue"
 msgstr "没有收到的物品已逾期"
 
-#: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.py:418
+#: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.py:421
 msgid "No matches occurred via auto reconciliation"
 msgstr ""
 
@@ -31890,7 +31905,7 @@ msgstr "没有未结清的发票需要汇率重估"
 msgid "No outstanding {0} found for the {1} {2} which qualify the filters you have specified."
 msgstr ""
 
-#: erpnext/public/js/controllers/buying.js:436
+#: erpnext/public/js/controllers/buying.js:456
 msgid "No pending Material Requests found to link for the given items."
 msgstr "找不到针对给定项目链接的待处理物料请求。"
 
@@ -31996,7 +32011,7 @@ msgstr ""
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:526
 #: erpnext/assets/doctype/asset/asset.js:618
 #: erpnext/assets/doctype/asset/asset.js:635
-#: erpnext/controllers/buying_controller.py:201
+#: erpnext/controllers/buying_controller.py:202
 #: erpnext/selling/doctype/product_bundle/product_bundle.py:72
 #: erpnext/setup/doctype/transaction_deletion_record/transaction_deletion_record.py:72
 msgid "Not Allowed"
@@ -32009,8 +32024,8 @@ msgstr "不允许"
 msgid "Not Applicable"
 msgstr ""
 
-#: erpnext/selling/page/point_of_sale/pos_controller.js:706
-#: erpnext/selling/page/point_of_sale/pos_controller.js:735
+#: erpnext/selling/page/point_of_sale/pos_controller.js:707
+#: erpnext/selling/page/point_of_sale/pos_controller.js:736
 msgid "Not Available"
 msgstr "不可用"
 
@@ -32083,7 +32098,7 @@ msgstr "不允许对早于{0}的库存交易进行更新"
 msgid "Not authorized since {0} exceeds limits"
 msgstr ""
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:400
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:405
 msgid "Not authorized to edit frozen Account {0}"
 msgstr "无权修改冻结科目{0}"
 
@@ -32113,13 +32128,13 @@ msgstr "不允许"
 #: erpnext/manufacturing/doctype/production_plan/production_plan.py:956
 #: erpnext/manufacturing/doctype/production_plan/production_plan.py:1661
 #: erpnext/projects/doctype/timesheet/timesheet.json
-#: erpnext/public/js/controllers/buying.js:437
+#: erpnext/public/js/controllers/buying.js:457
 #: erpnext/selling/doctype/customer/customer.py:125
 #: erpnext/selling/doctype/sales_order/sales_order.js:1176
 #: erpnext/stock/doctype/item/item.js:497
 #: erpnext/stock/doctype/item/item.py:565
 #: erpnext/stock/doctype/item_price/item_price.json
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1365
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1341
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:919
 #: erpnext/templates/pages/timelog_info.html:43
 msgid "Note"
@@ -32139,7 +32154,7 @@ msgstr "注意：到期日/计入日已超过客户信用日期{0}天。"
 msgid "Note: Email will not be sent to disabled users"
 msgstr ""
 
-#: erpnext/manufacturing/doctype/blanket_order/blanket_order.py:91
+#: erpnext/manufacturing/doctype/blanket_order/blanket_order.py:93
 msgid "Note: Item {0} added multiple times"
 msgstr "注意：项目{0}被多次添加"
 
@@ -32609,7 +32624,7 @@ msgstr ""
 msgid "Only leaf nodes are allowed in transaction"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:958
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:934
 msgid "Only one {0} entry can be created against the Work Order {1}"
 msgstr ""
 
@@ -32817,7 +32832,7 @@ msgstr "期初（借方）"
 msgid "Opening Accumulated Depreciation"
 msgstr "期初累计折旧"
 
-#: erpnext/assets/doctype/asset/asset.py:445
+#: erpnext/assets/doctype/asset/asset.py:446
 msgid "Opening Accumulated Depreciation must be less than or equal to {0}"
 msgstr ""
 
@@ -33321,10 +33336,20 @@ msgstr ""
 msgid "Order Count"
 msgstr "订单计数"
 
+#. Label of the order_date (Date) field in DocType 'Blanket Order'
+#: erpnext/manufacturing/doctype/blanket_order/blanket_order.json
+msgid "Order Date"
+msgstr ""
+
 #. Label of the order_information_section (Section Break) field in DocType
 #. 'Delivery Stop'
 #: erpnext/stock/doctype/delivery_stop/delivery_stop.json
 msgid "Order Information"
+msgstr ""
+
+#. Label of the order_no (Data) field in DocType 'Blanket Order'
+#: erpnext/manufacturing/doctype/blanket_order/blanket_order.json
+msgid "Order No"
 msgstr ""
 
 #: erpnext/buying/report/subcontract_order_summary/subcontract_order_summary.py:142
@@ -33622,7 +33647,7 @@ msgstr ""
 #: erpnext/accounts/doctype/cashier_closing/cashier_closing.json
 #: erpnext/accounts/doctype/discounted_invoice/discounted_invoice.json
 #: erpnext/accounts/doctype/opening_invoice_creation_tool_item/opening_invoice_creation_tool_item.json
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:866
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:878
 #: erpnext/accounts/doctype/payment_reconciliation_invoice/payment_reconciliation_invoice.json
 #: erpnext/accounts/doctype/payment_request/payment_request.json
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.json
@@ -33645,7 +33670,7 @@ msgstr "未付金额"
 msgid "Outstanding Cheques and Deposits to clear"
 msgstr "待清帐支票及存款"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:375
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:380
 msgid "Outstanding for {0} cannot be less than zero ({1})"
 msgstr "未付{0}不能小于零（ {1} ）"
 
@@ -34021,7 +34046,7 @@ msgstr "POS设置"
 msgid "POS Transactions"
 msgstr ""
 
-#: erpnext/selling/page/point_of_sale/pos_controller.js:392
+#: erpnext/selling/page/point_of_sale/pos_controller.js:393
 msgid "POS invoice {0} created successfully"
 msgstr ""
 
@@ -34818,11 +34843,15 @@ msgstr ""
 msgid "Party Type"
 msgstr "往来单位类型"
 
+#: erpnext/accounts/party.py:772
+msgid "Party Type and Party can only be set for Receivable / Payable account<br><br>{0}"
+msgstr ""
+
 #: erpnext/accounts/doctype/exchange_rate_revaluation/exchange_rate_revaluation.py:626
 msgid "Party Type and Party is mandatory for {0} account"
 msgstr "科目{0}业务伙伴类型及业务伙伴信息必填"
 
-#: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.py:156
+#: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.py:157
 msgid "Party Type and Party is required for Receivable / Payable account {0}"
 msgstr ""
 
@@ -34835,7 +34864,7 @@ msgstr "请输入往来单位类型"
 msgid "Party User"
 msgstr ""
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:448
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:460
 msgid "Party can only be one of {0}"
 msgstr ""
 
@@ -34907,7 +34936,11 @@ msgstr ""
 
 #. Option for the 'Payment Type' (Select) field in DocType 'Payment Entry'
 #: erpnext/accounts/doctype/payment_entry/payment_entry.json
+msgid "Pay"
+msgstr ""
+
 #: erpnext/templates/pages/order.html:43
+msgctxt "Amount"
 msgid "Pay"
 msgstr ""
 
@@ -35291,7 +35324,7 @@ msgstr ""
 #. Name of a DocType
 #. Label of a Link in the Receivables Workspace
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1697
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1709
 #: erpnext/accounts/doctype/payment_entry_reference/payment_entry_reference.json
 #: erpnext/accounts/doctype/payment_order/payment_order.js:19
 #: erpnext/accounts/doctype/payment_order/payment_order.json
@@ -35608,13 +35641,13 @@ msgstr "待活动"
 
 #: erpnext/accounts/report/delivered_items_to_be_billed/delivered_items_to_be_billed.py:64
 #: erpnext/accounts/report/received_items_to_be_billed/received_items_to_be_billed.py:64
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:288
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:289
 #: erpnext/selling/report/sales_order_analysis/sales_order_analysis.py:306
 msgid "Pending Amount"
 msgstr "待审核金额"
 
 #. Label of the pending_qty (Float) field in DocType 'Production Plan Item'
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:251
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:252
 #: erpnext/manufacturing/doctype/production_plan_item/production_plan_item.json
 #: erpnext/manufacturing/doctype/work_order/work_order.js:270
 #: erpnext/manufacturing/report/production_plan_summary/production_plan_summary.py:174
@@ -36308,7 +36341,7 @@ msgstr ""
 msgid "Please Set Supplier Group in Buying Settings."
 msgstr "请在采购设置中设置供应商组。"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1868
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1880
 msgid "Please Specify Account"
 msgstr ""
 
@@ -36368,7 +36401,7 @@ msgstr ""
 msgid "Please cancel payment entry manually first"
 msgstr ""
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:296
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:301
 #: erpnext/stock/doctype/stock_ledger_entry/stock_ledger_entry.py:341
 msgid "Please cancel related transaction."
 msgstr ""
@@ -36442,7 +36475,7 @@ msgstr ""
 msgid "Please create purchase from internal sale or delivery document itself"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:337
+#: erpnext/assets/doctype/asset/asset.py:338
 msgid "Please create purchase receipt or purchase invoice for the item {0}"
 msgstr "请为物料{0}创建采购收货单或采购费用清单"
 
@@ -36450,7 +36483,7 @@ msgstr "请为物料{0}创建采购收货单或采购费用清单"
 msgid "Please delete Product Bundle {0}, before merging {1} into {2}"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:376
+#: erpnext/assets/doctype/asset/asset.py:377
 msgid "Please do not book expense of multiple assets against one single Asset."
 msgstr ""
 
@@ -36504,7 +36537,7 @@ msgstr ""
 msgid "Please ensure {} account {} is a Receivable account."
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:551
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:516
 msgid "Please enter <b>Difference Account</b> or set default <b>Stock Adjustment Account</b> for company {0}"
 msgstr "请输入<b>差异帐户</b>或为公司{0}设置默认的<b>库存调整帐户</b>"
 
@@ -36538,7 +36571,7 @@ msgstr "请输入您的费用科目"
 msgid "Please enter Item Code to get Batch Number"
 msgstr "请输入产品代码来获得批号"
 
-#: erpnext/public/js/controllers/transaction.js:2444
+#: erpnext/public/js/controllers/transaction.js:2451
 msgid "Please enter Item Code to get batch no"
 msgstr "请输入物料代码，以获得批号"
 
@@ -36574,7 +36607,7 @@ msgstr "请输入收据凭证"
 msgid "Please enter Reference date"
 msgstr "参考日期请输入"
 
-#: erpnext/controllers/buying_controller.py:912
+#: erpnext/controllers/buying_controller.py:921
 msgid "Please enter Reqd by Date"
 msgstr "请输入按日期请求"
 
@@ -36745,7 +36778,7 @@ msgstr "请先保存"
 msgid "Please select <b>Template Type</b> to download template"
 msgstr "请选择<b>模板类型</b>以下载模板"
 
-#: erpnext/controllers/taxes_and_totals.py:704
+#: erpnext/controllers/taxes_and_totals.py:713
 #: erpnext/public/js/controllers/taxes_and_totals.js:705
 msgid "Please select Apply Discount On"
 msgstr "请选择适用的折扣"
@@ -36758,7 +36791,7 @@ msgstr "请选择物料{0}的物料清单"
 msgid "Please select BOM for Item in Row {0}"
 msgstr "请为第{0}行的物料指定物料清单"
 
-#: erpnext/controllers/buying_controller.py:433
+#: erpnext/controllers/buying_controller.py:434
 msgid "Please select BOM in BOM field for Item {0}"
 msgstr "请为物料{0}在主数据中设置BOM（字段）"
 
@@ -36770,7 +36803,7 @@ msgstr ""
 msgid "Please select Category first"
 msgstr "请先选择类别。"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1444
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1456
 #: erpnext/public/js/controllers/accounts.js:86
 #: erpnext/public/js/controllers/accounts.js:124
 msgid "Please select Charge Type first"
@@ -36824,7 +36857,7 @@ msgstr "请选择维护状态为已完成或删除完成日期"
 msgid "Please select Party Type first"
 msgstr "请先选择往来单位"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:493
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:505
 msgid "Please select Posting Date before selecting Party"
 msgstr "在选择往来单位之前请先选择记帐日期"
 
@@ -36852,7 +36885,7 @@ msgstr ""
 msgid "Please select Start Date and End Date for Item {0}"
 msgstr "请选择开始日期和结束日期的项目{0}"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1279
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1255
 msgid "Please select Subcontracting Order instead of Purchase Order {0}"
 msgstr ""
 
@@ -36868,11 +36901,11 @@ msgstr "请选择一个物料清单"
 msgid "Please select a Company"
 msgstr "请选择一个公司"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:251
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:263
 #: erpnext/manufacturing/doctype/bom/bom.js:597
 #: erpnext/manufacturing/doctype/bom/bom.py:261
 #: erpnext/public/js/controllers/accounts.js:249
-#: erpnext/public/js/controllers/transaction.js:2693
+#: erpnext/public/js/controllers/transaction.js:2700
 msgid "Please select a Company first."
 msgstr "请先选择一个公司。"
 
@@ -37021,7 +37054,7 @@ msgstr "请选择每周休息日"
 msgid "Please select {0}"
 msgstr "请选择{0}"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1189
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1201
 #: erpnext/accounts/doctype/payment_reconciliation/payment_reconciliation.py:583
 #: erpnext/accounts/doctype/tax_withholding_category/tax_withholding_category.py:82
 msgid "Please select {0} first"
@@ -37092,7 +37125,7 @@ msgstr ""
 msgid "Please set Fixed Asset Account in {} against {}."
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:452
+#: erpnext/assets/doctype/asset/asset.py:453
 msgid "Please set Opening Number of Booked Depreciations"
 msgstr ""
 
@@ -37126,7 +37159,7 @@ msgstr ""
 msgid "Please set a Company"
 msgstr "请设置公司"
 
-#: erpnext/assets/doctype/asset/asset.py:263
+#: erpnext/assets/doctype/asset/asset.py:264
 msgid "Please set a Cost Center for the Asset or set an Asset Depreciation Cost Center for the Company {}"
 msgstr ""
 
@@ -37217,7 +37250,7 @@ msgstr ""
 msgid "Please set one of the following:"
 msgstr ""
 
-#: erpnext/public/js/controllers/transaction.js:2162
+#: erpnext/public/js/controllers/transaction.js:2163
 msgid "Please set recurring after saving"
 msgstr "请设置保存后复发"
 
@@ -37237,7 +37270,7 @@ msgstr "请先设定商品代码"
 msgid "Please set the Payment Schedule"
 msgstr "请设置付款时间表"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:170
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:174
 msgid "Please set the cost center field in {0} or setup a default Cost Center for the Company."
 msgstr ""
 
@@ -37280,7 +37313,7 @@ msgstr ""
 msgid "Please share this email with your support team so that they can find and fix the issue."
 msgstr ""
 
-#: erpnext/public/js/controllers/transaction.js:2030
+#: erpnext/public/js/controllers/transaction.js:2031
 msgid "Please specify"
 msgstr "请注明"
 
@@ -37294,7 +37327,7 @@ msgstr "请注明公司"
 msgid "Please specify Company to proceed"
 msgstr "请注明公司进行"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1467
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1479
 #: erpnext/controllers/accounts_controller.py:2800
 #: erpnext/public/js/controllers/accounts.js:97
 msgid "Please specify a valid Row ID for row {0} in table {1}"
@@ -37473,7 +37506,7 @@ msgstr "邮政费用"
 #: erpnext/accounts/doctype/journal_entry/journal_entry.json
 #: erpnext/accounts/doctype/loyalty_point_entry/loyalty_point_entry.json
 #: erpnext/accounts/doctype/opening_invoice_creation_tool_item/opening_invoice_creation_tool_item.json
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:853
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:865
 #: erpnext/accounts/doctype/payment_entry/payment_entry.json
 #: erpnext/accounts/doctype/payment_ledger_entry/payment_ledger_entry.json
 #: erpnext/accounts/doctype/payment_order/payment_order.json
@@ -37594,7 +37627,7 @@ msgstr ""
 msgid "Posting Time"
 msgstr "记帐时间"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1813
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1789
 msgid "Posting date and posting time is mandatory"
 msgstr "记帐日期和记帐时间必填"
 
@@ -37869,7 +37902,7 @@ msgstr "价格清单国家"
 msgid "Price List Currency"
 msgstr ""
 
-#: erpnext/stock/get_item_details.py:1098
+#: erpnext/stock/get_item_details.py:1100
 msgid "Price List Currency not selected"
 msgstr "价格清单货币没有选择"
 
@@ -37987,7 +38020,7 @@ msgstr ""
 msgid "Price Per Unit ({0})"
 msgstr ""
 
-#: erpnext/selling/page/point_of_sale/pos_controller.js:583
+#: erpnext/selling/page/point_of_sale/pos_controller.js:584
 msgid "Price is not set for the item."
 msgstr ""
 
@@ -38702,8 +38735,8 @@ msgstr ""
 #: erpnext/accounts/doctype/purchase_invoice_item/purchase_invoice_item.json
 #: erpnext/buying/doctype/purchase_order_item/purchase_order_item.json
 #: erpnext/buying/workspace/buying/buying.json
-#: erpnext/public/js/controllers/buying.js:260
-#: erpnext/public/js/controllers/buying.js:508
+#: erpnext/public/js/controllers/buying.js:280
+#: erpnext/public/js/controllers/buying.js:528
 #: erpnext/selling/doctype/product_bundle/product_bundle.json
 #: erpnext/selling/workspace/selling/selling.json
 #: erpnext/stock/doctype/purchase_receipt_item/purchase_receipt_item.json
@@ -39047,7 +39080,7 @@ msgstr ""
 #: erpnext/buying/report/procurement_tracker/procurement_tracker.js:21
 #: erpnext/buying/report/procurement_tracker/procurement_tracker.py:39
 #: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.js:33
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:215
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:216
 #: erpnext/crm/doctype/contract/contract.json
 #: erpnext/manufacturing/doctype/bom/bom.json
 #: erpnext/manufacturing/doctype/bom_creator/bom_creator.json
@@ -39592,7 +39625,7 @@ msgstr "采购费用清单项"
 msgid "Purchase Invoice Trends"
 msgstr "采购费用清单趋势"
 
-#: erpnext/assets/doctype/asset/asset.py:215
+#: erpnext/assets/doctype/asset/asset.py:216
 msgid "Purchase Invoice cannot be made against an existing asset {0}"
 msgstr "无法针对现有资产{0}生成采购发票"
 
@@ -39666,9 +39699,9 @@ msgstr "采购方面的主要经理"
 #: erpnext/buying/report/item_wise_purchase_history/item_wise_purchase_history.py:79
 #: erpnext/buying/report/procurement_tracker/procurement_tracker.py:82
 #: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.js:40
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:200
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:201
 #: erpnext/buying/workspace/buying/buying.json
-#: erpnext/controllers/buying_controller.py:677
+#: erpnext/controllers/buying_controller.py:678
 #: erpnext/crm/doctype/contract/contract.json
 #: erpnext/manufacturing/doctype/blanket_order/blanket_order.js:54
 #: erpnext/manufacturing/doctype/production_plan_sub_assembly_item/production_plan_sub_assembly_item.json
@@ -40065,7 +40098,7 @@ msgstr ""
 msgid "Purpose"
 msgstr "目的"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:364
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:363
 msgid "Purpose must be one of {0}"
 msgstr "目的必须是一个{0}"
 
@@ -40126,7 +40159,7 @@ msgstr ""
 #: erpnext/accounts/report/gross_profit/gross_profit.py:267
 #: erpnext/assets/doctype/asset_capitalization_service_item/asset_capitalization_service_item.json
 #: erpnext/assets/doctype/asset_capitalization_stock_item/asset_capitalization_stock_item.json
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:237
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:238
 #: erpnext/buying/report/requested_items_to_order_and_receive/requested_items_to_order_and_receive.py:224
 #: erpnext/controllers/trends.py:238 erpnext/controllers/trends.py:250
 #: erpnext/controllers/trends.py:255
@@ -40336,7 +40369,7 @@ msgstr ""
 msgid "Qty to Be Consumed"
 msgstr ""
 
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:265
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:266
 #: erpnext/selling/report/sales_order_analysis/sales_order_analysis.py:283
 msgid "Qty to Bill"
 msgstr "账单数量"
@@ -40680,7 +40713,7 @@ msgstr "质量审查目标"
 #: erpnext/manufacturing/doctype/bom_creator/bom_creator.json
 #: erpnext/manufacturing/doctype/plant_floor/plant_floor.js:194
 #: erpnext/manufacturing/doctype/plant_floor/plant_floor.js:218
-#: erpnext/public/js/controllers/buying.js:515
+#: erpnext/public/js/controllers/buying.js:535
 #: erpnext/public/js/stock_analytics.js:50
 #: erpnext/public/js/utils/serial_no_batch_selector.js:485
 #: erpnext/selling/doctype/quotation_item/quotation_item.json
@@ -40790,7 +40823,7 @@ msgstr ""
 msgid "Quantity and Warehouse"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1347
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1323
 msgid "Quantity in row {0} ({1}) must be same as manufactured quantity {2}"
 msgstr "行{0}中的数量({1})必须等于生产数量{2}"
 
@@ -41157,7 +41190,6 @@ msgstr "范围"
 #. Label of the rate (Currency) field in DocType 'Subcontracting Receipt Item'
 #. Label of the rate (Currency) field in DocType 'Subcontracting Receipt
 #. Supplied Item'
-#: erpnext/accounts/doctype/pos_closing_entry/closing_voucher_details.html:66
 #: erpnext/accounts/doctype/pos_invoice_item/pos_invoice_item.json
 #: erpnext/accounts/doctype/pricing_rule/pricing_rule.json
 #: erpnext/accounts/doctype/promotional_scheme_price_discount/promotional_scheme_price_discount.json
@@ -41843,7 +41875,7 @@ msgstr "收到的"
 #: erpnext/accounts/doctype/purchase_invoice_item/purchase_invoice_item.json
 #: erpnext/accounts/report/billed_items_to_be_received/billed_items_to_be_received.py:76
 #: erpnext/buying/doctype/purchase_order_item/purchase_order_item.json
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:244
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:245
 #: erpnext/buying/report/requested_items_to_order_and_receive/requested_items_to_order_and_receive.py:170
 #: erpnext/buying/report/requested_items_to_order_and_receive/requested_items_to_order_and_receive.py:245
 #: erpnext/buying/report/subcontract_order_summary/subcontract_order_summary.py:143
@@ -41854,7 +41886,7 @@ msgstr "收到的"
 msgid "Received Qty"
 msgstr "收到数量"
 
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:296
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:297
 msgid "Received Qty Amount"
 msgstr "收到的数量"
 
@@ -42204,7 +42236,7 @@ msgstr "参考＃ {0}记载日期为{1}"
 msgid "Reference Date"
 msgstr "参考日期"
 
-#: erpnext/public/js/controllers/transaction.js:2268
+#: erpnext/public/js/controllers/transaction.js:2269
 msgid "Reference Date for Early Payment Discount"
 msgstr ""
 
@@ -42219,7 +42251,7 @@ msgstr ""
 msgid "Reference Detail No"
 msgstr ""
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1697
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1709
 msgid "Reference DocType"
 msgstr ""
 
@@ -42308,7 +42340,7 @@ msgstr ""
 #. Supplied Item'
 #: erpnext/accounts/doctype/advance_tax/advance_tax.json
 #: erpnext/accounts/doctype/journal_entry_account/journal_entry_account.json
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1697
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1709
 #: erpnext/accounts/doctype/payment_reconciliation_allocation/payment_reconciliation_allocation.json
 #: erpnext/accounts/doctype/payment_reconciliation_payment/payment_reconciliation_payment.json
 #: erpnext/accounts/doctype/payment_request/payment_request.json
@@ -43183,7 +43215,7 @@ msgstr "请求者"
 #. Item'
 #: erpnext/buying/doctype/purchase_order/purchase_order.json
 #: erpnext/buying/doctype/purchase_order_item/purchase_order_item.json
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:198
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:199
 #: erpnext/buying/report/requested_items_to_order_and_receive/requested_items_to_order_and_receive.py:191
 #: erpnext/manufacturing/doctype/material_request_plan_item/material_request_plan_item.json
 #: erpnext/stock/doctype/material_request/material_request.json
@@ -44252,11 +44284,11 @@ msgstr "行＃{0}（付款表）：金额必须为正值"
 msgid "Row #{0}: A reorder entry already exists for warehouse {1} with reorder type {2}."
 msgstr ""
 
-#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:256
+#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:318
 msgid "Row #{0}: Acceptance Criteria Formula is incorrect."
 msgstr ""
 
-#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:236
+#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:298
 msgid "Row #{0}: Acceptance Criteria Formula is required."
 msgstr ""
 
@@ -44265,7 +44297,7 @@ msgstr ""
 msgid "Row #{0}: Accepted Warehouse and Rejected Warehouse cannot be same"
 msgstr ""
 
-#: erpnext/controllers/buying_controller.py:226
+#: erpnext/controllers/buying_controller.py:227
 msgid "Row #{0}: Accepted Warehouse and Supplier Warehouse cannot be same"
 msgstr "第＃0行：接受仓库和供应商仓库不能相同"
 
@@ -44330,7 +44362,7 @@ msgstr "第＃{0}行：无法删除已为其分配了工作订单的项目{1}。
 msgid "Row #{0}: Cannot delete item {1} which is assigned to customer's purchase order."
 msgstr "第＃{0}行：无法删除分配给客户采购订单的项目{1}。"
 
-#: erpnext/controllers/buying_controller.py:231
+#: erpnext/controllers/buying_controller.py:232
 msgid "Row #{0}: Cannot select Supplier Warehouse while suppling raw materials to subcontractor"
 msgstr "第{0}行：在向分包商供应原材料时无法选择供应商仓库"
 
@@ -44406,7 +44438,7 @@ msgstr ""
 msgid "Row #{0}: Finished Good Item {1} must be a sub-contracted item"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:324
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:323
 msgid "Row #{0}: Finished Good must be {1}"
 msgstr ""
 
@@ -44466,7 +44498,7 @@ msgstr "行＃{0}：不能更改供应商的采购订单已经存在"
 msgid "Row #{0}: Only {1} available to reserve for the Item {2}"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:678
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:643
 msgid "Row #{0}: Operation {1} is not completed for {2} qty of finished goods in Work Order {3}. Please update operation status via Job Card {4}."
 msgstr "行＃{0}：对于工作订单{3}中的{2}数量的成品，未完成操作{1}。请通过工作卡{4}更新操作状态。"
 
@@ -44533,19 +44565,19 @@ msgstr ""
 msgid "Row #{0}: Rate must be same as {1}: {2} ({3} / {4})"
 msgstr ""
 
-#: erpnext/controllers/buying_controller.py:487
+#: erpnext/controllers/buying_controller.py:488
 msgid "Row #{0}: Received Qty must be equal to Accepted + Rejected Qty for Item {1}"
 msgstr ""
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1221
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1233
 msgid "Row #{0}: Reference Document Type must be one of Purchase Order, Purchase Invoice or Journal Entry"
 msgstr "行＃{0}：参考文件类型必须是采购订单之一，采购费用清单或手工凭证"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1207
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1219
 msgid "Row #{0}: Reference Document Type must be one of Sales Order, Sales Invoice, Journal Entry or Dunning"
 msgstr "行＃{0}：参考单据类型必须是销售订单，销售发票，日记帐分录或催款中的一种"
 
-#: erpnext/controllers/buying_controller.py:472
+#: erpnext/controllers/buying_controller.py:473
 msgid "Row #{0}: Rejected Qty can not be entered in Purchase Return"
 msgstr "行＃{0}：拒收数量不能包含在采购退货数量中"
 
@@ -44557,7 +44589,7 @@ msgstr ""
 msgid "Row #{0}: Rejected Warehouse is mandatory for the rejected Item {1}"
 msgstr ""
 
-#: erpnext/controllers/buying_controller.py:910
+#: erpnext/controllers/buying_controller.py:919
 msgid "Row #{0}: Reqd by Date cannot be before Transaction Date"
 msgstr "行号{0}：按日期请求不能在交易日期之前"
 
@@ -44608,7 +44640,7 @@ msgstr ""
 msgid "Row #{0}: Start Time must be before End Time"
 msgstr ""
 
-#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:143
+#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:202
 msgid "Row #{0}: Status is mandatory"
 msgstr ""
 
@@ -44668,12 +44700,12 @@ msgstr ""
 msgid "Row #{0}: You must select an Asset for Item {1}."
 msgstr ""
 
-#: erpnext/controllers/buying_controller.py:500
-#: erpnext/public/js/controllers/buying.js:203
+#: erpnext/controllers/buying_controller.py:501
+#: erpnext/public/js/controllers/buying.js:223
 msgid "Row #{0}: {1} can not be negative for item {2}"
 msgstr "行＃{0}：{1}不能为负值对项{2}"
 
-#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:249
+#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:311
 msgid "Row #{0}: {1} is not a valid reading field. Please refer to the field description."
 msgstr ""
 
@@ -44697,7 +44729,7 @@ msgstr ""
 msgid "Row #{}: Currency of {} - {} doesn't matches company currency."
 msgstr "第＃{}行：{}-{}的货币与公司货币不符。"
 
-#: erpnext/assets/doctype/asset/asset.py:307
+#: erpnext/assets/doctype/asset/asset.py:308
 msgid "Row #{}: Finance Book should not be empty since you're using multiple."
 msgstr ""
 
@@ -44721,7 +44753,7 @@ msgstr "第{}行：尚未提交POS发票{}"
 msgid "Row #{}: Please assign task to a member."
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:299
+#: erpnext/assets/doctype/asset/asset.py:300
 msgid "Row #{}: Please use a different Finance Book."
 msgstr ""
 
@@ -44777,11 +44809,11 @@ msgstr "行{0}：对原材料项{1}需要操作"
 msgid "Row {0} picked quantity is less than the required quantity, additional {1} {2} required."
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1210
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1186
 msgid "Row {0}# Item {1} cannot be transferred more than {2} against {3} {4}"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1234
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1210
 msgid "Row {0}# Item {1} not found in 'Raw Materials Supplied' table in {2} {3}"
 msgstr ""
 
@@ -44813,7 +44845,7 @@ msgstr ""
 msgid "Row {0}: Allocated amount {1} must be less than or equal to remaining payment amount {2}"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:943
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:919
 msgid "Row {0}: As {1} is enabled, raw materials cannot be added to {2} entry. Use {3} entry to consume raw materials."
 msgstr ""
 
@@ -44825,7 +44857,7 @@ msgstr "行{0}：材料清单未找到物料{1}"
 msgid "Row {0}: Both Debit and Credit values cannot be zero"
 msgstr ""
 
-#: erpnext/controllers/buying_controller.py:455
+#: erpnext/controllers/buying_controller.py:456
 #: erpnext/controllers/selling_controller.py:222
 msgid "Row {0}: Conversion Factor is mandatory"
 msgstr "行{0}：转换系数必填"
@@ -44854,7 +44886,7 @@ msgstr "行{0}：借记分录不能与连接的{1}"
 msgid "Row {0}: Delivery Warehouse ({1}) and Customer Warehouse ({2}) can not be same"
 msgstr "第{0}行：交货仓库（{1}）和客户仓库（{2}）不能相同"
 
-#: erpnext/assets/doctype/asset/asset.py:430
+#: erpnext/assets/doctype/asset/asset.py:431
 msgid "Row {0}: Depreciation Start Date is required"
 msgstr "行{0}：折旧开始日期是必需的"
 
@@ -44866,16 +44898,16 @@ msgstr "第{0}行：“付款条款”表中的到期日期不能早于过帐日
 msgid "Row {0}: Either Delivery Note Item or Packed Item reference is mandatory."
 msgstr ""
 
-#: erpnext/controllers/buying_controller.py:804
+#: erpnext/controllers/buying_controller.py:806
 msgid "Row {0}: Enter location for the asset item {1}"
 msgstr "行{0}：请为第{0}行的资产，即物料号{1}输入位置信息"
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.py:962
-#: erpnext/controllers/taxes_and_totals.py:1167
+#: erpnext/controllers/taxes_and_totals.py:1176
 msgid "Row {0}: Exchange Rate is mandatory"
 msgstr "行{0}：汇率是必须的"
 
-#: erpnext/assets/doctype/asset/asset.py:421
+#: erpnext/assets/doctype/asset/asset.py:422
 msgid "Row {0}: Expected Value After Useful Life must be less than Gross Purchase Amount"
 msgstr "行{0}：使用寿命后的预期值必须小于总采购额"
 
@@ -44920,11 +44952,11 @@ msgstr "行{0}：小时值必须大于零。"
 msgid "Row {0}: Invalid reference {1}"
 msgstr "行{0}：无效参考{1}"
 
-#: erpnext/controllers/taxes_and_totals.py:138
+#: erpnext/controllers/taxes_and_totals.py:139
 msgid "Row {0}: Item Tax template updated as per validity and rate applied"
 msgstr ""
 
-#: erpnext/controllers/buying_controller.py:377
+#: erpnext/controllers/buying_controller.py:378
 #: erpnext/controllers/selling_controller.py:541
 msgid "Row {0}: Item rate has been updated as per valuation rate since its an internal stock transfer"
 msgstr ""
@@ -44937,7 +44969,7 @@ msgstr ""
 msgid "Row {0}: Item {1} must be a subcontracted item."
 msgstr ""
 
-#: erpnext/controllers/subcontracting_controller.py:113
+#: erpnext/controllers/subcontracting_controller.py:123
 msgid "Row {0}: Item {1}'s quantity cannot be higher than the available quantity."
 msgstr ""
 
@@ -44973,15 +45005,15 @@ msgstr "行{0}：如果预付凭证，请为科目{1}勾选'预付？'。"
 msgid "Row {0}: Please provide a valid Delivery Note Item or Packed Item reference."
 msgstr ""
 
-#: erpnext/controllers/subcontracting_controller.py:136
+#: erpnext/controllers/subcontracting_controller.py:146
 msgid "Row {0}: Please select a BOM for Item {1}."
 msgstr ""
 
-#: erpnext/controllers/subcontracting_controller.py:124
+#: erpnext/controllers/subcontracting_controller.py:134
 msgid "Row {0}: Please select an active BOM for Item {1}."
 msgstr ""
 
-#: erpnext/controllers/subcontracting_controller.py:130
+#: erpnext/controllers/subcontracting_controller.py:140
 msgid "Row {0}: Please select an valid BOM for Item {1}."
 msgstr ""
 
@@ -45009,7 +45041,7 @@ msgstr ""
 msgid "Row {0}: Qty cannot be greater than {1} for the Item {2}."
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:388
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:387
 msgid "Row {0}: Qty in Stock UOM can not be zero."
 msgstr ""
 
@@ -45017,7 +45049,7 @@ msgstr ""
 msgid "Row {0}: Qty must be greater than 0."
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:752
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:717
 msgid "Row {0}: Quantity not available for {4} in warehouse {1} at posting time of the entry ({2} {3})"
 msgstr "第{0}行：在输入条目（{2} {3}）时，仓库{1}中{4}不可使用的数量"
 
@@ -45025,7 +45057,7 @@ msgstr "第{0}行：在输入条目（{2} {3}）时，仓库{1}中{4}不可使�
 msgid "Row {0}: Shift cannot be changed since the depreciation has already been processed"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1247
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1223
 msgid "Row {0}: Subcontracted Item is mandatory for the raw material {1}"
 msgstr "第{0}行：原材料{1}必须使用转包物料"
 
@@ -45037,7 +45069,7 @@ msgstr ""
 msgid "Row {0}: Task {1} does not belong to Project {2}"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:431
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:430
 msgid "Row {0}: The item {1}, quantity must be positive number"
 msgstr "第{0}行：项目{1}，数量必须为正数"
 
@@ -45049,11 +45081,11 @@ msgstr ""
 msgid "Row {0}: To set {1} periodicity, difference between from and to date must be greater than or equal to {2}"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:458
+#: erpnext/assets/doctype/asset/asset.py:459
 msgid "Row {0}: Total Number of Depreciations cannot be less than or equal to Opening Number of Booked Depreciations"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:382
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:381
 msgid "Row {0}: UOM Conversion Factor is mandatory"
 msgstr "行{0}：计量单位转换系数是必需的"
 
@@ -45090,7 +45122,7 @@ msgstr ""
 msgid "Row {1}: Quantity ({0}) cannot be a fraction. To allow this, disable '{2}' in UOM {3}."
 msgstr "第{1}行：数量（{0}）不能为小数。为此，请在UOM {3}中禁用“ {2}”。"
 
-#: erpnext/controllers/buying_controller.py:787
+#: erpnext/controllers/buying_controller.py:789
 msgid "Row {}: Asset Naming Series is mandatory for the auto creation for item {}"
 msgstr "第{}行：对于项目{}的自动创建，必须使用资产命名系列"
 
@@ -46132,12 +46164,12 @@ msgstr ""
 
 #. Label of the sample_size (Float) field in DocType 'Quality Inspection'
 #: erpnext/manufacturing/report/quality_inspection_summary/quality_inspection_summary.py:93
-#: erpnext/public/js/controllers/transaction.js:2326
+#: erpnext/public/js/controllers/transaction.js:2327
 #: erpnext/stock/doctype/quality_inspection/quality_inspection.json
 msgid "Sample Size"
 msgstr "样本大小"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:3068
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:3044
 msgid "Sample quantity {0} cannot be more than received quantity {1}"
 msgstr "采样数量{0}不能超过接收数量{1}"
 
@@ -46668,7 +46700,7 @@ msgstr "选择项目"
 msgid "Select Items based on Delivery Date"
 msgstr "根据交货日期选择物料"
 
-#: erpnext/public/js/controllers/transaction.js:2356
+#: erpnext/public/js/controllers/transaction.js:2363
 msgid "Select Items for Quality Inspection"
 msgstr ""
 
@@ -47182,7 +47214,7 @@ msgstr ""
 #: erpnext/manufacturing/doctype/job_card/job_card.json
 #: erpnext/manufacturing/report/cost_of_poor_quality_report/cost_of_poor_quality_report.js:74
 #: erpnext/manufacturing/report/cost_of_poor_quality_report/cost_of_poor_quality_report.py:114
-#: erpnext/public/js/controllers/transaction.js:2339
+#: erpnext/public/js/controllers/transaction.js:2340
 #: erpnext/public/js/utils/serial_no_batch_selector.js:421
 #: erpnext/selling/doctype/installation_note_item/installation_note_item.json
 #: erpnext/stock/doctype/delivery_note_item/delivery_note_item.json
@@ -47321,7 +47353,7 @@ msgstr "序列号{0}截至至{1}之前在保修内。"
 msgid "Serial No {0} not found"
 msgstr "序列号{0}未找到"
 
-#: erpnext/selling/page/point_of_sale/pos_controller.js:737
+#: erpnext/selling/page/point_of_sale/pos_controller.js:738
 msgid "Serial No: {0} has already been transacted into another POS Invoice."
 msgstr "序列号：{0}已被交易到另一个POS发票中。"
 
@@ -47771,12 +47803,12 @@ msgid "Service Stop Date"
 msgstr ""
 
 #: erpnext/accounts/deferred_revenue.py:44
-#: erpnext/public/js/controllers/transaction.js:1397
+#: erpnext/public/js/controllers/transaction.js:1398
 msgid "Service Stop Date cannot be after Service End Date"
 msgstr "服务停止日期不能在服务结束日期之后"
 
 #: erpnext/accounts/deferred_revenue.py:41
-#: erpnext/public/js/controllers/transaction.js:1394
+#: erpnext/public/js/controllers/transaction.js:1395
 msgid "Service Stop Date cannot be before Service Start Date"
 msgstr "服务停止日期不能早于服务开始日期"
 
@@ -48011,15 +48043,15 @@ msgstr ""
 msgid "Set this if the customer is a Public Administration company."
 msgstr "如果客户是公共管理公司，请设置此项。"
 
-#: erpnext/assets/doctype/asset/asset.py:694
+#: erpnext/assets/doctype/asset/asset.py:695
 msgid "Set {0} in asset category {1} for company {2}"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:1018
+#: erpnext/assets/doctype/asset/asset.py:1030
 msgid "Set {0} in asset category {1} or company {2}"
 msgstr "在资产类别{1}或公司{2}中设置{0}"
 
-#: erpnext/assets/doctype/asset/asset.py:1015
+#: erpnext/assets/doctype/asset/asset.py:1027
 msgid "Set {0} in company {1}"
 msgstr "在公司{1}中设置{0}"
 
@@ -48769,7 +48801,7 @@ msgstr ""
 msgid "Simultaneous"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:539
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:504
 msgid "Since there is a process loss of {0} units for the finished good {1}, you should reduce the quantity by {0} units for the finished good {1} in the Items Table."
 msgstr ""
 
@@ -49013,7 +49045,7 @@ msgstr ""
 msgid "Source and Target Location cannot be same"
 msgstr "源和目标位置不能相同"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:628
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:593
 msgid "Source and target warehouse cannot be same for row {0}"
 msgstr "行{0}中的源和目标仓库不能相同"
 
@@ -49026,8 +49058,8 @@ msgstr "源和目标仓库必须是不同的"
 msgid "Source of Funds (Liabilities)"
 msgstr "资金来源（负债）"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:605
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:622
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:570
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:587
 msgid "Source warehouse is mandatory for row {0}"
 msgstr "行{0}中源仓库为必须项"
 
@@ -49101,7 +49133,7 @@ msgstr "拆分问题"
 msgid "Split Qty"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:1123
+#: erpnext/assets/doctype/asset/asset.py:1135
 msgid "Split qty cannot be grater than or equal to asset qty"
 msgstr ""
 
@@ -49526,7 +49558,7 @@ msgstr "州"
 #: erpnext/buying/doctype/supplier_scorecard/supplier_scorecard.json
 #: erpnext/buying/report/procurement_tracker/procurement_tracker.py:74
 #: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.js:52
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:206
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:207
 #: erpnext/buying/report/subcontract_order_summary/subcontract_order_summary.py:134
 #: erpnext/crm/doctype/appointment/appointment.json
 #: erpnext/crm/doctype/contract/contract.json
@@ -49659,7 +49691,7 @@ msgstr "状态必须已取消或已完成"
 msgid "Status must be one of {0}"
 msgstr "状态必须是{0}中的一个"
 
-#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:206
+#: erpnext/stock/doctype/quality_inspection/quality_inspection.py:268
 msgid "Status set to rejected as there are one or more rejected readings."
 msgstr ""
 
@@ -49795,7 +49827,7 @@ msgstr ""
 msgid "Stock Details"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:720
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:685
 msgid "Stock Entries already created for Work Order {0}: {1}"
 msgstr ""
 
@@ -50342,7 +50374,7 @@ msgstr ""
 msgid "Stock not available for Item {0} in Warehouse {1}."
 msgstr ""
 
-#: erpnext/selling/page/point_of_sale/pos_controller.js:717
+#: erpnext/selling/page/point_of_sale/pos_controller.js:718
 msgid "Stock quantity not enough for Item Code: {0} under warehouse {1}. Available quantity {2} {3}."
 msgstr ""
 
@@ -50581,7 +50613,7 @@ msgstr ""
 #. Label of the subcontracting_order (Link) field in DocType 'Subcontracting
 #. Receipt Supplied Item'
 #: erpnext/buying/doctype/purchase_order/purchase_order.js:407
-#: erpnext/controllers/subcontracting_controller.py:939
+#: erpnext/controllers/subcontracting_controller.py:949
 #: erpnext/stock/doctype/stock_entry/stock_entry.json
 #: erpnext/subcontracting/doctype/subcontracting_order/subcontracting_order.json
 #: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.js:97
@@ -51132,7 +51164,7 @@ msgstr "供应的数量"
 #: erpnext/buying/report/item_wise_purchase_history/item_wise_purchase_history.js:47
 #: erpnext/buying/report/item_wise_purchase_history/item_wise_purchase_history.py:92
 #: erpnext/buying/report/procurement_tracker/procurement_tracker.py:89
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:208
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:209
 #: erpnext/buying/report/subcontracted_item_to_be_received/subcontracted_item_to_be_received.js:15
 #: erpnext/buying/report/subcontracted_item_to_be_received/subcontracted_item_to_be_received.py:30
 #: erpnext/buying/report/subcontracted_raw_materials_to_be_transferred/subcontracted_raw_materials_to_be_transferred.js:15
@@ -51512,7 +51544,7 @@ msgstr ""
 msgid "Supplier Warehouse"
 msgstr ""
 
-#: erpnext/controllers/buying_controller.py:429
+#: erpnext/controllers/buying_controller.py:430
 msgid "Supplier Warehouse mandatory for sub-contracted {0}"
 msgstr ""
 
@@ -52094,8 +52126,8 @@ msgstr ""
 msgid "Target Warehouse is set for some items but the customer is not an internal customer."
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:611
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:618
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:576
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:583
 msgid "Target warehouse is mandatory for row {0}"
 msgstr "行{0}必须指定目标仓库"
 
@@ -52329,7 +52361,7 @@ msgstr ""
 msgid "Tax Category"
 msgstr "税种"
 
-#: erpnext/controllers/buying_controller.py:170
+#: erpnext/controllers/buying_controller.py:171
 msgid "Tax Category has been changed to \"Total\" because all the Items are non-stock items"
 msgstr "税项类别已更改为“合计”，因为所有物料均为非库存物料"
 
@@ -52384,6 +52416,7 @@ msgstr ""
 #: erpnext/accounts/doctype/account/account_tree.js:160
 #: erpnext/accounts/doctype/advance_taxes_and_charges/advance_taxes_and_charges.json
 #: erpnext/accounts/doctype/item_tax_template_detail/item_tax_template_detail.json
+#: erpnext/accounts/doctype/pos_closing_entry/closing_voucher_details.html:66
 #: erpnext/accounts/doctype/pos_closing_entry_taxes/pos_closing_entry_taxes.json
 #: erpnext/accounts/doctype/purchase_taxes_and_charges/purchase_taxes_and_charges.json
 #: erpnext/accounts/doctype/sales_taxes_and_charges/sales_taxes_and_charges.json
@@ -52534,7 +52567,7 @@ msgstr ""
 #. Label of the taxable_amount (Currency) field in DocType 'Tax Withheld
 #. Vouchers'
 #: erpnext/accounts/doctype/tax_withheld_vouchers/tax_withheld_vouchers.json
-#: erpnext/controllers/taxes_and_totals.py:1084
+#: erpnext/controllers/taxes_and_totals.py:1093
 msgid "Taxable Amount"
 msgstr "应税金额"
 
@@ -53098,7 +53131,7 @@ msgstr "第{0}行的支付条款可能是重复的。"
 msgid "The Pick List having Stock Reservation Entries cannot be updated. If you need to make changes, we recommend canceling the existing Stock Reservation Entries before updating the Pick List."
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1945
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1921
 msgid "The Process Loss Qty has reset as per job cards Process Loss Qty"
 msgstr ""
 
@@ -53106,7 +53139,7 @@ msgstr ""
 msgid "The Serial No at Row #{0}: {1} is not available in warehouse {2}."
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1415
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1391
 msgid "The Serial and Batch Bundle {0} is not valid for this transaction. The 'Type of Transaction' should be 'Outward' instead of 'Inward' in Serial and Batch Bundle {0}"
 msgstr ""
 
@@ -53114,7 +53147,7 @@ msgstr ""
 msgid "The Stock Entry of type 'Manufacture' is known as backflush. Raw materials being consumed to manufacture finished goods is known as backflushing. <br><br> When creating Manufacture Entry, raw-material items are backflushed based on BOM of production item. If you want raw-material items to be backflushed based on Material Transfer entry made against that Work Order instead, then you can set it under this field."
 msgstr "类型“制造”的库存分录称为反冲。生产成品所消耗的原材料称为反冲。<br><br>创建生产分录时，将根据生产物料的物料清单对物料物料进行反冲。如果您希望根据针对该工单的物料转移条目来回算原始物料，则可以在此字段下进行设置。"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1759
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1735
 msgid "The Work Order is mandatory for Disassembly Order"
 msgstr ""
 
@@ -53409,7 +53442,7 @@ msgstr ""
 msgid "The {0} {1} is used to calculate the valuation cost for the finished good {2}."
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:526
+#: erpnext/assets/doctype/asset/asset.py:527
 msgid "There are active maintenance or repairs against the asset. You must complete all of them before cancelling the asset."
 msgstr "对资产进行了积极的维护或修理。您必须先完成所有操作，然后才能取消资产。"
 
@@ -53469,7 +53502,7 @@ msgstr ""
 msgid "There is no batch found against the {0}: {1}"
 msgstr "找不到针对{0}的批次：{1}"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:1356
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:1332
 msgid "There must be atleast 1 Finished Good in this Stock Entry"
 msgstr ""
 
@@ -53687,7 +53720,7 @@ msgstr ""
 msgid "This schedule was created when Asset {0} was sold through Sales Invoice {1}."
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:1184
+#: erpnext/assets/doctype/asset/asset.py:1196
 msgid "This schedule was created when Asset {0} was updated after being split into new Asset {1}."
 msgstr ""
 
@@ -53703,7 +53736,7 @@ msgstr ""
 msgid "This schedule was created when Asset {0}'s shifts were adjusted through Asset Shift Allocation {1}."
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:1241
+#: erpnext/assets/doctype/asset/asset.py:1253
 msgid "This schedule was created when new Asset {0} was split from Asset {1}."
 msgstr ""
 
@@ -54093,8 +54126,8 @@ msgstr ""
 #: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.json
 #: erpnext/accounts/doctype/bisect_accounting_statements/bisect_accounting_statements.json
 #: erpnext/accounts/doctype/loyalty_program/loyalty_program.json
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:861
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:865
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:873
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:877
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.json
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.json
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.json
@@ -54199,7 +54232,7 @@ msgstr "至今"
 msgid "To Date cannot be before From Date"
 msgstr "无效的主名称"
 
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:37
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:38
 #: erpnext/buying/report/requested_items_to_order_and_receive/requested_items_to_order_and_receive.py:34
 #: erpnext/selling/report/sales_order_analysis/sales_order_analysis.py:39
 msgid "To Date cannot be before From Date."
@@ -55483,7 +55516,7 @@ msgstr ""
 #. Option for the 'Apply On' (Select) field in DocType 'Promotional Scheme'
 #. Label of the transaction (Select) field in DocType 'Authorization Rule'
 #. Option for the 'Based On' (Select) field in DocType 'Repost Item Valuation'
-#: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.py:429
+#: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.py:432
 #: erpnext/accounts/doctype/pricing_rule/pricing_rule.json
 #: erpnext/accounts/doctype/promotional_scheme/promotional_scheme.json
 #: erpnext/manufacturing/doctype/workstation/workstation_dashboard.py:10
@@ -55592,7 +55625,7 @@ msgstr "交易参考编号{0}日{1}"
 
 #. Group in Bank Account's connections
 #: erpnext/accounts/doctype/bank_account/bank_account.json
-#: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.py:429
+#: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.py:432
 #: erpnext/accounts/doctype/purchase_taxes_and_charges_template/purchase_taxes_and_charges_template_dashboard.py:12
 #: erpnext/accounts/doctype/sales_taxes_and_charges_template/sales_taxes_and_charges_template_dashboard.py:13
 #: erpnext/manufacturing/doctype/job_card/job_card_dashboard.py:9
@@ -56099,7 +56132,7 @@ msgstr "行{0}计量单位换算系数是必须项"
 msgid "UOM Name"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:2990
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:2966
 msgid "UOM conversion factor required for UOM: {0} in Item: {1}"
 msgstr ""
 
@@ -56411,7 +56444,7 @@ msgstr ""
 msgid "Unsecured Loans"
 msgstr "无担保贷款"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1701
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:1713
 msgid "Unset Matched Payment Request"
 msgstr ""
 
@@ -56650,7 +56683,7 @@ msgstr ""
 msgid "Update latest price in all BOMs"
 msgstr ""
 
-#: erpnext/assets/doctype/asset/asset.py:348
+#: erpnext/assets/doctype/asset/asset.py:349
 msgid "Update stock must be enabled for the purchase invoice {0}"
 msgstr ""
 
@@ -57085,7 +57118,7 @@ msgstr ""
 #. Label of the validate_components_quantities_per_bom (Check) field in DocType
 #. 'Manufacturing Settings'
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.json
-msgid "Validate Components Quantities Per BOM"
+msgid "Validate Components and Quantities Per BOM"
 msgstr ""
 
 #. Label of the validate_negative_stock (Check) field in DocType 'Inventory
@@ -57581,7 +57614,7 @@ msgstr ""
 msgid "View Chart of Accounts"
 msgstr "查看会计科目表"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:235
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:247
 msgid "View Exchange Gain/Loss Journals"
 msgstr ""
 
@@ -57962,7 +57995,7 @@ msgstr "主动上门"
 #: erpnext/assets/doctype/asset_repair_consumed_item/asset_repair_consumed_item.json
 #: erpnext/buying/doctype/request_for_quotation_item/request_for_quotation_item.json
 #: erpnext/buying/doctype/supplier_quotation_item/supplier_quotation_item.json
-#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:304
+#: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:305
 #: erpnext/manufacturing/doctype/bom_creator/bom_creator.json
 #: erpnext/manufacturing/doctype/bom_operation/bom_operation.json
 #: erpnext/manufacturing/doctype/plant_floor/plant_floor.json
@@ -58833,7 +58866,7 @@ msgstr "工单已{0}"
 msgid "Work Order not created"
 msgstr "工单未创建"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:670
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:635
 msgid "Work Order {0}: Job Card not found for the operation {1}"
 msgstr "工作单{0}：找不到工序{1}的工作卡"
 
@@ -59402,7 +59435,7 @@ msgstr ""
 msgid "You must add atleast one item to save it as draft."
 msgstr "您必须添加至少一项才能将其保存为草稿。"
 
-#: erpnext/selling/page/point_of_sale/pos_controller.js:629
+#: erpnext/selling/page/point_of_sale/pos_controller.js:630
 msgid "You must select a customer before adding an item."
 msgstr "在添加项目之前，您必须选择一个客户。"
 
@@ -59477,7 +59510,7 @@ msgstr ""
 msgid "Zero Rated"
 msgstr ""
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:388
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:387
 msgid "Zero quantity"
 msgstr ""
 
@@ -59882,7 +59915,7 @@ msgstr "{0}申请{1}"
 msgid "{0} Retain Sample is based on batch, please check Has Batch No to retain sample of item"
 msgstr "{0}保留样品基于批次，请检查是否具有批次号以保留项目样品"
 
-#: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.py:423
+#: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.py:426
 msgid "{0} Transaction(s) Reconciled"
 msgstr ""
 
@@ -60040,7 +60073,7 @@ msgstr "{0}不是公司银行帐户"
 msgid "{0} is not a group node. Please select a group node as parent cost center"
 msgstr "{0}不是组节点。请选择一个组节点作为父成本中心"
 
-#: erpnext/stock/doctype/stock_entry/stock_entry.py:437
+#: erpnext/stock/doctype/stock_entry/stock_entry.py:436
 msgid "{0} is not a stock Item"
 msgstr "{0}不是一个库存物料"
 
@@ -60068,7 +60101,7 @@ msgstr "{0}不是任何商品的默认供应商。"
 msgid "{0} is on hold till {1}"
 msgstr "{0}暂缓处理，直到{1}"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:126
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:130
 #: erpnext/accounts/doctype/pricing_rule/pricing_rule.py:171
 #: erpnext/stock/doctype/stock_ledger_entry/stock_ledger_entry.py:192
 #: erpnext/stock/doctype/stock_reservation_entry/stock_reservation_entry.py:118
@@ -60160,7 +60193,7 @@ msgstr ""
 msgid "{0} {1} Manually"
 msgstr ""
 
-#: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.py:427
+#: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.py:430
 msgid "{0} {1} Partially Reconciled"
 msgstr ""
 
@@ -60212,9 +60245,9 @@ msgstr ""
 msgid "{0} {1} is associated with {2}, but Party Account is {3}"
 msgstr "{0} {1}与{2}相关联，但业务伙伴科目为{3}"
 
-#: erpnext/controllers/buying_controller.py:677
+#: erpnext/controllers/buying_controller.py:678
 #: erpnext/controllers/selling_controller.py:462
-#: erpnext/controllers/subcontracting_controller.py:939
+#: erpnext/controllers/subcontracting_controller.py:949
 msgid "{0} {1} is cancelled or closed"
 msgstr "{0} {1}被取消或关闭"
 
@@ -60263,7 +60296,7 @@ msgstr "{0} {1}未提交"
 msgid "{0} {1} is on hold"
 msgstr ""
 
-#: erpnext/controllers/buying_controller.py:512
+#: erpnext/controllers/buying_controller.py:513
 msgid "{0} {1} is {2}"
 msgstr "{0} {1}是{2}"
 
@@ -60283,26 +60316,26 @@ msgstr "{0} {1}的状态为{2}"
 msgid "{0} {1} via CSV File"
 msgstr ""
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:215
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:219
 msgid "{0} {1}: 'Profit and Loss' type account {2} not allowed in Opening Entry"
 msgstr "{0} {1}：“损益”科目类型{2}不允许开帐凭证"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:244
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:248
 #: erpnext/accounts/doctype/payment_ledger_entry/payment_ledger_entry.py:87
 msgid "{0} {1}: Account {2} does not belong to Company {3}"
 msgstr "{0} {1}科目{2}不属于公司{3}"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:232
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:236
 #: erpnext/accounts/doctype/payment_ledger_entry/payment_ledger_entry.py:75
 msgid "{0} {1}: Account {2} is a Group Account and group accounts cannot be used in transactions"
 msgstr ""
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:239
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:243
 #: erpnext/accounts/doctype/payment_ledger_entry/payment_ledger_entry.py:82
 msgid "{0} {1}: Account {2} is inactive"
 msgstr "{0} {1}: 科目{2}无效"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:281
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:286
 msgid "{0} {1}: Accounting Entry for {2} can only be made in currency: {3}"
 msgstr "{0} {1}在{2}会计分录只能用货币单位：{3}"
 
@@ -60310,27 +60343,27 @@ msgstr "{0} {1}在{2}会计分录只能用货币单位：{3}"
 msgid "{0} {1}: Cost Center is mandatory for Item {2}"
 msgstr "{0} {1}：成本中心是物料{2}的必须项"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:166
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:170
 msgid "{0} {1}: Cost Center is required for 'Profit and Loss' account {2}."
 msgstr ""
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:257
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:261
 msgid "{0} {1}: Cost Center {2} does not belong to Company {3}"
 msgstr "{0} {1}：成本中心{2}不属于公司{3}"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:264
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:268
 msgid "{0} {1}: Cost Center {2} is a group cost center and group cost centers cannot be used in transactions"
 msgstr ""
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:132
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:136
 msgid "{0} {1}: Customer is required against Receivable account {2}"
 msgstr "{0} {1}：需要客户支付的应收账款{2}"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:154
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:158
 msgid "{0} {1}: Either debit or credit amount is required for {2}"
 msgstr "{0} {1}：借方或贷方金额是必输的{2}"
 
-#: erpnext/accounts/doctype/gl_entry/gl_entry.py:138
+#: erpnext/accounts/doctype/gl_entry/gl_entry.py:142
 msgid "{0} {1}: Supplier is required against Payable account {2}"
 msgstr "{0} {1}：供应商对于应付账款科目来说是必输的{2}"
 
@@ -60364,7 +60397,7 @@ msgstr "{0}，在操作{2}之前完成操作{1}。"
 msgid "{0}: {1} does not exists"
 msgstr "{0}：{1}不存在"
 
-#: erpnext/accounts/doctype/payment_entry/payment_entry.js:956
+#: erpnext/accounts/doctype/payment_entry/payment_entry.js:968
 msgid "{0}: {1} must be less than {2}"
 msgstr "{0}：{1}必须小于{2}"
 
@@ -60391,7 +60424,7 @@ msgstr ""
 msgid "{}  To Receive"
 msgstr ""
 
-#: erpnext/controllers/buying_controller.py:769
+#: erpnext/controllers/buying_controller.py:771
 msgid "{} Assets created for {}"
 msgstr "{}为{}创建的资产"
 
@@ -60438,7 +60471,7 @@ msgstr ""
 msgid "{} can't be cancelled since the Loyalty Points earned has been redeemed. First cancel the {} No {}"
 msgstr "由于所赚取的忠诚度积分已被兑换，因此无法取消{}。首先取消{}否{}"
 
-#: erpnext/controllers/buying_controller.py:198
+#: erpnext/controllers/buying_controller.py:199
 msgid "{} has submitted assets linked to it. You need to cancel the assets to create purchase return."
 msgstr "{}已提交与其关联的资产。您需要取消资产以创建购买退货。"
 
