@@ -81,6 +81,7 @@ class PaymentRequest(Document):
 		payment_order: DF.Link | None
 		payment_request_type: DF.Literal["Outward", "Inward"]
 		payment_url: DF.Data | None
+		phone_number: DF.Data | None
 		print_format: DF.Literal[None]
 		project: DF.Link | None
 		reference_doctype: DF.Link | None
@@ -221,6 +222,7 @@ class PaymentRequest(Document):
 			sender=self.email_to,
 			currency=self.currency,
 			payment_gateway=self.payment_gateway,
+			phone_number=self.phone_number,
 		)
 
 		controller.validate_transaction_currency(self.currency)
@@ -643,6 +645,7 @@ def make_payment_request(**args):
 					or args.order_type == "Shopping Cart"  # compat for webshop app
 					or gateway_account.get("payment_channel", "Email") != "Email"
 				),
+				"phone_number": args.get("phone_number") if args.get("phone_number") else None,
 			}
 		)
 
