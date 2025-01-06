@@ -1,12 +1,6 @@
 // Copyright (c) 2017, Frappe Technologies Pvt. Ltd. and contributors
 // For license information, please see license.txt
 
-frappe.ui.form.on("Work Order Item", {
-	allow_alternative_item(frm, cdt, cdn) {
-		frm.trigger("allow_alternative_item");
-	},
-});
-
 frappe.ui.form.on("Work Order", {
 	setup: function (frm) {
 		frm.custom_make_buttons = {
@@ -142,7 +136,7 @@ frappe.ui.form.on("Work Order", {
 			has_alternative = frm.doc.required_items.find((i) => i.allow_alternative_item === 1);
 		}
 
-		if (frm.doc.allow_alternative_item && frm.doc.docstatus == 0 && has_alternative) {
+		if (frm.doc.allow_alternative_item && frm.doc.docstatus === 0 && has_alternative) {
 			frm.add_custom_button(__("Alternate Item"), () => {
 				erpnext.utils.select_alternate_items({
 					frm: frm,
@@ -216,6 +210,7 @@ frappe.ui.form.on("Work Order", {
 		}
 
 		frm.trigger("add_custom_button_to_return_components");
+		frm.trigger("allow_alternative_item");
 	},
 
 	add_custom_button_to_return_components: function (frm) {
@@ -560,6 +555,9 @@ frappe.ui.form.on("Work Order", {
 });
 
 frappe.ui.form.on("Work Order Item", {
+	allow_alternative_item(frm) {
+		frm.trigger("allow_alternative_item");
+	},
 	source_warehouse: function (frm, cdt, cdn) {
 		var row = locals[cdt][cdn];
 		if (!row.item_code) {
