@@ -5,11 +5,6 @@
 import json
 
 import frappe
-from frappe import _
-from frappe.model.document import Document
-from frappe.query_builder.custom import ConstantColumn
-from frappe.utils import cint, flt
-
 from erpnext import get_default_cost_center
 from erpnext.accounts.doctype.bank_transaction.bank_transaction import get_total_allocated_amount
 from erpnext.accounts.party import get_party_account
@@ -19,6 +14,10 @@ from erpnext.accounts.report.bank_reconciliation_statement.bank_reconciliation_s
 )
 from erpnext.accounts.utils import get_account_currency, get_balance_on
 from erpnext.setup.utils import get_exchange_rate
+from frappe import _
+from frappe.model.document import Document
+from frappe.query_builder.custom import ConstantColumn
+from frappe.utils import cint, flt
 
 
 class BankReconciliationTool(Document):
@@ -79,10 +78,17 @@ def get_bank_transactions(bank_account, from_date=None, to_date=None):
 
 
 @frappe.whitelist()
-def get_account_balance(bank_account, till_date):
+def get_account_balance(bank_account, till_date, company):
 	# returns account balance till the specified date
 	account = frappe.db.get_value("Bank Account", bank_account, "account")
-	filters = frappe._dict({"account": account, "report_date": till_date, "include_pos_transactions": 1})
+	filters = frappe._dict(
+		{
+			"account": account,
+			"report_date": till_date,
+			"include_pos_transactions": 1,
+			"company": company,
+		}
+	)
 	data = get_entries(filters)
 
 	balance_as_per_system = get_balance_on(filters["account"], filters["report_date"])
@@ -94,11 +100,7 @@ def get_account_balance(bank_account, till_date):
 
 	amounts_not_reflected_in_system = get_amounts_not_reflected_in_system(filters)
 
-	bank_bal = (
-		flt(balance_as_per_system) - flt(total_debit) + flt(total_credit) + amounts_not_reflected_in_system
-	)
-
-	return bank_bal
+	return flt(balance_as_per_system) - flt(total_debit) + flt(total_credit) + amounts_not_reflected_in_system
 
 
 @frappe.whitelist()
