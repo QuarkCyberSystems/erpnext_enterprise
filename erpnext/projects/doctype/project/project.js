@@ -147,27 +147,30 @@ frappe.ui.form.on("Project", {
 	set_project_status_button: function (frm) {
 		frm.add_custom_button(
 			__("Set Project Status"),
-			() => {
-				let d = new frappe.ui.Dialog({
-					title: __("Set Project Status"),
-					fields: [
-						{
-							fieldname: "status",
-							fieldtype: "Select",
-							label: "Status",
-							reqd: 1,
-							options: "Completed\nCancelled",
-						},
-					],
-					primary_action: function () {
-						frm.events.set_status(frm, d.get_values().status);
-						d.hide();
-					},
-					primary_action_label: __("Set Project Status"),
-				}).show();
-			},
+			() => frm.events.get_project_status_dialog(frm).show(),
 			__("Actions")
 		);
+	},
+
+	get_project_status_dialog: function (frm) {
+		const dialog = new frappe.ui.Dialog({
+			title: __("Set Project Status"),
+			fields: [
+				{
+					fieldname: "status",
+					fieldtype: "Select",
+					label: "Status",
+					reqd: 1,
+					options: "Completed\nCancelled",
+				},
+			],
+			primary_action: function () {
+				frm.events.set_status(frm, dialog.get_values().status);
+				dialog.hide();
+			},
+			primary_action_label: __("Set Project Status"),
+		});
+		return dialog;
 	},
 
 	create_duplicate: function (frm) {
