@@ -1752,6 +1752,10 @@ def create_asset(**args):
 			},
 		)
 
+	if asset.is_composite_asset:
+		asset.gross_purchase_amount = 0
+		asset.purchase_amount = 0
+
 	if not args.do_not_save:
 		try:
 			asset.insert(ignore_if_duplicate=True)
