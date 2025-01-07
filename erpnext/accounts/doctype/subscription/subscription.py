@@ -697,7 +697,7 @@ class Subscription(Document):
 		self.status = "Cancelled"
 		self.cancelation_date = nowdate()
 
-		if to_generate_invoice and nowdate() >= self.current_invoice_start:
+		if to_generate_invoice and self.cancelation_date >= self.current_invoice_start:
 			self.generate_invoice(self.current_invoice_start, self.cancelation_date)
 
 		self.save()
