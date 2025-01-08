@@ -18,7 +18,7 @@ class TestStockAgeing(IntegrationTestCase):
 				name="Flask Item",
 				actual_qty=30,
 				qty_after_transaction=30,
-				stock_value_difference=0,
+				stock_value_difference=30,
 				warehouse="WH 1",
 				posting_date="2021-12-01",
 				voucher_type="Stock Entry",
@@ -30,7 +30,7 @@ class TestStockAgeing(IntegrationTestCase):
 				name="Flask Item",
 				actual_qty=20,
 				qty_after_transaction=50,
-				stock_value_difference=0,
+				stock_value_difference=20,
 				warehouse="WH 1",
 				posting_date="2021-12-02",
 				voucher_type="Stock Entry",
@@ -42,7 +42,7 @@ class TestStockAgeing(IntegrationTestCase):
 				name="Flask Item",
 				actual_qty=(-10),
 				qty_after_transaction=40,
-				stock_value_difference=0,
+				stock_value_difference=(-10),
 				warehouse="WH 1",
 				posting_date="2021-12-03",
 				voucher_type="Stock Entry",
@@ -60,6 +60,8 @@ class TestStockAgeing(IntegrationTestCase):
 
 		self.assertEqual(result["qty_after_transaction"], result["total_qty"])
 		self.assertEqual(queue[0][0], 20.0)
+		data = format_report_data(self.filters, slots, self.filters["to_date"])
+		self.assertEqual(data[0][8], 40.0)  # valuating for stock value between age 0-30
 
 	def test_insufficient_balance(self):
 		"Reference: Case 3 in stock_ageing_fifo_logic.md (same wh)"
@@ -758,6 +760,113 @@ class TestStockAgeing(IntegrationTestCase):
 		# check if value of Available Qty column matches with range bucket post format
 		self.assertEqual(bal_qty, 0.9)
 		self.assertEqual(bal_qty, range_qty_sum)
+
+	def test_ageing_stock_valuation(self):
+		"Test stock valuation for each time bucket."
+		sle = [
+			frappe._dict(
+				name="Flask Item",
+				actual_qty=10,
+				qty_after_transaction=10,
+				stock_value_difference=10,
+				warehouse="WH 1",
+				posting_date="2021-12-01",
+				voucher_type="Stock Entry",
+				voucher_no="001",
+				has_serial_no=False,
+				serial_no=None,
+			),
+			frappe._dict(
+				name="Flask Item",
+				actual_qty=20,
+				qty_after_transaction=30,
+				stock_value_difference=20,
+				warehouse="WH 1",
+				posting_date="2021-12-02",
+				voucher_type="Stock Entry",
+				voucher_no="002",
+				has_serial_no=False,
+				serial_no=None,
+			),
+			frappe._dict(
+				name="Flask Item",
+				actual_qty=(-10),
+				qty_after_transaction=20,
+				stock_value_difference=(-10),
+				warehouse="WH 1",
+				posting_date="2021-12-03",
+				voucher_type="Stock Entry",
+				voucher_no="003",
+				has_serial_no=False,
+				serial_no=None,
+			),
+			frappe._dict(
+				name="Flask Item",
+				actual_qty=10,
+				qty_after_transaction=30,
+				stock_value_difference=20,
+				warehouse="WH 1",
+				posting_date="2022-01-01",
+				voucher_type="Stock Entry",
+				voucher_no="004",
+				has_serial_no=False,
+				serial_no=None,
+			),
+			frappe._dict(
+				name="Flask Item",
+				actual_qty=(-15),
+				qty_after_transaction=15,
+				stock_value_difference=(-15),
+				warehouse="WH 1",
+				posting_date="2022-01-02",
+				voucher_type="Stock Entry",
+				voucher_no="005",
+				has_serial_no=False,
+				serial_no=None,
+			),
+			frappe._dict(
+				name="Flask Item",
+				actual_qty=10,
+				qty_after_transaction=25,
+				stock_value_difference=5,
+				warehouse="WH 1",
+				posting_date="2022-02-01",
+				voucher_type="Stock Entry",
+				voucher_no="006",
+				has_serial_no=False,
+				serial_no=None,
+			),
+			frappe._dict(
+				name="Flask Item",
+				actual_qty=5,
+				qty_after_transaction=30,
+				stock_value_difference=2.5,
+				warehouse="WH 1",
+				posting_date="2022-02-02",
+				voucher_type="Stock Entry",
+				voucher_no="007",
+				has_serial_no=False,
+				serial_no=None,
+			),
+			frappe._dict(
+				name="Flask Item",
+				actual_qty=5,
+				qty_after_transaction=35,
+				stock_value_difference=15,
+				warehouse="WH 1",
+				posting_date="2022-03-01",
+				voucher_type="Stock Entry",
+				voucher_no="008",
+				has_serial_no=False,
+				serial_no=None,
+			),
+		]
+
+		slots = FIFOSlots(self.filters, sle).generate()
+		report_data = format_report_data(self.filters, slots, "2022-03-31")
+		range_values = report_data[0][7:15]
+		range_valuations = range_values[1::2]
+		self.assertEqual(range_valuations, [15, 7.5, 20, 5])
 
 
 def generate_item_and_item_wh_wise_slots(filters, sle):
