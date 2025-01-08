@@ -364,7 +364,7 @@ class SalesInvoice(SellingController):
 					if self.update_stock:
 						frappe.throw(_("'Update Stock' cannot be checked for fixed asset sale"))
 
-					elif asset.status in ("Scrapped", "Cancelled", "Capitalized", "Decapitalized") or (
+					elif asset.status in ("Scrapped", "Cancelled", "Capitalized") or (
 						asset.status == "Sold" and not self.is_return
 					):
 						frappe.throw(
