@@ -166,7 +166,7 @@ class Timesheet(Document):
 					task.status = "Completed"
 				else:
 					task.status = "Working"
-				task.save()
+				task.save(ignore_permissions=True)
 				tasks.append(data.task)
 
 			if data.project and data.project not in projects:
@@ -175,7 +175,7 @@ class Timesheet(Document):
 		for project in projects:
 			project_doc = frappe.get_doc("Project", project)
 			project_doc.update_project()
-			project_doc.save()
+			project_doc.save(ignore_permissions=True)
 
 	def validate_dates(self):
 		for time_log in self.time_logs:
