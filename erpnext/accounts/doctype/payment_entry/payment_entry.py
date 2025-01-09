@@ -1507,9 +1507,9 @@ class PaymentEntry(AccountsController):
 			"voucher_detail_no": invoice.name,
 		}
 
-		if self.reconcile_on_advance_payment_date:
+		if self.advance_reconciliation_takes_effect_on == "Advance Payment Date":
 			posting_date = self.posting_date
-		else:
+		elif self.advance_reconciliation_takes_effect_on == "Oldest Of Invoice Or Advance":
 			date_field = "posting_date"
 			if invoice.reference_doctype in ["Sales Order", "Purchase Order"]:
 				date_field = "transaction_date"
@@ -1517,6 +1517,8 @@ class PaymentEntry(AccountsController):
 
 			if getdate(posting_date) < getdate(self.posting_date):
 				posting_date = self.posting_date
+		elif self.advance_reconciliation_takes_effect_on == "Reconciliation Date":
+			posting_date = nowdate()
 
 		dr_or_cr, account = self.get_dr_and_account_for_advances(invoice)
 		args_dict["account"] = account
