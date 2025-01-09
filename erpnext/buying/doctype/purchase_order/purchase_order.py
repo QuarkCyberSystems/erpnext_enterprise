@@ -469,6 +469,9 @@ class PurchaseOrder(BuyingController):
 		if self.is_against_so():
 			self.update_status_updater()
 
+		if self.is_against_pp():
+			self.update_status_updater_if_from_pp()
+
 		self.update_prevdoc_status()
 		if not self.is_subcontracted or self.is_old_subcontracting_flow:
 			self.update_requested_qty()
@@ -550,6 +553,20 @@ class PurchaseOrder(BuyingController):
 			}
 		)
 
+	def update_status_updater_if_from_pp(self):
+		self.status_updater.append(
+			{
+				"source_dt": "Purchase Order Item",
+				"target_dt": "Production Plan Sub Assembly Item",
+				"join_field": "production_plan_sub_assembly_item",
+				"target_field": "received_qty",
+				"target_parent_dt": "Production Plan",
+				"target_parent_field": "",
+				"target_ref_field": "qty",
+				"source_field": "fg_item_qty",
+			}
+		)
+
 	def update_delivered_qty_in_sales_order(self):
 		"""Update delivered qty in Sales Order for drop ship"""
 		sales_orders_to_update = []
@@ -569,6 +586,9 @@ class PurchaseOrder(BuyingController):
 
 	def is_against_so(self):
 		return any(d.sales_order for d in self.items if d.sales_order)
+
+	def is_against_pp(self):
+		return any(d.production_plan for d in self.items if d.production_plan)
 
 	def set_received_qty_for_drop_ship_items(self):
 		for item in self.items:
