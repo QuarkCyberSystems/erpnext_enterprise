@@ -71,12 +71,16 @@ class PaymentEntry(AccountsController):
 			PaymentEntryReference,
 		)
 
+		advance_reconciliation_takes_effect_on: DF.Literal[
+			"Advance Payment Date", "Oldest Of Invoice Or Advance", "Reconciliation Date"
+		]
 		amended_from: DF.Link | None
 		apply_tax_withholding_amount: DF.Check
 		auto_repeat: DF.Link | None
 		bank: DF.ReadOnly | None
 		bank_account: DF.Link | None
 		bank_account_no: DF.ReadOnly | None
+		base_in_words: DF.SmallText | None
 		base_paid_amount: DF.Currency
 		base_paid_amount_after_tax: DF.Currency
 		base_received_amount: DF.Currency
@@ -92,6 +96,8 @@ class PaymentEntry(AccountsController):
 		custom_remarks: DF.Check
 		deductions: DF.Table[PaymentEntryDeduction]
 		difference_amount: DF.Currency
+		in_words: DF.SmallText | None
+		is_opening: DF.Literal["No", "Yes"]
 		letter_head: DF.Link | None
 		mode_of_payment: DF.Link | None
 		naming_series: DF.Literal["ACC-PAY-.YYYY.-"]
@@ -119,6 +125,7 @@ class PaymentEntry(AccountsController):
 		purchase_taxes_and_charges_template: DF.Link | None
 		received_amount: DF.Currency
 		received_amount_after_tax: DF.Currency
+		reconcile_on_advance_payment_date: DF.Check
 		reference_date: DF.Date | None
 		reference_no: DF.Data | None
 		references: DF.Table[PaymentEntryReference]
