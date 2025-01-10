@@ -496,14 +496,10 @@ class StockEntry(StockController):
 			if (fg_completed_qty - fg_item_qty) > 0:
 				self.process_loss_qty = fg_completed_qty - fg_item_qty
 
-<<<<<<< HEAD
 			if not self.process_loss_qty:
 				continue
 
-			if fg_completed_qty != (flt(fg_item_qty) + flt(self.process_loss_qty, precision)):
-=======
-			if self.fg_completed_qty != flt(total, precision):
->>>>>>> d84601b2a3 (fix: precision loss causing process loss variance)
+			if fg_completed_qty != (flt(fg_item_qty, precision) + flt(self.process_loss_qty, precision)):
 				frappe.throw(
 					_(
 						"Since there is a process loss of {0} units for the finished good {1}, you should reduce the quantity by {0} units for the finished good {1} in the Items Table."
