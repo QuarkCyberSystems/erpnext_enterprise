@@ -50,6 +50,12 @@ def get_exchange_rate(from_currency, to_currency, transaction_date=None, args=No
 		return
 	if from_currency == to_currency:
 		return 1
+	# as AED is pegged to USD at the exchange rate of 3.6725 AED
+	# handling the exchange rate manually without API call
+	if from_currency == "USD" and to_currency == "AED":
+		return 3.6725
+	if from_currency == "AED" and to_currency == "USD":
+		return 1 / 3.6725
 
 	if not transaction_date:
 		transaction_date = nowdate()
@@ -93,8 +99,8 @@ def get_exchange_rate(from_currency, to_currency, transaction_date=None, args=No
 			settings = frappe.get_cached_doc("Currency Exchange Settings")
 			req_params = {
 				"transaction_date": transaction_date,
-				"from_currency": from_currency,
-				"to_currency": to_currency,
+				"from_currency": from_currency if from_currency != "AED" else "USD",
+				"to_currency": to_currency if to_currency != "AED" else "USD",
 			}
 			params = {}
 			for row in settings.req_params:
@@ -106,6 +112,12 @@ def get_exchange_rate(from_currency, to_currency, transaction_date=None, args=No
 			for res_key in settings.result_key:
 				value = value[format_ces_api(str(res_key.key), req_params)]
 			cache.setex(name=key, time=21600, value=flt(value))
+
+		if to_currency == "AED":
+			value *= 3.6725
+		if from_currency == "AED":
+			value /= 3.6725
+
 		return flt(value)
 	except Exception:
 		frappe.log_error("Unable to fetch exchange rate")
