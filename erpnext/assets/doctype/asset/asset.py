@@ -33,8 +33,6 @@ from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_sched
 	convert_draft_asset_depr_schedules_into_active,
 	get_asset_depr_schedule_doc,
 	get_depr_schedule,
-	make_draft_asset_depr_schedules,
-	update_draft_asset_depr_schedules,
 )
 from erpnext.controllers.accounts_controller import AccountsController
 
@@ -148,22 +146,23 @@ class Asset(AccountsController):
 			schedule_doc = get_asset_depr_schedule_doc(self.name, "Draft", row.finance_book)
 			if not schedule_doc:
 				schedule_doc = frappe.new_doc("Asset Depreciation Schedule")
-
-			schedule_doc.prepare_draft_asset_depr_schedule_data(self, row)
+				schedule_doc.asset = self.name
+			schedule_doc.create_depreciation_schedule(row)
 			schedule_doc.save()
 			schedules.append(schedule_doc.name)
 
 		self.show_schedule_creation_message(schedules)
 
 	def set_depr_rate_and_value_after_depreciation(self):
+		self.value_after_depreciation = flt(self.gross_purchase_amount) - flt(
+			self.opening_accumulated_depreciation
+		)
 		if self.calculate_depreciation:
-			self.value_after_depreciation = 0
 			self.set_depreciation_rate()
+			for d in self.finance_books:
+				d.value_after_depreciation = self.value_after_depreciation
 		else:
 			self.finance_books = []
-			self.value_after_depreciation = flt(self.gross_purchase_amount) - flt(
-				self.opening_accumulated_depreciation
-			)
 
 	def show_schedule_creation_message(self, schedules):
 		if schedules:
@@ -845,41 +844,31 @@ class Asset(AccountsController):
 		)
 
 	def get_written_down_value_rate(self, args, rate_field_precision, on_validate):
-		if (
-			args.get("rate_of_depreciation")
-			and on_validate
-			and not self.flags.increase_in_asset_value_due_to_repair
-		):
+		if args.get("rate_of_depreciation") and on_validate:
 			return args.get("rate_of_depreciation")
 
 		if args.get("rate_of_depreciation") and not flt(args.get("expected_value_after_useful_life")):
 			return args.get("rate_of_depreciation")
 
-		if self.flags.increase_in_asset_value_due_to_repair:
-			value = flt(args.get("expected_value_after_useful_life")) / flt(
-				args.get("value_after_depreciation")
-			)
+		if flt(args.get("value_after_depreciation")):
+			current_asset_value = flt(args.get("value_after_depreciation"))
 		else:
-			value = flt(args.get("expected_value_after_useful_life")) / (
-				flt(self.gross_purchase_amount) - flt(self.opening_accumulated_depreciation)
-			)
+			current_asset_value = flt(self.gross_purchase_amount) - flt(self.opening_accumulated_depreciation)
 
-		depreciation_rate = math.pow(
-			value,
-			1.0
-			/ (
-				(
-					(
-						flt(args.get("total_number_of_depreciations"), 2)
-						- flt(self.opening_number_of_booked_depreciations)
-					)
-					* flt(args.get("frequency_of_depreciation"))
-				)
-				/ 12
-			),
+		value = flt(args.get("expected_value_after_useful_life")) / current_asset_value
+
+		pending_number_of_depreciations = (
+			flt(args.get("total_number_of_depreciations"), 2)
+			- flt(self.opening_number_of_booked_depreciations)
+			- flt(args.get("total_number_of_booked_depreciations"))
 		)
+		pending_years = (
+			pending_number_of_depreciations * flt(args.get("frequency_of_depreciation"))
+			+ cint(args.get("increase_in_asset_life"))
+		) / 12
 
-		return flt((100 * (1 - depreciation_rate)), rate_field_precision)
+		depreciation_rate = 100 * (1 - math.pow(value, 1.0 / pending_years))
+		return flt(depreciation_rate, rate_field_precision)
 
 
 def has_gl_entries(doctype, docname, target_account):
@@ -1253,7 +1242,7 @@ def update_existing_asset(asset, remaining_qty, new_asset_name):
 		current_asset_depr_schedule_doc = get_asset_depr_schedule_doc(asset.name, "Active", row.finance_book)
 		new_asset_depr_schedule_doc = frappe.copy_doc(current_asset_depr_schedule_doc)
 
-		new_asset_depr_schedule_doc.set_draft_asset_depr_schedule_details(asset, row)
+		new_asset_depr_schedule_doc.fetch_asset_details(asset, row)
 
 		accumulated_depreciation = 0
 
@@ -1310,7 +1299,7 @@ def create_new_asset_after_split(asset, split_qty):
 			continue
 		new_asset_depr_schedule_doc = frappe.copy_doc(current_asset_depr_schedule_doc)
 
-		new_asset_depr_schedule_doc.set_draft_asset_depr_schedule_details(new_asset, row)
+		new_asset_depr_schedule_doc.fetch_asset_details(new_asset, row)
 
 		accumulated_depreciation = 0
 

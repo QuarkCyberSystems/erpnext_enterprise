@@ -35,7 +35,7 @@ from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_sched
 	get_asset_depr_schedule_doc,
 	get_depr_schedule,
 )
-from erpnext.assets.doctype.asset_depreciation_schedule.utils import (
+from erpnext.erpnext.assets.doctype.asset_depreciation_schedule.deppreciation_schedule_controller import (
 	get_depreciation_amount,
 )
 from erpnext.stock.doctype.purchase_receipt.purchase_receipt import (

@@ -14,7 +14,7 @@ from erpnext.assets.doctype.asset.asset import get_asset_value_after_depreciatio
 from erpnext.assets.doctype.asset.depreciation import get_depreciation_accounts
 from erpnext.assets.doctype.asset_activity.asset_activity import add_asset_activity
 from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_schedule import (
-	make_new_active_asset_depr_schedules_and_cancel_current_ones,
+	reschedule_depreciation,
 )
 
 
@@ -64,7 +64,7 @@ class AssetValueAdjustment(Document):
 			self.current_asset_value = get_asset_value_after_depreciation(self.asset, self.finance_book)
 
 	def on_submit(self):
-		self.make_depreciation_entry()
+		self.make_asset_revaluation_entry()
 		self.update_asset()
 		add_asset_activity(
 			self.asset,
@@ -83,7 +83,7 @@ class AssetValueAdjustment(Document):
 			),
 		)
 
-	def make_depreciation_entry(self):
+	def make_asset_revaluation_entry(self):
 		asset = frappe.get_doc("Asset", self.asset)
 		(
 			fixed_asset_account,
@@ -170,7 +170,7 @@ class AssetValueAdjustment(Document):
 	def update_asset(self):
 		asset = self.update_asset_value_after_depreciation()
 		note = self.get_adjustment_note()
-		make_new_active_asset_depr_schedules_and_cancel_current_ones(asset, note)
+		reschedule_depreciation(asset, note)
 
 	def update_asset_value_after_depreciation(self):
 		difference_amount = self.difference_amount if self.docstatus == 1 else -1 * self.difference_amount

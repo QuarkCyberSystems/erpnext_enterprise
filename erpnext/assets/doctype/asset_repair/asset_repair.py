@@ -12,7 +12,7 @@ from erpnext.assets.doctype.asset.asset import get_asset_account
 from erpnext.assets.doctype.asset_activity.asset_activity import add_asset_activity
 from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_schedule import (
 	get_depr_schedule,
-	make_new_active_asset_depr_schedules_and_cancel_current_ones,
+	reschedule_depreciation,
 )
 from erpnext.controllers.accounts_controller import AccountsController
 
@@ -144,30 +144,27 @@ class AssetRepair(AccountsController):
 		self.total_repair_cost = flt(self.repair_cost) + flt(self.consumed_items_cost)
 
 	def on_submit(self):
-		self.asset_doc.flags.increase_in_asset_value_due_to_repair = False
 		self.decrease_stock_quantity()
 
 		if self.get("capitalize_repair_cost"):
 			self.update_asset_value()
-			self.make_gl_entries()
 			self.set_increase_in_asset_life()
 
 			depreciation_note = self.get_depreciation_note()
-			make_new_active_asset_depr_schedules_and_cancel_current_ones(self.asset_doc, depreciation_note)
+			reschedule_depreciation(self.asset_doc, depreciation_note)
 			self.add_asset_activity()
+
+			self.make_gl_entries()
 
 	def on_cancel(self):
 		self.asset_doc = frappe.get_doc("Asset", self.asset)
-
 		if self.get("capitalize_repair_cost"):
-			self.asset_doc.flags.increase_in_asset_value_due_to_repair = True
-
 			self.update_asset_value()
 			self.make_gl_entries(cancel=True)
 			self.set_increase_in_asset_life()
 
 			depreciation_note = self.get_depreciation_note()
-			make_new_active_asset_depr_schedules_and_cancel_current_ones(self.asset_doc, depreciation_note)
+			reschedule_depreciation(self.asset_doc, depreciation_note)
 			self.add_asset_activity()
 
 	def after_delete(self):
@@ -358,9 +355,10 @@ class AssetRepair(AccountsController):
 	def set_increase_in_asset_life(self):
 		if self.asset_doc.calculate_depreciation and cint(self.increase_in_asset_life) > 0:
 			for row in self.asset_doc.finance_books:
-				row.increase_in_asset_life = row.increase_in_asset_life + (
+				row.increase_in_asset_life = cint(row.increase_in_asset_life) + (
 					cint(self.increase_in_asset_life) * (1 if self.docstatus == 1 else -1)
 				)
+				row.db_update()
 
 	def get_depreciation_note(self):
 		return _("This schedule was created when Asset {0} was repaired through Asset Repair {1}.").format(

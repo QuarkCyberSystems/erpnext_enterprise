@@ -16,7 +16,7 @@ from erpnext.assets.doctype.asset.depreciation import (
 	get_gl_entries_on_asset_disposal,
 	get_value_after_depreciation_on_disposal_date,
 	reset_depreciation_schedule,
-	reverse_depreciation_entry_made_after_disposal,
+	reverse_depreciation_entry_made_on_disposal,
 )
 from erpnext.assets.doctype.asset_activity.asset_activity import add_asset_activity
 from erpnext.assets.doctype.asset_category.asset_category import get_asset_category_account
@@ -623,13 +623,13 @@ class AssetCapitalization(StockController):
 			self.set_consumed_asset_status(asset)
 
 			if asset.calculate_depreciation:
-				reverse_depreciation_entry_made_after_disposal(asset, self.posting_date)
+				reverse_depreciation_entry_made_on_disposal(asset, self.posting_date)
 				notes = _(
 					"This schedule was created when Asset {0} was restored on Asset Capitalization {1}'s cancellation."
 				).format(
 					get_link_to_form(asset.doctype, asset.name), get_link_to_form(self.doctype, self.name)
 				)
-				reset_depreciation_schedule(asset, self.posting_date, notes)
+				reset_depreciation_schedule(asset, notes)
 
 	def set_consumed_asset_status(self, asset):
 		if self.docstatus == 1:

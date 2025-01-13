@@ -18,7 +18,9 @@ from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_sched
 	get_asset_depr_schedule_doc,
 	get_temp_asset_depr_schedule_doc,
 )
-from erpnext.assets.doctype.asset_depreciation_schedule.utils import get_asset_shift_factors_map
+from erpnext.erpnext.assets.doctype.asset_depreciation_schedule.deppreciation_schedule_controller import (
+	get_asset_shift_factors_map,
+)
 
 
 class AssetShiftAllocation(Document):
