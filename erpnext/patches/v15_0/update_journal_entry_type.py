@@ -6,6 +6,7 @@ def execute():
 		"Property Setter",
 		{"doc_type": "Journal Entry", "field_name": "voucher_type", "property": "options"},
 		["name", "value"],
+		as_dict=True,
 	)
 	if custom_je_type:
 		custom_je_type.value += "\nAsset Disposal"

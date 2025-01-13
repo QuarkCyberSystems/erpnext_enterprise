@@ -107,14 +107,9 @@ class AssetDepreciationSchedule(DepreciationScheduleController):
 				frappe.get_doc("Journal Entry", d.journal_entry).cancel()
 
 	def update_shift_depr_schedule(self):
-		if not self.shift_based or self.docstatus != 0:
+		if not self.shift_based or self.docstatus != 0 or self.get("__islocal"):
 			return
-
-		asset_doc = frappe.get_doc("Asset", self.asset)
-		fb_row = asset_doc.finance_books[self.finance_book_id - 1]
-
-		self.make_depr_schedule(asset_doc, fb_row)
-		self.set_accumulated_depreciation(asset_doc, fb_row)
+		self.create_depreciation_schedule()
 
 	def get_finance_book_row(self, fb_row=None):
 		if fb_row:
@@ -144,6 +139,7 @@ class AssetDepreciationSchedule(DepreciationScheduleController):
 		self.total_number_of_depreciations = self.fb_row.total_number_of_depreciations
 		self.frequency_of_depreciation = self.fb_row.frequency_of_depreciation
 		self.rate_of_depreciation = self.fb_row.get("rate_of_depreciation")
+		self.value_after_depreciation = self.fb_row.value_after_depreciation
 		self.expected_value_after_useful_life = self.fb_row.get("expected_value_after_useful_life")
 		self.daily_prorata_based = self.fb_row.get("daily_prorata_based")
 		self.shift_based = self.fb_row.get("shift_based")
@@ -218,50 +214,46 @@ def set_modified_depreciation_rate(asset_doc, row, new_schedule):
 		new_schedule.rate_of_depreciation = new_rate_of_depreciation
 
 
+def get_temp_depr_schedule_doc(asset_doc, fb_row, disposal_date=None, updated_depr_schedule=None):
+	current_schedule = get_current_asset_depr(asset_doc, fb_row)
+	temp_schedule_doc = frappe.copy_doc(current_schedule)
 
-def get_temp_asset_depr_schedule_doc(
-	asset_doc,
-	row,
-	disposal_date=None,
-	date_of_return=None,
-	update_asset_finance_book_row=False,
-	new_depr_schedule=None,
-):
+	if updated_depr_schedule:
+		modify_depreciation_dchedule(temp_schedule_doc, updated_depr_schedule)
+
+	temp_schedule_doc.create_depreciation_schedule(fb_row, disposal_date)
+	return temp_schedule_doc
+
+
+def get_current_asset_depr(asset_doc, row):
 	current_schedule = get_asset_depr_schedule_doc(asset_doc.name, "Active", row.finance_book)
-
 	if not current_schedule:
 		frappe.throw(
 			_("Asset Depreciation Schedule not found for Asset {0} and Finance Book {1}").format(
 				get_link_to_form("Asset", asset_doc.name), row.finance_book
 			)
 		)
+	return current_schedule
 
-	temp_asset_depr_schedule_doc = frappe.copy_doc(current_schedule)
 
-	if new_depr_schedule:
-		temp_asset_depr_schedule_doc.depreciation_schedule = []
+def modify_depreciation_dchedule(temp_schedule_doc, updated_depr_schedule):
+	temp_schedule_doc.depreciation_schedule = []
 
-		for schedule in new_depr_schedule:
-			temp_asset_depr_schedule_doc.append(
-				"depreciation_schedule",
-				{
-					"schedule_date": schedule.schedule_date,
-					"depreciation_amount": schedule.depreciation_amount,
-					"accumulated_depreciation_amount": schedule.accumulated_depreciation_amount,
-					"journal_entry": schedule.journal_entry,
-					"shift": schedule.shift,
-				},
-			)
+	for schedule in updated_depr_schedule:
+		temp_schedule_doc.append(
+			"depreciation_schedule",
+			{
+				"schedule_date": schedule.schedule_date,
+				"depreciation_amount": schedule.depreciation_amount,
+				"accumulated_depreciation_amount": schedule.accumulated_depreciation_amount,
+				"journal_entry": schedule.journal_entry,
+				"shift": schedule.shift,
+			},
+		)
 
-	temp_asset_depr_schedule_doc.create_depreciation_schedule(
-		asset_doc,
-		row,
-		disposal_date,
-		date_of_return,
-		update_asset_finance_book_row,
-	)
 
-	return temp_asset_depr_schedule_doc
+def get_asset_shift_factors_map():
+	return dict(frappe.db.get_all("Asset Shift Factor", ["shift_name", "shift_factor"], as_list=True))
 
 
 @frappe.whitelist()

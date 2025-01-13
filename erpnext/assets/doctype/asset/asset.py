@@ -160,7 +160,7 @@ class Asset(AccountsController):
 		if self.calculate_depreciation:
 			self.set_depreciation_rate()
 			for d in self.finance_books:
-				d.value_after_depreciation = self.value_after_depreciation
+				d.db_set("value_after_depreciation", self.value_after_depreciation)
 		else:
 			self.finance_books = []
 

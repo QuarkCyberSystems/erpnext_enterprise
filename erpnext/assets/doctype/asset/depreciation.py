@@ -28,7 +28,7 @@ from erpnext.assets.doctype.asset_activity.asset_activity import add_asset_activ
 from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_schedule import (
 	get_asset_depr_schedule_doc,
 	get_asset_depr_schedule_name,
-	get_temp_asset_depr_schedule_doc,
+	get_temp_depr_schedule_doc,
 	reschedule_depreciation,
 )
 
@@ -874,9 +874,7 @@ def get_value_after_depreciation_on_disposal_date(asset, disposal_date, finance_
 
 	row = asset_doc.finance_books[idx - 1]
 
-	temp_asset_depreciation_schedule = get_temp_asset_depr_schedule_doc(
-		asset_doc, row, getdate(disposal_date)
-	)
+	temp_asset_depreciation_schedule = get_temp_depr_schedule_doc(asset_doc, row, getdate(disposal_date))
 
 	accumulated_depr_amount = temp_asset_depreciation_schedule.get("depreciation_schedule")[
 		-1

@@ -25,7 +25,7 @@ class StraightLineMethod(Document):
 		)
 
 		if self.fb_row.shift_based:
-			self.get_shift_depr_amount(row_idx)
+			return self.get_shift_depr_amount(row_idx)
 
 		if self.fb_row.daily_prorata_based:
 			return self.get_daily_prorata_based_depr_amount(row_idx)
@@ -51,31 +51,29 @@ class StraightLineMethod(Document):
 			return yearly_depr_amount / total_days_in_current_depr_year
 
 	def get_shift_depr_amount(self, row_idx):
-		depreciable_value = (
-			flt(self.asset_doc.gross_purchase_amount)
-			- flt(self.asset_doc.opening_accumulated_depreciation)
-			- flt(self.fb_row.expected_value_after_useful_life)
-		)
-		if self.get("__islocal") and not self.asset_doc.flags.shift_allocation:
-			pending_depreciations = flt(
-				self.fb_row.total_number_of_depreciations
-				- self.asset_doc.opening_number_of_booked_depreciations
-			)
-			return depreciable_value / pending_depreciations
+		if not self.schedules_before_clearing:
+			pending_periods = flt(self.pending_months) / flt(self.fb_row.frequency_of_depreciation)
+			return self.depreciable_value / pending_periods
 
 		asset_shift_factors_map = self.get_asset_shift_factors_map()
-		shift = (
-			self.schedules_before_clearing[row_idx].shift
-			if len(self.schedules_before_clearing) > row_idx
-			else None
-		)
+
+		if self.schedules_before_clearing:
+			shift = (
+				self.schedules_before_clearing[row_idx].shift
+				if len(self.schedules_before_clearing) > row_idx
+				else None
+			)
+
 		shift_factor = asset_shift_factors_map.get(shift, 0)
-
 		shift_factors_sum = sum(
-			[flt(asset_shift_factors_map.get(d.shift)) for d in self.schedules_before_clearing]
+			[
+				flt(asset_shift_factors_map.get(d.shift))
+				for d in self.schedules_before_clearing
+				if not d.journal_entry
+			]
 		)
 
-		return (depreciable_value / shift_factors_sum) * shift_factor
+		return (self.depreciable_value / shift_factors_sum) * shift_factor
 
 	def get_asset_shift_factors_map(self):
 		return dict(frappe.db.get_all("Asset Shift Factor", ["shift_name", "shift_factor"], as_list=True))
