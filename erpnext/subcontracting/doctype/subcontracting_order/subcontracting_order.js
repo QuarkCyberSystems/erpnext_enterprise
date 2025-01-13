@@ -254,20 +254,24 @@ erpnext.buying.SubcontractingOrderController = class SubcontractingOrderControll
 		if (doc.docstatus == 1) {
 			if (!["Closed", "Completed"].includes(doc.status)) {
 				if (flt(doc.per_received) < 100) {
-					cur_frm.add_custom_button(
+					this.frm.add_custom_button(
 						__("Subcontracting Receipt"),
 						this.make_subcontracting_receipt,
 						__("Create")
 					);
 					if (me.has_unsupplied_items()) {
-						cur_frm.add_custom_button(
+						this.frm.add_custom_button(
 							__("Material to Supplier"),
 							this.make_stock_entry,
 							__("Transfer")
 						);
 					}
 				}
-				cur_frm.page.set_inner_btn_group_as_primary(__("Create"));
+				if (flt(doc.per_received) < 100 && me.has_unsupplied_items()) {
+					this.frm.page.set_inner_btn_group_as_primary(__("Transfer"));
+				} else {
+					this.frm.page.set_inner_btn_group_as_primary(__("Create"));
+				}
 			}
 		}
 	}

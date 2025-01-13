@@ -717,7 +717,6 @@ erpnext.work_order = {
 									);
 								}
 							);
-							consumption_btn.addClass("btn-primary");
 						}
 					}
 				}
