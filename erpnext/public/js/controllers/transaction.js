@@ -596,6 +596,8 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 							child_doctype: item.doctype,
 							child_docname: item.name,
 							is_old_subcontracting_flow: me.frm.doc.is_old_subcontracting_flow,
+							use_serial_batch_fields: item.use_serial_batch_fields,
+							serial_and_batch_bundle: item.serial_and_batch_bundle,
 						}
 					},
 
