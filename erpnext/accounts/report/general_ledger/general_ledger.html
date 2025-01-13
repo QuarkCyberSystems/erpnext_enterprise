@@ -71,9 +71,6 @@
 		</div>
 		<div style="text-align:center; font-size:13px;">
 			<b>
-				{% if(filters.party_type) { %}
-					[ {%= filters.party_type %} ]<br>
-				{% } %}
 				{%= frappe.datetime.str_to_user(filters.from_date) %}
 				{%= __("to") %}
 				{%= frappe.datetime.str_to_user(filters.to_date) %}<br><br>
