@@ -552,6 +552,13 @@ frappe.ui.form.on("Work Order", {
 		erpnext.work_order.calculate_cost(frm.doc);
 		erpnext.work_order.calculate_total_cost(frm);
 	},
+
+	skip_transfer: function (frm) {
+		if (frm.doc.skip_transfer && !frm.doc.from_wip_warehouse) {
+			frm.set_value("wip_warehouse", null);
+			frm.refresh_field("wip_warehouse");
+		}
+	},
 });
 
 frappe.ui.form.on("Work Order Item", {
