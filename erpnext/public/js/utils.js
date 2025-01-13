@@ -622,6 +622,7 @@ erpnext.utils.update_child_items = function (opts) {
 			docname: d.name,
 			name: d.name,
 			item_code: d.item_code,
+			item_name: d.item_name,
 			delivery_date: d.delivery_date,
 			schedule_date: d.schedule_date,
 			conversion_factor: d.conversion_factor,
@@ -723,7 +724,30 @@ erpnext.utils.update_child_items = function (opts) {
 						}
 					},
 				});
+
+				const item_code = this.value;
+				if (item_code) {
+					frappe.db.get_value("Item", item_code, "item_name", (r) => {
+						if (r && r.item_name) {
+							const idx = this.doc.idx;
+							dialog.fields_dict.trans_items.df.data.some((doc) => {
+								if (doc.idx === idx) {
+									doc.item_name = r.item_name;
+									dialog.fields_dict.trans_items.grid.refresh();
+									return true;
+								}
+							});
+						}
+					});
+				}
 			},
+
+		},
+		{
+			fieldtype: "Data",
+			fieldname: "item_name",
+			label: __("Item Name"),
+			read_only: 1,
 		},
 		{
 			fieldtype: "Link",
