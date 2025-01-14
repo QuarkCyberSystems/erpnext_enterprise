@@ -2375,6 +2375,77 @@ class TestDeliveryNote(IntegrationTestCase):
 				for d in bundle_data:
 					self.assertEqual(d.incoming_rate, serial_no_valuation[d.serial_no])
 
+	def test_auto_set_serial_batch_for_draft_dn(self):
+		frappe.db.set_single_value("Stock Settings", "auto_create_serial_and_batch_bundle_for_outward", 1)
+		frappe.db.set_single_value("Stock Settings", "pick_serial_and_batch_based_on", "FIFO")
+
+		batch_item = make_item(
+			"_Test Auto Set Serial Batch Draft DN",
+			properties={
+				"has_batch_no": 1,
+				"create_new_batch": 1,
+				"is_stock_item": 1,
+				"batch_number_series": "TAS-BASD-.#####",
+			},
+		)
+
+		serial_item = make_item(
+			"_Test Auto Set Serial Batch Draft DN Serial Item",
+			properties={"has_serial_no": 1, "is_stock_item": 1, "serial_no_series": "TAS-SASD-.#####"},
+		)
+
+		batch_serial_item = make_item(
+			"_Test Auto Set Serial Batch Draft DN Batch Serial Item",
+			properties={
+				"has_batch_no": 1,
+				"has_serial_no": 1,
+				"is_stock_item": 1,
+				"create_new_batch": 1,
+				"batch_number_series": "TAS-BSD-.#####",
+				"serial_no_series": "TAS-SSD-.#####",
+			},
+		)
+
+		for item in [batch_item, serial_item, batch_serial_item]:
+			make_stock_entry(item_code=item.name, target="_Test Warehouse - _TC", qty=5, basic_rate=100)
+
+		dn = create_delivery_note(
+			item_code=batch_item,
+			qty=5,
+			rate=500,
+			use_serial_batch_fields=1,
+			do_not_submit=True,
+		)
+
+		for item in [serial_item, batch_serial_item]:
+			dn.append(
+				"items",
+				{
+					"item_code": item.name,
+					"qty": 5,
+					"rate": 500,
+					"base_rate": 500,
+					"item_name": item.name,
+					"uom": "Nos",
+					"stock_uom": "Nos",
+					"conversion_factor": 1,
+					"warehouse": dn.items[0].warehouse,
+					"use_serial_batch_fields": 1,
+				},
+			)
+
+		dn.save()
+		for row in dn.items:
+			if row.item_code == batch_item.name:
+				self.assertTrue(row.batch_no)
+
+			if row.item_code == serial_item.name:
+				self.assertTrue(row.serial_no)
+
+			if row.item_code == batch_serial_item.name:
+				self.assertTrue(row.batch_no)
+				self.assertTrue(row.serial_no)
+
 
 def create_delivery_note(**args):
 	dn = frappe.new_doc("Delivery Note")
