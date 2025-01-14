@@ -910,6 +910,14 @@ def get_default_company_address(name, sort_key="is_primary_address", existing_ad
 
 
 @frappe.whitelist()
+def get_billing_shipping_address(name, billing_address=None, shipping_address=None):
+	primary_address = get_default_company_address(name, "is_primary_address", billing_address)
+	shipping_address = get_default_company_address(name, "is_shipping_address", shipping_address)
+
+	return {"primary_address": primary_address, "shipping_address": shipping_address}
+
+
+@frappe.whitelist()
 def create_transaction_deletion_request(company):
 	from erpnext.setup.doctype.transaction_deletion_record.transaction_deletion_record import (
 		is_deletion_doc_running,
