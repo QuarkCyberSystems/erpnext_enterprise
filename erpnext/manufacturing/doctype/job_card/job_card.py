@@ -670,7 +670,11 @@ class JobCard(Document):
 					)
 				)
 
-			if self.get("operation") == d.operation or self.operation_row_id == d.operation_row_id:
+			if (
+				self.get("operation") == d.operation
+				or self.operation_row_id == d.operation_row_id
+				or self.is_corrective_job_card
+			):
 				self.append(
 					"items",
 					{
