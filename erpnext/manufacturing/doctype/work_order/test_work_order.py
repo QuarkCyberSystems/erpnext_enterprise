@@ -2475,6 +2475,37 @@ class TestWorkOrder(IntegrationTestCase):
 
 		frappe.db.set_single_value("Manufacturing Settings", "validate_components_quantities_per_bom", 0)
 
+	def test_wip_skip(self):
+		wo = make_wo_order_test_record(
+			item="_Test FG Item",
+			qty=10,
+			source_warehouse="_Test Warehouse - _TC",
+			wip_warehouse="Stores - _TC",
+		)
+		manufacture_entry = frappe.get_doc(make_stock_entry(wo.name, "Manufacture", 10))
+		self.assertEqual(manufacture_entry.items[0].s_warehouse, "Stores - _TC")
+
+		wo = make_wo_order_test_record(
+			item="_Test FG Item",
+			qty=10,
+			source_warehouse="_Test Warehouse - _TC",
+			wip_warehouse="Stores - _TC",
+			skip_transfer=1,
+		)
+		manufacture_entry = frappe.get_doc(make_stock_entry(wo.name, "Manufacture", 10))
+		self.assertEqual(manufacture_entry.items[0].s_warehouse, "_Test Warehouse - _TC")
+
+		wo = make_wo_order_test_record(
+			item="_Test FG Item",
+			qty=10,
+			source_warehouse="_Test Warehouse - _TC",
+			wip_warehouse="Stores - _TC",
+			skip_transfer=1,
+			from_wip_warehouse=1,
+		)
+		manufacture_entry = frappe.get_doc(make_stock_entry(wo.name, "Manufacture", 10))
+		self.assertEqual(manufacture_entry.items[0].s_warehouse, "Stores - _TC")
+
 
 def make_operation(**kwargs):
 	kwargs = frappe._dict(kwargs)
