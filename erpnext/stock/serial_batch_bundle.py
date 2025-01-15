@@ -351,6 +351,15 @@ class SerialBatchBundle:
 		status = "Inactive"
 		if self.sle.actual_qty < 0:
 			status = "Delivered"
+			if self.sle.voucher_type == "Stock Entry":
+				purpose = frappe.get_cached_value("Stock Entry", self.sle.voucher_no, "purpose")
+				if purpose in [
+					"Manufacture",
+					"Material Issue",
+					"Repack",
+					"Material Consumption for Manufacture",
+				]:
+					status = "Consumed"
 
 		sn_table = frappe.qb.DocType("Serial No")
 
