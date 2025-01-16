@@ -2892,17 +2892,6 @@ def get_operating_cost_per_unit(work_order=None, bom_no=None):
 		if bom.quantity:
 			operating_cost_per_unit = flt(bom.operating_cost) / flt(bom.quantity)
 
-	if (
-		work_order
-		and work_order.produced_qty
-		and cint(
-			frappe.db.get_single_value(
-				"Manufacturing Settings", "add_corrective_operation_cost_in_finished_good_valuation"
-			)
-		)
-	):
-		operating_cost_per_unit += flt(work_order.corrective_operation_cost) / flt(work_order.produced_qty)
-
 	return operating_cost_per_unit
 
 

@@ -446,10 +446,18 @@ class TestJobCard(IntegrationTestCase):
 		"Manufacturing Settings", {"add_corrective_operation_cost_in_finished_good_valuation": 1}
 	)
 	def test_if_corrective_jc_ops_cost_is_added_to_manufacture_stock_entry(self):
-		job_card = frappe.get_last_doc("Job Card", {"work_order": self.work_order.name})
+		wo = make_wo_order_test_record(
+			item="_Test FG Item 2",
+			qty=10,
+			transfer_material_against=self.transfer_material_against,
+			source_warehouse=self.source_warehouse,
+		)
+		self.generate_required_stock(wo)
+		job_card = frappe.get_last_doc("Job Card", {"work_order": wo.name})
+		job_card.update({"for_quantity": 4})
 		job_card.append(
 			"time_logs",
-			{"from_time": now(), "to_time": add_to_date(now(), hours=1), "completed_qty": 2},
+			{"from_time": now(), "to_time": add_to_date(now(), hours=1), "completed_qty": 4},
 		)
 		job_card.submit()
 
@@ -467,20 +475,56 @@ class TestJobCard(IntegrationTestCase):
 			{
 				"from_time": add_to_date(now(), hours=2),
 				"to_time": add_to_date(now(), hours=2, minutes=30),
-				"completed_qty": 2,
+				"completed_qty": 4,
 			},
 		)
 		corrective_job_card.submit()
-		self.work_order.reload()
+		wo.reload()
 
 		from erpnext.manufacturing.doctype.work_order.work_order import (
 			make_stock_entry as make_stock_entry_for_wo,
 		)
 
-		stock_entry = make_stock_entry_for_wo(self.work_order.name, "Manufacture")
-		self.assertEqual(stock_entry.additional_costs[1].description, "Corrective Operation Cost")
-		self.assertEqual(stock_entry.additional_costs[1].amount, 50)
-		self.assertEqual(stock_entry["items"][-1].additional_cost, 6050)
+		stock_entry = make_stock_entry_for_wo(wo.name, "Manufacture", qty=3)
+		self.assertEqual(stock_entry.additional_costs[1].amount, 37.5)
+		frappe.get_doc(stock_entry).submit()
+
+		from erpnext.manufacturing.doctype.work_order.work_order import make_job_card
+
+		make_job_card(
+			wo.name,
+			[{"name": wo.operations[0].name, "operation": "_Test Operation 1", "qty": 3, "pending_qty": 3}],
+		)
+		job_card = frappe.get_last_doc("Job Card", {"work_order": wo.name})
+		job_card.update({"for_quantity": 3})
+		job_card.append(
+			"time_logs",
+			{
+				"from_time": add_to_date(now(), hours=3),
+				"to_time": add_to_date(now(), hours=4),
+				"completed_qty": 3,
+			},
+		)
+		job_card.submit()
+
+		corrective_job_card = make_corrective_job_card(
+			job_card.name, operation=corrective_action.name, for_operation=job_card.operation
+		)
+		corrective_job_card.hour_rate = 80
+		corrective_job_card.insert()
+		corrective_job_card.append(
+			"time_logs",
+			{
+				"from_time": add_to_date(now(), hours=4),
+				"to_time": add_to_date(now(), hours=4, minutes=30),
+				"completed_qty": 3,
+			},
+		)
+		corrective_job_card.submit()
+		wo.reload()
+
+		stock_entry = make_stock_entry_for_wo(wo.name, "Manufacture", qty=4)
+		self.assertEqual(stock_entry.additional_costs[1].amount, 52.5)
 
 	def test_job_card_statuses(self):
 		def assertStatus(status):

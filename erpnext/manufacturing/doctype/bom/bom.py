@@ -1470,7 +1470,15 @@ def add_operations_cost(stock_entry, work_order=None, expense_account=None):
 		)
 		return query.run(as_dict=True)[0].amount or 0
 
-	if work_order and work_order.corrective_operation_cost:
+	if (
+		work_order
+		and work_order.corrective_operation_cost
+		and cint(
+			frappe.db.get_single_value(
+				"Manufacturing Settings", "add_corrective_operation_cost_in_finished_good_valuation"
+			)
+		)
+	):
 		max_qty = get_max_op_qty() - work_order.produced_qty
 		remaining_cc = work_order.corrective_operation_cost - get_utilised_cc()
 		stock_entry.append(
