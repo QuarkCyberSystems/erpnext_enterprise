@@ -185,7 +185,7 @@ def link_existing_conversations(doc, state):
 				""",
 				dict(phone_number=f"%{number}", docname=doc.name, doctype=doc.doctype),
 			)
-			if logs: 
+			if logs:
 				for log in logs:
 					call_log = frappe.get_doc("Call Log", log)
 					call_log.add_link(link_type=doc.doctype, link_name=doc.name)
