@@ -2096,7 +2096,7 @@ class TestWorkOrder(IntegrationTestCase):
 	def test_op_cost_and_scrap_based_on_sub_assemblies(self):
 		# Make Sub Assembly BOM 1
 
-		frappe.db.set_single_value("Manufacturing Settings", "set_op_cost_and_scrape_from_sub_assemblies", 1)
+		frappe.db.set_single_value("Manufacturing Settings", "set_op_cost_and_scrap_from_sub_assemblies", 1)
 
 		items = {
 			"Test Final FG Item": 0,
@@ -2137,7 +2137,7 @@ class TestWorkOrder(IntegrationTestCase):
 		for row in se_doc.additional_costs:
 			self.assertEqual(row.amount, 3000)
 
-		frappe.db.set_single_value("Manufacturing Settings", "set_op_cost_and_scrape_from_sub_assemblies", 0)
+		frappe.db.set_single_value("Manufacturing Settings", "set_op_cost_and_scrap_from_sub_assemblies", 0)
 
 	@IntegrationTestCase.change_settings(
 		"Manufacturing Settings", {"material_consumption": 1, "get_rm_cost_from_consumption_entry": 1}
