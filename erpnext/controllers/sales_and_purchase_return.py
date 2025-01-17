@@ -259,7 +259,7 @@ def get_already_returned_items(doc):
 	)
 	data = frappe.db.sql(
 		f"""
-		select {column}, {field}
+		select {column}, child.{field}
 		from
 			`tab{doc.doctype} Item` child, `tab{doc.doctype}` par
 		where
