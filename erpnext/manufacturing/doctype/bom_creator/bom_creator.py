@@ -206,9 +206,7 @@ class BOMCreator(Document):
 
 		for field, label in fields.items():
 			if not self.get(field):
-				frappe.throw(
-					_("Please set {0} in BOM Creator {1}").format(_(label), self.name)
-					)
+				frappe.throw(_("Please set {0} in BOM Creator {1}").format(_(label), self.name))
 
 	def on_submit(self):
 		self.enqueue_create_boms()
