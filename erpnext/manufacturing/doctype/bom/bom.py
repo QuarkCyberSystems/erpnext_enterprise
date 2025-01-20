@@ -1466,7 +1466,7 @@ def add_operations_cost(stock_entry, work_order=None, expense_account=None):
 		query = (
 			frappe.qb.from_(table)
 			.select(Sum(table.amount).as_("amount"))
-			.where(table.parent.isin(subquery) & (table.description == "Corrective Operation Cost"))
+			.where(table.parent.isin(subquery) & (table.has_corrective_cost == 1))
 		)
 		return query.run(as_dict=True)[0].amount or 0
 
@@ -1486,6 +1486,7 @@ def add_operations_cost(stock_entry, work_order=None, expense_account=None):
 			{
 				"expense_account": expense_account,
 				"description": "Corrective Operation Cost",
+				"has_corrective_cost": 1,
 				"amount": remaining_cc / max_qty * flt(stock_entry.fg_completed_qty),
 			},
 		)
