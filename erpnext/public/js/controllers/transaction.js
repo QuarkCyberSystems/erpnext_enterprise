@@ -1793,7 +1793,9 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 					"serial_no": d.serial_no,
 					"batch_no": d.batch_no,
 					"price_list_rate": d.price_list_rate,
-					"conversion_factor": d.conversion_factor || 1.0
+					"conversion_factor": d.conversion_factor || 1.0,
+					"discount_percentage" : d.discount_percentage,
+					"discount_amount" : d.discount_amount,
 				});
 
 				// if doctype is Quotation Item / Sales Order Iten then add Margin Type and rate in item_list
