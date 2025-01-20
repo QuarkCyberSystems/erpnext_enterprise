@@ -4,10 +4,14 @@
 import frappe
 from frappe import _
 from frappe.utils import add_days, flt, get_datetime_str, nowdate
-from frappe.utils.data import now_datetime
+from frappe.utils.data import getdate, now_datetime
 from frappe.utils.nestedset import get_root_of
 
 from erpnext import get_default_company
+
+PEGGED_CURRENCIES = {
+	"USD": {"AED": 3.6725},  # AED is pegged to USD at a rate of 3.6725 since 1997
+}
 
 
 def before_tests():
@@ -43,6 +47,14 @@ def before_tests():
 	frappe.db.commit()
 
 
+def get_pegged_rate(from_currency: str, to_currency: str, transaction_date) -> float | None:
+	if rate := PEGGED_CURRENCIES.get(from_currency, {}).get(to_currency):
+		return rate
+	elif rate := PEGGED_CURRENCIES.get(to_currency, {}).get(from_currency):
+		return 1 / rate
+	return None
+
+
 @frappe.whitelist()
 def get_exchange_rate(from_currency, to_currency, transaction_date=None, args=None):
 	if not (from_currency and to_currency):
@@ -50,15 +62,13 @@ def get_exchange_rate(from_currency, to_currency, transaction_date=None, args=No
 		return
 	if from_currency == to_currency:
 		return 1
-	# as AED is pegged to USD at the exchange rate of 3.6725 AED
-	# handling the exchange rate manually without API call
-	if from_currency == "USD" and to_currency == "AED":
-		return 3.6725
-	if from_currency == "AED" and to_currency == "USD":
-		return 1 / 3.6725
 
 	if not transaction_date:
 		transaction_date = nowdate()
+
+	if rate := get_pegged_rate(from_currency, to_currency, transaction_date):
+		return rate
+
 	currency_settings = frappe.get_doc("Accounts Settings").as_dict()
 	allow_stale_rates = currency_settings.get("allow_stale")
 
