@@ -114,10 +114,10 @@ class Subscription(Document):
 
 		if self.trial_period_end and getdate(self.trial_period_end) > getdate(self.start_date):
 			_current_invoice_start = add_days(self.trial_period_end, 1)
-		elif self.trial_period_start and self.is_trialling():
-			_current_invoice_start = self.trial_period_start
 		elif date:
 			_current_invoice_start = date
+		elif self.trial_period_start and self.is_trialling():
+			_current_invoice_start = self.trial_period_start
 		else:
 			_current_invoice_start = nowdate()
 
