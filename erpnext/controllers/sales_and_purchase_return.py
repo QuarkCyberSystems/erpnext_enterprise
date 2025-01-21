@@ -110,7 +110,7 @@ def validate_returned_items(doc):
 	for d in doc.get("items"):
 		key = d.item_code
 		raise_exception = False
-		if doc.doctype in ["Purchase Receipt", "Purchase Invoice", "Sales Invoice"]:
+		if doc.doctype in ["Purchase Receipt", "Purchase Invoice", "Sales Invoice", "POS Invoice"]:
 			field = frappe.scrub(doc.doctype) + "_item"
 			if d.get(field):
 				key = (d.item_code, d.get(field))
