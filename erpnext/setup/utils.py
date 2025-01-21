@@ -113,6 +113,8 @@ def get_exchange_rate(from_currency, to_currency, transaction_date=None, args=No
 				value = value[format_ces_api(str(res_key.key), req_params)]
 			cache.setex(name=key, time=21600, value=flt(value))
 
+		# Support AED conversion through pegged USD
+		value = flt(value)
 		if to_currency == "AED":
 			value *= 3.6725
 		if from_currency == "AED":
