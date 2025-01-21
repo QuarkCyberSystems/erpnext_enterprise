@@ -48,6 +48,7 @@ class AccountsSettings(Document):
 		frozen_accounts_modifier: DF.Link | None
 		general_ledger_remarks_length: DF.Int
 		ignore_account_closing_balance: DF.Check
+		ignore_is_opening_check_for_reporting: DF.Check
 		make_payment_via_journal_entry: DF.Check
 		merge_similar_account_heads: DF.Check
 		over_billing_allowance: DF.Currency

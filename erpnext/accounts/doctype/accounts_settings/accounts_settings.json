@@ -76,6 +76,7 @@
   "reports_tab",
   "remarks_section",
   "general_ledger_remarks_length",
+  "ignore_is_opening_check_for_reporting",
   "column_break_lvjk",
   "receivable_payable_remarks_length",
   "payment_request_settings",
@@ -515,6 +516,13 @@
    "fieldname": "reconciliation_queue_size",
    "fieldtype": "Int",
    "label": "Reconciliation Queue Size"
+  },
+  {
+   "default": "0",
+   "description": "Ignores legacy Is Opening field in GL Entry that allows adding opening balance post the system is in use while generating reports",
+   "fieldname": "ignore_is_opening_check_for_reporting",
+   "fieldtype": "Check",
+   "label": "Ignore Is Opening check for reporting"
   }
  ],
  "icon": "icon-cog",
@@ -522,7 +530,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-01-13 17:38:39.661320",
+ "modified": "2025-01-18 21:24:19.840745",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Accounts Settings",
