@@ -411,7 +411,7 @@ class AccountsController(TransactionBase):
 	def validate_company_in_accounting_dimension(self):
 		doc_field = DocType("DocField")
 		accounting_dimension = DocType("Accounting Dimension")
-		query = (
+		dimension_list = (
 			frappe.qb.from_(accounting_dimension)
 			.select(accounting_dimension.document_type)
 			.join(doc_field)
@@ -419,12 +419,11 @@ class AccountsController(TransactionBase):
 			.where(doc_field.fieldname == "company")
 		).run(as_list=True)
 
-		dimension_list = sum(query, ["Project"])
+		dimension_list = sum(dimension_list, ["Project"])
 		self.validate_company(dimension_list)
 
-		if childs := self.get_all_children():
-			for child in childs:
-				self.validate_company(dimension_list, child)
+		for child in self.get_all_children() or []:
+			self.validate_company(dimension_list, child)
 
 	def validate_company(self, dimension_list, child=None):
 		for dimension in dimension_list:
