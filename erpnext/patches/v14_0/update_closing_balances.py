@@ -18,10 +18,12 @@ def execute():
 	frappe.db.truncate("Account Closing Balance")
 
 	pcv_list = get_period_closing_vouchers()
-	gl_entries = get_gl_entries(pcv_list)
 
-	for _, pcvs in itertools.groupby(pcv_list, key=lambda pcv: (pcv.company, pcv.period_start_date)):
-		process_grouped_pcvs(list(pcvs), gl_entries)
+	if pcv_list:
+		gl_entries = get_gl_entries(pcv_list)
+
+		for _, pcvs in itertools.groupby(pcv_list, key=lambda pcv: (pcv.company, pcv.period_start_date)):
+			process_grouped_pcvs(list(pcvs), gl_entries)
 
 
 def process_grouped_pcvs(pcvs, gl_entries):
