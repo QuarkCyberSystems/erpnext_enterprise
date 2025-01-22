@@ -366,7 +366,7 @@ class WorkOrder(Document):
 				if flt(self.material_transferred_for_manufacturing) > 0:
 					status = "In Process"
 
-				total_qty = flt(self.produced_qty) + flt(self.process_loss_qty)
+				total_qty = flt(flt(self.produced_qty) + flt(self.process_loss_qty), self.precision("qty"))
 				if flt(total_qty) >= flt(self.qty):
 					status = "Completed"
 		else:
