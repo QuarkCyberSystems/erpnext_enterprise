@@ -344,8 +344,8 @@ class JobCard(Document):
 		return overlap
 
 	def get_time_logs(self, args, doctype, open_job_cards=None):
-		if get_datetime(args.from_time) >= get_datetime(args.to_time):
-			args.to_time = add_to_date(args.from_time, minutes=args.remaining_time_in_mins)
+		if args.get("remaining_time_in_mins") and get_datetime(args.from_time) >= get_datetime(args.to_time):
+			args.to_time = add_to_date(args.from_time, minutes=args.get("remaining_time_in_mins"))
 
 		jc = frappe.qb.DocType("Job Card")
 		jctl = frappe.qb.DocType(doctype)
