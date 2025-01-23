@@ -6,6 +6,7 @@ from frappe.model.naming import make_autoname
 from frappe.query_builder.functions import CombineDatetime, Sum, Timestamp
 from frappe.utils import add_days, cint, cstr, flt, get_link_to_form, now, nowtime, today
 from pypika import Order
+from pypika.terms import ExistsCriterion
 
 from erpnext.stock.deprecated_serial_batch import (
 	DeprecatedBatchNoValuation,
@@ -650,6 +651,7 @@ class BatchNoValuation(DeprecatedBatchNoValuation):
 
 		parent = frappe.qb.DocType("Serial and Batch Bundle")
 		child = frappe.qb.DocType("Serial and Batch Entry")
+		sle = frappe.qb.DocType("Stock Ledger Entry")
 
 		timestamp_condition = ""
 		if self.sle.posting_date:
@@ -682,6 +684,14 @@ class BatchNoValuation(DeprecatedBatchNoValuation):
 				& (parent.docstatus == 1)
 				& (parent.is_cancelled == 0)
 				& (parent.type_of_transaction.isin(["Inward", "Outward"]))
+				& (
+					ExistsCriterion(
+						frappe.qb.from_(sle)
+						.select(sle.name)
+						.where((parent.name == sle.serial_and_batch_bundle) & (sle.is_cancelled == 0))
+					)
+					| (parent.voucher_type == "POS Invoice")
+				)
 			)
 			.groupby(child.batch_no)
 		)
