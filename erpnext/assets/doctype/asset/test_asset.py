@@ -1634,6 +1634,10 @@ class TestDepreciationBasics(AssetSetup):
 			frequency_of_depreciation=1,
 			submit=1,
 		)
+		depr_expense_account = frappe.get_doc("Account", "_Test Depreciations - _TC")
+		depr_expense_account.root_type = "Expense"
+		depr_expense_account.parent_account = "Expenses - _TC"
+		depr_expense_account.save()
 
 		self.assertEqual(asset.status, "Submitted")
 		self.assertEqual(asset.get_value_after_depreciation(), 100000)
