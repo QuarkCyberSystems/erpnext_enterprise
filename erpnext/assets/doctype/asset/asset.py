@@ -132,10 +132,10 @@ class Asset(AccountsController):
 		self.status = self.get_status()
 
 	def create_asset_depreciation_schedule(self):
+		self.set_depr_rate_and_value_after_depreciation()
+
 		if self.split_from or not self.calculate_depreciation:
 			return
-
-		self.set_depr_rate_and_value_after_depreciation()
 
 		schedules = []
 		for row in self.get("finance_books"):
@@ -1242,7 +1242,7 @@ def update_existing_asset(asset, remaining_qty, new_asset_name):
 		current_asset_depr_schedule_doc = get_asset_depr_schedule_doc(asset.name, "Active", row.finance_book)
 		new_asset_depr_schedule_doc = frappe.copy_doc(current_asset_depr_schedule_doc)
 
-		new_asset_depr_schedule_doc.fetch_asset_details(asset, row)
+		new_asset_depr_schedule_doc.fetch_asset_details()
 
 		accumulated_depreciation = 0
 
@@ -1299,7 +1299,7 @@ def create_new_asset_after_split(asset, split_qty):
 			continue
 		new_asset_depr_schedule_doc = frappe.copy_doc(current_asset_depr_schedule_doc)
 
-		new_asset_depr_schedule_doc.fetch_asset_details(new_asset, row)
+		new_asset_depr_schedule_doc.fetch_asset_details()
 
 		accumulated_depreciation = 0
 
