@@ -2998,6 +2998,7 @@ def get_advance_payment_entries(
 			(payment_ref.allocated_amount).as_("amount"),
 			(payment_ref.name).as_("reference_row"),
 			(payment_ref.reference_name).as_("against_order"),
+			(payment_entry.book_advance_payments_in_separate_party_account),
 		)
 
 		q = q.where(payment_ref.reference_doctype == order_doctype)
@@ -3042,6 +3043,7 @@ def get_common_query(
 			(payment_entry.name).as_("reference_name"),
 			payment_entry.posting_date,
 			(payment_entry.remarks).as_("remarks"),
+			(payment_entry.book_advance_payments_in_separate_party_account),
 		)
 		.where(payment_entry.payment_type == payment_type)
 		.where(payment_entry.party_type == party_type)

@@ -47,6 +47,7 @@
   "auto_reconciliation_job_trigger",
   "reconciliation_queue_size",
   "column_break_resa",
+  "exchange_gain_loss_posting_date",
   "invoicing_settings_tab",
   "accounts_transactions_settings_section",
   "over_billing_allowance",
@@ -389,7 +390,7 @@
   {
    "fieldname": "section_break_jpd0",
    "fieldtype": "Section Break",
-   "label": "Payment Reconciliations"
+   "label": "Payment Reconciliation Settings"
   },
   {
    "default": "0",
@@ -523,6 +524,14 @@
    "fieldname": "ignore_is_opening_check_for_reporting",
    "fieldtype": "Check",
    "label": "Ignore Is Opening check for reporting"
+  },
+  {
+   "default": "Payment",
+   "description": "Only applies for Normal Payments",
+   "fieldname": "exchange_gain_loss_posting_date",
+   "fieldtype": "Select",
+   "label": "Posting Date Inheritance for Exchange Gain / Loss",
+   "options": "Invoice\nPayment\nReconciliation Date"
   }
  ],
  "icon": "icon-cog",
@@ -530,7 +539,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-01-18 21:24:19.840745",
+ "modified": "2025-01-23 13:15:44.077853",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Accounts Settings",
