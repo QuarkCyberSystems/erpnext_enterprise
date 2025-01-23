@@ -455,6 +455,8 @@ class PaymentReconciliation(Document):
 				res.update({"gain_loss_posting_date": pay.get("posting_date")})
 				if exc_gain_loss_posting_date == "Invoice":
 					res.update({"gain_loss_posting_date": inv.get("invoice_date")})
+				elif exc_gain_loss_posting_date == "Reconciliation Date":
+					res.update({"gain_loss_posting_date": nowdate()})
 
 				if pay.get("amount") == 0:
 					entries.append(res)
