@@ -6,7 +6,7 @@ import frappe
 from frappe import _, msgprint
 from frappe.model.document import Document
 from frappe.query_builder.custom import ConstantColumn
-from frappe.utils import flt, fmt_money, get_link_to_form, getdate
+from frappe.utils import cint, flt, fmt_money, get_link_to_form, getdate
 from pypika import Order
 
 import erpnext
@@ -77,7 +77,7 @@ class BankClearance(Document):
 
 			if not d.get("account_currency"):
 				d.account_currency = default_currency
-		
+
 			formatted_amount = fmt_money(abs(amount), precision, d.account_currency)
 			d.amount = formatted_amount + " " + (_("Dr") if amount > 0 else _("Cr"))
 			d.posting_date = getdate(d.posting_date)
