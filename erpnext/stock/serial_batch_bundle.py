@@ -418,7 +418,13 @@ class SerialBatchBundle:
 			batches = frappe._dict({self.sle.batch_no: self.sle.actual_qty})
 
 		batches_qty = get_available_batches(
-			frappe._dict({"item_code": self.item_code, "batch_no": list(batches.keys())})
+			frappe._dict(
+				{
+					"item_code": self.item_code,
+					"batch_no": list(batches.keys()),
+					"consider_negative_batches": 1,
+				}
+			)
 		)
 
 		for batch_no in batches:
