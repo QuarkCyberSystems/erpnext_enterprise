@@ -1527,6 +1527,7 @@ def make_purchase_order(source_name, selected_items=None, target_doc=None):
 	)
 
 	set_delivery_date(doc.items, source_name)
+	doc.set_onload("load_after_mapping", False)
 
 	return doc
 
