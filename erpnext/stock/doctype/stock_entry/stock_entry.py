@@ -3257,12 +3257,13 @@ def create_serial_and_batch_bundle(parent_doc, row, child, type_of_transaction=N
 		}
 	)
 
+	precision = frappe.get_precision("Stock Entry Detail", "qty")
 	if row.serial_nos and row.batches_to_be_consume:
 		doc.has_serial_no = 1
 		doc.has_batch_no = 1
 		batchwise_serial_nos = get_batchwise_serial_nos(child.item_code, row)
 		for batch_no, qty in row.batches_to_be_consume.items():
-			while qty > 0:
+			while flt(qty, precision) > 0:
 				qty -= 1
 				doc.append(
 					"entries",
@@ -3283,8 +3284,9 @@ def create_serial_and_batch_bundle(parent_doc, row, child, type_of_transaction=N
 		precision = frappe.get_precision("Serial and Batch Entry", "qty")
 		doc.has_batch_no = 1
 		for batch_no, qty in row.batches_to_be_consume.items():
-			qty = flt(qty, precision)
-			doc.append("entries", {"batch_no": batch_no, "warehouse": row.warehouse, "qty": qty * -1})
+			if flt(qty, precision) > 0:
+				qty = flt(qty, precision)
+				doc.append("entries", {"batch_no": batch_no, "warehouse": row.warehouse, "qty": qty * -1})
 
 	if not doc.entries:
 		return None
