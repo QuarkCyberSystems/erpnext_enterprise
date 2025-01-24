@@ -96,8 +96,8 @@ erpnext.PointOfSale.PastOrderList = class {
 	}
 
 	get_invoice_html(invoice) {
-		const posting_datetime = moment(invoice.posting_date + " " + invoice.posting_time).format(
-			"Do MMMM, h:mma"
+		const posting_datetime = frappe.datetime.str_to_user(
+			invoice.posting_date + " " + invoice.posting_time
 		);
 		return `<div class="invoice-wrapper" data-invoice-name="${escape(invoice.name)}">
 				<div class="invoice-name-date">
