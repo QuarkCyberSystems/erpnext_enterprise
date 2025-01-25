@@ -579,6 +579,15 @@ class TestTaxWithholdingCategory(IntegrationTestCase):
 		pi1.submit()
 		invoices.append(pi1)
 
+		pe = create_payment_entry(
+			payment_type="Pay", party_type="Supplier", party="Test TDS Supplier6", paid_amount=1000
+		)
+		pe.apply_tax_withholding_amount = 1
+		pe.tax_withholding_category = "Test Multi Invoice Category"
+		pe.save()
+		pe.submit()
+		invoices.append(pe)
+
 		pi2 = create_purchase_invoice(supplier="Test TDS Supplier6", rate=9000, do_not_save=True)
 		pi2.apply_tds = 1
 		pi2.tax_withholding_category = "Test Multi Invoice Category"
@@ -594,6 +603,8 @@ class TestTaxWithholdingCategory(IntegrationTestCase):
 		self.assertTrue(pi2.tax_withheld_vouchers[0].taxable_amount == pi1.net_total)
 		self.assertTrue(pi2.tax_withheld_vouchers[1].voucher_name == pi.name)
 		self.assertTrue(pi2.tax_withheld_vouchers[1].taxable_amount == pi.net_total)
+		self.assertTrue(pi2.tax_withheld_vouchers[2].voucher_name == pe.name)
+		self.assertTrue(pi2.tax_withheld_vouchers[2].taxable_amount == pe.paid_amount)
 
 		# cancel invoices to avoid clashing
 		for d in reversed(invoices):
