@@ -532,17 +532,17 @@ def get_tds_amount(ldc, parties, inv, tax_details, voucher_wise_amount):
 	tds_amount = 0
 
 	pi_grand_total = 0
-	pi_base_taxable_net_total = 0
-	jv_credit_emt = 0
+	pi_base_net_total = 0
+	jv_credit_amt = 0
 	pe_credit_amt = 0
 
 	for row in voucher_wise_amount:
 		if row.voucher_type == "Purchase Invoice":
 			pi_grand_total += row.get("grand_total", 0)
-			pi_base_taxable_net_total += row.get("taxable_amount", 0)
+			pi_base_net_total += row.get("taxable_amount", 0)
 
 		if row.voucher_type == "Journal Entry" and row.reference_type != "Purchase Invoice":
-			jv_credit_emt += row.get("taxable_amount", 0)
+			jv_credit_amt += row.get("taxable_amount", 0)
 
 	## for TDS to be deducted on advances
 	pe_filters = {
@@ -556,9 +556,9 @@ def get_tds_amount(ldc, parties, inv, tax_details, voucher_wise_amount):
 		"company": inv.company,
 	}
 
-	consider_party_ledger_amount = cint(tax_details.consider_party_ledger_amount)
+	consider_party_ledger_amt = cint(tax_details.consider_party_ledger_amount)
 
-	if consider_party_ledger_amount:
+	if consider_party_ledger_amt:
 		pe_filters.pop("apply_tax_withholding_amount", None)
 		pe_filters.pop("tax_withholding_category", None)
 
@@ -584,21 +584,21 @@ def get_tds_amount(ldc, parties, inv, tax_details, voucher_wise_amount):
 
 	threshold = tax_details.get("threshold", 0)
 	cumulative_threshold = tax_details.get("cumulative_threshold", 0)
-	supp_credit_amt = jv_credit_emt + pe_credit_amt + inv.get("tax_withholding_net_total", 0)
+	supp_credit_amt = jv_credit_amt + pe_credit_amt + inv.get("tax_withholding_net_total", 0)
 	tax_withholding_net_total = inv.get("base_tax_withholding_net_total", 0)
 
 	# if consider_party_ledger_amount is checked, then threshold will be based on grand total
-	amt_for_threshold = pi_grand_total if consider_party_ledger_amount else pi_base_taxable_net_total
+	amt_for_threshold = pi_grand_total if consider_party_ledger_amt else pi_base_net_total
 
-	has_cumulative_threshold_breached = (
+	cumulative_threshold_breached = (
 		cumulative_threshold and (supp_credit_amt + amt_for_threshold) >= cumulative_threshold
 	)
 
-	if (threshold and tax_withholding_net_total >= threshold) or (has_cumulative_threshold_breached):
-		supp_credit_amt += pi_base_taxable_net_total
+	if (threshold and tax_withholding_net_total >= threshold) or (cumulative_threshold_breached):
+		supp_credit_amt += pi_base_net_total
 
-		if has_cumulative_threshold_breached and cint(tax_details.tax_on_excess_amount):
-			supp_credit_amt = pi_base_taxable_net_total + tax_withholding_net_total - cumulative_threshold
+		if cumulative_threshold_breached and cint(tax_details.tax_on_excess_amount):
+			supp_credit_amt = pi_base_net_total + tax_withholding_net_total - cumulative_threshold
 
 		if ldc and is_valid_certificate(ldc, inv.get("posting_date") or inv.get("transaction_date"), 0):
 			tds_amount = get_lower_deduction_amount(
