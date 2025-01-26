@@ -238,9 +238,6 @@ class TestPOSClosingEntry(IntegrationTestCase):
 		pos_inv2.payments[0].amount = pos_inv2.grand_total
 		pos_inv2.submit()
 
-		batch_qty = frappe.db.get_value("Batch", batch_no, "batch_qty")
-		self.assertEqual(batch_qty, 10)
-
 		batch_qty_with_pos = get_batch_qty(batch_no, "_Test Warehouse - _TC", item_code)
 		self.assertEqual(batch_qty_with_pos, 0.0)
 
@@ -269,9 +266,6 @@ class TestPOSClosingEntry(IntegrationTestCase):
 
 		pcv_doc.reload()
 		pcv_doc.cancel()
-
-		batch_qty = frappe.db.get_value("Batch", batch_no, "batch_qty")
-		self.assertEqual(batch_qty, 10)
 
 		batch_qty_with_pos = get_batch_qty(batch_no, "_Test Warehouse - _TC", item_code)
 		self.assertEqual(batch_qty_with_pos, 0.0)

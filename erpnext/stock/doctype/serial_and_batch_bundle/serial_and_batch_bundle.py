@@ -101,7 +101,10 @@ class SerialandBatchBundle(Document):
 		self.set_is_outward()
 		self.calculate_total_qty()
 		self.set_warehouse()
-		self.set_incoming_rate()
+
+		if self.voucher_type != "Stock Entry" or not self.voucher_no or self.docstatus == 1:
+			self.set_incoming_rate()
+
 		self.calculate_qty_and_amount()
 
 	def allow_existing_serial_nos(self):
@@ -1026,7 +1029,6 @@ class SerialandBatchBundle(Document):
 		self.set_purchase_document_no()
 
 	def on_submit(self):
-		self.validate_batch_inventory()
 		self.validate_serial_nos_inventory()
 
 	def set_purchase_document_no(self):
@@ -1053,23 +1055,7 @@ class SerialandBatchBundle(Document):
 		self.validate_batch_inventory()
 
 	def validate_batch_inventory(self):
-		if (
-			self.voucher_type in ["Purchase Invoice", "Purchase Receipt"]
-			and frappe.db.get_value(self.voucher_type, self.voucher_no, "docstatus") == 1
-		):
-			return
-
-		if self.voucher_type in ["Sales Invoice", "Delivery Note"] and self.type_of_transaction == "Inward":
-			return
-
 		if not self.has_batch_no:
-			return
-
-		if (
-			self.voucher_type == "Stock Reconciliation"
-			and self.type_of_transaction == "Outward"
-			and frappe.db.get_value("Stock Reconciliation Item", self.voucher_detail_no, "qty") > 0
-		):
 			return
 
 		batches = [d.batch_no for d in self.entries if d.batch_no]

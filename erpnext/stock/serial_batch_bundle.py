@@ -302,9 +302,6 @@ class SerialBatchBundle:
 		):
 			self.set_batch_no_in_serial_nos()
 
-		if self.item_details.has_batch_no == 1:
-			self.update_batch_qty()
-
 		if self.sle.is_cancelled and self.sle.serial_and_batch_bundle:
 			self.cancel_serial_and_batch_bundle()
 
@@ -409,26 +406,6 @@ class SerialBatchBundle:
 				.set(sn_table.batch_no, batch_no)
 				.where(sn_table.name.isin(serial_nos))
 			).run()
-
-	def update_batch_qty(self):
-		from erpnext.stock.doctype.batch.batch import get_available_batches
-
-		batches = get_batch_nos(self.sle.serial_and_batch_bundle)
-		if not self.sle.serial_and_batch_bundle and self.sle.batch_no:
-			batches = frappe._dict({self.sle.batch_no: self.sle.actual_qty})
-
-		batches_qty = get_available_batches(
-			frappe._dict(
-				{
-					"item_code": self.item_code,
-					"batch_no": list(batches.keys()),
-					"consider_negative_batches": 1,
-				}
-			)
-		)
-
-		for batch_no in batches:
-			frappe.db.set_value("Batch", batch_no, "batch_qty", batches_qty.get(batch_no, 0))
 
 
 def get_serial_nos(serial_and_batch_bundle, serial_nos=None):
@@ -1257,4 +1234,54 @@ def get_serial_nos_batch(serial_nos):
 			filters={"name": ("in", serial_nos)},
 			as_list=1,
 		)
+	)
+
+
+def update_batch_qty(voucher_type, voucher_no, via_landed_cost_voucher=False):
+	from erpnext.stock.doctype.batch.batch import get_available_batches
+
+	batches = get_distinct_batches(voucher_type, voucher_no)
+	if not batches:
+		return
+
+	precision = frappe.get_precision("Batch", "batch_qty")
+	batch_data = get_available_batches(
+		frappe._dict({"batch_no": batches, "consider_negative_batches": 1, "based_on_warehouse": True})
+	)
+	batchwise_qty = defaultdict(float)
+
+	for (batch_no, warehouse), qty in batch_data.items():
+		if not via_landed_cost_voucher and flt(qty, precision) < 0:
+			throw_negative_batch_validation(batch_no, warehouse, qty)
+
+		batchwise_qty[batch_no] += qty
+
+	for batch_no in batches:
+		qty = flt(batchwise_qty.get(batch_no, 0), precision)
+		frappe.db.set_value("Batch", batch_no, "batch_qty", qty)
+
+
+def throw_negative_batch_validation(batch_no, warehouse, qty):
+	frappe.throw(
+		_("The Batch {0} has negative quantity {1} in warehouse {2}. Please correct the quantity.").format(
+			bold(batch_no), bold(qty), bold(warehouse)
+		),
+		title=_("Negative Batch Quantity"),
+	)
+
+
+def get_distinct_batches(voucher_type, voucher_no):
+	bundles = frappe.get_all(
+		"Serial and Batch Bundle",
+		filters={"voucher_no": voucher_no, "voucher_type": voucher_type},
+		pluck="name",
+	)
+	if not bundles:
+		return
+
+	return frappe.get_all(
+		"Serial and Batch Entry",
+		filters={"parent": ("in", bundles), "batch_no": ("is", "set")},
+		group_by="batch_no",
+		pluck="batch_no",
 	)
