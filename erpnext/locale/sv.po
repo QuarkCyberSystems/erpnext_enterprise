@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: info@erpnext.com\n"
 "POT-Creation-Date: 2025-01-19 09:34+0000\n"
-"PO-Revision-Date: 2025-01-23 20:56\n"
+"PO-Revision-Date: 2025-01-25 21:19\n"
 "Last-Translator: info@erpnext.com\n"
 "Language-Team: Swedish\n"
 "MIME-Version: 1.0\n"
@@ -83,7 +83,7 @@ msgstr "\"Kund Försedd Artikel\" kan inte vara Försäljning Artikel"
 
 #: erpnext/stock/doctype/item/item.py:235
 msgid "\"Customer Provided Item\" cannot have Valuation Rate"
-msgstr "\"Kund Försedd Artikel\" kan inte ha Värderingssats"
+msgstr "\"Kund Försedd Artikel\" kan inte ha Grund Pris"
 
 #: erpnext/stock/doctype/item/item.py:311
 msgid "\"Is Fixed Asset\" cannot be unchecked, as Asset record exists against the item"
@@ -342,7 +342,7 @@ msgstr "(H) Förändring av Lager Värde (FIFO)"
 
 #: erpnext/stock/report/fifo_queue_vs_qty_after_transaction_comparison/fifo_queue_vs_qty_after_transaction_comparison.py:209
 msgid "(H) Valuation Rate"
-msgstr "(H) Värderingssats"
+msgstr "(H) Grund Pris"
 
 #. Description of the 'Actual Operating Cost' (Currency) field in DocType 'Work
 #. Order Operation'
@@ -353,12 +353,12 @@ msgstr "(Timpris/60) * Faktisk Åtgärd Tid"
 #: erpnext/stock/report/stock_ledger_invariant_check/stock_ledger_invariant_check.py:273
 #: erpnext/stock/report/stock_ledger_variance/stock_ledger_variance.py:176
 msgid "(I) Valuation Rate"
-msgstr "(I) Värderingssats"
+msgstr "(I) Grund Pris"
 
 #: erpnext/stock/report/stock_ledger_invariant_check/stock_ledger_invariant_check.py:278
 #: erpnext/stock/report/stock_ledger_variance/stock_ledger_variance.py:181
 msgid "(J) Valuation Rate as per FIFO"
-msgstr "(J) Värderingssats enligt FIFO"
+msgstr "(J) Grund Pris enligt FIFO"
 
 #: erpnext/stock/report/stock_ledger_invariant_check/stock_ledger_invariant_check.py:288
 #: erpnext/stock/report/stock_ledger_variance/stock_ledger_variance.py:191
@@ -3540,7 +3540,7 @@ msgstr "Mot Konto"
 #: erpnext/selling/doctype/quotation_item/quotation_item.json
 #: erpnext/selling/doctype/sales_order_item/sales_order_item.json
 msgid "Against Blanket Order"
-msgstr "Mot Avrop Order"
+msgstr "Mot Avtal Order"
 
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:963
 msgid "Against Customer Order {0}"
@@ -8205,7 +8205,7 @@ msgstr "Svart"
 #: erpnext/selling/doctype/sales_order_item/sales_order_item.json
 #: erpnext/selling/workspace/selling/selling.json
 msgid "Blanket Order"
-msgstr "Avrop Order"
+msgstr "Avtal Order"
 
 #. Label of the blanket_order_allowance (Float) field in DocType 'Buying
 #. Settings'
@@ -8214,12 +8214,12 @@ msgstr "Avrop Order"
 #: erpnext/buying/doctype/buying_settings/buying_settings.json
 #: erpnext/selling/doctype/selling_settings/selling_settings.json
 msgid "Blanket Order Allowance (%)"
-msgstr "Avrop Order Tillåtelse (%)"
+msgstr "Avtal Order Tillåtelse (%)"
 
 #. Name of a DocType
 #: erpnext/manufacturing/doctype/blanket_order_item/blanket_order_item.json
 msgid "Blanket Order Item"
-msgstr "Avrop Order Artikel"
+msgstr "Avtal Order Artikel"
 
 #. Label of the blanket_order_rate (Currency) field in DocType 'Purchase Order
 #. Item'
@@ -8230,7 +8230,7 @@ msgstr "Avrop Order Artikel"
 #: erpnext/selling/doctype/quotation_item/quotation_item.json
 #: erpnext/selling/doctype/sales_order_item/sales_order_item.json
 msgid "Blanket Order Rate"
-msgstr "Avrop Order Värde"
+msgstr "Avtal Order Värde"
 
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.js:105
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.js:251
@@ -10411,17 +10411,17 @@ msgstr "Hämta Framsteg"
 #. Collection'
 #: erpnext/accounts/doctype/loyalty_program_collection/loyalty_program_collection.json
 msgid "Collection Factor (=1 LP)"
-msgstr "Insamling Faktor (= 1 LP)"
+msgstr "Inlösen Faktor (= 1 LP)"
 
 #. Label of the collection_rules (Table) field in DocType 'Loyalty Program'
 #: erpnext/accounts/doctype/loyalty_program/loyalty_program.json
 msgid "Collection Rules"
-msgstr "Insamling Regler"
+msgstr "Inlösen Regler"
 
 #. Label of the rules (Section Break) field in DocType 'Loyalty Program'
 #: erpnext/accounts/doctype/loyalty_program/loyalty_program.json
 msgid "Collection Tier"
-msgstr "Insamling Nivå"
+msgstr "Inlösen Nivå"
 
 #. Label of the standing_color (Select) field in DocType 'Supplier Scorecard
 #. Scoring Standing'
@@ -24265,7 +24265,7 @@ msgstr "Indirekt Intäkt"
 #: erpnext/selling/doctype/customer/customer.json
 #: erpnext/setup/setup_wizard/operations/install_fixtures.py:155
 msgid "Individual"
-msgstr "individ"
+msgstr "Enskild"
 
 #: erpnext/accounts/doctype/gl_entry/gl_entry.py:303
 msgid "Individual GL Entry cannot be cancelled."
@@ -24689,7 +24689,7 @@ msgstr "Ogiltig Streck/QR Kod. Det finns ingen Artikel med denna Streck/QR Kod."
 
 #: erpnext/public/js/controllers/transaction.js:2588
 msgid "Invalid Blanket Order for the selected Customer and Item"
-msgstr "Ogiltig Avrop Order för vald Kund och Artikel"
+msgstr "Ogiltig Avtal Order för vald Kund och Artikel"
 
 #: erpnext/quality_management/doctype/quality_procedure/quality_procedure.py:72
 msgid "Invalid Child Procedure"
@@ -26843,7 +26843,7 @@ msgstr "Artikel {0} kan inte läggas till som underenhet av sig själv"
 
 #: erpnext/manufacturing/doctype/blanket_order/blanket_order.py:197
 msgid "Item {0} cannot be ordered more than {1} against Blanket Order {2}."
-msgstr "Artikel {0} kan inte skapas order för mer än {1} mot Avrop Order {2}."
+msgstr "Artikel {0} kan inte skapas order för mer än {1} mot Avtal Order {2}."
 
 #: erpnext/assets/doctype/asset/asset.py:233
 #: erpnext/stock/doctype/item/item.py:628
@@ -28432,7 +28432,7 @@ msgstr "Lojalitet Poäng Post"
 #. Name of a DocType
 #: erpnext/accounts/doctype/loyalty_point_entry_redemption/loyalty_point_entry_redemption.json
 msgid "Loyalty Point Entry Redemption"
-msgstr "Lojalitet Poäng Post Inlösen"
+msgstr "Lojalitet Poäng Inlösen Post"
 
 #. Label of the loyalty_points (Int) field in DocType 'Loyalty Point Entry'
 #. Label of the loyalty_points (Int) field in DocType 'POS Invoice'
@@ -28461,7 +28461,7 @@ msgstr "Lojalitet Poäng Inlösen"
 
 #: erpnext/accounts/doctype/loyalty_program/loyalty_program.js:8
 msgid "Loyalty Points will be calculated from the spent done (via the Sales Invoice), based on collection factor mentioned."
-msgstr "Bonuspoäng kommer att beräknas från spenderad belopp (via försäljningsfaktura), baserat på vald insamling faktor."
+msgstr "Lojalitet poäng kommer att beräknas från spenderad belopp (via försäljning faktura), baserat på vald inlösen faktor."
 
 #: erpnext/public/js/utils.js:109
 msgid "Loyalty Points: {0}"
@@ -28487,7 +28487,7 @@ msgstr "Lojalitet Program"
 #. Name of a DocType
 #: erpnext/accounts/doctype/loyalty_program_collection/loyalty_program_collection.json
 msgid "Loyalty Program Collection"
-msgstr "Lojalitet Program Insamling"
+msgstr "Lojalitet Program Inlösen"
 
 #. Label of the loyalty_program_help (HTML) field in DocType 'Loyalty Program'
 #: erpnext/accounts/doctype/loyalty_program/loyalty_program.json
@@ -35656,13 +35656,13 @@ msgstr "Procentuell Tilldelning ska vara lika med 100 %"
 #. 'Buying Settings'
 #: erpnext/buying/doctype/buying_settings/buying_settings.json
 msgid "Percentage you are allowed to order beyond the Blanket Order quantity."
-msgstr "Procentandel tillåten för order utöver Avrop Order Kvantitet."
+msgstr "Procentandel tillåten för order utöver Avtal Order Kvantitet."
 
 #. Description of the 'Blanket Order Allowance (%)' (Float) field in DocType
 #. 'Selling Settings'
 #: erpnext/selling/doctype/selling_settings/selling_settings.json
 msgid "Percentage you are allowed to sell beyond the Blanket Order quantity."
-msgstr "Procentandel tillåten för försäljning utöver Avrop Order Kvantitet."
+msgstr "Procentandel tillåten för försäljning utöver Avtal Order Kvantitet."
 
 #. Description of the 'Over Transfer Allowance (%)' (Float) field in DocType
 #. 'Buying Settings'
@@ -36909,7 +36909,7 @@ msgstr "Välj Bolag"
 
 #: erpnext/accounts/doctype/loyalty_program/loyalty_program.js:65
 msgid "Please select the Multiple Tier Program type for more than one collection rules."
-msgstr "Välj Fler Nivå Program typ för mer än en insamling regel."
+msgstr "Välj Fler Nivå Program typ för mer än en inlösning regel."
 
 #: erpnext/accounts/doctype/coupon_code/coupon_code.py:48
 msgid "Please select the customer."
@@ -37626,7 +37626,7 @@ msgstr "Förhindra Inköp Ordrar"
 #: erpnext/buying/doctype/supplier_scorecard_scoring_standing/supplier_scorecard_scoring_standing.json
 #: erpnext/buying/doctype/supplier_scorecard_standing/supplier_scorecard_standing.json
 msgid "Prevent RFQs"
-msgstr "Förhindra Offert Begäran"
+msgstr "Förhindra Inköp Offerter"
 
 #. Option for the 'Corrective/Preventive' (Select) field in DocType 'Quality
 #. Action'
@@ -38221,7 +38221,7 @@ msgstr "Skriv ut"
 #. Profile'
 #: erpnext/accounts/doctype/pos_profile/pos_profile.json
 msgid "Print Receipt on Order Complete"
-msgstr "Skriv ut Kvitto när Order är klar"
+msgstr "Skriv ut när Ordern är klar"
 
 #. Label of the print_settings (Section Break) field in DocType 'Accounts
 #. Settings'
@@ -40960,7 +40960,7 @@ msgstr "Offererad Belopp"
 
 #: erpnext/buying/doctype/request_for_quotation/request_for_quotation.py:87
 msgid "RFQs are not allowed for {0} due to a scorecard standing of {1}"
-msgstr "Offert Begäran är inte tillåtna för {0} på grund av Resultat Kort värde {1}"
+msgstr "Inköp Offerter är inte tillåtna för {0} på grund av Resultat Kort värde {1}"
 
 #. Label of the auto_indent (Check) field in DocType 'Stock Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
@@ -42962,7 +42962,7 @@ msgstr "Erfordrad Kvantitet"
 
 #: erpnext/crm/doctype/opportunity/opportunity.js:89
 msgid "Request For Quotation"
-msgstr "Offertbegäran"
+msgstr "Offert Begäran"
 
 #. Label of the section_break_2 (Section Break) field in DocType 'Currency
 #. Exchange Settings'
@@ -43002,7 +43002,7 @@ msgstr "Information Begäran"
 #: erpnext/buying/workspace/buying/buying.json
 #: erpnext/stock/doctype/material_request/material_request.js:176
 msgid "Request for Quotation"
-msgstr "Offertbegäran"
+msgstr "Offert Begäran"
 
 #. Name of a DocType
 #. Label of the request_for_quotation_item (Data) field in DocType 'Supplier
@@ -43010,12 +43010,12 @@ msgstr "Offertbegäran"
 #: erpnext/buying/doctype/request_for_quotation_item/request_for_quotation_item.json
 #: erpnext/buying/doctype/supplier_quotation_item/supplier_quotation_item.json
 msgid "Request for Quotation Item"
-msgstr "Offertbegäran Artikel"
+msgstr "Inköp Offert Artikel"
 
 #. Name of a DocType
 #: erpnext/buying/doctype/request_for_quotation_supplier/request_for_quotation_supplier.json
 msgid "Request for Quotation Supplier"
-msgstr "Offertbegäran Leverantör"
+msgstr "Inköp Offert Leverantör"
 
 #: erpnext/selling/doctype/sales_order/sales_order.js:695
 msgid "Request for Raw Materials"
@@ -46127,7 +46127,7 @@ msgstr "Skanna Parti Nummer"
 #: erpnext/manufacturing/doctype/workstation/workstation.js:127
 #: erpnext/manufacturing/doctype/workstation/workstation.js:154
 msgid "Scan Job Card Qrcode"
-msgstr "Skanna Jobbkort Qrkod"
+msgstr "Skanna Jobbkort QR Kod"
 
 #. Label of the scan_mode (Check) field in DocType 'Pick List'
 #. Label of the scan_mode (Check) field in DocType 'Stock Reconciliation'
@@ -47363,7 +47363,7 @@ msgstr "Serie Nummer och Parti Reservation"
 #. Name of a report
 #: erpnext/stock/report/serial_and_batch_summary/serial_and_batch_summary.json
 msgid "Serial and Batch Summary"
-msgstr "Serie- och batchnummer kommer att reserveras automatiskt baserat på <b>Välj serie/batch baserat på</b>"
+msgstr "Serie och Parti Översikt"
 
 #: erpnext/stock/utils.py:409
 msgid "Serial number {0} entered more than once"
@@ -48894,7 +48894,7 @@ msgstr " Från Lager Adress"
 #. Label of the source_warehouse_address (Link) field in DocType 'Stock Entry'
 #: erpnext/stock/doctype/stock_entry/stock_entry.json
 msgid "Source Warehouse Address Link"
-msgstr "Från Lager Adress Länk"
+msgstr "Från Lager Adress"
 
 #: erpnext/assets/doctype/asset_movement/asset_movement.py:88
 msgid "Source and Target Location cannot be same"
@@ -51940,7 +51940,7 @@ msgstr "Till Lager Adress"
 #. Label of the target_warehouse_address (Link) field in DocType 'Stock Entry'
 #: erpnext/stock/doctype/stock_entry/stock_entry.json
 msgid "Target Warehouse Address Link"
-msgstr "Till Lager Adress Länk"
+msgstr "Till Lager Adress"
 
 #: erpnext/manufacturing/doctype/work_order/work_order.py:478
 msgid "Target Warehouse is required before Submit"
@@ -52912,7 +52912,7 @@ msgstr "'Från Paket Nummer' Fält får inte vara tom eller dess värde mindre �
 
 #: erpnext/buying/doctype/request_for_quotation/request_for_quotation.py:352
 msgid "The Access to Request for Quotation From Portal is Disabled. To Allow Access, Enable it in Portal Settings."
-msgstr "Åtkomst till Försäljning Offert Begäran från Portal är inaktiverad. För att tillåta åtkomst, aktivera den i Portal Inställningar."
+msgstr "Åtkomst till Inköp Offert från Portal är inaktiverad. För att tillåta åtkomst, aktivera i Portal Inställningar."
 
 #. Description of the 'Current BOM' (Link) field in DocType 'BOM Update Tool'
 #: erpnext/manufacturing/doctype/bom_update_tool/bom_update_tool.json
@@ -56449,7 +56449,7 @@ msgstr "Uppdatera Utskrift Format"
 #. Label of the get_stock_and_rate (Button) field in DocType 'Stock Entry'
 #: erpnext/stock/doctype/stock_entry/stock_entry.json
 msgid "Update Rate and Availability"
-msgstr "Uppdatera Pris & Antal"
+msgstr "Uppdatera Pris och Tillgänglighet"
 
 #: erpnext/buying/doctype/purchase_order/purchase_order.js:593
 msgid "Update Rate as per Last Purchase"
@@ -57048,27 +57048,27 @@ msgstr "Värdering Sätt"
 #: erpnext/stock/report/stock_balance/stock_balance.py:485
 #: erpnext/stock/report/stock_ledger/stock_ledger.py:297
 msgid "Valuation Rate"
-msgstr "Värderingssats"
+msgstr "Grund Pris"
 
 #: erpnext/stock/report/incorrect_serial_no_valuation/incorrect_serial_no_valuation.py:166
 msgid "Valuation Rate (In / Out)"
-msgstr "Värderingssats (In/Ut)"
+msgstr "Grund Pris (In/Ut)"
 
 #: erpnext/stock/stock_ledger.py:1844
 msgid "Valuation Rate Missing"
-msgstr "Värderingssats Saknas"
+msgstr "Grund Pris Saknas"
 
 #: erpnext/stock/stock_ledger.py:1822
 msgid "Valuation Rate for the Item {0}, is required to do accounting entries for {1} {2}."
-msgstr "Värderingssats för Artikel {0} erfodras att skapa bokföring poster för {1} {2}."
+msgstr "Grund Pris för Artikel {0} erfodras att skapa bokföring poster för {1} {2}."
 
 #: erpnext/stock/doctype/item/item.py:264
 msgid "Valuation Rate is mandatory if Opening Stock entered"
-msgstr "Värderingssats erfordras om Öppning Lager anges"
+msgstr "Grund Pris erfodras om Öppning Lager anges"
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:709
 msgid "Valuation Rate required for Item {0} at row {1}"
-msgstr "Värderingssats erfordras för Artikel {0} på rad {1}"
+msgstr "Grund Pris erfordras för Artikel {0} på rad {1}"
 
 #. Option for the 'Consider Tax or Charge for' (Select) field in DocType
 #. 'Purchase Taxes and Charges'
@@ -57078,7 +57078,7 @@ msgstr "Värdering och Totalt"
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:918
 msgid "Valuation rate for customer provided items has been set to zero."
-msgstr "Värderingssats för Kund Försedda Artiklar angavs till noll."
+msgstr "Grund Pris för Kund Försedda Artiklar sattes till noll."
 
 #. Description of the 'Sales Incoming Rate' (Currency) field in DocType
 #. 'Purchase Invoice Item'
@@ -57087,7 +57087,7 @@ msgstr "Värderingssats för Kund Försedda Artiklar angavs till noll."
 #: erpnext/accounts/doctype/purchase_invoice_item/purchase_invoice_item.json
 #: erpnext/stock/doctype/purchase_receipt_item/purchase_receipt_item.json
 msgid "Valuation rate for the item as per Sales Invoice (Only for Internal Transfers)"
-msgstr "Värderingssats för artikel enligt Försäljning Faktura (endast för Interna Överföringar)"
+msgstr "Grund Pris för artikel enligt Försäljning Faktura (endast för Interna Överföringar)"
 
 #: erpnext/accounts/doctype/payment_entry/payment_entry.py:2264
 #: erpnext/controllers/accounts_controller.py:2873
@@ -58108,7 +58108,7 @@ msgstr "Varna vid Inköp Ordrar"
 #: erpnext/buying/doctype/supplier_scorecard_scoring_standing/supplier_scorecard_scoring_standing.json
 #: erpnext/buying/doctype/supplier_scorecard_standing/supplier_scorecard_standing.json
 msgid "Warn RFQs"
-msgstr "Varna vid Offert Begäran"
+msgstr "Varna för Inköp Offerter"
 
 #. Label of the warn_pos (Check) field in DocType 'Supplier Scorecard'
 #: erpnext/buying/doctype/supplier_scorecard/supplier_scorecard.json
@@ -58118,7 +58118,7 @@ msgstr "Varna vid nya Inköp Ordrar"
 #. Label of the warn_rfqs (Check) field in DocType 'Supplier Scorecard'
 #: erpnext/buying/doctype/supplier_scorecard/supplier_scorecard.json
 msgid "Warn for new Request for Quotations"
-msgstr "Varna för nya Offertbegäran"
+msgstr "Varna för nya Inköp Offerter"
 
 #: erpnext/accounts/doctype/payment_entry/payment_entry.py:734
 #: erpnext/controllers/accounts_controller.py:1856
