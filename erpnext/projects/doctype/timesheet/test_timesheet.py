@@ -62,6 +62,7 @@ class TestTimesheet(IntegrationTestCase):
 		)
 		sales_invoice = create_sales_invoice(do_not_save=True)
 		sales_invoice.project = project
+		sales_invoice._add_timesheet_data()
 		sales_invoice.submit()
 
 		ts = frappe.get_doc("Timesheet", timesheet.name)
