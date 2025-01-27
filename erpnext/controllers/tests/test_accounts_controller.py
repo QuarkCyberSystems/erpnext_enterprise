@@ -17,6 +17,7 @@ from erpnext.accounts.doctype.purchase_invoice.test_purchase_invoice import make
 from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
 from erpnext.accounts.party import get_party_account
 from erpnext.buying.doctype.purchase_order.test_purchase_order import prepare_data_for_internal_transfer
+from erpnext.projects.doctype.project.test_project import make_project
 from erpnext.stock.doctype.item.test_item import create_item
 
 
@@ -1536,32 +1537,32 @@ class TestAccountsController(IntegrationTestCase):
 
 		# Invoices
 		si1 = self.create_sales_invoice(qty=1, rate=rate_in_account_currency, do_not_submit=True)
-		si1.department = "Management"
+		si1.department = "Management - _TC"
 		si1.save().submit()
 
 		si2 = self.create_sales_invoice(qty=1, rate=rate_in_account_currency, do_not_submit=True)
-		si2.department = "Operations"
+		si2.department = "Operations - _TC"
 		si2.save().submit()
 
 		# Payments
 		cr_note1 = self.create_sales_invoice(qty=-1, conversion_rate=75, rate=1, do_not_save=True)
-		cr_note1.department = "Management"
+		cr_note1.department = "Management - _TC"
 		cr_note1.is_return = 1
 		cr_note1.save().submit()
 
 		cr_note2 = self.create_sales_invoice(qty=-1, conversion_rate=75, rate=1, do_not_save=True)
-		cr_note2.department = "Legal"
+		cr_note2.department = "Legal - _TC"
 		cr_note2.is_return = 1
 		cr_note2.save().submit()
 
 		pe1 = get_payment_entry(si1.doctype, si1.name)
 		pe1.references = []
-		pe1.department = "Research & Development"
+		pe1.department = "Research & Development - _TC"
 		pe1.save().submit()
 
 		pe2 = get_payment_entry(si1.doctype, si1.name)
 		pe2.references = []
-		pe2.department = "Management"
+		pe2.department = "Management - _TC"
 		pe2.save().submit()
 
 		je1 = self.create_journal_entry(
@@ -1574,7 +1575,7 @@ class TestAccountsController(IntegrationTestCase):
 		)
 		je1.accounts[0].party_type = "Customer"
 		je1.accounts[0].party = self.customer
-		je1.accounts[0].department = "Management"
+		je1.accounts[0].department = "Management - _TC"
 		je1.save().submit()
 
 		# assert dimension filter's result
@@ -1583,17 +1584,17 @@ class TestAccountsController(IntegrationTestCase):
 		self.assertEqual(len(pr.invoices), 2)
 		self.assertEqual(len(pr.payments), 5)
 
-		pr.department = "Legal"
+		pr.department = "Legal - _TC"
 		pr.get_unreconciled_entries()
 		self.assertEqual(len(pr.invoices), 0)
 		self.assertEqual(len(pr.payments), 1)
 
-		pr.department = "Management"
+		pr.department = "Management - _TC"
 		pr.get_unreconciled_entries()
 		self.assertEqual(len(pr.invoices), 1)
 		self.assertEqual(len(pr.payments), 3)
 
-		pr.department = "Research & Development"
+		pr.department = "Research & Development - _TC"
 		pr.get_unreconciled_entries()
 		self.assertEqual(len(pr.invoices), 0)
 		self.assertEqual(len(pr.payments), 1)
@@ -1604,17 +1605,17 @@ class TestAccountsController(IntegrationTestCase):
 
 		# Invoice
 		si = self.create_sales_invoice(qty=1, rate=rate_in_account_currency, do_not_submit=True)
-		si.department = "Management"
+		si.department = "Management - _TC"
 		si.save().submit()
 
 		# Payment
 		cr_note = self.create_sales_invoice(qty=-1, conversion_rate=75, rate=1, do_not_save=True)
-		cr_note.department = "Management"
+		cr_note.department = "Management - _TC"
 		cr_note.is_return = 1
 		cr_note.save().submit()
 
 		pr = self.create_payment_reconciliation()
-		pr.department = "Management"
+		pr.department = "Management - _TC"
 		pr.get_unreconciled_entries()
 		self.assertEqual(len(pr.invoices), 1)
 		self.assertEqual(len(pr.payments), 1)
@@ -1646,7 +1647,7 @@ class TestAccountsController(IntegrationTestCase):
 		# Sales Invoice in Foreign Currency
 		self.setup_dimensions()
 		rate_in_account_currency = 1
-		dpt = "Research & Development"
+		dpt = "Research & Development - _TC"
 
 		si = self.create_sales_invoice(qty=1, rate=rate_in_account_currency, do_not_save=True)
 		si.department = dpt
@@ -1681,7 +1682,7 @@ class TestAccountsController(IntegrationTestCase):
 
 	def test_93_dimension_inheritance_on_advance(self):
 		self.setup_dimensions()
-		dpt = "Research & Development"
+		dpt = "Research & Development - _TC"
 
 		adv = self.create_payment_entry(amount=1, source_exc_rate=85)
 		adv.department = dpt
@@ -2139,3 +2140,13 @@ class TestAccountsController(IntegrationTestCase):
 		journal_voucher = frappe.get_doc("Journal Entry", exc_je_for_pi[0].parent)
 		purchase_invoice = frappe.get_doc("Purchase Invoice", pi.name)
 		self.assertEqual(purchase_invoice.advances[0].difference_posting_date, journal_voucher.posting_date)
+
+	def test_company_validation_in_dimension(self):
+		si = create_sales_invoice(do_not_submit=True)
+		project = make_project({"project_name": "_Test Demo Project1", "company": "_Test Company 1"})
+		si.project = project.name
+		self.assertRaises(frappe.ValidationError, si.save)
+
+		si_1 = create_sales_invoice(do_not_submit=True)
+		si_1.items[0].project = project.name
+		self.assertRaises(frappe.ValidationError, si_1.save)

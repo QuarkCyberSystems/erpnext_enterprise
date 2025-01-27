@@ -4294,6 +4294,7 @@ class TestSalesInvoice(IntegrationTestCase):
 		si = create_sales_invoice(do_not_submit=True)
 
 		project = frappe.new_doc("Project")
+		project.company = "_Test Company"
 		project.project_name = "Test Total Billed Amount"
 		project.save()
 
