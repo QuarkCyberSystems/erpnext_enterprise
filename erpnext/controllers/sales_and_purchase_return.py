@@ -370,6 +370,8 @@ def make_return_doc(doctype: str, source_name: str, target_doc=None, return_agai
 		if doc.get("is_return"):
 			if doc.doctype == "Sales Invoice" or doc.doctype == "POS Invoice":
 				doc.consolidated_invoice = ""
+				# no copy enabled for party_account_currency
+				doc.party_account_currency = source.party_account_currency
 				doc.set("payments", [])
 				doc.update_billed_amount_in_delivery_note = True
 				for data in source.payments:
