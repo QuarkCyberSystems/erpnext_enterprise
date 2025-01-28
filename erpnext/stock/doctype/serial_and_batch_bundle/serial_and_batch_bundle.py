@@ -1826,8 +1826,22 @@ def get_reserved_serial_nos(kwargs) -> list:
 	# Extend the list by serial nos reserved in POS Invoice
 	ignore_serial_nos.extend(get_reserved_serial_nos_for_pos(kwargs))
 
+	reserved_entries = get_reserved_serial_nos_for_sre(kwargs)
+
+	serial_nos = []
+	for entry in reserved_entries:
+		if kwargs.get("serial_nos") and entry.serial_no in kwargs.get("serial_nos"):
+			frappe.throw(
+				_(
+					"The Serial No {0} is reserved against the {1} {2} and cannot be used for any other transaction."
+				).format(bold(entry.serial_no), entry.voucher_type, bold(entry.voucher_no)),
+				title=_("Serial No Reserved"),
+			)
+
+		serial_nos.append(entry.serial_no)
+
 	# Extend the list by serial nos reserved via SRE
-	ignore_serial_nos.extend(get_reserved_serial_nos_for_sre(kwargs))
+	ignore_serial_nos.extend(serial_nos)
 
 	return ignore_serial_nos
 
@@ -1912,7 +1926,11 @@ def get_reserved_serial_nos_for_sre(kwargs) -> list:
 		frappe.qb.from_(sre)
 		.inner_join(sb_entry)
 		.on(sre.name == sb_entry.parent)
-		.select(sb_entry.serial_no)
+		.select(
+			sb_entry.serial_no,
+			sre.voucher_no,
+			sre.voucher_type,
+		)
 		.where(
 			(sre.docstatus == 1)
 			& (sre.item_code == kwargs.item_code)
@@ -1928,7 +1946,7 @@ def get_reserved_serial_nos_for_sre(kwargs) -> list:
 	if kwargs.ignore_voucher_nos:
 		query = query.where(sre.name.notin(kwargs.ignore_voucher_nos))
 
-	return [row[0] for row in query.run()]
+	return query.run(as_dict=True)
 
 
 def get_reserved_batches_for_pos(kwargs) -> dict:

@@ -246,8 +246,10 @@ class StockEntry(StockController):
 	def on_submit(self):
 		self.validate_closed_subcontracting_order()
 		self.make_bundle_using_old_serial_batch_fields()
-		self.update_stock_ledger()
 		self.update_work_order()
+		self.update_stock_ledger()
+		self.make_stock_reserve_for_wip_and_fg()
+
 		self.validate_subcontract_order()
 		self.update_subcontract_order_supplied_items()
 		self.update_subcontracting_order_status()
@@ -269,6 +271,7 @@ class StockEntry(StockController):
 		self.validate_closed_subcontracting_order()
 		self.update_subcontract_order_supplied_items()
 		self.update_subcontracting_order_status()
+		self.cancel_stock_reserve_for_wip_and_fg()
 
 		if self.work_order and self.purpose == "Material Consumption for Manufacture":
 			self.validate_work_order_status()
@@ -1614,6 +1617,32 @@ class StockEntry(StockController):
 			if not pro_doc.operations:
 				pro_doc.set_actual_dates()
 
+	def make_stock_reserve_for_wip_and_fg(self):
+		if self.is_stock_reserve_for_work_order():
+			pro_doc = frappe.get_doc("Work Order", self.work_order)
+			if self.purpose == "Manufacture" and not pro_doc.sales_order:
+				return
+
+			pro_doc.set_reserved_qty_for_wip_and_fg(self)
+
+	def cancel_stock_reserve_for_wip_and_fg(self):
+		if self.is_stock_reserve_for_work_order():
+			pro_doc = frappe.get_doc("Work Order", self.work_order)
+			if self.purpose == "Manufacture" and not pro_doc.sales_order:
+				return
+
+			pro_doc.cancel_reserved_qty_for_wip_and_fg(self)
+
+	def is_stock_reserve_for_work_order(self):
+		if (
+			self.work_order
+			and self.stock_entry_type in ["Material Transfer for Manufacture", "Manufacture"]
+			and frappe.get_cached_value("Work Order", self.work_order, "reserve_stock")
+		):
+			return True
+
+		return False
+
 	@frappe.whitelist()
 	def get_item_details(self, args: ItemDetailsCtx = None, for_update=False):
 		item = frappe.db.sql(
@@ -1888,10 +1917,92 @@ class StockEntry(StockController):
 				self.set_process_loss_qty()
 				self.load_items_from_bom()
 
+		self.set_serial_batch_from_reserved_entry()
 		self.set_scrap_items()
 		self.set_actual_qty()
 		self.validate_customer_provided_item()
 		self.calculate_rate_and_amount(raise_error_if_no_rate=False)
+
+	def set_serial_batch_from_reserved_entry(self):
+		if not self.work_order:
+			return
+
+		if not frappe.get_cached_value("Work Order", self.work_order, "reserve_stock"):
+			return
+
+		if self.purpose not in ["Material Transfer for Manufacture", "Manufacture"]:
+			return
+
+		reservation_entries = self.get_available_reserved_materials()
+
+		for d in self.items:
+			key = (d.item_code, d.s_warehouse)
+			if details := reservation_entries.get(key):
+				if details.get("serial_no"):
+					d.serial_no = "\n".join(details.get("serial_no"))
+
+				if batches := details.get("batch_no"):
+					for batch_no, qty in batches.items():
+						if qty <= 0:
+							continue
+
+						if qty >= d.qty:
+							d.batch_no = batch_no
+							batches[batch_no] -= d.qty
+						else:
+							d.batch_no = batch_no
+							d.qty = qty
+							batches[batch_no] = 0
+
+				d.use_serial_batch_fields = 1
+
+	def get_available_reserved_materials(self):
+		reserved_entries = self.get_reserved_materials()
+		if not reserved_entries:
+			return {}
+
+		itemwise_serial_batch_qty = frappe._dict()
+
+		for d in reserved_entries:
+			key = (d.item_code, d.warehouse)
+			if key not in itemwise_serial_batch_qty:
+				itemwise_serial_batch_qty[key] = frappe._dict(
+					{
+						"serial_no": [],
+						"batch_no": defaultdict(float),
+					}
+				)
+
+			details = itemwise_serial_batch_qty[key]
+			if d.serial_no:
+				details.serial_no.append(d.serial_no)
+			if d.batch_no:
+				details.batch_no[d.batch_no] += d.qty
+
+		return itemwise_serial_batch_qty
+
+	def get_reserved_materials(self):
+		doctype = frappe.qb.DocType("Stock Reservation Entry")
+		serial_batch_doc = frappe.qb.DocType("Serial and Batch Entry")
+
+		query = (
+			frappe.qb.from_(doctype)
+			.inner_join(serial_batch_doc)
+			.on(doctype.name == serial_batch_doc.parent)
+			.select(
+				serial_batch_doc.serial_no,
+				serial_batch_doc.batch_no,
+				serial_batch_doc.qty,
+				doctype.item_code,
+				doctype.warehouse,
+				doctype.name,
+				doctype.transferred_qty,
+				doctype.consumed_qty,
+			)
+			.where((doctype.docstatus == 1) & (doctype.voucher_no == self.work_order))
+		)
+
+		return query.run(as_dict=True)
 
 	def set_scrap_items(self):
 		if self.purpose != "Send to Subcontractor" and self.purpose in ["Manufacture", "Repack"]:

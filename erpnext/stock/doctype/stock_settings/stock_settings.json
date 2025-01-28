@@ -39,6 +39,7 @@
   "action_if_quality_inspection_is_rejected",
   "stock_reservation_tab",
   "enable_stock_reservation",
+  "auto_reserve_stock",
   "column_break_rx3e",
   "allow_partial_reservation",
   "auto_reserve_stock_for_sales_order_on_purchase",
@@ -467,6 +468,13 @@
    "fieldname": "allow_existing_serial_no",
    "fieldtype": "Check",
    "label": "Allow existing Serial No to be Manufactured/Received again"
+  },
+  {
+   "default": "0",
+   "description": "Upon submission of the Sales Order, Work Order, or Production Plan, the system will automatically reserve the stock.",
+   "fieldname": "auto_reserve_stock",
+   "fieldtype": "Check",
+   "label": "Auto Reserve Stock"
   }
  ],
  "icon": "icon-cog",
@@ -474,7 +482,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-12-09 17:52:36.030456",
+ "modified": "2024-12-10 17:52:36.030456",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Stock Settings",
