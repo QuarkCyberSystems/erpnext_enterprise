@@ -255,6 +255,8 @@ class AccountsController(TransactionBase):
 			self.validate_deferred_income_expense_account()
 			self.set_inter_company_account()
 
+		self.set_taxes_and_charges()
+
 		if self.doctype == "Purchase Invoice":
 			self.calculate_paid_amount()
 			# apply tax withholding only if checked and applicable
@@ -973,6 +975,12 @@ class AccountsController(TransactionBase):
 			and self.pos_profile != frappe.db.get_value("Sales Invoice", self.name, "pos_profile")
 		):
 			return True
+
+	def set_taxes_and_charges(self):
+		if frappe.db.get_single_value("Accounts Settings", "add_taxes_from_item_tax_template"):
+			if hasattr(self, "taxes_and_charges") and not self.get("taxes") and not self.get("is_pos"):
+				if tax_master_doctype := self.meta.get_field("taxes_and_charges").options:
+					self.append_taxes_from_master(tax_master_doctype)
 
 	def append_taxes_from_master(self, tax_master_doctype=None):
 		if self.get("taxes_and_charges"):
