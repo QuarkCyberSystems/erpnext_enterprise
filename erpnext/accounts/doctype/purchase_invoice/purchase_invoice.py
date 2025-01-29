@@ -1803,13 +1803,13 @@ class PurchaseInvoice(BuyingController):
 			self.remove(d)
 
 		## Add pending vouchers on which tax was withheld
-		for voucher_no, voucher_details in voucher_wise_amount.items():
+		for row in voucher_wise_amount:
 			self.append(
 				"tax_withheld_vouchers",
 				{
-					"voucher_name": voucher_no,
-					"voucher_type": voucher_details.get("voucher_type"),
-					"taxable_amount": voucher_details.get("amount"),
+					"voucher_name": row.voucher_name,
+					"voucher_type": row.voucher_type,
+					"taxable_amount": row.taxable_amount,
 				},
 			)
 
