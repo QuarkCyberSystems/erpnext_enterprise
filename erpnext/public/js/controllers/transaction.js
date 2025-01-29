@@ -887,7 +887,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 		}
 
 		var get_party_currency = function() {
-			if (me.is_a_mapped_document()) {
+			if (me.is_a_mapped_document() || me.frm.doc.__onload?.load_after_mapping) {
 				return;
 			}
 
