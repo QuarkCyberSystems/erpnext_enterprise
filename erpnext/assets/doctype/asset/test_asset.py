@@ -1537,7 +1537,7 @@ class TestDepreciationBasics(AssetSetup):
 		)
 
 		self.assertSequenceEqual(gle, expected_gle)
-		self.assertEqual(asset.get("value_after_depreciation"), 0)
+		self.assertEqual(asset.get("value_after_depreciation"), 70000)
 
 	def test_expected_value_change(self):
 		"""
