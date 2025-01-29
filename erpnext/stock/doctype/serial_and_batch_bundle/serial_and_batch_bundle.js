@@ -7,7 +7,7 @@ frappe.ui.form.on("Serial and Batch Bundle", {
 	},
 
 	before_submit(frm) {
-		frappe.throw(__("User cannot submitted the Serial and Batch Bundle manually"));
+		frappe.throw(__("The user cannot submit the Serial and Batch Bundle manually"));
 	},
 
 	refresh(frm) {
