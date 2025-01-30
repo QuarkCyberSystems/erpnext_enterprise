@@ -2471,6 +2471,9 @@ def get_stock_ledgers_batches(kwargs):
 		else:
 			query = query.where(stock_ledger_entry[field] == kwargs.get(field))
 
+	if not kwargs.get("for_stock_levels"):
+		query = query.where((batch_table.expiry_date >= today()) | (batch_table.expiry_date.isnull()))
+
 	if kwargs.get("posting_date"):
 		if kwargs.get("posting_time") is None:
 			kwargs.posting_time = nowtime()
