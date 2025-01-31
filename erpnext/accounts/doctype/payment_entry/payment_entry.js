@@ -523,7 +523,6 @@ frappe.ui.form.on("Payment Entry", {
 										"paid_to_account_currency",
 										r.message.party_account_currency
 									);
-									frm.set_value("paid_to_account_balance", r.message.account_balance);
 								}
 							},
 							() => frm.set_value("party_name", r.message.party_name),
@@ -592,7 +591,6 @@ frappe.ui.form.on("Payment Entry", {
 			frm,
 			frm.doc.paid_to,
 			"paid_to_account_currency",
-			"paid_to_account_balance",
 			function (frm) {
 				if (frm.doc.payment_type == "Receive") {
 					if (frm.doc.paid_from_account_currency == frm.doc.paid_to_account_currency) {
@@ -1645,32 +1643,6 @@ frappe.ui.form.on("Payment Entry", {
 		}
 
 		return current_tax_amount;
-	},
-
-	cost_center: function (frm) {
-		if (frm.doc.posting_date && (frm.doc.paid_from || frm.doc.paid_to)) {
-			return frappe.call({
-				method: "erpnext.accounts.doctype.payment_entry.payment_entry.get_party_and_account_balance",
-				args: {
-					company: frm.doc.company,
-					date: frm.doc.posting_date,
-					paid_from: frm.doc.paid_from,
-					paid_to: frm.doc.paid_to,
-					ptype: frm.doc.party_type,
-					pty: frm.doc.party,
-					cost_center: frm.doc.cost_center,
-				},
-				callback: function (r, rt) {
-					if (r.message) {
-						frappe.run_serially([
-							() => {
-								frm.set_value("paid_to_account_balance", r.message.paid_to_account_balance);
-							},
-						]);
-					}
-				},
-			});
-		}
 	},
 
 	after_save: function (frm) {

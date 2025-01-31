@@ -111,7 +111,6 @@ class PaymentEntry(AccountsController):
 		paid_from_account_currency: DF.Link
 		paid_from_account_type: DF.Data | None
 		paid_to: DF.Link
-		paid_to_account_balance: DF.Currency
 		paid_to_account_currency: DF.Link
 		paid_to_account_type: DF.Data | None
 		party: DF.DynamicLink | None
@@ -541,10 +540,9 @@ class PaymentEntry(AccountsController):
 			acc = get_account_details(self.paid_from, self.posting_date, self.cost_center)
 			self.paid_from_account_currency = acc.account_currency
 
-		if self.paid_to and not self.paid_to_account_currency and not self.paid_to_account_balance:
+		if self.paid_to and not self.paid_to_account_currency:
 			acc = get_account_details(self.paid_to, self.posting_date, self.cost_center)
 			self.paid_to_account_currency = acc.account_currency
-			self.paid_to_account_balance = acc.account_balance
 
 		self.party_account_currency = (
 			self.paid_from_account_currency
@@ -3545,17 +3543,6 @@ def get_paid_amount(dt, dn, party_type, party, account, due_date):
 	)
 
 	return paid_amount[0][0] if paid_amount else 0
-
-
-@frappe.whitelist()
-def get_party_and_account_balance(
-	company, date, paid_from=None, paid_to=None, ptype=None, pty=None, cost_center=None
-):
-	return frappe._dict(
-		{
-			"paid_to_account_balance": get_balance_on(paid_to, date=date, cost_center=cost_center),
-		}
-	)
 
 
 @frappe.whitelist()
