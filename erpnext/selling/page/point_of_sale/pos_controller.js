@@ -485,6 +485,7 @@ erpnext.PointOfSale.Controller = class {
 					]);
 				},
 			},
+			pos_profile: this.pos_profile,
 		});
 	}
 
