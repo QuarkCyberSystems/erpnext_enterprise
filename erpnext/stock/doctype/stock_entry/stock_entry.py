@@ -770,7 +770,7 @@ class StockEntry(StockController):
 
 	def get_matched_items(self, item_code):
 		for row in self.items:
-			if row.item_code == item_code:
+			if row.item_code == item_code or row.original_item == item_code:
 				return row
 
 		return {}
@@ -1892,7 +1892,7 @@ class StockEntry(StockController):
 
 						item_wh = frappe._dict(item_wh)
 
-					for item in item_dict.values():
+					for original_item, item in item_dict.items():
 						if self.pro_doc and cint(self.pro_doc.from_wip_warehouse):
 							item["from_warehouse"] = self.pro_doc.wip_warehouse
 						# Get Reserve Warehouse from Subcontract Order
@@ -1904,6 +1904,9 @@ class StockEntry(StockController):
 						item["to_warehouse"] = (
 							self.to_warehouse if self.purpose == "Send to Subcontractor" else ""
 						)
+
+						if original_item != item.get("item_code"):
+							item["original_item"] = original_item
 
 					self.add_to_stock_entry_detail(item_dict)
 
