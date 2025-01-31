@@ -31,7 +31,6 @@
   "paid_from",
   "paid_from_account_type",
   "paid_from_account_currency",
-  "paid_from_account_balance",
   "column_break_18",
   "paid_to",
   "paid_to_account_type",
@@ -242,16 +241,6 @@
    "print_hide": 1,
    "read_only": 1,
    "reqd": 1
-  },
-  {
-   "allow_on_submit": 1,
-   "depends_on": "paid_from",
-   "fieldname": "paid_from_account_balance",
-   "fieldtype": "Currency",
-   "label": "Account Balance (From)",
-   "options": "paid_from_account_currency",
-   "print_hide": 1,
-   "read_only": 1
   },
   {
    "fieldname": "column_break_18",
@@ -799,7 +788,7 @@
    "table_fieldname": "payment_entries"
   }
  ],
- "modified": "2025-01-31 11:05:51.703592",
+ "modified": "2025-01-31 11:17:52.292641",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Payment Entry",

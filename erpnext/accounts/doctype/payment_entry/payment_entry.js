@@ -472,9 +472,7 @@ frappe.ui.form.on("Payment Entry", {
 					"paid_from",
 					"paid_to",
 					"paid_from_account_currency",
-					"paid_from_account_balance",
 					"paid_to_account_currency",
-					"paid_to_account_balance",
 					"references",
 					"total_allocated_amount",
 				],
@@ -519,7 +517,6 @@ frappe.ui.form.on("Payment Entry", {
 										"paid_from_account_currency",
 										r.message.party_account_currency
 									);
-									frm.set_value("paid_from_account_balance", r.message.account_balance);
 								} else if (frm.doc.payment_type == "Pay") {
 									frm.set_value("paid_to", r.message.party_account);
 									frm.set_value(
@@ -580,7 +577,6 @@ frappe.ui.form.on("Payment Entry", {
 			frm,
 			frm.doc.paid_from,
 			"paid_from_account_currency",
-			"paid_from_account_balance",
 			function (frm) {
 				if (frm.doc.payment_type == "Pay") {
 					frm.events.paid_amount(frm);
@@ -612,13 +608,7 @@ frappe.ui.form.on("Payment Entry", {
 		);
 	},
 
-	set_account_currency_and_balance: function (
-		frm,
-		account,
-		currency_field,
-		balance_field,
-		callback_function
-	) {
+	set_account_currency_and_balance: function (frm, account, currency_field, callback_function) {
 		var company_currency = frappe.get_doc(":Company", frm.doc.company).default_currency;
 		if (frm.doc.posting_date && account) {
 			frappe.call({
@@ -633,8 +623,6 @@ frappe.ui.form.on("Payment Entry", {
 						frappe.run_serially([
 							() => frm.set_value(currency_field, r.message["account_currency"]),
 							() => {
-								frm.set_value(balance_field, r.message["account_balance"]);
-
 								if (
 									frm.doc.payment_type == "Receive" &&
 									currency_field == "paid_to_account_currency"
@@ -1676,10 +1664,6 @@ frappe.ui.form.on("Payment Entry", {
 					if (r.message) {
 						frappe.run_serially([
 							() => {
-								frm.set_value(
-									"paid_from_account_balance",
-									r.message.paid_from_account_balance
-								);
 								frm.set_value("paid_to_account_balance", r.message.paid_to_account_balance);
 							},
 						]);

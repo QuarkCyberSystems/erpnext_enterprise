@@ -108,7 +108,6 @@ class PaymentEntry(AccountsController):
 		paid_amount: DF.Currency
 		paid_amount_after_tax: DF.Currency
 		paid_from: DF.Link
-		paid_from_account_balance: DF.Currency
 		paid_from_account_currency: DF.Link
 		paid_from_account_type: DF.Data | None
 		paid_to: DF.Link
@@ -538,10 +537,9 @@ class PaymentEntry(AccountsController):
 				self.set(self.party_account_field, party_account)
 				self.party_account = party_account
 
-		if self.paid_from and not self.paid_from_account_currency and not self.paid_from_account_balance:
+		if self.paid_from and not self.paid_from_account_currency:
 			acc = get_account_details(self.paid_from, self.posting_date, self.cost_center)
 			self.paid_from_account_currency = acc.account_currency
-			self.paid_from_account_balance = acc.account_balance
 
 		if self.paid_to and not self.paid_to_account_currency and not self.paid_to_account_balance:
 			acc = get_account_details(self.paid_to, self.posting_date, self.cost_center)
@@ -3555,7 +3553,6 @@ def get_party_and_account_balance(
 ):
 	return frappe._dict(
 		{
-			"paid_from_account_balance": get_balance_on(paid_from, date, cost_center=cost_center),
 			"paid_to_account_balance": get_balance_on(paid_to, date=date, cost_center=cost_center),
 		}
 	)
