@@ -116,7 +116,6 @@ class PaymentEntry(AccountsController):
 		paid_to_account_currency: DF.Link
 		paid_to_account_type: DF.Data | None
 		party: DF.DynamicLink | None
-		party_balance: DF.Currency
 		party_bank_account: DF.Link | None
 		party_name: DF.Data | None
 		party_type: DF.Link | None
@@ -506,7 +505,6 @@ class PaymentEntry(AccountsController):
 		if self.payment_type == "Internal Transfer":
 			for field in (
 				"party",
-				"party_balance",
 				"total_allocated_amount",
 				"base_total_allocated_amount",
 				"unallocated_amount",
@@ -534,10 +532,6 @@ class PaymentEntry(AccountsController):
 				)
 			else:
 				complete_contact_details(self)
-			if not self.party_balance:
-				self.party_balance = get_balance_on(
-					party_type=self.party_type, party=self.party, date=self.posting_date, company=self.company
-				)
 
 			if not self.party_account:
 				party_account = get_party_account(self.party_type, self.party, self.company)
@@ -2721,9 +2715,7 @@ def get_party_details(company, party_type, party, date, cost_center=None):
 	account_balance = get_balance_on(party_account, date, cost_center=cost_center)
 	_party_name = "title" if party_type == "Shareholder" else party_type.lower() + "_name"
 	party_name = frappe.db.get_value(party_type, party, _party_name)
-	party_balance = get_balance_on(
-		party_type=party_type, party=party, company=company, cost_center=cost_center
-	)
+
 	if party_type in ["Customer", "Supplier"]:
 		party_bank_account = get_party_bank_account(party_type, party)
 		bank_account = get_default_company_bank_account(company, party_type, party)
@@ -2732,7 +2724,6 @@ def get_party_details(company, party_type, party, date, cost_center=None):
 		"party_account": party_account,
 		"party_name": party_name,
 		"party_account_currency": account_currency,
-		"party_balance": party_balance,
 		"account_balance": account_balance,
 		"party_bank_account": party_bank_account,
 		"bank_account": bank_account,
@@ -3564,7 +3555,6 @@ def get_party_and_account_balance(
 ):
 	return frappe._dict(
 		{
-			"party_balance": get_balance_on(party_type=ptype, party=pty, cost_center=cost_center),
 			"paid_from_account_balance": get_balance_on(paid_from, date, cost_center=cost_center),
 			"paid_to_account_balance": get_balance_on(paid_to, date=date, cost_center=cost_center),
 		}

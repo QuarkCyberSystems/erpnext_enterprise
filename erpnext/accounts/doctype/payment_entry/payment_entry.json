@@ -28,7 +28,6 @@
   "contact_person",
   "contact_email",
   "payment_accounts_section",
-  "party_balance",
   "paid_from",
   "paid_from_account_type",
   "paid_from_account_currency",
@@ -222,16 +221,6 @@
    "fieldname": "payment_accounts_section",
    "fieldtype": "Section Break",
    "label": "Accounts"
-  },
-  {
-   "allow_on_submit": 1,
-   "depends_on": "party",
-   "fieldname": "party_balance",
-   "fieldtype": "Currency",
-   "label": "Party Balance",
-   "no_copy": 1,
-   "print_hide": 1,
-   "read_only": 1
   },
   {
    "bold": 1,
@@ -810,7 +799,7 @@
    "table_fieldname": "payment_entries"
   }
  ],
- "modified": "2025-01-31 17:27:28.555246",
+ "modified": "2025-01-31 11:05:51.703592",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Payment Entry",

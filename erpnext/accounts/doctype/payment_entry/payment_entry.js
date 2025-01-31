@@ -374,7 +374,6 @@ frappe.ui.form.on("Payment Entry", {
 		frm.set_df_property("total_allocated_amount", "options", currency_field);
 		frm.set_df_property("unallocated_amount", "options", currency_field);
 		frm.set_df_property("total_taxes_and_charges", "options", currency_field);
-		frm.set_df_property("party_balance", "options", currency_field);
 
 		frm.set_currency_labels(
 			["total_amount", "outstanding_amount", "allocated_amount"],
@@ -422,15 +421,7 @@ frappe.ui.form.on("Payment Entry", {
 
 		if (frm.doc.payment_type == "Internal Transfer") {
 			$.each(
-				[
-					"party",
-					"party_type",
-					"party_balance",
-					"paid_from",
-					"paid_to",
-					"references",
-					"total_allocated_amount",
-				],
+				["party", "party_type", "paid_from", "paid_to", "references", "total_allocated_amount"],
 				function (i, field) {
 					frm.set_value(field, null);
 				}
@@ -478,7 +469,6 @@ frappe.ui.form.on("Payment Entry", {
 			$.each(
 				[
 					"party",
-					"party_balance",
 					"paid_from",
 					"paid_to",
 					"paid_from_account_currency",
@@ -539,7 +529,6 @@ frappe.ui.form.on("Payment Entry", {
 									frm.set_value("paid_to_account_balance", r.message.account_balance);
 								}
 							},
-							() => frm.set_value("party_balance", r.message.party_balance),
 							() => frm.set_value("party_name", r.message.party_name),
 							() => frm.clear_table("references"),
 							() => frm.events.hide_unhide_fields(frm),
@@ -1692,7 +1681,6 @@ frappe.ui.form.on("Payment Entry", {
 									r.message.paid_from_account_balance
 								);
 								frm.set_value("paid_to_account_balance", r.message.paid_to_account_balance);
-								frm.set_value("party_balance", r.message.party_balance);
 							},
 						]);
 					}
