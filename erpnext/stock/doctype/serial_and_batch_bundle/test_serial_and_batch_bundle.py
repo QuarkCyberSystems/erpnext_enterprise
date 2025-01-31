@@ -766,6 +766,80 @@ class TestSerialandBatchBundle(IntegrationTestCase):
 			"Stock Settings", "auto_create_serial_and_batch_bundle_for_outward", original_value
 		)
 
+	def test_voucher_detail_no(self):
+		item_code = make_item(
+			"Test Voucher Detail No 1",
+			properties={
+				"is_stock_item": 1,
+				"has_batch_no": 1,
+				"create_new_batch": 1,
+				"batch_number_series": "TST-VDN-.#####",
+			},
+		).name
+
+		se = make_stock_entry(
+			item_code=item_code,
+			qty=10,
+			target="_Test Warehouse - _TC",
+			rate=500,
+			use_serial_batch_fields=True,
+			do_not_submit=True,
+		)
+
+		if not frappe.db.exists("Batch", "TST-ACSBBO-TACSB-00001"):
+			frappe.get_doc(
+				{
+					"doctype": "Batch",
+					"batch_id": "TST-ACSBBO-TACSB-00001",
+					"item": item_code,
+					"company": "_Test Company",
+				}
+			).insert(ignore_permissions=True)
+
+		bundle_doc = make_serial_batch_bundle(
+			{
+				"item_code": item_code,
+				"warehouse": "_Test Warehouse - _TC",
+				"voucher_type": "Stock Entry",
+				"posting_date": today(),
+				"posting_time": nowtime(),
+				"qty": 10,
+				"batches": frappe._dict({"TST-ACSBBO-TACSB-00001": 10}),
+				"type_of_transaction": "Inward",
+				"do_not_submit": True,
+			}
+		)
+
+		se.append(
+			"items",
+			{
+				"item_code": item_code,
+				"t_warehouse": "_Test Warehouse - _TC",
+				"stock_uom": "Nos",
+				"stock_qty": 10,
+				"conversion_factor": 1,
+				"uom": "Nos",
+				"basic_rate": 500,
+				"qty": 10,
+				"use_serial_batch_fields": 0,
+				"serial_and_batch_bundle": bundle_doc.name,
+			},
+		)
+
+		se.save()
+
+		bundle_doc = frappe.get_doc("Serial and Batch Bundle", bundle_doc.name)
+		self.assertEqual(bundle_doc.voucher_detail_no, se.items[1].name)
+
+		se.remove(se.items[1])
+		se.save()
+		self.assertTrue(len(se.items) == 1)
+		se.submit()
+
+		bundle_doc.reload()
+		self.assertTrue(bundle_doc.docstatus == 0)
+		self.assertRaises(frappe.ValidationError, bundle_doc.submit)
+
 
 def get_batch_from_bundle(bundle):
 	from erpnext.stock.serial_batch_bundle import get_batch_nos

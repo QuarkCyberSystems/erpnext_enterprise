@@ -216,6 +216,10 @@ class StockController(AccountsController):
 		if self.doctype == "Asset Capitalization":
 			table_name = "stock_items"
 
+		parent_details = frappe._dict()
+		if table_name == "packed_items":
+			parent_details = self.get_parent_details_for_packed_items()
+
 		for row in self.get(table_name):
 			if row.serial_and_batch_bundle and (row.serial_no or row.batch_no):
 				self.validate_serial_nos_and_batches_with_bundle(row)
@@ -246,12 +250,19 @@ class StockController(AccountsController):
 				}
 
 				if row.get("qty") or row.get("consumed_qty") or row.get("stock_qty"):
-					self.update_bundle_details(bundle_details, table_name, row)
+					self.update_bundle_details(bundle_details, table_name, row, parent_details=parent_details)
 					self.create_serial_batch_bundle(bundle_details, row)
 
 				if row.get("rejected_qty"):
 					self.update_bundle_details(bundle_details, table_name, row, is_rejected=True)
 					self.create_serial_batch_bundle(bundle_details, row)
+
+	def get_parent_details_for_packed_items(self):
+		parent_details = frappe._dict()
+		for row in self.get("items"):
+			parent_details[row.name] = row
+
+		return parent_details
 
 	def make_bundle_for_sales_purchase_return(self, table_name=None):
 		if not self.get("is_return"):
@@ -387,7 +398,7 @@ class StockController(AccountsController):
 
 		return False
 
-	def update_bundle_details(self, bundle_details, table_name, row, is_rejected=False):
+	def update_bundle_details(self, bundle_details, table_name, row, is_rejected=False, parent_details=None):
 		from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos
 
 		# Since qty field is different for different doctypes
@@ -428,6 +439,11 @@ class StockController(AccountsController):
 		):
 			warehouse = row.get("target_warehouse") or row.get("warehouse")
 			type_of_transaction = "Outward"
+
+		if table_name == "packed_items":
+			if not warehouse:
+				warehouse = parent_details[row.parent_detail_docname].warehouse
+			bundle_details["voucher_detail_no"] = parent_details[row.parent_detail_docname].name
 
 		bundle_details.update(
 			{
