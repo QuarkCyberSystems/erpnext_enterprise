@@ -673,6 +673,7 @@ class Subscription(Document):
 			self.invoice_document_type,
 			{
 				"subscription": self.name,
+				"docstatus": 1,
 				"status": ["!=", "Paid"],
 			},
 		)
