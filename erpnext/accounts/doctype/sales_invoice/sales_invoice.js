@@ -65,7 +65,7 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends (
 	refresh(doc, dt, dn) {
 		const me = this;
 		super.refresh();
-		if (this.frm.msgbox && this.frm.msgbox.$wrapper.is(":visible")) {
+		if (this.frm?.msgbox && this.frm.msgbox.$wrapper.is(":visible")) {
 			// hide new msgbox
 			this.frm.msgbox.hide();
 		}
