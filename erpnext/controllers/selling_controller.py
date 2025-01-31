@@ -330,7 +330,7 @@ class SellingController(StockController):
 									"batch_no": p.batch_no if self.docstatus == 2 else None,
 									"uom": p.uom,
 									"serial_and_batch_bundle": p.serial_and_batch_bundle
-									or get_serial_and_batch_bundle(p, self),
+									or get_serial_and_batch_bundle(p, self, d),
 									"name": d.name,
 									"target_warehouse": p.target_warehouse,
 									"company": self.company,
@@ -796,7 +796,7 @@ def set_default_income_account_for_item(obj):
 				set_item_default(d.item_code, obj.company, "income_account", d.income_account)
 
 
-def get_serial_and_batch_bundle(child, parent):
+def get_serial_and_batch_bundle(child, parent, delivery_note_child=None):
 	from erpnext.stock.serial_batch_bundle import SerialBatchCreation
 
 	if child.get("use_serial_batch_fields"):
@@ -816,7 +816,7 @@ def get_serial_and_batch_bundle(child, parent):
 			"warehouse": child.warehouse,
 			"voucher_type": parent.doctype,
 			"voucher_no": parent.name if parent.docstatus < 2 else None,
-			"voucher_detail_no": child.name,
+			"voucher_detail_no": delivery_note_child.name if delivery_note_child else child.name,
 			"posting_date": parent.posting_date,
 			"posting_time": parent.posting_time,
 			"qty": child.qty,
