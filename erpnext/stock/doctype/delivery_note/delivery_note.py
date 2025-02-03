@@ -1127,7 +1127,7 @@ def make_packing_slip(source_name, target_doc=None):
 					"batch_no": "batch_no",
 					"description": "description",
 					"qty": "qty",
-					"stock_uom": "stock_uom",
+					"uom": "stock_uom",
 					"name": "dn_detail",
 				},
 				"postprocess": update_item,
