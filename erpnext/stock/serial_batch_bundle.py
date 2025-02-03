@@ -634,7 +634,6 @@ class BatchNoValuation(DeprecatedBatchNoValuation):
 
 		parent = frappe.qb.DocType("Serial and Batch Bundle")
 		child = frappe.qb.DocType("Serial and Batch Entry")
-		sle = frappe.qb.DocType("Stock Ledger Entry")
 
 		timestamp_condition = ""
 		if self.sle.posting_date:
@@ -667,14 +666,6 @@ class BatchNoValuation(DeprecatedBatchNoValuation):
 				& (parent.docstatus == 1)
 				& (parent.is_cancelled == 0)
 				& (parent.type_of_transaction.isin(["Inward", "Outward"]))
-				& (
-					ExistsCriterion(
-						frappe.qb.from_(sle)
-						.select(sle.name)
-						.where((parent.name == sle.serial_and_batch_bundle) & (sle.is_cancelled == 0))
-					)
-					| (parent.voucher_type == "POS Invoice")
-				)
 			)
 			.groupby(child.batch_no)
 		)
