@@ -707,7 +707,13 @@ erpnext.utils.update_child_items = function (opts) {
 					},
 					callback: function (r) {
 						if (r.message) {
-							const { qty, price_list_rate: rate, uom, conversion_factor } = r.message;
+							const {
+								qty,
+								price_list_rate: rate,
+								uom,
+								conversion_factor,
+								item_name,
+							} = r.message;
 
 							const row = dialog.fields_dict.trans_items.df.data.find(
 								(doc) => doc.idx == me.doc.idx
@@ -718,30 +724,14 @@ erpnext.utils.update_child_items = function (opts) {
 									uom: me.doc.uom || uom,
 									qty: me.doc.qty || qty,
 									rate: me.doc.rate || rate,
+									item_name: item_name,
 								});
 								dialog.fields_dict.trans_items.grid.refresh();
 							}
 						}
 					},
 				});
-
-				const item_code = this.value;
-				if (item_code) {
-					frappe.db.get_value("Item", item_code, "item_name", (r) => {
-						if (r && r.item_name) {
-							const idx = this.doc.idx;
-							dialog.fields_dict.trans_items.df.data.some((doc) => {
-								if (doc.idx === idx) {
-									doc.item_name = r.item_name;
-									dialog.fields_dict.trans_items.grid.refresh();
-									return true;
-								}
-							});
-						}
-					});
-				}
 			},
-
 		},
 		{
 			fieldtype: "Data",
