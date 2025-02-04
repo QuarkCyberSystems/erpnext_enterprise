@@ -321,8 +321,9 @@ def get_recipients_and_cc(customer, doc):
 	recipients = []
 	for clist in doc.customers:
 		if clist.customer == customer:
-			for email in clist.billing_email.split(","):
-				recipients.append(email.strip())
+			if clist.billing_email:
+				for email in clist.billing_email.split(","):
+					recipients.append(email.strip())
 			if doc.primary_mandatory and clist.primary_email:
 				for email in clist.primary_email.split(","):
 					recipients.append(email.strip())
