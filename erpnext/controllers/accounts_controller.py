@@ -819,10 +819,13 @@ class AccountsController(TransactionBase):
 								item.get(fieldname) is None
 								or fieldname in force_item_fields
 								or (
-									fieldname in ["serial_no", "batch_no", "rate", "price_list_rate"]
+									fieldname in ["serial_no", "batch_no"]
 									and item.get("use_serial_batch_fields")
 								)
 							):
+								if fieldname == "batch_no" and not item.batch_no:
+									item.set("rate", ret.get("rate"))
+									item.set("price_list_rate", ret.get("price_list_rate"))
 								item.set(fieldname, value)
 
 							elif fieldname in ["cost_center", "conversion_factor"] and not item.get(
