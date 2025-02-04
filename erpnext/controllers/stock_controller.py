@@ -1580,9 +1580,12 @@ def check_item_quality_inspection(doctype, items):
 		"Delivery Note": "inspection_required_before_delivery",
 	}
 
+	items_to_remove = []
 	for item in items:
 		if not frappe.db.get_value("Item", item.get("item_code"), inspection_fieldname_map.get(doctype)):
-			items.remove(item)
+			items_to_remove.append(item)
+	items = [item for item in items if item not in items_to_remove]
+
 	return items
 
 
