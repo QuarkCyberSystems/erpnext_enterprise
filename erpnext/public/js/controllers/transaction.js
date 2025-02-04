@@ -2518,6 +2518,8 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 	}
 
 	payment_terms_template() {
+		console.log("payment_terms_template outside");
+
 		var me = this;
 		const doc = this.frm.doc;
 		if(doc.payment_terms_template && doc.doctype !== 'Delivery Note' && !doc.is_return) {
