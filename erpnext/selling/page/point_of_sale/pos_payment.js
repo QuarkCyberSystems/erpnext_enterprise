@@ -462,7 +462,7 @@ erpnext.PointOfSale.Payment = class {
 		this.$payment_modes.find(".cash-shortcuts").remove();
 		let shortcuts_html = shortcuts
 			.map((s) => {
-				return `<div class="shortcut" data-value="${s}">${format_currency(s, currency, 0)}</div>`;
+				return `<div class="shortcut" data-value="${s}">${format_currency(s, currency)}</div>`;
 			})
 			.join("");
 
