@@ -347,7 +347,9 @@ erpnext.accounts.PurchaseInvoice = class PurchaseInvoice extends erpnext.buying.
 				account: this.frm.doc.credit_to,
 				price_list: this.frm.doc.buying_price_list,
 				fetch_payment_terms_template: cint(
-					(this.frm.doc.is_return == 0) & !this.frm.doc.ignore_default_payment_terms_template
+					(this.frm.doc.is_return == 0) &
+						!this.frm.doc.ignore_default_payment_terms_template &
+						(this.frm.doc.__run_link_triggers !== false)
 				),
 			},
 			function () {
