@@ -128,7 +128,7 @@ class Asset(AccountsController):
 		self.set_missing_values()
 		self.validate_gross_and_purchase_amount()
 		self.validate_finance_books()
-		self.total_asset_cost = self.gross_purchase_amount
+		self.total_asset_cost = self.gross_purchase_amount + self.additional_asset_cost
 		self.status = self.get_status()
 
 	def create_asset_depreciation_schedule(self):
@@ -154,8 +154,13 @@ class Asset(AccountsController):
 		self.show_schedule_creation_message(schedules)
 
 	def set_depr_rate_and_value_after_depreciation(self):
-		self.value_after_depreciation = flt(self.gross_purchase_amount) - flt(
-			self.opening_accumulated_depreciation
+		if self.split_from:
+			return
+
+		self.value_after_depreciation = (
+			flt(self.gross_purchase_amount)
+			- flt(self.opening_accumulated_depreciation)
+			+ flt(self.additional_asset_cost)
 		)
 		if self.calculate_depreciation:
 			self.set_depreciation_rate()
@@ -1187,166 +1192,203 @@ def get_values_from_purchase_doc(purchase_doc_name, item_code, doctype):
 
 @frappe.whitelist()
 def split_asset(asset_name, split_qty):
-	asset = frappe.get_doc("Asset", asset_name)
+	"""Split an asset into two based on the given quantity."""
+	existing_asset = frappe.get_doc("Asset", asset_name)
 	split_qty = cint(split_qty)
 
-	if split_qty >= asset.asset_quantity:
-		frappe.throw(_("Split qty cannot be grater than or equal to asset qty"))
+	validate_split_quantity(existing_asset, split_qty)
+	remaining_qty = existing_asset.asset_quantity - split_qty
 
-	remaining_qty = asset.asset_quantity - split_qty
+	# Create new asset and update existing one
+	splitted_asset = create_new_asset_from_split(existing_asset, split_qty)
+	update_existing_asset_after_split(existing_asset, remaining_qty, splitted_asset)
 
-	new_asset = create_new_asset_after_split(asset, split_qty)
-	update_existing_asset(asset, remaining_qty, new_asset.name)
+	return splitted_asset
 
+
+def validate_split_quantity(existing_asset, split_qty):
+	if split_qty >= existing_asset.asset_quantity:
+		frappe.throw(_("Split Quantity must be less than Asset Quantity"))
+
+
+def create_new_asset_from_split(existing_asset, split_qty):
+	"""Create a new asset from the split quantity."""
+	return process_asset_split(existing_asset, split_qty, is_new_asset=True)
+
+
+def update_existing_asset_after_split(existing_asset, remaining_qty, splitted_asset):
+	"""Update the existing asset with the remaining quantity."""
+	process_asset_split(existing_asset, remaining_qty, splitted_asset=splitted_asset)
+
+
+def process_asset_split(existing_asset, split_qty, splitted_asset=None, is_new_asset=False):
+	"""Handle asset creation or update during the split."""
+	scaling_factor = flt(split_qty) / flt(existing_asset.asset_quantity)
+	new_asset = frappe.copy_doc(existing_asset) if is_new_asset else splitted_asset
+	asset_doc = new_asset if is_new_asset else existing_asset
+
+	set_split_asset_values(asset_doc, scaling_factor, split_qty, existing_asset, is_new_asset)
+	log_asset_activity(existing_asset, asset_doc, splitted_asset, is_new_asset)
+
+	# Update finance books and depreciation schedules
+	update_finance_books(asset_doc, existing_asset, new_asset, scaling_factor, is_new_asset)
 	return new_asset
 
 
-def update_existing_asset(asset, remaining_qty, new_asset_name):
-	remaining_gross_purchase_amount = flt(
-		(asset.gross_purchase_amount * remaining_qty) / asset.asset_quantity
+def set_split_asset_values(asset_doc, scaling_factor, split_qty, existing_asset, is_new_asset):
+	asset_doc.gross_purchase_amount = existing_asset.gross_purchase_amount * scaling_factor
+	asset_doc.purchase_amount = existing_asset.gross_purchase_amount
+	asset_doc.additional_asset_cost = existing_asset.additional_asset_cost * scaling_factor
+	asset_doc.total_asset_cost = asset_doc.gross_purchase_amount + asset_doc.additional_asset_cost
+	asset_doc.opening_accumulated_depreciation = (
+		existing_asset.opening_accumulated_depreciation * scaling_factor
 	)
-	opening_accumulated_depreciation = flt(
-		(asset.opening_accumulated_depreciation * remaining_qty) / asset.asset_quantity
-	)
+	asset_doc.value_after_depreciation = existing_asset.value_after_depreciation * scaling_factor
+	asset_doc.asset_quantity = split_qty
+	asset_doc.split_from = existing_asset.name if is_new_asset else None
 
-	frappe.db.set_value(
-		"Asset",
-		asset.name,
-		{
-			"opening_accumulated_depreciation": opening_accumulated_depreciation,
-			"gross_purchase_amount": remaining_gross_purchase_amount,
-			"asset_quantity": remaining_qty,
-		},
-	)
+	for row in asset_doc.get("finance_books"):
+		row.value_after_depreciation = row.value_after_depreciation * scaling_factor
+		row.expected_value_after_useful_life = row.expected_value_after_useful_life * scaling_factor
 
-	add_asset_activity(
-		asset.name,
-		_("Asset updated after being split into Asset {0}").format(get_link_to_form("Asset", new_asset_name)),
-	)
+	if not is_new_asset:
+		asset_doc.flags.ignore_validate_update_after_submit = True
+		asset_doc.save()
 
-	for row in asset.get("finance_books"):
-		value_after_depreciation = flt((row.value_after_depreciation * remaining_qty) / asset.asset_quantity)
-		expected_value_after_useful_life = flt(
-			(row.expected_value_after_useful_life * remaining_qty) / asset.asset_quantity
+
+def log_asset_activity(existing_asset, asset_doc, splitted_asset, is_new_asset):
+	if is_new_asset:
+		asset_doc.insert()
+		add_asset_activity(
+			asset_doc.name,
+			_("Asset created after being split from Asset {0}").format(
+				get_link_to_form("Asset", existing_asset.name)
+			),
 		)
-		frappe.db.set_value(
-			"Asset Finance Book", row.name, "value_after_depreciation", value_after_depreciation
-		)
-		frappe.db.set_value(
-			"Asset Finance Book",
-			row.name,
-			"expected_value_after_useful_life",
-			expected_value_after_useful_life,
-		)
-
-		current_asset_depr_schedule_doc = get_asset_depr_schedule_doc(asset.name, "Active", row.finance_book)
-		new_asset_depr_schedule_doc = frappe.copy_doc(current_asset_depr_schedule_doc)
-
-		new_asset_depr_schedule_doc.fetch_asset_details()
-
-		accumulated_depreciation = 0
-
-		for term in new_asset_depr_schedule_doc.get("depreciation_schedule"):
-			depreciation_amount = flt((term.depreciation_amount * remaining_qty) / asset.asset_quantity)
-			term.depreciation_amount = depreciation_amount
-			accumulated_depreciation += depreciation_amount
-			term.accumulated_depreciation_amount = accumulated_depreciation
-
-		notes = _(
-			"This schedule was created when Asset {0} was updated after being split into new Asset {1}."
-		).format(get_link_to_form(asset.doctype, asset.name), get_link_to_form(asset.doctype, new_asset_name))
-		new_asset_depr_schedule_doc.notes = notes
-
-		current_asset_depr_schedule_doc.flags.should_not_cancel_depreciation_entries = True
-		current_asset_depr_schedule_doc.cancel()
-
-		new_asset_depr_schedule_doc.submit()
-
-
-def create_new_asset_after_split(asset, split_qty):
-	new_asset = frappe.copy_doc(asset)
-	new_gross_purchase_amount = flt((asset.gross_purchase_amount * split_qty) / asset.asset_quantity)
-	opening_accumulated_depreciation = flt(
-		(asset.opening_accumulated_depreciation * split_qty) / asset.asset_quantity
-	)
-
-	new_asset.gross_purchase_amount = new_gross_purchase_amount
-	if asset.purchase_amount:
-		new_asset.purchase_amount = new_gross_purchase_amount
-	new_asset.opening_accumulated_depreciation = opening_accumulated_depreciation
-	new_asset.asset_quantity = split_qty
-	new_asset.split_from = asset.name
-
-	for row in new_asset.get("finance_books"):
-		row.value_after_depreciation = flt((row.value_after_depreciation * split_qty) / asset.asset_quantity)
-		row.expected_value_after_useful_life = flt(
-			(row.expected_value_after_useful_life * split_qty) / asset.asset_quantity
+		asset_doc.submit()
+		asset_doc.set_status()
+	else:
+		add_asset_activity(
+			existing_asset.name,
+			_("Asset updated after being split into Asset {0}").format(
+				get_link_to_form("Asset", splitted_asset.name)
+			),
 		)
 
-	new_asset.insert()
 
-	add_asset_activity(
-		new_asset.name,
-		_("Asset created after being split from Asset {0}").format(get_link_to_form("Asset", asset.name)),
+def update_finance_books(asset_doc, existing_asset, new_asset, scaling_factor, is_new_asset):
+	"""Update finance books and depreciation schedules for the asset."""
+	for fb_row in asset_doc.get("finance_books"):
+		reschedule_depr_for_updated_asset(existing_asset, new_asset, fb_row, scaling_factor, is_new_asset)
+
+	# Add references in journal entries for new asset
+	if is_new_asset:
+		for row in new_asset.get("finance_books"):
+			depr_schedule_doc = get_depr_schedule(new_asset.name, "Active", row.finance_book)
+			for schedule in depr_schedule_doc:
+				if schedule.journal_entry:
+					add_reference_in_jv_on_split(
+						schedule.journal_entry,
+						new_asset.name,
+						existing_asset.name,
+						schedule.depreciation_amount,
+					)
+
+
+def reschedule_depr_for_updated_asset(existing_asset, new_asset, fb_row, scaling_factor, is_new_asset):
+	"""Reschedule depreciation for an asset after a split."""
+	current_depr_schedule_doc = get_asset_depr_schedule_doc(
+		existing_asset.name, "Active", fb_row.finance_book
+	)
+	if not current_depr_schedule_doc:
+		return
+
+	# Create a new depreciation schedule based on the current one
+	new_depr_schedule_doc = create_new_depr_schedule(
+		current_depr_schedule_doc, existing_asset, new_asset, is_new_asset, fb_row
 	)
 
-	new_asset.submit()
-	new_asset.set_status()
+	update_depreciation_terms(new_depr_schedule_doc, scaling_factor)
+	add_depr_schedule_notes(new_depr_schedule_doc, existing_asset, new_asset, is_new_asset)
 
-	for row in new_asset.get("finance_books"):
-		current_asset_depr_schedule_doc = get_asset_depr_schedule_doc(asset.name, "Active", row.finance_book)
-		if not current_asset_depr_schedule_doc:
-			continue
-		new_asset_depr_schedule_doc = frappe.copy_doc(current_asset_depr_schedule_doc)
+	if not is_new_asset:
+		current_depr_schedule_doc.flags.should_not_cancel_depreciation_entries = True
+		current_depr_schedule_doc.cancel()
 
-		new_asset_depr_schedule_doc.fetch_asset_details()
+	new_depr_schedule_doc.submit()
 
-		accumulated_depreciation = 0
 
-		for term in new_asset_depr_schedule_doc.get("depreciation_schedule"):
-			depreciation_amount = flt((term.depreciation_amount * split_qty) / asset.asset_quantity)
-			term.depreciation_amount = depreciation_amount
-			accumulated_depreciation += depreciation_amount
-			term.accumulated_depreciation_amount = accumulated_depreciation
+def create_new_depr_schedule(current_depr_schedule_doc, existing_asset, new_asset, is_new_asset, fb_row):
+	"""Create a new depreciation schedule based on the current one."""
+	new_depr_schedule_doc = frappe.copy_doc(current_depr_schedule_doc)
+	new_depr_schedule_doc.asset_doc = new_asset if is_new_asset else existing_asset
+	new_depr_schedule_doc.fb_row = fb_row
+	new_depr_schedule_doc.fetch_asset_details()
+	return new_depr_schedule_doc
 
-		notes = _("This schedule was created when new Asset {0} was split from Asset {1}.").format(
-			get_link_to_form(new_asset.doctype, new_asset.name), get_link_to_form(asset.doctype, asset.name)
+
+def update_depreciation_terms(new_depr_schedule_doc, scaling_factor):
+	"""Update depreciation terms with scaled amounts."""
+	accumulated_depreciation = 0
+	for term in new_depr_schedule_doc.get("depreciation_schedule"):
+		depreciation_amount = flt(
+			term.depreciation_amount * scaling_factor, term.precision("depreciation_amount")
 		)
-		new_asset_depr_schedule_doc.notes = notes
+		term.depreciation_amount = depreciation_amount
+		accumulated_depreciation = flt(
+			accumulated_depreciation + depreciation_amount, term.precision("depreciation_amount")
+		)
+		term.accumulated_depreciation_amount = accumulated_depreciation
 
-		new_asset_depr_schedule_doc.submit()
 
-	for row in new_asset.get("finance_books"):
-		depr_schedule = get_depr_schedule(new_asset.name, "Active", row.finance_book)
-		for term in depr_schedule:
-			# Update references in JV
-			if term.journal_entry:
-				add_reference_in_jv_on_split(
-					term.journal_entry, new_asset.name, asset.name, term.depreciation_amount
-				)
-
-	return new_asset
+def add_depr_schedule_notes(new_depr_schedule_doc, existing_asset, new_asset, is_new_asset):
+	notes = _("This schedule was created when Asset {0} was {1} into new Asset {2}.").format(
+		get_link_to_form(existing_asset.doctype, existing_asset.name),
+		"split" if is_new_asset else "updated after being split",
+		get_link_to_form(new_asset.doctype, new_asset.name),
+	)
+	new_depr_schedule_doc.notes = notes
 
 
 def add_reference_in_jv_on_split(entry_name, new_asset_name, old_asset_name, depreciation_amount):
+	"""Add a reference to a new asset in a journal entry after a split."""
 	journal_entry = frappe.get_doc("Journal Entry", entry_name)
 	entries_to_add = []
-	idx = len(journal_entry.get("accounts")) + 1
 
+	adjust_existing_accounts(journal_entry, old_asset_name, depreciation_amount, entries_to_add)
+	add_new_entries(journal_entry, entries_to_add, new_asset_name, depreciation_amount)
+
+	# Save and repost the journal entry
+	journal_entry.flags.ignore_validate_update_after_submit = True
+	journal_entry.save()
+
+	journal_entry.docstatus = 2
+	journal_entry.make_gl_entries(1)
+	journal_entry.docstatus = 1
+	journal_entry.make_gl_entries()
+
+
+def adjust_existing_accounts(journal_entry, old_asset_name, depreciation_amount, entries_to_add):
+	"""Adjust existing accounts and prepare new entries for the new asset."""
 	for account in journal_entry.get("accounts"):
 		if account.reference_name == old_asset_name:
 			entries_to_add.append(frappe.copy_doc(account).as_dict())
-			if account.credit:
-				account.credit = account.credit - depreciation_amount
-				account.credit_in_account_currency = (
-					account.credit_in_account_currency - account.exchange_rate * depreciation_amount
-				)
-			elif account.debit:
-				account.debit = account.debit - depreciation_amount
-				account.debit_in_account_currency = (
-					account.debit_in_account_currency - account.exchange_rate * depreciation_amount
-				)
+			adjust_account_balance(account, depreciation_amount)
 
+
+def adjust_account_balance(account, depreciation_amount):
+	"""Adjust the balance of an account based on the depreciation amount."""
+	if account.credit:
+		account.credit -= depreciation_amount
+		account.credit_in_account_currency -= account.exchange_rate * depreciation_amount
+	elif account.debit:
+		account.debit -= depreciation_amount
+		account.debit_in_account_currency -= account.exchange_rate * depreciation_amount
+
+
+def add_new_entries(journal_entry, entries_to_add, new_asset_name, depreciation_amount):
+	"""Add new entries for the new asset to the journal entry."""
+	idx = len(journal_entry.get("accounts")) + 1
 	for entry in entries_to_add:
 		entry.reference_name = new_asset_name
 		if entry.credit:
@@ -1355,17 +1397,6 @@ def add_reference_in_jv_on_split(entry_name, new_asset_name, old_asset_name, dep
 		elif entry.debit:
 			entry.debit = depreciation_amount
 			entry.debit_in_account_currency = entry.exchange_rate * depreciation_amount
-
 		entry.idx = idx
 		idx += 1
-
 		journal_entry.append("accounts", entry)
-
-	journal_entry.flags.ignore_validate_update_after_submit = True
-	journal_entry.save()
-
-	# Repost GL Entries
-	journal_entry.docstatus = 2
-	journal_entry.make_gl_entries(1)
-	journal_entry.docstatus = 1
-	journal_entry.make_gl_entries()
