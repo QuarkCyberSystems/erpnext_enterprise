@@ -819,7 +819,7 @@ class AccountsController(TransactionBase):
 								item.get(fieldname) is None
 								or fieldname in force_item_fields
 								or (
-									fieldname in ["serial_no", "batch_no"]
+									fieldname in ["serial_no", "batch_no", "rate", "price_list_rate"]
 									and item.get("use_serial_batch_fields")
 								)
 							):
