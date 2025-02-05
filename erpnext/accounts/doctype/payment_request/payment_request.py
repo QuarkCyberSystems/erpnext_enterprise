@@ -780,7 +780,10 @@ def get_existing_paid_amount(doctype, name):
 		frappe.qb.from_(PL)
 		.left_join(PER)
 		.on(
-			(PER.reference_doctype == PL.against_voucher_type) & (PER.reference_name == PL.against_voucher_no)
+			(PL.against_voucher_type == PER.reference_doctype)
+			& (PL.against_voucher_no == PER.reference_name)
+			& (PL.voucher_type == PER.parenttype)
+			& (PL.voucher_no == PER.parent)
 		)
 		.select(Abs(Sum(PL.amount)).as_("total_paid_amount"))
 		.where(PL.against_voucher_type.eq(doctype))
