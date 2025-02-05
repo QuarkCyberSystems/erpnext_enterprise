@@ -2013,7 +2013,9 @@ def create_job_card(work_order, row, enable_capacity_planning=False, auto_create
 			"time_required": row.get("time_in_mins"),
 			"source_warehouse": row.get("source_warehouse"),
 			"target_warehouse": row.get("fg_warehouse"),
-			"wip_warehouse": work_order.wip_warehouse or row.get("wip_warehouse"),
+			"wip_warehouse": work_order.wip_warehouse or row.get("wip_warehouse")
+			if not work_order.skip_transfer or work_order.from_wip_warehouse
+			else work_order.source_warehouse or row.get("source_warehouse"),
 			"skip_material_transfer": row.get("skip_material_transfer"),
 			"backflush_from_wip_warehouse": row.get("backflush_from_wip_warehouse"),
 			"finished_good": row.get("finished_good"),
