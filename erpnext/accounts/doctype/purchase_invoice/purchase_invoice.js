@@ -372,6 +372,18 @@ erpnext.accounts.PurchaseInvoice = class PurchaseInvoice extends erpnext.buying.
 		}
 	}
 
+	tax_withholding_category(frm) {
+		var me = this;
+		let filtered_taxes = (me.frm.doc.taxes || []).filter((row) => !row.is_tax_withholding_account);
+		me.frm.clear_table("taxes");
+
+		filtered_taxes.forEach((row) => {
+			me.frm.add_child("taxes", row);
+		});
+
+		me.frm.refresh_field("taxes");
+	}
+
 	credit_to() {
 		var me = this;
 		if (this.frm.doc.credit_to) {
