@@ -60,6 +60,7 @@ class PricingRule(Document):
 		disable: DF.Check
 		discount_amount: DF.Currency
 		discount_percentage: DF.Float
+		enforce_free_item_qty: DF.Check
 		for_price_list: DF.Link | None
 		free_item: DF.Link | None
 		free_item_rate: DF.Currency
