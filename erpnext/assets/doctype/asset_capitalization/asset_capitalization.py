@@ -140,6 +140,7 @@ class AssetCapitalization(StockController):
 		self.make_gl_entries()
 		self.repost_future_sle_and_gle()
 		self.restore_consumed_asset_items()
+		self.update_target_asset()
 
 	def set_title(self):
 		self.title = self.target_asset_name or self.target_item_name or self.target_item_code
@@ -602,10 +603,14 @@ class AssetCapitalization(StockController):
 			return
 
 		total_target_asset_value = flt(self.total_value, self.precision("total_value"))
-
 		asset_doc = frappe.get_doc("Asset", self.target_asset)
-		asset_doc.gross_purchase_amount += total_target_asset_value
-		asset_doc.purchase_amount += total_target_asset_value
+		if self.docstatus == 2:
+			asset_doc.gross_purchase_amount -= total_target_asset_value
+			asset_doc.purchase_amount -= total_target_asset_value
+		else:
+			asset_doc.gross_purchase_amount += total_target_asset_value
+			asset_doc.purchase_amount += total_target_asset_value
+
 		asset_doc.set_status("Work In Progress")
 		asset_doc.flags.ignore_validate = True
 		asset_doc.save()
@@ -623,7 +628,7 @@ class AssetCapitalization(StockController):
 			self.set_consumed_asset_status(asset)
 
 			if asset.calculate_depreciation:
-				reverse_depreciation_entry_made_on_disposal(asset, self.posting_date)
+				reverse_depreciation_entry_made_on_disposal(asset)
 				notes = _(
 					"This schedule was created when Asset {0} was restored on Asset Capitalization {1}'s cancellation."
 				).format(
