@@ -18,7 +18,9 @@ class BudgetValidation:
 		self.doc = doc
 		self.company = doc.get("company")
 		self.doc_date = (
-			doc.get("transaction_date") if doc.get("doctype") == "Purchase Order" else doc.get("posting_date")
+			doc.get("transaction_date")
+			if doc.get("doctype") in ["Purchase Order", "Material Request"]
+			else doc.get("posting_date")
 		)
 		fy = get_fiscal_year(self.doc_date)
 		self.fiscal_year = fy[0]
@@ -167,7 +169,6 @@ class BudgetValidation:
 			conditions.append(mr.material_request_type.eq("Purchase"))
 			conditions.append(mr.status.ne("Stopped"))
 			conditions.append(mr.transaction_date[self.fy_start_date : self.fy_end_date])
-			conditions.append(mri.amount.gt(mri.billed_amt))
 			conditions.append(mri.expense_account.isin(exp_accounts))
 			conditions.append(mri.item_code.isin(items))
 
@@ -189,6 +190,20 @@ class BudgetValidation:
 		msg = []
 		budget = v_map.get("budget_doc")
 		if budget.applicable_on_purchase_order and v_map.get("ordered_amount") > v_map.get("budget_amount"):
+			# TODO: handle monthly accumulation
+			# action_if_accumulated_monthly_budget_exceeded_on_po,
+			if budget.action_if_annual_budget_exceeded_on_po == "Warn":
+				msg.append("some warning message")
+
+			if budget.action_if_annual_budget_exceeded_on_po == "Stop":
+				_msg = _(
+					"Expenses have gone above budget: {}".format(get_link_to_form("Budget", budget.name))
+				)
+				frappe.throw(_msg, BudgetExceededError, title=_("Budget Exceeded"))
+
+		if budget.applicable_on_material_request and v_map.get("requested_amount") > v_map.get(
+			"budget_amount"
+		):
 			# TODO: handle monthly accumulation
 			# action_if_accumulated_monthly_budget_exceeded_on_po,
 			if budget.action_if_annual_budget_exceeded_on_po == "Warn":
