@@ -4,6 +4,7 @@ import frappe
 from frappe import _, qb
 from frappe.query_builder import Criterion
 from frappe.query_builder.functions import IfNull, Sum
+from frappe.utils import get_link_to_form
 
 from erpnext.accounts.utils import get_fiscal_year
 
@@ -184,18 +185,20 @@ class BudgetValidation:
 			if requested_amount:
 				self.to_validate[key]["requested_amount"] = requested_amount[0].amount
 
-	def stop_or_warn(self, validation_map):
+	def stop_or_warn(self, v_map):
 		msg = []
-		if validation_map.get("budget_doc").applicable_on_purchase_order and validation_map.get(
-			"ordered_amount"
-		) > validation_map.get("budget_amount"):
+		budget = v_map.get("budget_doc")
+		if budget.applicable_on_purchase_order and v_map.get("ordered_amount") > v_map.get("budget_amount"):
 			# TODO: handle monthly accumulation
 			# action_if_accumulated_monthly_budget_exceeded_on_po,
-			if validation_map.get("budget_doc").action_if_annual_budget_exceeded_on_po == "Warn":
+			if budget.action_if_annual_budget_exceeded_on_po == "Warn":
 				msg.append("some warning message")
 
-			if validation_map.get("budget_doc").action_if_annual_budget_exceeded_on_po == "Stop":
-				frappe.throw("Booking gone above budget", BudgetExceededError, title=_("Budget Exceeded"))
+			if budget.action_if_annual_budget_exceeded_on_po == "Stop":
+				_msg = _(
+					"Expenses have gone above budget: {}".format(get_link_to_form("Budget", budget.name))
+				)
+				frappe.throw(_msg, BudgetExceededError, title=_("Budget Exceeded"))
 
 	def validate_for_overbooking(self):
 		# TODO: Need to fetch historical amount and add them to the current document; GL effect is pending
