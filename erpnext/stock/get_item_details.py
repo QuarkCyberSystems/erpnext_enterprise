@@ -193,6 +193,9 @@ def update_stock(ctx, out, doc=None):
 		and out.warehouse
 		and out.stock_qty > 0
 	):
+		if doc and isinstance(doc, dict):
+			doc = frappe._dict(doc)
+
 		kwargs = frappe._dict(
 			{
 				"item_code": ctx.item_code,
