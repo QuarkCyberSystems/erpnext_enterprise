@@ -1103,11 +1103,8 @@ def get_itemised_tax_breakup_data(doc):
 	itemised_tax = get_itemised_tax(doc.taxes)
 	itemised_tax_data = []
 	for item_code, taxes in itemised_tax.items():
-		itemised_tax_data.append(
-			frappe._dict(
-				{"item": item_code, "taxable_amount": sum(tax.net_amount for tax in taxes.values()), **taxes}
-			)
-		)
+		taxable_amount = next(iter(taxes.values())).get("net_amount")
+		itemised_tax_data.append(frappe._dict({"item": item_code, "taxable_amount": taxable_amount, **taxes}))
 
 	return itemised_tax_data
 
