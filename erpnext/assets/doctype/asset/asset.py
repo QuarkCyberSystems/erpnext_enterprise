@@ -95,9 +95,9 @@ class Asset(AccountsController):
 		purchase_amount: DF.Currency
 		purchase_date: DF.Date | None
 		purchase_invoice: DF.Link | None
-		purchase_invoice_item: DF.Link | None
+		purchase_invoice_item: DF.Data | None
 		purchase_receipt: DF.Link | None
-		purchase_receipt_item: DF.Link | None
+		purchase_receipt_item: DF.Data | None
 		split_from: DF.Link | None
 		status: DF.Literal[
 			"Draft",
