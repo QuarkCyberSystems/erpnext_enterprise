@@ -228,8 +228,7 @@
    "fieldtype": "Currency",
    "label": "Gross Purchase Amount",
    "mandatory_depends_on": "eval:(!doc.is_composite_asset || doc.docstatus==1)",
-   "options": "Company:company:default_currency",
-   "read_only_depends_on": "eval:!doc.is_existing_asset"
+   "options": "Company:company:default_currency"
   },
   {
    "fieldname": "available_for_use_date",
@@ -436,8 +435,7 @@
    "default": "1",
    "fieldname": "asset_quantity",
    "fieldtype": "Int",
-   "label": "Asset Quantity",
-   "read_only_depends_on": "eval:!doc.is_existing_asset && !doc.is_composite_asset"
+   "label": "Asset Quantity"
   },
   {
    "fieldname": "depr_entry_posting_status",
