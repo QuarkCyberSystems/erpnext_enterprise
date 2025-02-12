@@ -55,9 +55,7 @@ class SerialandBatchBundle(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		from erpnext.stock.doctype.serial_and_batch_entry.serial_and_batch_entry import (
-			SerialandBatchEntry,
-		)
+		from erpnext.stock.doctype.serial_and_batch_entry.serial_and_batch_entry import SerialandBatchEntry
 
 		amended_from: DF.Link | None
 		avg_rate: DF.Float
@@ -70,7 +68,6 @@ class SerialandBatchBundle(Document):
 		item_code: DF.Link
 		item_group: DF.Link | None
 		item_name: DF.Data | None
-		naming_series: DF.Literal["SABB-.########"]
 		posting_date: DF.Date | None
 		posting_time: DF.Time | None
 		returned_against: DF.Data | None
