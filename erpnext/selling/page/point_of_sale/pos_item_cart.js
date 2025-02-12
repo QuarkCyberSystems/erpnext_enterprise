@@ -184,7 +184,7 @@ erpnext.PointOfSale.ItemCart = class {
 		});
 
 		this.$component.on("click", ".checkout-btn", async function () {
-			if ($(this).attr("style").indexOf("--blue-500") == -1) return;
+			if ($(this).attr("style").indexOf("--primary-color") == -1) return;
 
 			await me.events.checkout();
 			me.toggle_checkout_btn(false);
@@ -702,12 +702,12 @@ erpnext.PointOfSale.ItemCart = class {
 		if (toggle) {
 			this.$add_discount_elem.css("display", "flex");
 			this.$cart_container.find(".checkout-btn").css({
-				"background-color": "var(--blue-500)",
+				"background-color": "var(--primary-color)",
 			});
 		} else {
 			this.$add_discount_elem.css("display", "none");
 			this.$cart_container.find(".checkout-btn").css({
-				"background-color": "var(--blue-200)",
+				"background-color": "var(--gray-200)",
 			});
 		}
 	}
