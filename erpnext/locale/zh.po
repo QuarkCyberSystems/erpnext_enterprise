@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: info@erpnext.com\n"
 "POT-Creation-Date: 2025-02-09 09:34+0000\n"
-"PO-Revision-Date: 2025-02-09 21:47\n"
+"PO-Revision-Date: 2025-02-13 22:42\n"
 "Last-Translator: info@erpnext.com\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -29,11 +29,11 @@ msgstr " 地址"
 
 #: erpnext/accounts/report/item_wise_sales_register/item_wise_sales_register.py:657
 msgid " Amount"
-msgstr " 数额"
+msgstr " 金额"
 
 #: erpnext/public/js/bom_configurator/bom_configurator.bundle.js:114
 msgid " BOM"
-msgstr " BOM"
+msgstr " 物料清单"
 
 #. Label of the istable (Check) field in DocType 'Inventory Dimension'
 #: erpnext/stock/doctype/inventory_dimension/inventory_dimension.json
@@ -84,19 +84,19 @@ msgstr " 概要"
 
 #: erpnext/stock/doctype/item/item.py:233
 msgid "\"Customer Provided Item\" cannot be Purchase Item also"
-msgstr "“客户提供的物料”也不能是采购物料"
+msgstr "“客户提供的物料”不能同时作为采购物料"
 
 #: erpnext/stock/doctype/item/item.py:235
 msgid "\"Customer Provided Item\" cannot have Valuation Rate"
-msgstr "“客户提供的物料”不能具有估价率"
+msgstr "“客户提供的物料”不能设置估价率"
 
 #: erpnext/stock/doctype/item/item.py:311
 msgid "\"Is Fixed Asset\" cannot be unchecked, as Asset record exists against the item"
-msgstr "“是否为固定资产”不能取消勾选，因为该项目存在资产记录"
+msgstr "“是否为固定资产”不能取消勾选，因该物料存在相关资产记录"
 
 #: erpnext/public/js/utils/serial_no_batch_selector.js:262
 msgid "\"SN-01::10\" for \"SN-01\" to \"SN-10\""
-msgstr "SN-01::10 代表 SN-01 到 SN-10"
+msgstr "SN-01::10 表示从 SN-01 到 SN-10"
 
 #: erpnext/manufacturing/report/work_order_stock_report/work_order_stock_report.py:148
 msgid "# In Stock"
@@ -4156,13 +4156,13 @@ msgstr ""
 #. Settings'
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.json
 msgid "Allow Continuous Material Consumption"
-msgstr ""
+msgstr "允许连续材料消耗"
 
 #. Label of the job_card_excess_transfer (Check) field in DocType
 #. 'Manufacturing Settings'
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.json
 msgid "Allow Excess Material Transfer"
-msgstr ""
+msgstr "允许超额材料传输"
 
 #. Label of the allow_in_returns (Check) field in DocType 'POS Payment Method'
 #: erpnext/accounts/doctype/pos_payment_method/pos_payment_method.json
@@ -4199,12 +4199,12 @@ msgstr ""
 #. Label of the allow_from_dn (Check) field in DocType 'Stock Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "Allow Material Transfer from Delivery Note to Sales Invoice"
-msgstr ""
+msgstr "允许材料从送货说明转账到销售发票"
 
 #. Label of the allow_from_pr (Check) field in DocType 'Stock Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "Allow Material Transfer from Purchase Receipt to Purchase Invoice"
-msgstr ""
+msgstr "允许从购买收据进行材料转账以购买发票"
 
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.js:9
 msgid "Allow Multiple Material Consumption"
@@ -4214,7 +4214,7 @@ msgstr "允许多种材料消耗"
 #. 'Selling Settings'
 #: erpnext/selling/doctype/selling_settings/selling_settings.json
 msgid "Allow Multiple Sales Orders Against a Customer's Purchase Order"
-msgstr ""
+msgstr "“允许针对指定客户的采购订单创建多个销售订单”"
 
 #. Label of the allow_negative_stock (Check) field in DocType 'Item'
 #. Label of the allow_negative_stock (Check) field in DocType 'Repost Item
@@ -4226,13 +4226,13 @@ msgstr ""
 #: erpnext/stock/doctype/stock_settings/stock_settings.py:183
 #: erpnext/stock/doctype/stock_settings/stock_settings.py:195
 msgid "Allow Negative Stock"
-msgstr ""
+msgstr "允许负库存"
 
 #. Label of the allow_negative_rates_for_items (Check) field in DocType
 #. 'Selling Settings'
 #: erpnext/selling/doctype/selling_settings/selling_settings.json
 msgid "Allow Negative rates for Items"
-msgstr ""
+msgstr "允许项目负利率"
 
 #. Label of the allow_or_restrict (Select) field in DocType 'Accounting
 #. Dimension Filter'
@@ -4244,36 +4244,36 @@ msgstr ""
 #. Settings'
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.json
 msgid "Allow Overtime"
-msgstr ""
+msgstr "允许加班"
 
 #. Label of the allow_partial_reservation (Check) field in DocType 'Stock
 #. Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "Allow Partial Reservation"
-msgstr ""
+msgstr "允许部分保留"
 
 #. Label of the allow_production_on_holidays (Check) field in DocType
 #. 'Manufacturing Settings'
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.json
 msgid "Allow Production on Holidays"
-msgstr ""
+msgstr "允许在节假日生产"
 
 #. Label of the is_purchase_item (Check) field in DocType 'Item'
 #: erpnext/stock/doctype/item/item.json
 msgid "Allow Purchase"
-msgstr ""
+msgstr "允许购买"
 
 #. Label of the allow_purchase_invoice_creation_without_purchase_order (Check)
 #. field in DocType 'Supplier'
 #: erpnext/buying/doctype/supplier/supplier.json
 msgid "Allow Purchase Invoice Creation Without Purchase Order"
-msgstr ""
+msgstr "允许在没有采购订单的情况下创建采购发票"
 
 #. Label of the allow_purchase_invoice_creation_without_purchase_receipt
 #. (Check) field in DocType 'Supplier'
 #: erpnext/buying/doctype/supplier/supplier.json
 msgid "Allow Purchase Invoice Creation Without Purchase Receipt"
-msgstr ""
+msgstr "允许在没有采购收据的情况下创建采购发票"
 
 #. Label of the allow_rename_attribute_value (Check) field in DocType 'Item
 #. Variant Settings'
@@ -4295,50 +4295,50 @@ msgstr "允许从支持设置重置服务水平协议。"
 #. Label of the is_sales_item (Check) field in DocType 'Item'
 #: erpnext/stock/doctype/item/item.json
 msgid "Allow Sales"
-msgstr ""
+msgstr "允许销售"
 
 #. Label of the dn_required (Check) field in DocType 'Customer'
 #: erpnext/selling/doctype/customer/customer.json
 msgid "Allow Sales Invoice Creation Without Delivery Note"
-msgstr ""
+msgstr "允许在不发送通知的情况下创建销售发票"
 
 #. Label of the so_required (Check) field in DocType 'Customer'
 #: erpnext/selling/doctype/customer/customer.json
 msgid "Allow Sales Invoice Creation Without Sales Order"
-msgstr ""
+msgstr "允许在没有销售订单的情况下创建销售发票"
 
 #. Label of the allow_sales_order_creation_for_expired_quotation (Check) field
 #. in DocType 'Selling Settings'
 #: erpnext/selling/doctype/selling_settings/selling_settings.json
 msgid "Allow Sales Order Creation For Expired Quotation"
-msgstr ""
+msgstr "允许为过期报价单创建销售订单"
 
 #. Label of the allow_stale (Check) field in DocType 'Accounts Settings'
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 msgid "Allow Stale Exchange Rates"
-msgstr ""
+msgstr "允许过期汇率"
 
 #. Label of the allow_discount_change (Check) field in DocType 'POS Profile'
 #: erpnext/accounts/doctype/pos_profile/pos_profile.json
 msgid "Allow User to Edit Discount"
-msgstr ""
+msgstr "允许用户编辑折扣"
 
 #. Label of the editable_price_list_rate (Check) field in DocType 'Selling
 #. Settings'
 #: erpnext/selling/doctype/selling_settings/selling_settings.json
 msgid "Allow User to Edit Price List Rate in Transactions"
-msgstr ""
+msgstr "允许用户在交易中编辑价目表费率"
 
 #. Label of the allow_rate_change (Check) field in DocType 'POS Profile'
 #: erpnext/accounts/doctype/pos_profile/pos_profile.json
 msgid "Allow User to Edit Rate"
-msgstr ""
+msgstr "允许用户编辑费率"
 
 #. Label of the allow_zero_rate (Check) field in DocType 'Repost Item
 #. Valuation'
 #: erpnext/stock/doctype/repost_item_valuation/repost_item_valuation.json
 msgid "Allow Zero Rate"
-msgstr ""
+msgstr "允许零费率"
 
 #. Label of the allow_zero_valuation_rate (Check) field in DocType 'POS Invoice
 #. Item'
@@ -4362,13 +4362,13 @@ msgstr ""
 #: erpnext/stock/doctype/stock_entry_detail/stock_entry_detail.json
 #: erpnext/stock/doctype/stock_reconciliation_item/stock_reconciliation_item.json
 msgid "Allow Zero Valuation Rate"
-msgstr ""
+msgstr "允许零估价率"
 
 #. Label of the allow_existing_serial_no (Check) field in DocType 'Stock
 #. Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "Allow existing Serial No to be Manufactured/Received again"
-msgstr ""
+msgstr "允许现有序列号重新生产及入库"
 
 #. Description of the 'Allow Continuous Material Consumption' (Check) field in
 #. DocType 'Manufacturing Settings'
@@ -4380,19 +4380,19 @@ msgstr ""
 #. (Check) field in DocType 'Accounts Settings'
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 msgid "Allow multi-currency invoices against single party account "
-msgstr ""
+msgstr "允许针对单方账户开具多币种发票 "
 
 #. Label of the allow_to_edit_stock_uom_qty_for_purchase (Check) field in
 #. DocType 'Stock Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "Allow to Edit Stock UOM Qty for Purchase Documents"
-msgstr ""
+msgstr "允许编辑采购文件的库存 UOM 数量"
 
 #. Label of the allow_to_edit_stock_uom_qty_for_sales (Check) field in DocType
 #. 'Stock Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "Allow to Edit Stock UOM Qty for Sales Documents"
-msgstr ""
+msgstr "允许编辑销售文件的库存 UOM 数量"
 
 #. Description of the 'Allow Excess Material Transfer' (Check) field in DocType
 #. 'Manufacturing Settings'
@@ -59535,7 +59535,7 @@ msgstr "[重要] [ERPNext]自动重新排序错误"
 
 #: erpnext/controllers/status_updater.py:274
 msgid "`Allow Negative rates for Items`"
-msgstr ""
+msgstr "`允许项目负利率`"
 
 #: erpnext/stock/stock_ledger.py:1844
 msgid "after"
