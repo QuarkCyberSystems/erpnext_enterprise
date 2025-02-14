@@ -300,6 +300,7 @@ class PaymentRequest(Document):
 				"payer_name": data.customer_name,
 				"order_id": self.name,
 				"currency": self.currency,
+				"payment_gateway": self.payment_gateway,
 			}
 		)
 
