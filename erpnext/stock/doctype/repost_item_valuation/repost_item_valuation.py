@@ -481,4 +481,9 @@ def in_configured_timeslot(repost_settings=None, current_time=None):
 @frappe.whitelist()
 def execute_repost_item_valuation():
 	"""Execute repost item valuation via scheduler."""
-	frappe.get_doc("Scheduled Job Type", "repost_item_valuation.repost_entries").enqueue(force=True)
+	if name := frappe.db.get_value(
+		"Scheduled Job Type",
+		{"method": "erpnext.stock.doctype.repost_item_valuation.repost_item_valuation.repost_entries"},
+		"name",
+	):
+		frappe.get_doc("Scheduled Job Type", name).enqueue(force=True)
