@@ -46,16 +46,19 @@ class BudgetValidation:
 		self.to_validate = OrderedDict()
 
 		for key in self.overlap:
-			self.to_validate[key] = OrderedDict(
-				{
-					"budget_amount": self.budget_map[key].budget_amount,
-					"budget_doc": self.budget_map[key],
-					"items_to_process": self.doc_or_item_map[key],
-					"requested_amount": 0,
-					"ordered_amount": 0,
-					"actual_expenses": 0,
-				}
-			)
+			_obj = {
+				"budget_amount": self.budget_map[key].budget_amount,
+				"budget_doc": self.budget_map[key],
+				"requested_amount": 0,
+				"ordered_amount": 0,
+				"actual_expense": 0,
+			}
+			if self.document_type in ["Purchase Order", "Material Request"]:
+				_obj.update({"items_to_process": self.doc_or_item_map[key]})
+			elif self.document_type == "GL Map":
+				_obj.update({"gl_to_process": self.doc_or_item_map[key]})
+
+			self.to_validate[key] = OrderedDict(_obj)
 
 	def validate_for_overbooking(self):
 		# TODO: Need to fetch historical amount and add them to the current document; GL effect is pending
@@ -63,16 +66,25 @@ class BudgetValidation:
 		for key, v in self.to_validate.items():
 			# Amt from current Purchase Order is included in `self.ordered_amount` as doc is
 			# in submitted status by the time the validation occurs
-			if self.doc.doctype == "Purchase Order":
+			if self.document_type == "Purchase Order":
 				self.get_ordered_amount(key)
 
-			if self.doc.doctype == "Material Request":
+			if self.document_type == "Material Request":
 				self.get_requested_amount(key)
 
+			if self.document_type in ["Purchase Order", "Material Request"]:
+				v["current_amount"] = sum([x.amount for x in v.get("items_to_process", [])])
+			elif self.document_type == "GL Map":
+				v["current_amount"] = sum([x.debit - x.credit for x in v.get("gl_to_process", [])])
+
 			# TODO: call stack should be self-explanatory on which doctype the error got thrown
+			# Exit early before hitting ledger
 			self.handle_action(v)
 
-			v["current_amount"] = sum([x.amount for x in v.get("items_to_process")])
+			if self.document_type == "GL Map":
+				self.get_actual_expense(key)
+
+			self.handle_action(v)
 
 	def build_budget_keys_and_map(self):
 		"""
@@ -93,12 +105,20 @@ class BudgetValidation:
 		key structure - (dimension_type, dimension, GL account)
 		"""
 		self.doc_or_item_map = OrderedDict()
-		for itm in self.doc.items:
-			for dim in self.dimensions:
-				if itm.get(dim.get("fieldname")):
-					key = (dim.get("fieldname"), itm.get(dim.get("fieldname")), itm.expense_account)
-					# TODO: How to handle duplicate items - same item with same dimension with same account
-					self.doc_or_item_map.setdefault(key, []).append(itm)
+		if self.document_type in ["Purchase Order", "Material Request"]:
+			for itm in self.doc.items:
+				for dim in self.dimensions:
+					if itm.get(dim.get("fieldname")):
+						key = (dim.get("fieldname"), itm.get(dim.get("fieldname")), itm.expense_account)
+						# TODO: How to handle duplicate items - same item with same dimension with same account
+						self.doc_or_item_map.setdefault(key, []).append(itm)
+		elif self.document_type == "GL Map":
+			for gl in self.gl_map:
+				for dim in self.dimensions:
+					if gl.get(dim.get("fieldname")):
+						key = (dim.get("fieldname"), gl.get(dim.get("fieldname")), gl.get("account"))
+						self.doc_or_item_map.setdefault(key, []).append(gl)
+
 		self.doc_or_item_keys = self.doc_or_item_map.keys()
 
 	def get_dimensions(self):
@@ -163,6 +183,7 @@ class BudgetValidation:
 			conditions.append(poi.item_code.isin(items))
 
 			# key structure - (dimension_type, dimension, GL account)
+			# TODO: handle child node on a tree type dimension
 			conditions.append(poi[key[0]].eq(key[1]))
 
 			ordered_amount = (
@@ -194,6 +215,7 @@ class BudgetValidation:
 			conditions.append(mri.item_code.isin(items))
 
 			# key structure - (dimension_type, dimension, GL account)
+			# TODO: handle child node on a tree type dimension
 			conditions.append(mri[key[0]].eq(key[1]))
 
 			requested_amount = (
@@ -207,9 +229,26 @@ class BudgetValidation:
 			if requested_amount:
 				self.to_validate[key]["requested_amount"] = requested_amount[0].amount
 
-	def get_actual_expenses(self, key: tuple | None = None):
+	def get_actual_expense(self, key: tuple | None = None):
 		if key:
-			pass
+			gl = qb.DocType("GL Entry")
+
+			query = (
+				qb.from_(gl)
+				.select((Sum(gl.debit) - Sum(gl.credit)).as_("balance"))
+				.where(
+					gl.is_cancelled.eq(0)
+					& gl.account.eq(key[2])
+					& gl.fiscal_year.eq(self.fiscal_year)
+					& gl.company.eq(self.company)
+					# TODO: handle child node on a tree type dimension
+					& gl[key[0]].eq(key[1])
+					& gl.posting_date[self.fy_start_date : self.fy_end_date]
+				)
+			)
+			actual_expense = query.run(as_dict=True)
+			if actual_expense:
+				self.to_validate[key]["actual_expense"] = actual_expense[0].balance or 0
 
 	def stop(self, msg):
 		frappe.throw(msg, BudgetExceededError, title=_("Budget Exceeded"))
@@ -219,7 +258,9 @@ class BudgetValidation:
 
 	def handle_po_action(self, v_map):
 		budget = v_map.get("budget_doc")
-		if budget.applicable_on_purchase_order and v_map.get("ordered_amount") > v_map.get("budget_amount"):
+		if budget.applicable_on_purchase_order and v_map.get("ordered_amount") + v_map.get(
+			"current_amount"
+		) > v_map.get("budget_amount"):
 			# TODO: handle monthly accumulation
 			# action_if_accumulated_monthly_budget_exceeded_on_po,
 			_msg = _("Expenses have gone above budget: {}".format(get_link_to_form("Budget", budget.name)))
@@ -232,9 +273,9 @@ class BudgetValidation:
 
 	def handle_mr_action(self, v_map):
 		budget = v_map.get("budget_doc")
-		if budget.applicable_on_material_request and v_map.get("requested_amount") > v_map.get(
-			"budget_amount"
-		):
+		if budget.applicable_on_material_request and v_map.get("requested_amount") + v_map.get(
+			"current_amount"
+		) > v_map.get("budget_amount"):
 			# TODO: handle monthly accumulation
 			# action_if_accumulated_monthly_budget_exceeded_on_po,
 			_msg = _("Expenses have gone above budget: {}".format(get_link_to_form("Budget", budget.name)))
@@ -246,7 +287,20 @@ class BudgetValidation:
 				self.stop(_msg)
 
 	def handle_actual_expense_action(self, v_map):
-		pass
+		budget = v_map.get("budget_doc")
+		frappe.pp(v_map)
+		if budget.applicable_on_booking_actual_expenses and v_map.get("actual_expense") + v_map.get(
+			"current_amount"
+		) > v_map.get("budget_amount"):
+			# TODO: handle monthly accumulation
+			# action_if_accumulated_monthly_budget_exceeded_on_po,
+			_msg = _("Expenses have gone above budget: {}".format(get_link_to_form("Budget", budget.name)))
+
+			if budget.action_if_annual_budget_exceeded == "Warn":
+				self.warn(_msg)
+
+			if budget.action_if_annual_budget_exceeded == "Stop":
+				self.stop(_msg)
 
 	def handle_action(self, v_map):
 		self.handle_po_action(v_map)
