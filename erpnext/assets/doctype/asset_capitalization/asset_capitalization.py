@@ -604,16 +604,17 @@ class AssetCapitalization(StockController):
 
 		total_target_asset_value = flt(self.total_value, self.precision("total_value"))
 		asset_doc = frappe.get_doc("Asset", self.target_asset)
-		if self.docstatus == 2:
-			asset_doc.gross_purchase_amount -= total_target_asset_value
-			asset_doc.purchase_amount -= total_target_asset_value
-		else:
-			asset_doc.gross_purchase_amount += total_target_asset_value
-			asset_doc.purchase_amount += total_target_asset_value
 
-		asset_doc.set_status("Work In Progress")
-		asset_doc.flags.ignore_validate = True
-		asset_doc.save()
+		if self.docstatus == 2:
+			gross_purchase_amount = asset_doc.gross_purchase_amount - total_target_asset_value
+			purchase_amount = asset_doc.purchase_amount - total_target_asset_value
+			asset_doc.db_set("total_asset_cost", asset_doc.total_asset_cost - total_target_asset_value)
+		else:
+			gross_purchase_amount = asset_doc.gross_purchase_amount + total_target_asset_value
+			purchase_amount = asset_doc.purchase_amount + total_target_asset_value
+
+		asset_doc.db_set("gross_purchase_amount", gross_purchase_amount)
+		asset_doc.db_set("purchase_amount", purchase_amount)
 
 		frappe.msgprint(
 			_("Asset {0} has been updated. Please set the depreciation details if any and submit it.").format(
@@ -624,7 +625,6 @@ class AssetCapitalization(StockController):
 	def restore_consumed_asset_items(self):
 		for item in self.asset_items:
 			asset = frappe.get_doc("Asset", item.asset)
-			asset.db_set("disposal_date", None)
 			self.set_consumed_asset_status(asset)
 
 			if asset.calculate_depreciation:
@@ -635,6 +635,7 @@ class AssetCapitalization(StockController):
 					get_link_to_form(asset.doctype, asset.name), get_link_to_form(self.doctype, self.name)
 				)
 				reset_depreciation_schedule(asset, notes)
+			asset.db_set("disposal_date", None)
 
 	def set_consumed_asset_status(self, asset):
 		if self.docstatus == 1:
