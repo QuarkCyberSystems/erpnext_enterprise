@@ -7,6 +7,10 @@ from frappe import _, msgprint, scrub, unscrub
 from frappe.model.document import Document
 from frappe.utils import get_link_to_form, now
 
+from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
+	get_checks_for_pl_and_bs_accounts,
+)
+
 
 class POSProfile(Document):
 	# begin: auto-generated types
@@ -72,15 +76,15 @@ class POSProfile(Document):
 		self.validate_accounting_dimensions()
 
 	def validate_accounting_dimensions(self):
-		acc_dim_names = required_accounting_dimensions()
-		for acc_dim in acc_dim_names:
-			if not self.get(acc_dim):
+		acc_dims = get_checks_for_pl_and_bs_accounts()
+		for acc_dim in acc_dims:
+			if not self.get(acc_dim.fieldname) and (acc_dim.mandatory_for_pl or acc_dim.mandatory_for_bs):
 				frappe.throw(
 					_(
 						"{0} is a mandatory Accounting Dimension. <br>"
 						"Please set a value for {0} in Accounting Dimensions section."
 					).format(
-						unscrub(frappe.bold(acc_dim)),
+						frappe.bold(acc_dim.label),
 					),
 					title=_("Mandatory Accounting Dimension"),
 				)
@@ -216,23 +220,6 @@ def get_child_nodes(group_type, root):
 			lft >= {lft} and rgt <= {rgt} order by lft""",
 		as_dict=1,
 	)
-
-
-def required_accounting_dimensions():
-	p = frappe.qb.DocType("Accounting Dimension")
-	c = frappe.qb.DocType("Accounting Dimension Detail")
-
-	acc_dim_doc = (
-		frappe.qb.from_(p)
-		.inner_join(c)
-		.on(p.name == c.parent)
-		.select(c.parent)
-		.where((c.mandatory_for_bs == 1) | (c.mandatory_for_pl == 1))
-		.where(p.disabled == 0)
-	).run(as_dict=1)
-
-	acc_dim_names = [scrub(d.parent) for d in acc_dim_doc]
-	return acc_dim_names
 
 
 @frappe.whitelist()
