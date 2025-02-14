@@ -340,11 +340,19 @@ erpnext.PointOfSale.Payment = class {
 		// pass
 	}
 
-	render_payment_section() {
+	async render_payment_section() {
 		this.render_payment_mode_dom();
 		this.make_invoice_fields_control();
 		this.update_totals_section();
-		this.focus_on_default_mop();
+		let r = await frappe.db.get_value(
+			"POS Profile",
+			this.frm.doc.pos_profile,
+			"disable_grand_total_to_default_mop"
+		);
+
+		if (!r.message.disable_grand_total_to_default_mop) {
+			this.focus_on_default_mop();
+		}
 	}
 
 	after_render() {

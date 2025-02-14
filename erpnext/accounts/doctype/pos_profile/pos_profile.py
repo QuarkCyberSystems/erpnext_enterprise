@@ -35,6 +35,7 @@ class POSProfile(Document):
 		currency: DF.Link
 		customer: DF.Link | None
 		customer_groups: DF.Table[POSCustomerGroup]
+		disable_grand_total_to_default_mop: DF.Check
 		disable_rounded_total: DF.Check
 		disabled: DF.Check
 		expense_account: DF.Link | None
