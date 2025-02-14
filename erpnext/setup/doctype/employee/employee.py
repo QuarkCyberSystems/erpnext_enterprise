@@ -5,6 +5,7 @@ from frappe import _, scrub, throw
 from frappe.model.naming import set_name_by_naming_series
 from frappe.permissions import (
 	add_user_permission,
+	delete_user_permission,
 	get_doc_permissions,
 	has_permission,
 	remove_user_permission,
@@ -84,8 +85,6 @@ class Employee(NestedSet):
 		self.reset_employee_emails_cache()
 
 	def update_user_permissions(self):
-		if not self.create_user_permission:
-			return
 		if not has_permission("User Permission", ptype="write", print_logs=False):
 			return
 
@@ -93,11 +92,12 @@ class Employee(NestedSet):
 			"User Permission", {"allow": "Employee", "for_value": self.name, "user": self.user_id}
 		)
 
-		if employee_user_permission_exists:
-			return
-
-		add_user_permission("Employee", self.name, self.user_id)
-		add_user_permission("Company", self.company, self.user_id)
+		if employee_user_permission_exists and not self.create_user_permission:
+			delete_user_permission("Employee", self.name, self.user_id)
+			delete_user_permission("Company", self.company, self.user_id)
+		elif not employee_user_permission_exists and self.create_user_permission:
+			add_user_permission("Employee", self.name, self.user_id)
+			add_user_permission("Company", self.company, self.user_id)
 
 	def update_user(self):
 		# add employee role if missing
