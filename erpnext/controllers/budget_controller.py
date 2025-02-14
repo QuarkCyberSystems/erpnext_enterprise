@@ -14,23 +14,25 @@ class BudgetExceededError(frappe.ValidationError):
 
 
 class BudgetValidation:
-	def __init__(self, doc: object):
-		self.doc = doc
-		self.company = doc.get("company")
-		self.doc_date = (
-			doc.get("transaction_date")
-			if doc.get("doctype") in ["Purchase Order", "Material Request"]
-			else doc.get("posting_date")
-		)
+	def __init__(self, doc: object | None = None, gl_map: list | None = None):
+		if doc:
+			self.document_type = doc.get("doctype")
+			self.doc = doc
+			self.company = doc.get("company")
+			self.doc_date = doc.get("transaction_date")
+		elif gl_map:
+			# When GL Map is passed, there is a possibility of multiple fiscal year.
+			# TODO: need to handle it
+			self.document_type = "GL Map"
+			self.gl_map = gl_map
+			self.company = gl_map[0].company
+			self.doc_date = gl_map[0].posting_date
+
 		fy = get_fiscal_year(self.doc_date)
 		self.fiscal_year = fy[0]
 		self.fy_start_date = fy[1]
 		self.fy_end_date = fy[2]
 		self.get_dimensions()
-		# TODO: handle GL map
-
-		# When GL Map is passed, there is a possibility of multiple fiscal year.
-		# TODO: need to handle it
 
 	def validate(self):
 		self.build_validation_map()
@@ -77,7 +79,6 @@ class BudgetValidation:
 		key structure - (dimension_type, dimension, GL account)
 		"""
 		_budgets = self.get_budget_records()
-		_keys = []
 		self.budget_map = OrderedDict()
 		for _bud in _budgets:
 			budget_against = frappe.scrub(_bud.budget_against)
@@ -92,7 +93,6 @@ class BudgetValidation:
 		key structure - (dimension_type, dimension, GL account)
 		"""
 		self.doc_or_item_map = OrderedDict()
-		_key = []
 		for itm in self.doc.items:
 			for dim in self.dimensions:
 				if itm.get(dim.get("fieldname")):

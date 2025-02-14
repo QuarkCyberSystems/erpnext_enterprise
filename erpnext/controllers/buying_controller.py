@@ -777,7 +777,7 @@ class BuyingController(SubcontractingController):
 	def validate_budget(self):
 		from erpnext.controllers.budget_controller import BudgetValidation
 
-		val = BudgetValidation(self)
+		val = BudgetValidation(doc=self)
 		val.validate()
 		return
 
