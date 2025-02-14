@@ -5,7 +5,6 @@ from frappe import _, scrub, throw
 from frappe.model.naming import set_name_by_naming_series
 from frappe.permissions import (
 	add_user_permission,
-	delete_user_permission,
 	get_doc_permissions,
 	has_permission,
 	remove_user_permission,
@@ -93,8 +92,8 @@ class Employee(NestedSet):
 		)
 
 		if employee_user_permission_exists and not self.create_user_permission:
-			delete_user_permission("Employee", self.name, self.user_id)
-			delete_user_permission("Company", self.company, self.user_id)
+			remove_user_permission("Employee", self.name, self.user_id)
+			remove_user_permission("Company", self.company, self.user_id)
 		elif not employee_user_permission_exists and self.create_user_permission:
 			add_user_permission("Employee", self.name, self.user_id)
 			add_user_permission("Company", self.company, self.user_id)
