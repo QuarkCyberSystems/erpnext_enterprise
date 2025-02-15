@@ -3450,13 +3450,14 @@ def add_income_discount_loss(pe, doc, total_discount_percent) -> float:
 	"""Add loss on income discount in base currency."""
 	precision = doc.precision("total")
 	base_loss_on_income = doc.get("base_total") * (total_discount_percent / 100)
+	positive_negative = -1 if pe.payment_type == "Pay" else 1
 
 	pe.append(
 		"deductions",
 		{
 			"account": frappe.get_cached_value("Company", pe.company, "default_discount_account"),
 			"cost_center": pe.cost_center or frappe.get_cached_value("Company", pe.company, "cost_center"),
-			"amount": flt(base_loss_on_income, precision) * -1,
+			"amount": flt(base_loss_on_income, precision) * positive_negative,
 		},
 	)
 
@@ -3468,6 +3469,7 @@ def add_tax_discount_loss(pe, doc, total_discount_percentage) -> float:
 	tax_discount_loss = {}
 	base_total_tax_loss = 0
 	precision = doc.precision("tax_amount_after_discount_amount", "taxes")
+	positive_negative = -1 if pe.payment_type == "Pay" else 1
 
 	# The same account head could be used more than once
 	for tax in doc.get("taxes", []):
@@ -3490,7 +3492,7 @@ def add_tax_discount_loss(pe, doc, total_discount_percentage) -> float:
 				"account": account,
 				"cost_center": pe.cost_center
 				or frappe.get_cached_value("Company", pe.company, "cost_center"),
-				"amount": flt(loss, precision) * -1,
+				"amount": flt(loss, precision) * positive_negative,
 			},
 		)
 
