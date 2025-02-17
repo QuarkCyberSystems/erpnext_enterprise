@@ -7,7 +7,6 @@ from erpnext.stock.doctype.purchase_receipt.purchase_receipt import adjust_incom
 
 
 def execute():
-	fiscal_year_dates = get_fiscal_year(frappe.utils.datetime.date.today())
 	table = frappe.qb.DocType("Purchase Receipt Item")
 	parent = frappe.qb.DocType("Purchase Receipt")
 	query = (
@@ -24,12 +23,10 @@ def execute():
 			table.qty,
 			parent.conversion_rate,
 		)
-		.where(
-			(table.amount_difference_with_purchase_invoice != 0)
-			& (table.docstatus == 1)
-			& (parent.posting_date.between(fiscal_year_dates[1], fiscal_year_dates[2]))
-		)
+		.where((table.amount_difference_with_purchase_invoice != 0) & (table.docstatus == 1))
 	)
+	if fiscal_year_dates := get_fiscal_year(frappe.utils.datetime.date.today(), raise_on_missing=False):
+		query.where(parent.posting_date.between(fiscal_year_dates[1], fiscal_year_dates[2]))
 	result = query.run(as_dict=True)
 
 	item_wise_billed_qty = get_billed_qty_against_purchase_receipt([item.name for item in result])
