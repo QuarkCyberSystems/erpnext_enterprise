@@ -13,6 +13,5 @@ def execute():
 		"Purchase Receipt Item",
 		"rate_difference_with_purchase_invoice",
 		"amount_difference_with_purchase_invoice",
-		validate=False,
 	)
 	frappe.clear_cache(doctype="Purchase Receipt Item")

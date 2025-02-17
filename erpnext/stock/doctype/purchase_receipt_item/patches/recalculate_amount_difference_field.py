@@ -27,30 +27,35 @@ def execute():
 	)
 	if fiscal_year_dates := get_fiscal_year(frappe.utils.datetime.date.today(), raise_on_missing=False):
 		query.where(parent.posting_date.between(fiscal_year_dates[1], fiscal_year_dates[2]))
-	result = query.run(as_dict=True)
 
-	item_wise_billed_qty = get_billed_qty_against_purchase_receipt([item.name for item in result])
+	if result := query.run(as_dict=True):
+		item_wise_billed_qty = get_billed_qty_against_purchase_receipt([item.name for item in result])
 
-	for item in result:
-		adjusted_amt = 0.0
+		for item in result:
+			adjusted_amt = 0.0
 
-		if item.billed_amt is not None and item.amount is not None and item_wise_billed_qty.get(item.name):
-			adjusted_amt = (
-				flt(item.billed_amt / item_wise_billed_qty.get(item.name)) - flt(item.rate)
-			) * item.qty
-		adjusted_amt = flt(
-			adjusted_amt * flt(item.conversion_rate), frappe.get_precision("Purchase Receipt Item", "amount")
-		)
-
-		if adjusted_amt != item.amount_difference_with_purchase_invoice:
-			frappe.db.set_value(
-				"Purchase Receipt Item",
-				item.name,
-				"amount_difference_with_purchase_invoice",
-				adjusted_amt,
-				update_modified=False,
+			if (
+				item.billed_amt is not None
+				and item.amount is not None
+				and item_wise_billed_qty.get(item.name)
+			):
+				adjusted_amt = (
+					flt(item.billed_amt / item_wise_billed_qty.get(item.name)) - flt(item.rate)
+				) * item.qty
+			adjusted_amt = flt(
+				adjusted_amt * flt(item.conversion_rate),
+				frappe.get_precision("Purchase Receipt Item", "amount"),
 			)
-			adjust_incoming_rate_for_pr(frappe.get_doc("Purchase Receipt", item.parent))
+
+			if adjusted_amt != item.amount_difference_with_purchase_invoice:
+				frappe.db.set_value(
+					"Purchase Receipt Item",
+					item.name,
+					"amount_difference_with_purchase_invoice",
+					adjusted_amt,
+					update_modified=False,
+				)
+				adjust_incoming_rate_for_pr(frappe.get_doc("Purchase Receipt", item.parent))
 
 
 def get_billed_qty_against_purchase_receipt(pr_names):
