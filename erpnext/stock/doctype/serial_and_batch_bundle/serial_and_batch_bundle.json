@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "item_details_tab",
+  "naming_series",
   "company",
   "item_name",
   "has_serial_no",
@@ -242,12 +243,20 @@
    "fieldtype": "Data",
    "label": "Returned Against",
    "read_only": 1
+  },
+  {
+   "default": "SABB-.########",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "\nSABB-.########",
+   "set_only_once": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-02-12 09:53:32.090309",
+ "modified": "2025-02-17 16:22:36.056205",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Serial and Batch Bundle",
