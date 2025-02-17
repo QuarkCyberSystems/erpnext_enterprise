@@ -438,7 +438,7 @@ class TestPricingRule(IntegrationTestCase):
 		self.assertEqual(so.items[1].is_free_item, 1)
 		self.assertEqual(so.items[1].item_code, "_Test Item 2")
 
-	def test_enforce_free_item_qty(self):
+	def test_dont_enforce_free_item_qty(self):
 		# this test is only for testing non-enforcement as all other tests in this file already test with enforcement
 		frappe.delete_doc_if_exists("Pricing Rule", "_Test Pricing Rule")
 		test_record = {
@@ -477,10 +477,10 @@ class TestPricingRule(IntegrationTestCase):
 		self.assertEqual(len(so.items), 2)
 
 		# Without enforcement
-		pricing_rule.enforce_free_item_qty = 0
+		pricing_rule.dont_enforce_free_item_qty = 1
 		pricing_rule.save()
 
-		# Test 2 : Deleted free item will not be fetched again on save without enfrocement
+		# Test 2 : Deleted free item will not be fetched again on save without enforcement
 		so.items.pop(1)
 		so.save()
 		so.reload()
@@ -1509,7 +1509,7 @@ def make_pricing_rule(**args):
 			"discount_amount": args.discount_amount or 0.0,
 			"apply_multiple_pricing_rules": args.apply_multiple_pricing_rules or 0,
 			"has_priority": args.has_priority or 0,
-			"enforce_free_item_qty": args.enforce_free_item_qty or 1,
+			"enforce_free_item_qty": args.dont_enforce_free_item_qty or 0,
 		}
 	)
 
