@@ -368,16 +368,8 @@ def get_children(doctype=None, parent=None, **kwargs):
 		"uom",
 		"rate",
 		"amount",
-		"workstation_type",
 		"operation",
-		"operation_time",
 		"is_subcontracted",
-		"workstation",
-		"source_warehouse",
-		"wip_warehouse",
-		"fg_warehouse",
-		"skip_material_transfer",
-		"backflush_from_wip_warehouse",
 	]
 
 	query_filters = {
