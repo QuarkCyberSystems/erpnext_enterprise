@@ -593,12 +593,13 @@ class SellingController(StockController):
 			if not self.is_internal_transfer() or self.docstatus == 1
 			else None
 		)
-		if serial_and_batch_bundle and self.is_internal_transfer() and self.is_return:
-			if self.docstatus == 1:
+
+		if self.is_internal_transfer():
+			if serial_and_batch_bundle and self.docstatus == 1 and self.is_return:
 				serial_and_batch_bundle = self.make_package_for_transfer(
 					serial_and_batch_bundle, item_row.warehouse, type_of_transaction="Inward"
 				)
-			else:
+			elif not serial_and_batch_bundle:
 				serial_and_batch_bundle = frappe.db.get_value(
 					"Stock Ledger Entry",
 					{"voucher_detail_no": item_row.name, "warehouse": item_row.warehouse},
