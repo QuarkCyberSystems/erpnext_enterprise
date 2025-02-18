@@ -1,5 +1,6 @@
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import rename_fieldname
+from frappe.model.utils.rename_field import rename_field
 
 
 def execute():
@@ -7,3 +8,6 @@ def execute():
 	for doctype in doctypes:
 		rename_fieldname(doctype + "-resolution_by", "sla_resolution_by")
 		rename_fieldname(doctype + "-resolution_date", "sla_resolution_date")
+
+	rename_field("Issue", "resolution_by", "sla_resolution_by")
+	rename_field("Issue", "resolution_date", "sla_resolution_date")
