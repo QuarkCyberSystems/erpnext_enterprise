@@ -296,7 +296,8 @@ class JobCard(Document):
 			frappe.throw(
 				_(
 					"Employee {0} is currently working on another workstation. Please assign another employee."
-				).format(args.get("employee"))
+				).format(args.get("employee")),
+				OverlapError,
 			)
 
 		if not self.has_overlap(production_capacity, time_logs):
