@@ -652,6 +652,9 @@ frappe.ui.form.on("Asset", {
 					frm.set_value("purchase_amount", data.gross_purchase_amount);
 					frm.set_value("asset_quantity", data.asset_quantity);
 					frm.set_value("cost_center", data.cost_center);
+					if (data.asset_location) {
+						frm.set_value("location", data.asset_location);
+					}
 
 					if (doctype === "Purchase Receipt") {
 						frm.set_value("purchase_receipt_item", data.purchase_receipt_item);
