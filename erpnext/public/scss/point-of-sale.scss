@@ -526,8 +526,7 @@
 
 					> .checkout-btn {
 						@extend .primary-action;
-						background-color: var(--blue-200);
-						color: white;
+						background-color: var(--control-bg);
 					}
 
 					> .edit-cart-btn {
@@ -769,8 +768,8 @@
 
 		.submit-order-btn {
 			@extend .primary-action;
-			background-color: var(--primary-color);
-			color: white;
+			background-color: var(--btn-primary);
+			color: var(--neutral);
 		}
 
 		.section-label {
@@ -1087,34 +1086,49 @@
 
 					> .item-row-wrapper {
 						display: flex;
-						align-items: center;
+						gap: 2px;
+						flex-direction: column;
 						padding: var(--padding-sm) var(--padding-md);
+						border: 1px solid lightgray;
+						border-radius: 10px;
+						background: var(--bg-light-gray);
 
-						> .item-name {
-							@extend .nowrap;
-							font-weight: 500;
-							margin-right: var(--margin-md);
-						}
-
-						> .item-qty {
-							font-weight: 500;
-							margin-left: auto;
-						}
-
-						> .item-rate-disc {
+						> .item-row-data {
 							display: flex;
-							text-align: right;
-							margin-left: var(--margin-md);
-							justify-content: flex-end;
+							align-items: center;
 
-							> .item-disc {
-								color: var(--dark-green-500);
-							}
-
-							> .item-rate {
+							> .item-name {
+								@extend .nowrap;
 								font-weight: 500;
-								margin-left: var(--margin-md);
+								margin-right: var(--margin-md);
 							}
+
+							> .item-qty {
+								font-weight: 500;
+								margin-left: auto;
+								font-size: small;
+							}
+
+							> .item-rate-disc {
+								display: flex;
+								text-align: right;
+								margin-left: var(--margin-md);
+								justify-content: flex-end;
+								font-size: small;
+
+								> .item-disc {
+									color: var(--dark-green-500);
+								}
+
+								> .item-rate {
+									font-weight: 500;
+									margin-left: var(--margin-md);
+								}
+							}
+						}
+
+						> .item-row-refund {
+							font-size: x-small;
 						}
 					}
 
@@ -1125,6 +1139,12 @@
 					> .payments {
 						font-weight: 700;
 					}
+				}
+
+				> .order-summary-container {
+					display: flex;
+					background: white;
+					gap: 8px;
 				}
 
 				> .summary-btns {
