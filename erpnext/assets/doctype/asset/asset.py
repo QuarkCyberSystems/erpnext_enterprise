@@ -233,14 +233,6 @@ class Asset(AccountsController):
 				if item.base_net_rate == self.gross_purchase_amount and item.qty == self.asset_quantity:
 					return item.name
 
-		# If no matching item found, raise validation error
-		frappe.throw(
-			_(
-				"No matching item found in {0} with item code {1}. "
-				"Please verify the purchase details and ensure the correct amount and quantity is recorded."
-			).format(purchase_doc_type, self.item_code)
-		)
-
 	def validate_asset_and_reference(self):
 		if self.purchase_invoice or self.purchase_receipt:
 			reference_doc = "Purchase Invoice" if self.purchase_invoice else "Purchase Receipt"
