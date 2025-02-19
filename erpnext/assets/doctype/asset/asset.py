@@ -206,29 +206,40 @@ class Asset(AccountsController):
 			return
 
 		self.purchase_amount = self.gross_purchase_amount
-		purchase_type = "Purchase Receipt" if self.purchase_receipt else "Purchase Invoice"
+		purchase_doc_type = "Purchase Receipt" if self.purchase_receipt else "Purchase Invoice"
 		purchase_doc = self.purchase_receipt or self.purchase_invoice
 
 		if not purchase_doc:
 			return
 
-		purchase_doc = frappe.get_doc(purchase_type, purchase_doc)
+		linked_item = self.get_linked_item(purchase_doc_type, purchase_doc)
+
+		if linked_item:
+			if purchase_doc_type == "Purchase Receipt":
+				self.purchase_receipt_item = linked_item
+			else:
+				self.purchase_invoice_item = linked_item
+
+	def get_linked_item(self, purchase_doc_type, purchase_doc):
+		purchase_doc = frappe.get_doc(purchase_doc_type, purchase_doc)
 
 		for item in purchase_doc.items:
 			if self.asset_quantity > 1:
 				if item.base_net_amount == self.gross_purchase_amount and item.qty == self.asset_quantity:
-					self.purchase_receipt_item = item.name if purchase_type == "Purchase Receipt" else None
-					self.purchase_invoice_item = item.name if purchase_type == "Purchase Invoice" else None
-					return
+					return item.name
 				elif item.qty == self.asset_quantity:
-					self.purchase_receipt_item = item.name if purchase_type == "Purchase Receipt" else None
-					self.purchase_invoice_item = item.name if purchase_type == "Purchase Invoice" else None
-					return
+					return item.name
 			else:
-				if item.base_net_rate == self.gross_purchase_amount:
-					self.purchase_receipt_item = item.name if purchase_type == "Purchase Receipt" else None
-					self.purchase_invoice_item = item.name if purchase_type == "Purchase Invoice" else None
-					return
+				if item.base_net_rate == self.gross_purchase_amount and item.qty == self.asset_quantity:
+					return item.name
+
+		# If no matching item found, raise validation error
+		frappe.throw(
+			_(
+				"No matching item found in {0} with item code {1}. "
+				"Please verify the purchase details and ensure the correct amount and quantity is recorded."
+			).format(purchase_doc_type, self.item_code)
+		)
 
 	def validate_asset_and_reference(self):
 		if self.purchase_invoice or self.purchase_receipt:
