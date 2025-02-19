@@ -400,5 +400,5 @@ erpnext.patches.v15_0.migrate_checkbox_to_select_for_reconciliation_effect
 erpnext.patches.v15_0.sync_auto_reconcile_config
 execute:frappe.db.set_single_value("Accounts Settings", "exchange_gain_loss_posting_date", "Payment")
 erpnext.patches.v14_0.disable_add_row_in_gross_profit
-erpnext.stock.doctype.purchase_receipt_item.patches.rename_field_from_rate_difference_to_amount_difference
-erpnext.stock.doctype.purchase_receipt_item.patches.recalculate_amount_difference_field
+erpnext.patches.v15_0.rename_field_from_rate_difference_to_amount_difference
+erpnext.patches.v15_0.recalculate_amount_difference_field

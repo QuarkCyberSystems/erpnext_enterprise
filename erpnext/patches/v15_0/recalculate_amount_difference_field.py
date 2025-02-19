@@ -31,6 +31,8 @@ def execute():
 	if result := query.run(as_dict=True):
 		item_wise_billed_qty = get_billed_qty_against_purchase_receipt([item.name for item in result])
 
+		purchase_receipts = set()
+		precision = frappe.get_precision("Purchase Receipt Item", "amount")
 		for item in result:
 			adjusted_amt = 0.0
 
@@ -44,7 +46,7 @@ def execute():
 				) * item.qty
 			adjusted_amt = flt(
 				adjusted_amt * flt(item.conversion_rate),
-				frappe.get_precision("Purchase Receipt Item", "amount"),
+				precision,
 			)
 
 			if adjusted_amt != item.amount_difference_with_purchase_invoice:
@@ -55,7 +57,10 @@ def execute():
 					adjusted_amt,
 					update_modified=False,
 				)
-				adjust_incoming_rate_for_pr(frappe.get_doc("Purchase Receipt", item.parent))
+				purchase_receipts.add(item.parent)
+
+		for pr in purchase_receipts:
+			adjust_incoming_rate_for_pr(frappe.get_doc("Purchase Receipt", pr))
 
 
 def get_billed_qty_against_purchase_receipt(pr_names):
