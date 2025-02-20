@@ -88,10 +88,10 @@ class BudgetValidation:
 				v["current_amount"] = sum([x.debit - x.credit for x in v.get("gl_to_process", [])])
 
 			# If limit breached, exit early
-			self.handle_action(v)
+			self.handle_action(key, v)
 
 			self.get_actual_expense(key)
-			self.handle_action(v)
+			self.handle_action(key, v)
 
 	def build_budget_keys_and_map(self):
 		"""
@@ -298,7 +298,7 @@ class BudgetValidation:
 				if config.action_for_monthly == "Stop":
 					self.stop(_msg)
 
-	def handle_action(self, v_map):
+	def handle_action(self, key, v_map):
 		budget = v_map.get("budget_doc")
 		actual_exp = v_map.get("actual_expense")
 		ordered_amt = v_map.get("ordered_amount")
@@ -354,9 +354,12 @@ class BudgetValidation:
 		if total_diff > 0:
 			currency = frappe.get_cached_value("Company", self.company, "default_currency")
 			_msg = _(
-				"Total Expenses booked across Purchase Order, Material Request and Ledger have gone above budget by {} for {}".format(
+				"Annual Budget for Account {} against {} {} is {}. It will be exceeded by {}".format(
+					frappe.bold(key[2]),
+					frappe.bold(frappe.unscrub(key[0])),
+					frappe.bold(key[1]),
+					frappe.bold(fmt_money(budget_amt, currency=currency)),
 					frappe.bold(fmt_money(total_diff, currency=currency)),
-					get_link_to_form("Budget", budget.name),
 				)
 			)
 			self.stop(_msg)
