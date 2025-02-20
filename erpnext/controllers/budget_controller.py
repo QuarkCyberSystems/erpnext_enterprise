@@ -4,7 +4,7 @@ import frappe
 from frappe import _, qb
 from frappe.query_builder import Criterion
 from frappe.query_builder.functions import IfNull, Sum
-from frappe.utils import get_link_to_form
+from frappe.utils import flt, fmt_money, get_link_to_form
 
 from erpnext.accounts.doctype.budget.budget import get_accumulated_monthly_budget
 from erpnext.accounts.utils import get_fiscal_year
@@ -264,95 +264,39 @@ class BudgetValidation:
 	def warn(self, msg):
 		frappe.msgprint(msg, _("Budget Exceeded"))
 
-	def handle_po_action(self, budget_doc, budget_amt, ordered_amt, current_amt, acc_monthly):
-		if budget_doc.applicable_on_purchase_order:
-			if ordered_amt + current_amt > budget_amt:
+	def handle_individual_doctype_action(
+		self, config, budget, budget_amt, existing_amt, current_amt, acc_monthly_budget
+	):
+		if config.applies:
+			currency = frappe.get_cached_value("Company", self.company, "default_currency")
+			diff = (existing_amt + current_amt) - budget_amt
+			if diff > 0:
 				_msg = _(
 					"Expenses have gone above budget by {} for {}".format(
-						((ordered_amt + current_amt) - budget_amt),
-						get_link_to_form("Budget", budget_doc.name),
+						fmt_money(diff, currency=currency), get_link_to_form("Budget", budget)
 					)
 				)
 
-				if budget_doc.action_if_annual_budget_exceeded_on_po == "Warn":
+				if config.action_for_annaul == "Warn":
 					self.warn(_msg)
 
-				if budget_doc.action_if_annual_budget_exceeded_on_po == "Stop":
+				if config.action_for_annaul == "Stop":
 					self.stop(_msg)
 
-			if ordered_amt + current_amt > acc_monthly:
+			monthly_diff = (existing_amt + current_amt) - acc_monthly_budget
+			if monthly_diff:
 				_msg = _(
 					"Expenses have gone above accumulated monthly budget by {} for {}.\nCurrent accumulated limit is {}".format(
-						((ordered_amt + current_amt) - acc_monthly),
-						get_link_to_form("Budget", budget_doc.name),
-						acc_monthly,
+						fmt_money(monthly_diff, currency=currency),
+						get_link_to_form("Budget", budget),
+						fmt_money(acc_monthly_budget, currency=currency),
 					)
 				)
 
-				if budget_doc.action_if_accumulated_monthly_budget_exceeded_on_po == "Warn":
+				if config.action_for_monthly == "Warn":
 					self.warn(_msg)
 
-				if budget_doc.action_if_accumulated_monthly_budget_exceeded_on_po == "Stop":
-					self.stop(_msg)
-
-	def handle_mr_action(self, budget_doc, budget_amt, requested_amt, current_amt, acc_monthly):
-		if budget_doc.applicable_on_material_request:
-			if requested_amt + current_amt > budget_amt:
-				_msg = _(
-					"Expenses have gone above budget by {} for {}".format(
-						((requested_amt + current_amt) - budget_amt),
-						get_link_to_form("Budget", budget_doc.name),
-					)
-				)
-
-				if budget_doc.action_if_annual_budget_exceeded_on_mr == "Warn":
-					self.warn(_msg)
-				if budget_doc.action_if_annual_budget_exceeded_on_mr == "Stop":
-					self.stop(_msg)
-
-			if requested_amt + current_amt > acc_monthly:
-				_msg = _(
-					"Expenses have gone above accumulated monthly budget by {} for {}.\nCurrent accumulated limit is {}".format(
-						((requested_amt + current_amt) - acc_monthly),
-						get_link_to_form("Budget", budget_doc.name),
-						acc_monthly,
-					)
-				)
-
-				if budget_doc.action_if_accumulated_monthly_budget_exceeded_on_mr == "Warn":
-					self.warn(_msg)
-
-				if budget_doc.action_if_accumulated_monthly_budget_exceeded_on_mr == "Stop":
-					self.stop(_msg)
-
-	def handle_actual_expense_action(self, budget_doc, budget_amt, actual_exp, current_amt, acc_monthly):
-		if budget_doc.applicable_on_booking_actual_expenses:
-			if actual_exp + current_amt > budget_amt:
-				_msg = _(
-					"Expenses have gone above budget by {} for {}".format(
-						((actual_exp + current_amt) - budget_amt), get_link_to_form("Budget", budget_doc.name)
-					)
-				)
-
-				if budget_doc.action_if_annual_budget_exceeded == "Warn":
-					self.warn(_msg)
-
-				if budget_doc.action_if_annual_budget_exceeded == "Stop":
-					self.stop(_msg)
-
-			if actual_exp + current_amt > acc_monthly:
-				_msg = _(
-					"Expenses have gone above accumulated monthly budget by {} for {}.\nCurrent accumulated limit is {}".format(
-						((actual_exp + current_amt) - acc_monthly),
-						get_link_to_form("Budget", budget_doc.name),
-						acc_monthly,
-					)
-				)
-
-				if budget_doc.action_if_accumulated_monthly_budget_exceeded == "Warn":
-					self.warn(_msg)
-
-				if budget_doc.action_if_accumulated_monthly_budget_exceeded == "Stop":
+				if config.action_for_monthly == "Stop":
 					self.stop(_msg)
 
 	def handle_action(self, v_map):
@@ -364,6 +308,45 @@ class BudgetValidation:
 		budget_amt = v_map.get("budget_amount")
 		acc_monthly_budget = v_map.get("accumulated_monthly_budget")
 
-		self.handle_po_action(budget, budget_amt, ordered_amt, current_amt, acc_monthly_budget)
-		self.handle_mr_action(budget, budget_amt, requested_amt, current_amt, acc_monthly_budget)
-		self.handle_actual_expense_action(budget, budget_amt, actual_exp, current_amt, acc_monthly_budget)
+		self.handle_individual_doctype_action(
+			frappe._dict(
+				{
+					"applies": budget.applicable_on_purchase_order,
+					"action_for_annual": budget.action_if_annual_budget_exceeded_on_po,
+					"action_for_monthly": budget.action_if_accumulated_monthly_budget_exceeded_on_po,
+				}
+			),
+			budget.name,
+			budget_amt,
+			ordered_amt,
+			current_amt,
+			acc_monthly_budget,
+		)
+		self.handle_individual_doctype_action(
+			frappe._dict(
+				{
+					"applies": budget.applicable_on_material_request,
+					"action_for_annual": budget.action_if_annual_budget_exceeded_on_mr,
+					"action_for_monthly": budget.action_if_accumulated_monthly_budget_exceeded_on_mr,
+				}
+			),
+			budget.name,
+			budget_amt,
+			requested_amt,
+			current_amt,
+			acc_monthly_budget,
+		)
+		self.handle_individual_doctype_action(
+			frappe._dict(
+				{
+					"applies": budget.applicable_on_booking_actual_expenses,
+					"action_for_annual": budget.action_if_annual_budget_exceeded,
+					"action_for_monthly": budget.action_if_accumulated_monthly_budget_exceeded,
+				}
+			),
+			budget.name,
+			budget_amt,
+			actual_exp,
+			current_amt,
+			acc_monthly_budget,
+		)
