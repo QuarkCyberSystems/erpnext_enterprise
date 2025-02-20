@@ -55,6 +55,9 @@ class BudgetValidation:
 				"requested_amount": 0,
 				"ordered_amount": 0,
 				"actual_expense": 0,
+				"current_requested_amount": 0,
+				"current_ordered_amount": 0,
+				"current_actual_exp_amount": 0,
 			}
 			_obj.update(
 				{
@@ -79,16 +82,13 @@ class BudgetValidation:
 			self.get_ordered_amount(key)
 			self.get_requested_amount(key)
 
+			self.handle_action(key, v)
+
 			# Validation happens after submit for Purchase Order and
 			# Material Request and so will be included in the query
-			# result
-			if self.document_type in ["Purchase Order", "Material Request"]:
-				v["current_amount"] = 0
-			elif self.document_type == "GL Map":
-				v["current_amount"] = sum([x.debit - x.credit for x in v.get("gl_to_process", [])])
-
-			# If limit breached, exit early
-			self.handle_action(key, v)
+			# result. so no need to set current document amount
+			if self.document_type == "GL Map":
+				v["current_actual_exp_amount"] = sum([x.debit - x.credit for x in v.get("gl_to_process", [])])
 
 			self.get_actual_expense(key)
 			self.handle_action(key, v)
@@ -263,16 +263,19 @@ class BudgetValidation:
 		frappe.msgprint(msg, _("Budget Exceeded"))
 
 	def handle_individual_doctype_action(
-		self, config, budget, budget_amt, existing_amt, current_amt, acc_monthly_budget
+		self, key, config, budget, budget_amt, existing_amt, current_amt, acc_monthly_budget
 	):
 		if config.applies:
 			currency = frappe.get_cached_value("Company", self.company, "default_currency")
 			annual_diff = (existing_amt + current_amt) - budget_amt
 			if annual_diff > 0:
 				_msg = _(
-					"Expenses have gone above budget by {} for {}".format(
+					"Annual Budget for Account {} against {} {} is {}. It will be exceeded by {}".format(
+						frappe.bold(key[2]),
+						frappe.bold(frappe.unscrub(key[0])),
+						frappe.bold(key[1]),
+						frappe.bold(fmt_money(budget_amt, currency=currency)),
 						frappe.bold(fmt_money(annual_diff, currency=currency)),
-						get_link_to_form("Budget", budget),
 					)
 				)
 
@@ -301,13 +304,16 @@ class BudgetValidation:
 	def handle_action(self, key, v_map):
 		budget = v_map.get("budget_doc")
 		actual_exp = v_map.get("actual_expense")
+		cur_actual_exp = v_map.get("current_actual_exp_amount")
 		ordered_amt = v_map.get("ordered_amount")
+		cur_ordered_amt = v_map.get("current_ordered_amount")
 		requested_amt = v_map.get("requested_amount")
-		current_amt = v_map.get("current_amount")
+		cur_requested_amt = v_map.get("current_requested_amount")
 		budget_amt = v_map.get("budget_amount")
 		acc_monthly_budget = v_map.get("accumulated_monthly_budget")
 
 		self.handle_individual_doctype_action(
+			key,
 			frappe._dict(
 				{
 					"applies": budget.applicable_on_purchase_order,
@@ -318,10 +324,11 @@ class BudgetValidation:
 			budget.name,
 			budget_amt,
 			ordered_amt,
-			current_amt,
+			cur_ordered_amt,
 			acc_monthly_budget,
 		)
 		self.handle_individual_doctype_action(
+			key,
 			frappe._dict(
 				{
 					"applies": budget.applicable_on_material_request,
@@ -332,10 +339,11 @@ class BudgetValidation:
 			budget.name,
 			budget_amt,
 			requested_amt,
-			current_amt,
+			cur_requested_amt,
 			acc_monthly_budget,
 		)
 		self.handle_individual_doctype_action(
+			key,
 			frappe._dict(
 				{
 					"applies": budget.applicable_on_booking_actual_expenses,
@@ -346,10 +354,11 @@ class BudgetValidation:
 			budget.name,
 			budget_amt,
 			actual_exp,
-			current_amt,
+			cur_actual_exp,
 			acc_monthly_budget,
 		)
 
+		current_amt = cur_ordered_amt + cur_requested_amt + cur_actual_exp
 		total_diff = (ordered_amt + requested_amt + actual_exp + current_amt) - budget_amt
 		if total_diff > 0:
 			currency = frappe.get_cached_value("Company", self.company, "default_currency")
