@@ -270,12 +270,12 @@ class BudgetValidation:
 			annual_diff = (existing_amt + current_amt) - budget_amt
 			if annual_diff > 0:
 				_msg = _(
-					"Annual Budget for Account {} against {} {} is {}. It will be exceeded by {}".format(
+					"Annual Budget for Account {} against {}: {} is {}. It will be exceeded by {}".format(
 						frappe.bold(key[2]),
 						frappe.bold(frappe.unscrub(key[0])),
 						frappe.bold(key[1]),
-						frappe.bold(fmt_money(budget_amt, currency=currency)),
 						frappe.bold(fmt_money(annual_diff, currency=currency)),
+						frappe.bold(fmt_money(budget_amt, currency=currency)),
 					)
 				)
 
@@ -288,10 +288,12 @@ class BudgetValidation:
 			monthly_diff = (existing_amt + current_amt) - acc_monthly_budget
 			if monthly_diff > 0:
 				_msg = _(
-					"Expenses have gone above accumulated monthly budget by {} for {}.</br>Configured accumulated limit is {}".format(
+					"Accumulated Monthly Budget for Account {} against {}: {} is {}. It will be exceeded by {}".format(
+						frappe.bold(key[2]),
+						frappe.bold(frappe.unscrub(key[0])),
+						frappe.bold(key[1]),
+						frappe.bold(fmt_money(acc_monthly_budget, currency=currency)),
 						frappe.bold(fmt_money(monthly_diff, currency=currency)),
-						get_link_to_form("Budget", budget),
-						fmt_money(acc_monthly_budget, currency=currency),
 					)
 				)
 
