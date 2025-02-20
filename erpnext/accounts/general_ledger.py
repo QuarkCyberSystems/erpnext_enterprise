@@ -20,6 +20,7 @@ from erpnext.accounts.doctype.accounting_dimension_filter.accounting_dimension_f
 from erpnext.accounts.doctype.accounting_period.accounting_period import ClosedAccountingPeriod
 from erpnext.accounts.doctype.budget.budget import validate_expense_against_budget
 from erpnext.accounts.utils import create_payment_ledger_entry
+from erpnext.controllers.budget_controller import BudgetValidation
 from erpnext.exceptions import InvalidAccountDimensionError, MandatoryAccountDimensionError
 
 
@@ -39,6 +40,9 @@ def make_gl_entries(
 			gl_map = process_gl_map(gl_map, merge_entries, from_repost=from_repost)
 			if gl_map and len(gl_map) > 1:
 				if gl_map[0].voucher_type != "Period Closing Voucher":
+					bud_val = BudgetValidation(gl_map=gl_map)
+					bud_val.validate()
+
 					create_payment_ledger_entry(
 						gl_map,
 						cancel=0,
@@ -191,11 +195,12 @@ def distribute_gl_based_on_cost_center_allocation(gl_map, precision=None, from_r
 	for d in gl_map:
 		cost_center = d.get("cost_center")
 
+		# TODO: is a separate validation on cost center allocation required?
 		# Validate budget against main cost center
-		if not from_repost:
-			validate_expense_against_budget(
-				d, expense_amount=flt(d.debit, precision) - flt(d.credit, precision)
-			)
+		# if not from_repost:
+		# 	validate_expense_against_budget(
+		# 		d, expense_amount=flt(d.debit, precision) - flt(d.credit, precision)
+		# 	)
 
 		cost_center_allocation = get_cost_center_allocation_data(
 			gl_map[0]["company"], gl_map[0]["posting_date"], cost_center
@@ -397,8 +402,8 @@ def make_entry(args, adv_adj, update_outstanding, from_repost=False):
 	gle.flags.notify_update = False
 	gle.submit()
 
-	if not from_repost and gle.voucher_type != "Period Closing Voucher":
-		validate_expense_against_budget(args)
+	# if not from_repost and gle.voucher_type != "Period Closing Voucher":
+	# 	validate_expense_against_budget(args)
 
 
 def validate_cwip_accounts(gl_map):
