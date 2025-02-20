@@ -6,6 +6,7 @@ from frappe.query_builder import Criterion
 from frappe.query_builder.functions import IfNull, Sum
 from frappe.utils import get_link_to_form
 
+from erpnext.accounts.doctype.budget.budget import get_accumulated_monthly_budget
 from erpnext.accounts.utils import get_fiscal_year
 
 
@@ -41,7 +42,9 @@ class BudgetValidation:
 	def build_validation_map(self):
 		self.build_budget_keys_and_map()
 		self.build_doc_or_item_keys_and_map()
+		self.find_overlap()
 
+	def find_overlap(self):
 		self.overlap = self.budget_keys & self.doc_or_item_keys
 		self.to_validate = OrderedDict()
 
@@ -53,6 +56,17 @@ class BudgetValidation:
 				"ordered_amount": 0,
 				"actual_expense": 0,
 			}
+			_obj.update(
+				{
+					"accumulated_monthly_budget": get_accumulated_monthly_budget(
+						self.budget_map[key].monthly_distribution,
+						self.doc_date,
+						self.fiscal_year,
+						self.budget_map[key].budget_amount,
+					)
+				}
+			)
+
 			if self.document_type in ["Purchase Order", "Material Request"]:
 				_obj.update({"items_to_process": self.doc_or_item_map[key]})
 			elif self.document_type == "GL Map":
@@ -61,11 +75,9 @@ class BudgetValidation:
 			self.to_validate[key] = OrderedDict(_obj)
 
 	def validate_for_overbooking(self):
-		# TODO: Need to fetch historical amount and add them to the current document; GL effect is pending
-		# TODO: handle applicable checkboxes
 		for key, v in self.to_validate.items():
 			# Amt from current Purchase Order is included in `self.ordered_amount` as doc is
-			# in submitted status by the time the validation occurs
+			# in submitted status by the time validation happens
 			if self.document_type == "Purchase Order":
 				self.get_ordered_amount(key)
 
@@ -77,8 +89,7 @@ class BudgetValidation:
 			elif self.document_type == "GL Map":
 				v["current_amount"] = sum([x.debit - x.credit for x in v.get("gl_to_process", [])])
 
-			# TODO: call stack should be self-explanatory on which doctype the error got thrown
-			# Exit early before hitting ledger
+			# If limit breached, exit early
 			self.handle_action(v)
 
 			if self.document_type == "GL Map":
@@ -183,7 +194,6 @@ class BudgetValidation:
 			conditions.append(poi.item_code.isin(items))
 
 			# key structure - (dimension_type, dimension, GL account)
-			# TODO: handle child node on a tree type dimension
 			conditions.append(poi[key[0]].eq(key[1]))
 
 			ordered_amount = (
@@ -215,7 +225,6 @@ class BudgetValidation:
 			conditions.append(mri.item_code.isin(items))
 
 			# key structure - (dimension_type, dimension, GL account)
-			# TODO: handle child node on a tree type dimension
 			conditions.append(mri[key[0]].eq(key[1]))
 
 			requested_amount = (
@@ -241,7 +250,6 @@ class BudgetValidation:
 					& gl.account.eq(key[2])
 					& gl.fiscal_year.eq(self.fiscal_year)
 					& gl.company.eq(self.company)
-					# TODO: handle child node on a tree type dimension
 					& gl[key[0]].eq(key[1])
 					& gl.posting_date[self.fy_start_date : self.fy_end_date]
 				)
@@ -258,49 +266,105 @@ class BudgetValidation:
 
 	def handle_po_action(self, v_map):
 		budget = v_map.get("budget_doc")
-		if budget.applicable_on_purchase_order and v_map.get("ordered_amount") + v_map.get(
-			"current_amount"
-		) > v_map.get("budget_amount"):
-			# TODO: handle monthly accumulation
-			# action_if_accumulated_monthly_budget_exceeded_on_po,
-			_msg = _("Expenses have gone above budget: {}".format(get_link_to_form("Budget", budget.name)))
+		if budget.applicable_on_purchase_order:
+			if v_map.get("ordered_amount") + v_map.get("current_amount") > v_map.get("budget_amount"):
+				_msg = _(
+					"Expenses have gone above budget: {}".format(get_link_to_form("Budget", budget.name))
+				)
 
-			if budget.action_if_annual_budget_exceeded_on_po == "Warn":
-				self.warn(_msg)
+				if budget.action_if_annual_budget_exceeded_on_po == "Warn":
+					self.warn(_msg)
 
-			if budget.action_if_annual_budget_exceeded_on_po == "Stop":
-				self.stop(_msg)
+				if budget.action_if_annual_budget_exceeded_on_po == "Stop":
+					self.stop(_msg)
+
+			if v_map.get("ordered_amount") + v_map.get("current_amount") > v_map.get(
+				"accumulated_monthly_budget"
+			):
+				overlimit = (v_map.get("ordered_amount") + v_map.get("current_amount")) - v_map.get(
+					"accumulated_monthly_budget"
+				)
+				_msg = _(
+					"Expenses have gone above accumulated monthly budget by {} for {}.\nCurrent accumulated limit is {}".format(
+						overlimit,
+						get_link_to_form("Budget", budget.name),
+						v_map.get("accumulated_monthly_budget"),
+					)
+				)
+
+				if budget.action_if_accumulated_monthly_budget_exceeded_on_po == "Warn":
+					self.warn(_msg)
+
+				if budget.action_if_accumulated_monthly_budget_exceeded_on_po == "Stop":
+					self.stop(_msg)
 
 	def handle_mr_action(self, v_map):
 		budget = v_map.get("budget_doc")
-		if budget.applicable_on_material_request and v_map.get("requested_amount") + v_map.get(
-			"current_amount"
-		) > v_map.get("budget_amount"):
-			# TODO: handle monthly accumulation
-			# action_if_accumulated_monthly_budget_exceeded_on_po,
-			_msg = _("Expenses have gone above budget: {}".format(get_link_to_form("Budget", budget.name)))
+		if budget.applicable_on_material_request:
+			if v_map.get("requested_amount") + v_map.get("current_amount") > v_map.get("budget_amount"):
+				_msg = _(
+					"Expenses have gone above budget: {}".format(get_link_to_form("Budget", budget.name))
+				)
 
-			if budget.action_if_annual_budget_exceeded_on_mr == "Warn":
-				self.warn(_msg)
+				if budget.action_if_annual_budget_exceeded_on_mr == "Warn":
+					self.warn(_msg)
+				if budget.action_if_annual_budget_exceeded_on_mr == "Stop":
+					self.stop(_msg)
 
-			if budget.action_if_annual_budget_exceeded_on_mr == "Stop":
-				self.stop(_msg)
+			if v_map.get("requested_amount") + v_map.get("current_amount") > v_map.get(
+				"accumulated_monthly_budget"
+			):
+				overlimit = (v_map.get("requested_amount") + v_map.get("current_amount")) - v_map.get(
+					"accumulated_monthly_budget"
+				)
+				_msg = _(
+					"Expenses have gone above accumulated monthly budget by {} for {}.\nCurrent accumulated limit is {}".format(
+						overlimit,
+						get_link_to_form("Budget", budget.name),
+						v_map.get("accumulated_monthly_budget"),
+					)
+				)
+
+				if budget.action_if_accumulated_monthly_budget_exceeded_on_po == "Warn":
+					self.warn(_msg)
+
+				if budget.action_if_accumulated_monthly_budget_exceeded_on_po == "Stop":
+					self.stop(_msg)
 
 	def handle_actual_expense_action(self, v_map):
 		budget = v_map.get("budget_doc")
 		frappe.pp(v_map)
-		if budget.applicable_on_booking_actual_expenses and v_map.get("actual_expense") + v_map.get(
-			"current_amount"
-		) > v_map.get("budget_amount"):
-			# TODO: handle monthly accumulation
-			# action_if_accumulated_monthly_budget_exceeded_on_po,
-			_msg = _("Expenses have gone above budget: {}".format(get_link_to_form("Budget", budget.name)))
+		if budget.applicable_on_booking_actual_expenses:
+			if v_map.get("actual_expense") + v_map.get("current_amount") > v_map.get("budget_amount"):
+				_msg = _(
+					"Expenses have gone above budget: {}".format(get_link_to_form("Budget", budget.name))
+				)
 
-			if budget.action_if_annual_budget_exceeded == "Warn":
-				self.warn(_msg)
+				if budget.action_if_annual_budget_exceeded == "Warn":
+					self.warn(_msg)
 
-			if budget.action_if_annual_budget_exceeded == "Stop":
-				self.stop(_msg)
+				if budget.action_if_annual_budget_exceeded == "Stop":
+					self.stop(_msg)
+
+			if v_map.get("actual_amount") + v_map.get("current_amount") > v_map.get(
+				"accumulated_monthly_budget"
+			):
+				overlimit = (v_map.get("actual_amount") + v_map.get("current_amount")) - v_map.get(
+					"accumulated_monthly_budget"
+				)
+				_msg = _(
+					"Expenses have gone above accumulated monthly budget by {} for {}.\nCurrent accumulated limit is {}".format(
+						overlimit,
+						get_link_to_form("Budget", budget.name),
+						v_map.get("accumulated_monthly_budget"),
+					)
+				)
+
+				if budget.action_if_accumulated_monthly_budget_exceeded_on_po == "Warn":
+					self.warn(_msg)
+
+				if budget.action_if_accumulated_monthly_budget_exceeded_on_po == "Stop":
+					self.stop(_msg)
 
 	def handle_action(self, v_map):
 		self.handle_po_action(v_map)
