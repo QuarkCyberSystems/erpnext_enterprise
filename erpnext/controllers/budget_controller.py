@@ -76,27 +76,21 @@ class BudgetValidation:
 
 	def validate_for_overbooking(self):
 		for key, v in self.to_validate.items():
-			if self.document_type == "Purchase Order":
-				self.get_ordered_amount(key)
+			self.get_ordered_amount(key)
+			self.get_requested_amount(key)
 
-			if self.document_type == "Material Request":
-				self.get_requested_amount(key)
-
-			# Amt from current Purchase Order is included in `self.ordered_amount` as doc is
-			# in submitted status by the time validation happens
-			if self.document_type in "Purchase Order":
+			# Validation happens after submit for Purchase Order and
+			# Material Request and so will be included in the query
+			# result
+			if self.document_type in ["Purchase Order", "Material Request"]:
 				v["current_amount"] = 0
-			elif self.document_type in "Material Request":
-				v["current_amount"] = sum([x.amount for x in v.get("items_to_process", [])])
 			elif self.document_type == "GL Map":
 				v["current_amount"] = sum([x.debit - x.credit for x in v.get("gl_to_process", [])])
 
 			# If limit breached, exit early
 			self.handle_action(v)
 
-			if self.document_type == "GL Map":
-				self.get_actual_expense(key)
-
+			self.get_actual_expense(key)
 			self.handle_action(v)
 
 	def build_budget_keys_and_map(self):
@@ -206,8 +200,9 @@ class BudgetValidation:
 				.where(Criterion.all(conditions))
 				.run(as_dict=True)
 			)
+
 			if ordered_amount:
-				self.to_validate[key]["ordered_amount"] = ordered_amount[0].amount
+				self.to_validate[key]["ordered_amount"] = ordered_amount[0].amount or 0
 
 	def get_requested_amount(self, key: tuple | None = None):
 		if key:
@@ -237,8 +232,9 @@ class BudgetValidation:
 				.where(Criterion.all(conditions))
 				.run(as_dict=True)
 			)
+
 			if requested_amount:
-				self.to_validate[key]["requested_amount"] = requested_amount[0].amount
+				self.to_validate[key]["requested_amount"] = requested_amount[0].amount or 0
 
 	def get_actual_expense(self, key: tuple | None = None):
 		if key:
@@ -363,3 +359,4 @@ class BudgetValidation:
 					get_link_to_form("Budget", budget.name),
 				)
 			)
+			self.stop(_msg)
