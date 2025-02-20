@@ -280,14 +280,14 @@ class BudgetValidation:
 					)
 				)
 
-				if config.action_for_annaul == "Warn":
+				if config.action_for_annual == "Warn":
 					self.warn(_msg)
 
-				if config.action_for_annaul == "Stop":
+				if config.action_for_annual == "Stop":
 					self.stop(_msg)
 
 			monthly_diff = (existing_amt + current_amt) - acc_monthly_budget
-			if monthly_diff:
+			if monthly_diff > 0:
 				_msg = _(
 					"Expenses have gone above accumulated monthly budget by {} for {}.</br>Configured accumulated limit is {}".format(
 						frappe.bold(fmt_money(monthly_diff, currency=currency)),
@@ -353,3 +353,13 @@ class BudgetValidation:
 			current_amt,
 			acc_monthly_budget,
 		)
+
+		total_diff = (ordered_amt + requested_amt + actual_exp + current_amt) - budget_amt
+		if total_diff > 0:
+			currency = frappe.get_cached_value("Company", self.company, "default_currency")
+			_msg = _(
+				"Total Expenses booked across Purchase Order, Material Request and Ledger have gone above budget by {} for {}".format(
+					frappe.bold(fmt_money(total_diff, currency=currency)),
+					get_link_to_form("Budget", budget.name),
+				)
+			)
