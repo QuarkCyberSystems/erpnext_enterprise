@@ -270,13 +270,13 @@ class BudgetValidation:
 			annual_diff = (existing_amt + current_amt) - budget_amt
 			if annual_diff > 0:
 				_msg = _(
-					"Annual Budget for Account {} against {}: {} is {}. It will be exceeded by {}".format(
-						frappe.bold(key[2]),
-						frappe.bold(frappe.unscrub(key[0])),
-						frappe.bold(key[1]),
-						frappe.bold(fmt_money(annual_diff, currency=currency)),
-						frappe.bold(fmt_money(budget_amt, currency=currency)),
-					)
+					"Annual Budget for Account {0} against {1}: {2} is {3}. It will be exceeded by {4}"
+				).format(
+					frappe.bold(key[2]),
+					frappe.bold(frappe.unscrub(key[0])),
+					frappe.bold(key[1]),
+					frappe.bold(fmt_money(annual_diff, currency=currency)),
+					frappe.bold(fmt_money(budget_amt, currency=currency)),
 				)
 
 				if config.action_for_annual == "Warn":
@@ -288,13 +288,13 @@ class BudgetValidation:
 			monthly_diff = (existing_amt + current_amt) - acc_monthly_budget
 			if monthly_diff > 0:
 				_msg = _(
-					"Accumulated Monthly Budget for Account {} against {}: {} is {}. It will be exceeded by {}".format(
-						frappe.bold(key[2]),
-						frappe.bold(frappe.unscrub(key[0])),
-						frappe.bold(key[1]),
-						frappe.bold(fmt_money(acc_monthly_budget, currency=currency)),
-						frappe.bold(fmt_money(monthly_diff, currency=currency)),
-					)
+					"Accumulated Monthly Budget for Account {0} against {1}: {2} is {3}. It will be exceeded by {4}"
+				).format(
+					frappe.bold(key[2]),
+					frappe.bold(frappe.unscrub(key[0])),
+					frappe.bold(key[1]),
+					frappe.bold(fmt_money(acc_monthly_budget, currency=currency)),
+					frappe.bold(fmt_money(monthly_diff, currency=currency)),
 				)
 
 				if config.action_for_monthly == "Warn":
@@ -365,12 +365,12 @@ class BudgetValidation:
 		if total_diff > 0:
 			currency = frappe.get_cached_value("Company", self.company, "default_currency")
 			_msg = _(
-				"Annual Budget for Account {} against {} {} is {}. It will be exceeded by {}".format(
-					frappe.bold(key[2]),
-					frappe.bold(frappe.unscrub(key[0])),
-					frappe.bold(key[1]),
-					frappe.bold(fmt_money(budget_amt, currency=currency)),
-					frappe.bold(fmt_money(total_diff, currency=currency)),
-				)
+				"Annual Budget for Account {0} against {1} {2} is {3}. It will be exceeded by {4}"
+			).format(
+				frappe.bold(key[2]),
+				frappe.bold(frappe.unscrub(key[0])),
+				frappe.bold(key[1]),
+				frappe.bold(fmt_money(budget_amt, currency=currency)),
+				frappe.bold(fmt_money(total_diff, currency=currency)),
 			)
 			self.stop(_msg)
