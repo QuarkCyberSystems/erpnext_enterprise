@@ -325,10 +325,10 @@ class Project(Document):
 		# nosemgrep
 		total_billed_amount = frappe.db.sql(
 			"""select sum(base_net_amount)
-			from `tabSales Invoice Item` si_item, `tabSales Invoice` si
-			where si_item.parent = si.name
-				and if(si_item.project, si_item.project, si.project) = %s
-				and si.docstatus=1""",
+			from `tabSales Invoice Item` si_item
+			join `tabSales Invoice` si on si_item.parent = si.name
+				where (si_item.project = %s or (si_item.project is null and si.project = %s))
+			   	and si.docstatus = 1""",
 			self.name,
 		)
 
