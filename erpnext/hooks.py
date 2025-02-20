@@ -13,7 +13,7 @@ app_home = "/app/home"
 add_to_apps_screen = [
 	{
 		"name": app_name,
-		"logo": "/assets/erpnext/images/erpnext-logo-blue.png",
+		"logo": "/assets/erpnext/images/erpnext-logo.svg",
 		"title": app_title,
 		"route": app_home,
 		"has_permission": "erpnext.check_app_permission",

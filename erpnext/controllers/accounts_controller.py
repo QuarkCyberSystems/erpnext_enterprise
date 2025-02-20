@@ -173,7 +173,7 @@ class AccountsController(TransactionBase):
 			self.validate_qty_is_not_zero()
 
 		if (
-			self.doctype in ["Sales Invoice", "Purchase Invoice"]
+			self.doctype in ["Sales Invoice", "Purchase Invoice", "POS Invoice"]
 			and self.get("is_return")
 			and self.get("update_stock")
 		):

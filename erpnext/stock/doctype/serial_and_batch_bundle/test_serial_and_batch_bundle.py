@@ -26,6 +26,67 @@ class UnitTestSerialAndBatchBundle(UnitTestCase):
 
 
 class TestSerialandBatchBundle(IntegrationTestCase):
+	def test_naming_for_sabb(self):
+		frappe.db.set_single_value(
+			"Stock Settings", "set_serial_and_batch_bundle_naming_based_on_naming_series", 1
+		)
+
+		serial_item_code = "New Serial No Valuation 11"
+		make_item(
+			serial_item_code,
+			{
+				"has_serial_no": 1,
+				"serial_no_series": "TEST-A-SER-VAL-.#####",
+				"is_stock_item": 1,
+			},
+		)
+
+		for sn in ["TEST-A-SER-VAL-00001", "TEST-A-SER-VAL-00002"]:
+			if not frappe.db.exists("Serial No", sn):
+				frappe.get_doc(
+					{
+						"doctype": "Serial No",
+						"serial_no": sn,
+						"item_code": serial_item_code,
+					}
+				).insert(ignore_permissions=True)
+
+		bundle_doc = make_serial_batch_bundle(
+			{
+				"item_code": serial_item_code,
+				"warehouse": "_Test Warehouse - _TC",
+				"voucher_type": "Stock Entry",
+				"posting_date": today(),
+				"posting_time": nowtime(),
+				"qty": 10,
+				"serial_nos": ["TEST-A-SER-VAL-00001", "TEST-A-SER-VAL-00002"],
+				"type_of_transaction": "Inward",
+				"do_not_submit": True,
+			}
+		)
+
+		self.assertTrue(bundle_doc.name.startswith("SABB-"))
+
+		frappe.db.set_single_value(
+			"Stock Settings", "set_serial_and_batch_bundle_naming_based_on_naming_series", 0
+		)
+
+		bundle_doc = make_serial_batch_bundle(
+			{
+				"item_code": serial_item_code,
+				"warehouse": "_Test Warehouse - _TC",
+				"voucher_type": "Stock Entry",
+				"posting_date": today(),
+				"posting_time": nowtime(),
+				"qty": 10,
+				"serial_nos": ["TEST-A-SER-VAL-00001", "TEST-A-SER-VAL-00002"],
+				"type_of_transaction": "Inward",
+				"do_not_submit": True,
+			}
+		)
+
+		self.assertFalse(bundle_doc.name.startswith("SABB-"))
+
 	def test_inward_outward_serial_valuation(self):
 		from erpnext.stock.doctype.delivery_note.test_delivery_note import create_delivery_note
 		from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import make_purchase_receipt

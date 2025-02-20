@@ -1251,6 +1251,7 @@ class TestPickList(IntegrationTestCase):
 				"is_recursive": 1,
 				"recurse_for": 2,
 				"free_qty": 1,
+				"dont_enforce_free_item_qty": 0,
 				"company": "_Test Company",
 				"customer": "_Test Customer",
 			}

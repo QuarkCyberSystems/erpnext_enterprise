@@ -78,7 +78,11 @@ class POSProfile(Document):
 	def validate_accounting_dimensions(self):
 		acc_dims = get_checks_for_pl_and_bs_accounts()
 		for acc_dim in acc_dims:
-			if not self.get(acc_dim.fieldname) and (acc_dim.mandatory_for_pl or acc_dim.mandatory_for_bs):
+			if (
+				self.company == acc_dim.company
+				and not self.get(acc_dim.fieldname)
+				and (acc_dim.mandatory_for_pl or acc_dim.mandatory_for_bs)
+			):
 				frappe.throw(
 					_(
 						"{0} is a mandatory Accounting Dimension. <br>"
