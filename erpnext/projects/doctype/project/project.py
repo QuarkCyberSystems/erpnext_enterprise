@@ -327,9 +327,9 @@ class Project(Document):
 			"""select sum(base_net_amount)
 			from `tabSales Invoice Item` si_item
 			join `tabSales Invoice` si on si_item.parent = si.name
-				where (si_item.project = %s or (si_item.project is null and si.project = %s))
+				where (si_item.project = %(name)s or (si_item.project is null and si.project = %(name)s))
 			   	and si.docstatus = 1""",
-			self.name,
+			{"name": self.name},
 		)
 
 		self.total_billed_amount = total_billed_amount and total_billed_amount[0][0] or 0
