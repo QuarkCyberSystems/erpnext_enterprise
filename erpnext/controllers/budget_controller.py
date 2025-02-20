@@ -76,15 +76,17 @@ class BudgetValidation:
 
 	def validate_for_overbooking(self):
 		for key, v in self.to_validate.items():
-			# Amt from current Purchase Order is included in `self.ordered_amount` as doc is
-			# in submitted status by the time validation happens
 			if self.document_type == "Purchase Order":
 				self.get_ordered_amount(key)
 
 			if self.document_type == "Material Request":
 				self.get_requested_amount(key)
 
-			if self.document_type in ["Purchase Order", "Material Request"]:
+			# Amt from current Purchase Order is included in `self.ordered_amount` as doc is
+			# in submitted status by the time validation happens
+			if self.document_type in "Purchase Order":
+				v["current_amount"] = 0
+			elif self.document_type in "Material Request":
 				v["current_amount"] = sum([x.amount for x in v.get("items_to_process", [])])
 			elif self.document_type == "GL Map":
 				v["current_amount"] = sum([x.debit - x.credit for x in v.get("gl_to_process", [])])
@@ -269,11 +271,12 @@ class BudgetValidation:
 	):
 		if config.applies:
 			currency = frappe.get_cached_value("Company", self.company, "default_currency")
-			diff = (existing_amt + current_amt) - budget_amt
-			if diff > 0:
+			annual_diff = (existing_amt + current_amt) - budget_amt
+			if annual_diff > 0:
 				_msg = _(
 					"Expenses have gone above budget by {} for {}".format(
-						fmt_money(diff, currency=currency), get_link_to_form("Budget", budget)
+						frappe.bold(fmt_money(annual_diff, currency=currency)),
+						get_link_to_form("Budget", budget),
 					)
 				)
 
@@ -286,8 +289,8 @@ class BudgetValidation:
 			monthly_diff = (existing_amt + current_amt) - acc_monthly_budget
 			if monthly_diff:
 				_msg = _(
-					"Expenses have gone above accumulated monthly budget by {} for {}.\nCurrent accumulated limit is {}".format(
-						fmt_money(monthly_diff, currency=currency),
+					"Expenses have gone above accumulated monthly budget by {} for {}.</br>Configured accumulated limit is {}".format(
+						frappe.bold(fmt_money(monthly_diff, currency=currency)),
 						get_link_to_form("Budget", budget),
 						fmt_money(acc_monthly_budget, currency=currency),
 					)
