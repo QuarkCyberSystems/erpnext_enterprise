@@ -1095,7 +1095,8 @@ def get_batch_based_item_price(pctx: ItemPriceCtx | dict | str, item_code) -> fl
 	if not item_price:
 		item_price = get_item_price(pctx, item_code, ignore_party=True, force_batch_no=True)
 
-	if item_price and item_price[0].uom == pctx.uom and not pctx.get("items", [{}])[0].get("is_free_item", 0):
+
+	if item_price and item_price[0].uom == pctx.uom and params.get("is_free_item") == 0:
 		return item_price[0].price_list_rate
 
 	return 0.0
