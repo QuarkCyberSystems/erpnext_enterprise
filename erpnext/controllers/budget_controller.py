@@ -6,12 +6,8 @@ from frappe.query_builder import Criterion
 from frappe.query_builder.functions import IfNull, Sum
 from frappe.utils import flt, fmt_money, get_link_to_form
 
-from erpnext.accounts.doctype.budget.budget import get_accumulated_monthly_budget
+from erpnext.accounts.doctype.budget.budget import BudgetError, get_accumulated_monthly_budget
 from erpnext.accounts.utils import get_fiscal_year
-
-
-class BudgetExceededError(frappe.ValidationError):
-	pass
 
 
 class BudgetValidation:
@@ -93,6 +89,12 @@ class BudgetValidation:
 			self.get_actual_expense(key)
 			self.handle_action(key, v)
 
+	def get_child_nodes(self, budget_against, dimension):
+		lft, rgt = frappe.db.get_all(
+			budget_against, filters={"name": dimension}, fields=["lft", "rgt"], as_list=1
+		)[0]
+		return frappe.db.get_all(budget_against, filters={"lft": [">=", lft], "rgt": ["<=", rgt]}, as_list=1)
+
 	def build_budget_keys_and_map(self):
 		"""
 		key structure - (dimension_type, dimension, GL account)
@@ -102,9 +104,16 @@ class BudgetValidation:
 		for _bud in _budgets:
 			budget_against = frappe.scrub(_bud.budget_against)
 			dimension = _bud.get(budget_against)
-			key = (budget_against, dimension, _bud.account)
-			# TODO: ensure duplicate keys are not possible
-			self.budget_map[key] = _bud
+
+			if frappe.db.get_value(_bud.budget_against, dimension, "is_group"):
+				child_nodes = self.get_child_nodes(_bud.budget_against, dimension)
+				for child in child_nodes:
+					key = (budget_against, child[0], _bud.account)
+					self.budget_map[key] = _bud
+			else:
+				key = (budget_against, dimension, _bud.account)
+				# TODO: ensure duplicate keys are not possible
+				self.budget_map[key] = _bud
 		self.budget_keys = self.budget_map.keys()
 
 	def build_doc_or_item_keys_and_map(self):
@@ -257,7 +266,7 @@ class BudgetValidation:
 				self.to_validate[key]["actual_expense"] = actual_expense[0].balance or 0
 
 	def stop(self, msg):
-		frappe.throw(msg, BudgetExceededError, title=_("Budget Exceeded"))
+		frappe.throw(msg, BudgetError, title=_("Budget Exceeded"))
 
 	def warn(self, msg):
 		frappe.msgprint(msg, _("Budget Exceeded"))
