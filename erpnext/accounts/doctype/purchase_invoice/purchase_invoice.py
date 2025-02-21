@@ -873,7 +873,13 @@ class PurchaseInvoice(BuyingController):
 		self.make_payment_gl_entries(gl_entries)
 		self.make_write_off_gl_entry(gl_entries)
 		self.make_gle_for_rounding_adjustment(gl_entries)
+		self.set_transaction_currency_rate(gl_entries)
 		return gl_entries
+
+	def set_transaction_currency_rate(self, gl_entries):
+		for x in gl_entries:
+			x["transaction_currency"] = self.currency
+			x["transaction_exchange_rate"] = self.get("conversion_rate") or 1
 
 	def check_asset_cwip_enabled(self):
 		# Check if there exists any item with cwip accounting enabled in it's asset category
@@ -918,6 +924,7 @@ class PurchaseInvoice(BuyingController):
 			"credit_in_account_currency": base_grand_total
 			if self.party_account_currency == self.company_currency
 			else grand_total,
+			"credit_in_transaction_currency": grand_total,
 			"against_voucher": against_voucher,
 			"against_voucher_type": self.doctype,
 			"project": self.project,
@@ -1056,7 +1063,9 @@ class PurchaseInvoice(BuyingController):
 					# Amount added through landed-cost-voucher
 					if landed_cost_entries:
 						if (item.item_code, item.name) in landed_cost_entries:
-							for account, amount in landed_cost_entries[(item.item_code, item.name)].items():
+							for account, base_amount in landed_cost_entries[
+								(item.item_code, item.name)
+							].items():
 								gl_entries.append(
 									self.get_gl_dict(
 										{
@@ -1064,8 +1073,8 @@ class PurchaseInvoice(BuyingController):
 											"against": item.expense_account,
 											"cost_center": item.cost_center,
 											"remarks": self.get("remarks") or _("Accounting Entry for Stock"),
-											"credit": flt(amount["base_amount"]),
-											"credit_in_account_currency": flt(amount["amount"]),
+											"credit": flt(base_amount["base_amount"]),
+											"credit_in_account_currency": flt(base_amount["amount"]),
 											"project": item.project or self.project,
 										},
 										item=item,
@@ -1101,7 +1110,7 @@ class PurchaseInvoice(BuyingController):
 						else item.deferred_expense_account
 					)
 
-					dummy, amount = self.get_amount_and_base_amount(item, None)
+					amount, base_amount = self.get_amount_and_base_amount(item, None)
 
 					if provisional_accounting_for_non_stock_items:
 						self.make_provisional_gl_entry(gl_entries, item)
@@ -1112,7 +1121,8 @@ class PurchaseInvoice(BuyingController):
 								{
 									"account": expense_account,
 									"against": self.supplier,
-									"debit": amount,
+									"debit": base_amount,
+									"debit_in_transaction_currency": amount,
 									"cost_center": item.cost_center,
 									"project": item.project or self.project,
 								},
@@ -1338,6 +1348,7 @@ class PurchaseInvoice(BuyingController):
 							dr_or_cr + "_in_account_currency": base_amount
 							if account_currency == self.company_currency
 							else amount,
+							dr_or_cr + "_in_transaction_currency": amount,
 							"cost_center": tax.cost_center,
 						},
 						account_currency,
@@ -1466,6 +1477,7 @@ class PurchaseInvoice(BuyingController):
 						"debit_in_account_currency": self.base_paid_amount
 						if self.party_account_currency == self.company_currency
 						else self.paid_amount,
+						"debit_in_transaction_currency": self.paid_amount,
 						"against_voucher": self.return_against
 						if cint(self.is_return) and self.return_against
 						else self.name,
@@ -1487,6 +1499,7 @@ class PurchaseInvoice(BuyingController):
 						"credit_in_account_currency": self.base_paid_amount
 						if bank_account_currency == self.company_currency
 						else self.paid_amount,
+						"credit_in_transaction_currency": self.paid_amount,
 						"cost_center": self.cost_center,
 					},
 					bank_account_currency,
@@ -1511,6 +1524,7 @@ class PurchaseInvoice(BuyingController):
 						"debit_in_account_currency": self.base_write_off_amount
 						if self.party_account_currency == self.company_currency
 						else self.write_off_amount,
+						"debit_in_transaction_currency": self.write_off_amount,
 						"against_voucher": self.return_against
 						if cint(self.is_return) and self.return_against
 						else self.name,
@@ -1531,6 +1545,7 @@ class PurchaseInvoice(BuyingController):
 						"credit_in_account_currency": self.base_write_off_amount
 						if write_off_account_currency == self.company_currency
 						else self.write_off_amount,
+						"credit_in_transaction_currency": self.write_off_amount,
 						"cost_center": self.cost_center or self.write_off_cost_center,
 					},
 					item=self,
