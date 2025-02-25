@@ -75,9 +75,11 @@ def get_data(filters):
 		.orderby(po.transaction_date)
 	)
 
-	for field in ("company", "name"):
-		if filters.get(field):
-			query = query.where(po[field] == filters.get(field))
+	if filters.get("company"):
+		query = query.where(po.company == filters.get("company"))
+
+	if filters.get("name"):
+		query = query.where(po.name.isin(filters.get("name")))
 
 	if filters.get("from_date") and filters.get("to_date"):
 		query = query.where(po.transaction_date.between(filters.get("from_date"), filters.get("to_date")))
