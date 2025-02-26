@@ -895,12 +895,16 @@ frappe.ui.form.on("Sales Invoice", {
 
 	project: function (frm) {
 		if (frm.doc.project) {
-			frappe.db.get_value("Projects Settings", {}, "fetch_timesheet_in_sales_invoice", (r) => {
-				if (cint(r.fetch_timesheet_in_sales_invoice)) {
-					frm.events.add_timesheet_data(frm, {
-						project: frm.doc.project,
-					});
-				}
+			frappe.call({
+				method: "is_auto_fetch_timesheet_enabled",
+				doc: frm.doc,
+				callback: function (r) {
+					if (cint(r.message)) {
+						frm.events.add_timesheet_data(frm, {
+							project: frm.doc.project,
+						});
+					}
+				},
 			});
 		}
 	},
