@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: info@erpnext.com\n"
 "POT-Creation-Date: 2025-02-16 09:34+0000\n"
-"PO-Revision-Date: 2025-02-16 23:46\n"
+"PO-Revision-Date: 2025-02-28 03:28\n"
 "Last-Translator: info@erpnext.com\n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -57,7 +57,7 @@ msgstr " 名称"
 
 #: erpnext/accounts/report/item_wise_sales_register/item_wise_sales_register.py:648
 msgid " Rate"
-msgstr " 单价"
+msgstr "税率/费率"
 
 #: erpnext/public/js/bom_configurator/bom_configurator.bundle.js:122
 msgid " Raw Material"
@@ -260,7 +260,7 @@ msgstr "物料 {0} 已禁用\"交付前强制质检\"功能，无需创建质检
 
 #: erpnext/stock/doctype/quality_inspection/quality_inspection.py:150
 msgid "'Inspection Required before Purchase' has disabled for the item {0}, no need to create the QI"
-msgstr ""
+msgstr "物料 {0} 的“采购前需检验”已禁用，无需创建质检单"
 
 #: erpnext/stock/report/stock_ledger/stock_ledger.py:584
 #: erpnext/stock/report/stock_ledger/stock_ledger.py:617
@@ -1077,7 +1077,7 @@ msgstr "空运提单编号"
 #. Name of a UOM
 #: erpnext/setup/setup_wizard/data/uom_data.json
 msgid "Abampere"
-msgstr ""
+msgstr "绝对安培"
 
 #. Label of the abbr (Data) field in DocType 'Company'
 #: erpnext/setup/doctype/company/company.json
@@ -1203,7 +1203,7 @@ msgstr "根据 CEFACT/ICG/2010/IC013 或 CEFACT/ICG/2010/IC010"
 
 #: erpnext/stock/doctype/stock_entry/stock_entry.py:765
 msgid "According to the BOM {0}, the Item '{1}' is missing in the stock entry."
-msgstr ""
+msgstr "根据物料清单 {0}，库存记录中缺少物料“{1}\"。"
 
 #. Name of a DocType
 #. Label of the account (Link) field in DocType 'Account Closing Balance'
@@ -1287,18 +1287,18 @@ msgstr "科目余额"
 #. Entry'
 #: erpnext/accounts/doctype/payment_entry/payment_entry.json
 msgid "Account Balance (From)"
-msgstr ""
+msgstr "账户余额（入账）"
 
 #. Label of the paid_to_account_balance (Currency) field in DocType 'Payment
 #. Entry'
 #: erpnext/accounts/doctype/payment_entry/payment_entry.json
 msgid "Account Balance (To)"
-msgstr ""
+msgstr "帐户余额(付款)"
 
 #. Name of a DocType
 #: erpnext/accounts/doctype/account_closing_balance/account_closing_balance.json
 msgid "Account Closing Balance"
-msgstr ""
+msgstr "账户结算余额"
 
 #. Label of the account_currency (Link) field in DocType 'Account Closing
 #. Balance'
@@ -1331,19 +1331,19 @@ msgstr ""
 #: erpnext/accounts/doctype/unreconcile_payment_entries/unreconcile_payment_entries.json
 #: erpnext/stock/doctype/landed_cost_taxes_and_charges/landed_cost_taxes_and_charges.json
 msgid "Account Currency"
-msgstr ""
+msgstr "账户货币"
 
 #. Label of the paid_from_account_currency (Link) field in DocType 'Payment
 #. Entry'
 #: erpnext/accounts/doctype/payment_entry/payment_entry.json
 msgid "Account Currency (From)"
-msgstr ""
+msgstr "账户货币(入账)"
 
 #. Label of the paid_to_account_currency (Link) field in DocType 'Payment
 #. Entry'
 #: erpnext/accounts/doctype/payment_entry/payment_entry.json
 msgid "Account Currency (To)"
-msgstr ""
+msgstr "账户货币(付款)"
 
 #. Label of the account_details_section (Section Break) field in DocType 'Bank
 #. Account'
@@ -1355,7 +1355,7 @@ msgstr ""
 #: erpnext/accounts/doctype/gl_entry/gl_entry.json
 #: erpnext/accounts/doctype/tax_withholding_category/tax_withholding_category.json
 msgid "Account Details"
-msgstr ""
+msgstr "账户详细信息"
 
 #. Label of the account_head (Link) field in DocType 'Advance Tax'
 #. Label of the account_head (Link) field in DocType 'Advance Taxes and
@@ -1375,7 +1375,7 @@ msgstr ""
 #. Label of the account_manager (Link) field in DocType 'Customer'
 #: erpnext/selling/doctype/customer/customer.json
 msgid "Account Manager"
-msgstr ""
+msgstr "客户经理"
 
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:876
 #: erpnext/controllers/accounts_controller.py:2131
@@ -1391,7 +1391,7 @@ msgstr "帐户遗失"
 #: erpnext/accounts/doctype/ledger_merge/ledger_merge.json
 #: erpnext/accounts/doctype/ledger_merge_accounts/ledger_merge_accounts.json
 msgid "Account Name"
-msgstr ""
+msgstr "帐户名称"
 
 #: erpnext/accounts/doctype/account/account.py:336
 msgid "Account Not Found"
@@ -1411,12 +1411,12 @@ msgstr "已在帐户{1}中使用的帐号{0}"
 #. Reconciliation Tool'
 #: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.json
 msgid "Account Opening Balance"
-msgstr ""
+msgstr "账户期初余额"
 
 #. Label of the paid_from (Link) field in DocType 'Payment Entry'
 #: erpnext/accounts/doctype/payment_entry/payment_entry.json
 msgid "Account Paid From"
-msgstr ""
+msgstr "账户支付来源"
 
 #. Label of the paid_to (Link) field in DocType 'Payment Entry'
 #: erpnext/accounts/doctype/payment_entry/payment_entry.json
@@ -1432,7 +1432,7 @@ msgstr "账户仅用于支付"
 #: erpnext/accounts/doctype/bank_account/bank_account.json
 #: erpnext/accounts/doctype/bank_account_subtype/bank_account_subtype.json
 msgid "Account Subtype"
-msgstr ""
+msgstr "账户子类型"
 
 #. Label of the account_type (Select) field in DocType 'Account'
 #. Label of the account_type (Link) field in DocType 'Bank Account'
@@ -1474,7 +1474,7 @@ msgstr "账户余额已设置为'借方'，不能设置为'贷方'"
 #: erpnext/accounts/doctype/pos_profile/pos_profile.json
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 msgid "Account for Change Amount"
-msgstr ""
+msgstr "变更账户金额"
 
 #: erpnext/accounts/doctype/bank_clearance/bank_clearance.py:46
 msgid "Account is mandatory to get payment entries"
@@ -1486,7 +1486,7 @@ msgstr "没有为仪表板图表{0}设置帐户"
 
 #: erpnext/assets/doctype/asset/asset.py:700
 msgid "Account not Found"
-msgstr ""
+msgstr "未找到该用户"
 
 #: erpnext/accounts/doctype/account/account.py:390
 msgid "Account with child nodes cannot be converted to ledger"
@@ -1511,7 +1511,7 @@ msgstr "有交易的科目不能被转换为分类账"
 
 #: erpnext/accounts/doctype/tax_withholding_category/tax_withholding_category.py:56
 msgid "Account {0} added multiple times"
-msgstr ""
+msgstr "账户 {0} 被重复添加"
 
 #: erpnext/setup/doctype/company/company.py:190
 msgid "Account {0} does not belong to company: {1}"
@@ -1591,7 +1591,7 @@ msgstr "帐号：{0}币种：{1}不能选择"
 
 #: erpnext/setup/setup_wizard/data/designation.txt:1
 msgid "Accountant"
-msgstr ""
+msgstr "会计"
 
 #. Group in Bank Account's connections
 #. Label of the section_break_19 (Section Break) field in DocType 'POS Profile'
@@ -1658,7 +1658,7 @@ msgstr "会计"
 #: erpnext/subcontracting/doctype/subcontracting_order_item/subcontracting_order_item.json
 #: erpnext/subcontracting/doctype/subcontracting_receipt_item/subcontracting_receipt_item.json
 msgid "Accounting Details"
-msgstr ""
+msgstr "会计详情"
 
 #. Name of a DocType
 #. Label of the accounting_dimension (Select) field in DocType 'Accounting
@@ -1692,7 +1692,7 @@ msgstr "会计维度明细"
 #. Name of a DocType
 #: erpnext/accounts/doctype/accounting_dimension_filter/accounting_dimension_filter.json
 msgid "Accounting Dimension Filter"
-msgstr ""
+msgstr "会计维度筛选"
 
 #. Label of the accounting_dimensions_section (Section Break) field in DocType
 #. 'Advance Taxes and Charges'
@@ -1837,20 +1837,20 @@ msgstr "会计维度"
 #: erpnext/buying/doctype/purchase_order_item/purchase_order_item.json
 #: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.json
 msgid "Accounting Dimensions "
-msgstr ""
+msgstr "会计维度 "
 
 #. Label of the accounting_dimensions_section (Section Break) field in DocType
 #. 'Payment Reconciliation'
 #: erpnext/accounts/doctype/payment_reconciliation/payment_reconciliation.json
 msgid "Accounting Dimensions Filter"
-msgstr ""
+msgstr "会计维度筛选"
 
 #. Label of the accounts (Table) field in DocType 'Journal Entry'
 #. Label of the accounts (Table) field in DocType 'Journal Entry Template'
 #: erpnext/accounts/doctype/journal_entry/journal_entry.json
 #: erpnext/accounts/doctype/journal_entry_template/journal_entry_template.json
 msgid "Accounting Entries"
-msgstr ""
+msgstr "会计分录"
 
 #: erpnext/assets/doctype/asset/asset.py:734
 #: erpnext/assets/doctype/asset/asset.py:749
@@ -1882,7 +1882,7 @@ msgstr "库存的会计分录"
 
 #: erpnext/stock/doctype/purchase_receipt/purchase_receipt.py:695
 msgid "Accounting Entry for {0}"
-msgstr ""
+msgstr "{0} 的会计分录"
 
 #: erpnext/controllers/accounts_controller.py:2172
 msgid "Accounting Entry for {0}: {1} can only be made in currency: {2}"
@@ -1917,7 +1917,7 @@ msgstr "会计期间与{0}重叠"
 #. 'Accounts Settings'
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 msgid "Accounting entries are frozen up to this date. Nobody can create or modify entries except users with the role specified below"
-msgstr ""
+msgstr "截至此日期的会计分录已被冻结。只有具有指定角色的用户可创建或修改条目"
 
 #. Label of the applicable_on_account (Link) field in DocType 'Applicable On
 #. Account'
@@ -1955,12 +1955,12 @@ msgstr "会计"
 #. Settings'
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 msgid "Accounts Closing"
-msgstr ""
+msgstr "账户结清"
 
 #. Label of the acc_frozen_upto (Date) field in DocType 'Accounts Settings'
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 msgid "Accounts Frozen Till Date"
-msgstr ""
+msgstr "账户冻结至日期"
 
 #. Name of a role
 #: erpnext/accounts/doctype/account/account.json
@@ -2049,7 +2049,7 @@ msgstr "会计经理"
 
 #: erpnext/accounts/report/tax_withholding_details/tax_withholding_details.py:340
 msgid "Accounts Missing Error"
-msgstr ""
+msgstr "账户缺失错误"
 
 #. Option for the 'Write Off Based On' (Select) field in DocType 'Journal
 #. Entry'
@@ -2098,13 +2098,13 @@ msgstr "应收帐款"
 #. Discounting'
 #: erpnext/accounts/doctype/invoice_discounting/invoice_discounting.json
 msgid "Accounts Receivable Credit Account"
-msgstr ""
+msgstr "应收账款贷方账户"
 
 #. Label of the accounts_receivable_discounted (Link) field in DocType 'Invoice
 #. Discounting'
 #: erpnext/accounts/doctype/invoice_discounting/invoice_discounting.json
 msgid "Accounts Receivable Discounted Account"
-msgstr ""
+msgstr "应收账款贴现账户"
 
 #. Name of a report
 #. Label of a Link in the Receivables Workspace
@@ -2118,13 +2118,13 @@ msgstr "应收账款汇总"
 #. Discounting'
 #: erpnext/accounts/doctype/invoice_discounting/invoice_discounting.json
 msgid "Accounts Receivable Unpaid Account"
-msgstr ""
+msgstr "应收账款未付账户"
 
 #. Label of the receivable_payable_remarks_length (Int) field in DocType
 #. 'Accounts Settings'
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 msgid "Accounts Receivable/Payable"
-msgstr ""
+msgstr "应收账款/应付账款"
 
 #. Name of a DocType
 #. Label of a Link in the Accounting Workspace
@@ -2235,7 +2235,7 @@ msgstr "账表不能为空。"
 #. Label of the merge_accounts (Table) field in DocType 'Ledger Merge'
 #: erpnext/accounts/doctype/ledger_merge/ledger_merge.json
 msgid "Accounts to Merge"
-msgstr ""
+msgstr "待合并账户"
 
 #. Option for the 'Account Type' (Select) field in DocType 'Account'
 #: erpnext/accounts/doctype/account/account.json
@@ -2252,7 +2252,7 @@ msgstr "累计折旧"
 #: erpnext/assets/doctype/asset_category_account/asset_category_account.json
 #: erpnext/setup/doctype/company/company.json
 msgid "Accumulated Depreciation Account"
-msgstr ""
+msgstr "累计折旧账户"
 
 #. Label of the accumulated_depreciation_amount (Currency) field in DocType
 #. 'Depreciation Schedule'
@@ -2288,17 +2288,17 @@ msgstr "达到（{}）"
 #. Label of the acquisition_date (Date) field in DocType 'Vehicle'
 #: erpnext/setup/doctype/vehicle/vehicle.json
 msgid "Acquisition Date"
-msgstr ""
+msgstr "购买日期"
 
 #. Name of a UOM
 #: erpnext/setup/setup_wizard/data/uom_data.json
 msgid "Acre"
-msgstr ""
+msgstr "英亩"
 
 #. Name of a UOM
 #: erpnext/setup/setup_wizard/data/uom_data.json
 msgid "Acre (US)"
-msgstr ""
+msgstr "英亩(美国)"
 
 #: erpnext/crm/doctype/lead/lead.js:41
 #: erpnext/public/js/bank_reconciliation_tool/dialog_manager.js:175
@@ -2309,19 +2309,19 @@ msgstr "行动"
 #. DocType 'Stock Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "Action If Quality Inspection Is Not Submitted"
-msgstr ""
+msgstr "未提交质检时的操作"
 
 #. Label of the action_if_quality_inspection_is_rejected (Select) field in
 #. DocType 'Stock Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "Action If Quality Inspection Is Rejected"
-msgstr ""
+msgstr "质检被拒绝时的操作"
 
 #. Label of the maintain_same_rate_action (Select) field in DocType 'Buying
 #. Settings'
 #: erpnext/buying/doctype/buying_settings/buying_settings.json
 msgid "Action If Same Rate is Not Maintained"
-msgstr ""
+msgstr "未保持相同费率的操作"
 
 #: erpnext/quality_management/doctype/quality_review/quality_review_list.js:7
 msgid "Action Initialised"
@@ -2331,13 +2331,13 @@ msgstr "行动初始化"
 #. DocType 'Budget'
 #: erpnext/accounts/doctype/budget/budget.json
 msgid "Action if Accumulated Monthly Budget Exceeded on Actual"
-msgstr ""
+msgstr "实际累计月度预算超支时的操作"
 
 #. Label of the action_if_accumulated_monthly_budget_exceeded_on_mr (Select)
 #. field in DocType 'Budget'
 #: erpnext/accounts/doctype/budget/budget.json
 msgid "Action if Accumulated Monthly Budget Exceeded on MR"
-msgstr ""
+msgstr "物料需求累计月度预算超支时的操作"
 
 #. Label of the action_if_accumulated_monthly_budget_exceeded_on_po (Select)
 #. field in DocType 'Budget'
