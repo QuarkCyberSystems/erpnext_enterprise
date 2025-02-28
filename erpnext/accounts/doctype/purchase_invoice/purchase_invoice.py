@@ -873,13 +873,8 @@ class PurchaseInvoice(BuyingController):
 		self.make_payment_gl_entries(gl_entries)
 		self.make_write_off_gl_entry(gl_entries)
 		self.make_gle_for_rounding_adjustment(gl_entries)
-		self.set_transaction_currency_rate(gl_entries)
+		self.set_transaction_currency_and_rate_in_gl_map(gl_entries)
 		return gl_entries
-
-	def set_transaction_currency_rate(self, gl_entries):
-		for x in gl_entries:
-			x["transaction_currency"] = self.currency
-			x["transaction_exchange_rate"] = self.get("conversion_rate") or 1
 
 	def check_asset_cwip_enabled(self):
 		# Check if there exists any item with cwip accounting enabled in it's asset category

@@ -2782,6 +2782,11 @@ class AccountsController(TransactionBase):
 			elif self.doctype == "Payment Entry":
 				self.make_advance_payment_ledger_for_payment()
 
+	def set_transaction_currency_and_rate_in_gl_map(self, gl_entries):
+		for x in gl_entries:
+			x["transaction_currency"] = self.currency
+			x["transaction_exchange_rate"] = self.get("conversion_rate") or 1
+
 
 @frappe.whitelist()
 def get_tax_rate(account_head):
