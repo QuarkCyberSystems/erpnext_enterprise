@@ -19,8 +19,6 @@ class Quotation(SellingController):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-
 		from erpnext.accounts.doctype.payment_schedule.payment_schedule import PaymentSchedule
 		from erpnext.accounts.doctype.pricing_rule_detail.pricing_rule_detail import PricingRuleDetail
 		from erpnext.accounts.doctype.sales_taxes_and_charges.sales_taxes_and_charges import (
@@ -32,6 +30,7 @@ class Quotation(SellingController):
 			QuotationLostReasonDetail,
 		)
 		from erpnext.stock.doctype.packed_item.packed_item import PackedItem
+		from frappe.types import DF
 
 		additional_discount_percentage: DF.Float
 		address_display: DF.TextEditor | None
@@ -66,6 +65,7 @@ class Quotation(SellingController):
 		enq_det: DF.Text | None
 		grand_total: DF.Currency
 		group_same_items: DF.Check
+		has_unit_price_items: DF.Check
 		ignore_pricing_rule: DF.Check
 		in_words: DF.Data | None
 		incoterm: DF.Link | None
@@ -127,6 +127,10 @@ class Quotation(SellingController):
 			self.indicator_color = "gray"
 			self.indicator_title = "Expired"
 
+	def before_validate(self):
+		self.set_has_unit_price_items()
+		self.flags.allow_zero_qty = self.has_unit_price_items
+
 	def validate(self):
 		super().validate()
 		self.set_status()
@@ -157,6 +161,17 @@ class Quotation(SellingController):
 		for row in self.get("items"):
 			if not row.is_alternative and row.name in items_with_alternatives:
 				row.has_alternative_item = 1
+
+	def set_has_unit_price_items(self):
+		"""
+		If permitted in settings and any item has 0 qty, the SO has unit price items.
+		"""
+		if not frappe.db.get_single_value("Selling Settings", "allow_zero_qty_in_quotation"):
+			return
+
+		self.has_unit_price_items = any(
+			not row.qty for row in self.get("items") if (row.item_code and not row.qty)
+		)
 
 	def get_ordered_status(self):
 		status = "Open"
@@ -412,11 +427,14 @@ def _make_sales_order(source_name, target_doc=None, ignore_permissions=False):
 		2. If selections: Is Alternative Item/Has Alternative Item: Map if selected and adequate qty
 		3. If selections: Simple row: Map if adequate qty
 		"""
+		# has_unit_price_items = 0 is accepted as the qty uncertain for some items
+		has_unit_price_items = frappe.db.get_value("Quotation", source_name, "has_unit_price_items")
+
 		balance_qty = item.qty - ordered_items.get(item.item_code, 0.0)
-		if balance_qty <= 0:
+		if balance_qty <= 0 and not has_unit_price_items:
 			return False
 
-		has_qty = balance_qty
+		has_qty = balance_qty or has_unit_price_items
 
 		if not selected_rows:
 			return not item.is_alternative

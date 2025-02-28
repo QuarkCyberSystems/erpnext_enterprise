@@ -23,7 +23,16 @@ frappe.ui.form.on("Sales Order", {
 
 		// formatter for material request item
 		frm.set_indicator_formatter("item_code", function (doc) {
-			return doc.stock_qty <= doc.delivered_qty ? "green" : "orange";
+			let color;
+			if (!doc.qty && frm.doc.has_unit_price_items) {
+				color = "yellow";
+			} else if (doc.stock_qty <= doc.delivered_qty) {
+				color = "green";
+			} else {
+				color = "orange";
+			}
+
+			return color;
 		});
 
 		frm.set_query("bom_no", "items", function (doc, cdt, cdn) {
@@ -97,6 +106,8 @@ frappe.ui.form.on("Sales Order", {
 		}
 
 		if (frm.doc.docstatus === 0) {
+			frm.trigger("set_unit_price_items_note");
+
 			if (frm.doc.is_internal_customer) {
 				frm.events.get_items_from_internal_purchase_order(frm);
 			}
@@ -548,6 +559,16 @@ frappe.ui.form.on("Sales Order", {
 			voucher_no: frm.doc.name,
 		};
 		frappe.set_route("query-report", "Reserved Stock");
+	},
+
+	set_unit_price_items_note: function (frm) {
+		if (frm.doc.has_unit_price_items && !frm.is_new()) {
+			frm.dashboard.set_headline_alert(
+				__("The Sales Order contains Unit Price Items with 0 Qty."),
+				"yellow",
+				true
+			);
+		}
 	},
 });
 

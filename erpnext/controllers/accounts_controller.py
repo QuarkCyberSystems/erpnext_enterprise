@@ -1190,6 +1190,9 @@ class AccountsController(TransactionBase):
 			)
 
 	def validate_qty_is_not_zero(self):
+		if self.flags.allow_zero_qty:
+			return
+
 		for item in self.items:
 			if self.doctype == "Purchase Receipt" and item.rejected_qty:
 				continue
