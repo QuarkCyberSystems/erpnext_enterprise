@@ -2755,3 +2755,13 @@ erpnext.apply_putaway_rule = (frm, purpose=null) => {
 		}
 	});
 };
+
+erpnext.set_unit_price_items_note = (frm) => {
+	if (frm.doc.has_unit_price_items && !frm.is_new()) {
+		frm.dashboard.set_headline_alert(
+			__("The {0} contains Unit Price Items with 0 Qty.", [__(frm.doc.doctype)]),
+			"yellow",
+			true
+		);
+	}
+};

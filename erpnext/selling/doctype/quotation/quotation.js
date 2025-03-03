@@ -46,7 +46,7 @@ frappe.ui.form.on("Quotation", {
 		frm.trigger("set_dynamic_field_label");
 
 		if (frm.doc.docstatus === 0) {
-			frm.trigger("set_unit_price_items_note");
+			erpnext.set_unit_price_items_note(frm);
 		}
 
 		let sbb_field = frm.get_docfield("packed_items", "serial_and_batch_bundle");
@@ -71,16 +71,6 @@ frappe.ui.form.on("Quotation", {
 
 	set_label: function (frm) {
 		frm.fields_dict.customer_address.set_label(__(frm.doc.quotation_to + " Address"));
-	},
-
-	set_unit_price_items_note: function (frm) {
-		if (frm.doc.has_unit_price_items) {
-			frm.dashboard.set_headline_alert(
-				__("The Quotation contains Unit Price Items with 0 Qty."),
-				"yellow",
-				true
-			);
-		}
 	},
 });
 

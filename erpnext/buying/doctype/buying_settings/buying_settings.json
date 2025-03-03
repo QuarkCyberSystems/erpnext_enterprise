@@ -25,6 +25,9 @@
   "disable_last_purchase_rate",
   "show_pay_button",
   "use_transaction_date_exchange_rate",
+  "allow_zero_qty_in_request_for_quotation",
+  "allow_zero_qty_in_supplier_quotation",
+  "allow_zero_qty_in_purchase_order",
   "subcontract",
   "backflush_raw_materials_of_subcontract_based_on",
   "column_break_11",
@@ -207,14 +210,33 @@
    "fieldtype": "Select",
    "label": "Update frequency of Project",
    "options": "Each Transaction\nManual"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_zero_qty_in_purchase_order",
+   "fieldtype": "Check",
+   "label": "Allow 0 Qty in Purchase Order (Unit Price Items)"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_zero_qty_in_request_for_quotation",
+   "fieldtype": "Check",
+   "label": "Allow 0 Qty in Request for Quotation (Unit Price Items)"
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_zero_qty_in_supplier_quotation",
+   "fieldtype": "Check",
+   "label": "Allow 0 Qty in Supplier Quotation (Unit Price Items)"
   }
  ],
+ "grid_page_length": 50,
  "icon": "fa fa-cog",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-03-27 13:06:43.375495",
+ "modified": "2025-03-03 17:32:25.939482",
  "modified_by": "Administrator",
  "module": "Buying",
  "name": "Buying Settings",
@@ -260,6 +282,7 @@
    "role": "Purchase User"
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],
