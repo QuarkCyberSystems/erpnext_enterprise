@@ -19,6 +19,8 @@ class Quotation(SellingController):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.types import DF
+
 		from erpnext.accounts.doctype.payment_schedule.payment_schedule import PaymentSchedule
 		from erpnext.accounts.doctype.pricing_rule_detail.pricing_rule_detail import PricingRuleDetail
 		from erpnext.accounts.doctype.sales_taxes_and_charges.sales_taxes_and_charges import (
@@ -30,7 +32,6 @@ class Quotation(SellingController):
 			QuotationLostReasonDetail,
 		)
 		from erpnext.stock.doctype.packed_item.packed_item import PackedItem
-		from frappe.types import DF
 
 		additional_discount_percentage: DF.Float
 		address_display: DF.TextEditor | None
