@@ -227,7 +227,7 @@ def update_stock(ctx, out, doc=None):
 				else:
 					qty -= batch_qty
 
-				out.update({"batch_no": batch_no, "actual_batch_qty": qty})
+				out.update({"batch_no": batch_no, "actual_batch_qty": batch_qty})
 				if rate:
 					out.update({"rate": rate, "price_list_rate": rate})
 
@@ -1095,7 +1095,9 @@ def get_batch_based_item_price(pctx: ItemPriceCtx | dict | str, item_code) -> fl
 	if not item_price:
 		item_price = get_item_price(pctx, item_code, ignore_party=True, force_batch_no=True)
 
-	if item_price and item_price[0].uom == pctx.uom:
+	is_free_item = pctx.get("items", [{}])[0].get("is_free_item")
+
+	if item_price and item_price[0].uom == pctx.uom and not is_free_item:
 		return item_price[0].price_list_rate
 
 	return 0.0

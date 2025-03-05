@@ -179,7 +179,7 @@ def get_stock_ledger_entries_for_batch_bundle(filters):
 	sle = frappe.qb.DocType("Stock Ledger Entry")
 	batch_package = frappe.qb.DocType("Serial and Batch Entry")
 
-	to_date = get_datetime(filters.to_date + " 23:59:59")
+	to_date = get_datetime(str(filters.to_date) + " 23:59:59")
 
 	query = (
 		frappe.qb.from_(sle)
