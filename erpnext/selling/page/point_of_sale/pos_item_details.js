@@ -187,6 +187,7 @@ erpnext.PointOfSale.ItemDetails = class {
 			this[`${fieldname}_control`].set_value(item[fieldname]);
 		});
 
+		this.resize_serial_control(item);
 		this.make_auto_serial_selection_btn(item);
 
 		this.bind_custom_control_change_event();
@@ -203,9 +204,15 @@ erpnext.PointOfSale.ItemDetails = class {
 			"actual_qty",
 			"price_list_rate",
 		];
-		if (item.has_serial_no) fields.push("serial_no");
-		if (item.has_batch_no) fields.push("batch_no");
+		if (item.has_serial_no || item.serial_no) fields.push("serial_no");
+		if (item.has_batch_no || item.batch_no) fields.push("batch_no");
 		return fields;
+	}
+
+	resize_serial_control(item) {
+		if (item.has_serial_no || item.serial_no) {
+			this.$form_container.find(".serial_no-control").find("textarea").css("height", "6rem");
+		}
 	}
 
 	make_auto_serial_selection_btn(item) {
@@ -225,7 +232,6 @@ erpnext.PointOfSale.ItemDetails = class {
 						`<div class="btn btn-sm btn-secondary auto-fetch-btn" style="margin-top: 6px">${label}</div>`
 					);
 			}
-			this.$form_container.find(".serial_no-control").find("textarea").css("height", "6rem");
 		}
 	}
 
