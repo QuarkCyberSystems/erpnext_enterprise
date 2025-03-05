@@ -17,7 +17,7 @@
 </div>
 
 <div align="center">
-	<a href="https://erpnext-demo.frappe.cloud/app/home">Live Demo</a>
+	<a href="https://erpnext-demo.frappe.cloud/api/method/erpnext_demo.erpnext_demo.auth.login_demo">Live Demo</a>
 	-
 	<a href="https://frappe.io/erpnext">Website</a>
 	-
