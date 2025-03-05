@@ -34,6 +34,8 @@ def get_periodic_data(filters, entry):
 		"Overdue": {},
 		"Pending": {},
 		"Completed": {},
+		"Closed": {},
+		"Stopped": {},
 	}
 
 	ranges = get_period_date_ranges(filters)
@@ -45,15 +47,13 @@ def get_periodic_data(filters, entry):
 				"Draft",
 				"Submitted",
 				"Completed",
-				"Stopped",
-				"Closed",
 				"Cancelled",
 			]:
-				if d.status == "Not Started":
-					periodic_data = update_periodic_data(periodic_data, "Not Started", period)
+				if d.status in ["Not Started", "Closed", "Stopped"]:
+					periodic_data = update_periodic_data(periodic_data, d.status, period)
 				elif today() > getdate(d.planned_end_date):
 					periodic_data = update_periodic_data(periodic_data, "Overdue", period)
-				else:
+				elif today() < getdate(d.planned_end_date):
 					periodic_data = update_periodic_data(periodic_data, "Pending", period)
 
 			if (
@@ -89,7 +89,7 @@ def get_data(filters, columns):
 
 	periodic_data = get_periodic_data(filters, entry)
 
-	labels = ["Not Started", "Overdue", "Pending", "Completed"]
+	labels = ["Not Started", "Overdue", "Pending", "Completed", "Closed", "Stopped"]
 	chart_data = get_chart_data(periodic_data, columns)
 	ranges = get_period_date_ranges(filters)
 
@@ -110,7 +110,7 @@ def get_data(filters, columns):
 def get_chart_data(periodic_data, columns):
 	labels = [d.get("label") for d in columns[1:]]
 
-	not_start, overdue, pending, completed = [], [], [], []
+	not_start, overdue, pending, completed, closed, stopped = [], [], [], [], [], []
 	datasets = []
 
 	for d in labels:
@@ -118,11 +118,15 @@ def get_chart_data(periodic_data, columns):
 		overdue.append(periodic_data.get("Overdue").get(d))
 		pending.append(periodic_data.get("Pending").get(d))
 		completed.append(periodic_data.get("Completed").get(d))
+		closed.append(periodic_data.get("Closed").get(d))
+		stopped.append(periodic_data.get("Stopped").get(d))
 
 	datasets.append({"name": _("Not Started"), "values": not_start})
 	datasets.append({"name": _("Overdue"), "values": overdue})
 	datasets.append({"name": _("Pending"), "values": pending})
 	datasets.append({"name": _("Completed"), "values": completed})
+	datasets.append({"name": _("Closed"), "values": closed})
+	datasets.append({"name": _("Stopped"), "values": stopped})
 
 	chart = {"data": {"labels": labels, "datasets": datasets}}
 	chart["type"] = "line"
