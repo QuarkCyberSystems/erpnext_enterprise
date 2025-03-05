@@ -1934,13 +1934,16 @@ def is_overdue(doc, total):
 		"base_payment_amount" if doc.party_account_currency != doc.currency else "payment_amount"
 	)
 
-	payable_amount = sum(
-		payment.get(payment_amount_field)
-		for payment in doc.payment_schedule
-		if getdate(payment.due_date) < today
+	payable_amount = flt(
+		sum(
+			payment.get(payment_amount_field)
+			for payment in doc.payment_schedule
+			if getdate(payment.due_date) < today
+		),
+		doc.precision("outstanding_amount"),
 	)
 
-	return (total - outstanding_amount) < payable_amount
+	return flt(total - outstanding_amount, doc.precision("outstanding_amount")) < payable_amount
 
 
 def get_discounting_status(sales_invoice):
