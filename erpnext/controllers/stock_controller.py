@@ -1237,7 +1237,7 @@ class StockController(AccountsController):
 				child_tab.item_code,
 				child_tab.qty,
 			)
-			.where(parent_tab.docstatus < 2)
+			.where(parent_tab.docstatus == 1)
 		)
 
 		if self.doctype == "Purchase Invoice":
