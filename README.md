@@ -1,5 +1,5 @@
 <div align="center">
-    <a href="https://erpnext.com">
+    <a href="https://frappe.io/erpnext">
 	<img src="./erpnext/public/images/v16/erpnext.svg" alt="ERPNext Logo" height="80px" width="80xp"/>
     </a>
     <h2>ERPNext</h2>
@@ -19,9 +19,9 @@
 <div align="center">
 	<a href="https://erpnext-demo.frappe.cloud/app/home">Live Demo</a>
 	-
-	<a href="https://erpnext.com">Website</a>
+	<a href="https://frappe.io/erpnext">Website</a>
 	-
-	<a href="https://docs.erpnext.com">Documentation</a>
+	<a href="https://docs.frappe.io/erpnext/">Documentation</a>
 </div>
 
 ## ERPNext
@@ -115,16 +115,16 @@ To setup the repository locally follow the steps mentioned below:
    ```
    # Create a new site
    bench new-site erpnext.dev
-   
+
    # Map your site to localhost
    bench --site erpnext.dev add-to-hosts
    ```
-	
+
 3. Get the ERPNext app and install it
    ```
    # Get the ERPNext app
    bench get-app https://github.com/frappe/erpnext
-   
+
    # Install the app
    bench --site erpnext.dev install-app erpnext
    ```
