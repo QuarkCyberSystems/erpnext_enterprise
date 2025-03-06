@@ -1311,10 +1311,7 @@ class PaymentEntry(AccountsController):
 
 		self.set("remarks", "\n".join(remarks))
 
-	def build_gl_map(self):
-		if self.payment_type in ("Receive", "Pay") and not self.get("party_account_field"):
-			self.setup_party_account_field()
-
+	def set_transaction_currency_and_rate(self):
 		company_currency = erpnext.get_company_currency(self.company)
 		self.transaction_currency = company_currency
 		self.transaction_exchange_rate = 1
@@ -1325,6 +1322,11 @@ class PaymentEntry(AccountsController):
 		elif self.paid_to_account_currency != company_currency:
 			self.transaction_currency = self.paid_to_account_currency
 			self.transaction_exchange_rate = self.target_exchange_rate
+
+	def build_gl_map(self):
+		if self.payment_type in ("Receive", "Pay") and not self.get("party_account_field"):
+			self.setup_party_account_field()
+		self.set_transaction_currency_and_rate()
 
 		gl_entries = []
 		self.add_party_gl_entries(gl_entries)
@@ -1472,6 +1474,7 @@ class PaymentEntry(AccountsController):
 	def make_advance_gl_entries(
 		self, entry: object | dict = None, cancel: bool = 0, update_outstanding: str = "Yes"
 	):
+		self.set_transaction_currency_and_rate()
 		gl_entries = []
 		self.add_advance_gl_entries(gl_entries, entry)
 
