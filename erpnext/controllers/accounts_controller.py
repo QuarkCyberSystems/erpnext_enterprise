@@ -423,7 +423,7 @@ class AccountsController(TransactionBase):
 			.where(doc_field.fieldname == "company")
 		).run(as_list=True)
 
-		dimension_list = sum(dimension_list, ["Project"])
+		dimension_list = sum(dimension_list, ["Project", "Cost Center"])
 		self.validate_company(dimension_list)
 
 		for child in self.get_all_children() or []:

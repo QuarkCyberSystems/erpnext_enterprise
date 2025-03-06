@@ -599,13 +599,14 @@ def make_journal_entry(
 	save=True,
 	submit=False,
 	project=None,
+	company=None,
 ):
 	if not cost_center:
 		cost_center = "_Test Cost Center - _TC"
 
 	jv = frappe.new_doc("Journal Entry")
 	jv.posting_date = posting_date or nowdate()
-	jv.company = "_Test Company"
+	jv.company = company or "_Test Company"
 	jv.user_remark = "test"
 	jv.multi_currency = 1
 	jv.set(

@@ -10,6 +10,7 @@ from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import add_days, cstr, flt, getdate, nowdate, nowtime, today
 
 from erpnext.accounts.doctype.account.test_account import get_inventory_account
+from erpnext.accounts.doctype.cost_center.test_cost_center import create_cost_center
 from erpnext.accounts.utils import get_balance_on
 from erpnext.controllers.accounts_controller import InvalidQtyError
 from erpnext.selling.doctype.product_bundle.test_product_bundle import make_product_bundle
@@ -1436,6 +1437,7 @@ class TestDeliveryNote(IntegrationTestCase):
 		warehouse = "Stores - TCP1"
 		target = "Finished Goods - TCP1"
 		customer = create_internal_customer(represents_company=company)
+		create_cost_center(cost_center_name="_Test Cost Center", company=company)
 
 		# average rate = 128.015
 		rates = [101.45, 150.46, 138.25, 121.9]
@@ -1450,6 +1452,7 @@ class TestDeliveryNote(IntegrationTestCase):
 			qty=4,
 			warehouse=warehouse,
 			target_warehouse=target,
+			cost_center="_Test Cost Center - TCP1",
 		)
 		self.assertFalse(frappe.db.exists("GL Entry", {"voucher_no": dn.name, "voucher_type": dn.doctype}))
 

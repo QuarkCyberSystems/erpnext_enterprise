@@ -141,6 +141,7 @@ class JournalEntry(AccountsController):
 		self.validate_empty_accounts_table()
 		self.validate_inter_company_accounts()
 		self.validate_depr_entry_voucher_type()
+		self.validate_company_in_accounting_dimension()
 		self.validate_advance_accounts()
 
 		if self.docstatus == 0:

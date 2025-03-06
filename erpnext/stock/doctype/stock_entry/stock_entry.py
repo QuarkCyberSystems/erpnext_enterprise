@@ -210,6 +210,7 @@ class StockEntry(StockController):
 		self.validate_bom()
 		self.set_process_loss_qty()
 		self.validate_purchase_order()
+		self.validate_company_in_accounting_dimension()
 
 		if self.purpose in ("Manufacture", "Repack"):
 			self.mark_finished_and_scrap_items()
