@@ -7,6 +7,9 @@ from erpnext.stock.doctype.purchase_receipt.purchase_receipt import adjust_incom
 
 
 def execute():
+	if not frappe.db.get_single_value("Buying Settings", "set_landed_cost_based_on_purchase_invoice_rate"):
+		return
+
 	for company in frappe.get_all("Company", pluck="name"):
 		table = frappe.qb.DocType("Purchase Receipt Item")
 		parent = frappe.qb.DocType("Purchase Receipt")
