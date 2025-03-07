@@ -149,6 +149,12 @@ def get_serial_nos(serial_no):
 	return [s.strip() for s in cstr(serial_no).strip().replace(",", "\n").split("\n") if s.strip()]
 
 
+def get_serial_nos_from_serial_and_batch_bundle(serial_and_batch_bundle):
+	table = frappe.qb.DocType("Serial and Batch Entry")
+	query = frappe.qb.from_(table).select(table.serial_no).where(table.parent == serial_and_batch_bundle)
+	return [item[0] for item in query.run(as_list=True)]
+
+
 def clean_serial_no_string(serial_no: str) -> str:
 	if not serial_no:
 		return ""
