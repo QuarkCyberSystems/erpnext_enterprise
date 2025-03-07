@@ -41,6 +41,7 @@ class TestAssetDepreciationSchedule(IntegrationTestCase):
 		self.assertRaises(frappe.ValidationError, second_asset_depr_schedule.insert)
 
 	def test_daily_prorata_based_depr_on_sl_method(self):
+		frappe.db.set_single_value("Accounts Settings", "calculate_depr_using_total_days", 0)
 		asset = create_asset(
 			calculate_depreciation=1,
 			depreciation_method="Straight Line",
