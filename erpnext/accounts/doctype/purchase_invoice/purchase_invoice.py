@@ -1197,7 +1197,8 @@ class PurchaseInvoice(BuyingController):
 									"account": self.stock_received_but_not_billed,
 									"against": self.supplier,
 									"debit": flt(item.item_tax_amount, item.precision("item_tax_amount")),
-									"debit_in_transaction_currency": item.net_amount,
+									"debit_in_transaction_currency": item.item_tax_amount
+									/ self.conversion_rate,
 									"remarks": self.remarks or _("Accounting Entry for Stock"),
 									"cost_center": self.cost_center,
 									"project": item.project or self.project,
