@@ -1068,7 +1068,7 @@ class JournalEntry(AccountsController):
 		if self.multi_currency:
 			for row in self.get("accounts"):
 				if row.account_currency != company_currency:
-					# Journal assumes the first foregin currency as transaction currency
+					# Journal assumes the first foreign currency as transaction currency
 					self.transaction_currency = row.account_currency
 					self.transaction_exchange_rate = row.exchange_rate
 					break
