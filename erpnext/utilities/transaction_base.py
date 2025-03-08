@@ -324,7 +324,7 @@ class TransactionBase(StatusUpdater):
 				}
 			)
 
-			if self.doctype in ["Purchase Order", "Sales Ordere"]:
+			if self.doctype in ["Purchase Order", "Sales Order"]:
 				args.update(
 					{
 						"posting_date": self.transaction_date,
