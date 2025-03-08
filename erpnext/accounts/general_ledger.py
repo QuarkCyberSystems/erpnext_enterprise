@@ -431,7 +431,7 @@ def process_debit_credit_difference(gl_map):
 	voucher_no = gl_map[0].voucher_no
 	allowance = get_debit_credit_allowance(voucher_type, precision)
 
-	debit_credit_diff = get_debit_credit_difference(gl_map, precision)
+	debit_credit_diff, trx_cur_debit_credit_diff = get_debit_credit_difference(gl_map, precision)
 
 	if abs(debit_credit_diff) > allowance:
 		if not (
@@ -442,9 +442,9 @@ def process_debit_credit_difference(gl_map):
 			raise_debit_credit_not_equal_error(debit_credit_diff, voucher_type, voucher_no)
 
 	elif abs(debit_credit_diff) >= (1.0 / (10**precision)):
-		make_round_off_gle(gl_map, debit_credit_diff, precision)
+		make_round_off_gle(gl_map, debit_credit_diff, trx_cur_debit_credit_diff, precision)
 
-	debit_credit_diff = get_debit_credit_difference(gl_map, precision)
+	debit_credit_diff, trx_cur_debit_credit_diff = get_debit_credit_difference(gl_map, precision)
 	if abs(debit_credit_diff) > allowance:
 		if not (
 			voucher_type == "Journal Entry"
@@ -456,14 +456,23 @@ def process_debit_credit_difference(gl_map):
 
 def get_debit_credit_difference(gl_map, precision):
 	debit_credit_diff = 0.0
+	trx_cur_debit_credit_diff = 0
+
 	for entry in gl_map:
 		entry.debit = flt(entry.debit, precision)
 		entry.credit = flt(entry.credit, precision)
 		debit_credit_diff += entry.debit - entry.credit
 
-	debit_credit_diff = flt(debit_credit_diff, precision)
+		entry.debit_in_transaction_currency = flt(entry.debit_in_transaction_currency, precision)
+		entry.credit_in_transaction_currency = flt(entry.credit_in_transaction_currency, precision)
+		trx_cur_debit_credit_diff += (
+			entry.debit_in_transaction_currency - entry.credit_in_transaction_currency
+		)
 
-	return debit_credit_diff
+	debit_credit_diff = flt(debit_credit_diff, precision)
+	trx_cur_debit_credit_diff = flt(trx_cur_debit_credit_diff, precision)
+
+	return debit_credit_diff, trx_cur_debit_credit_diff
 
 
 def get_debit_credit_allowance(voucher_type, precision):
@@ -490,7 +499,7 @@ def has_opening_entries(gl_map: list) -> bool:
 	return False
 
 
-def make_round_off_gle(gl_map, debit_credit_diff, precision):
+def make_round_off_gle(gl_map, debit_credit_diff, trx_cur_debit_credit_diff, precision):
 	round_off_account, round_off_cost_center, round_off_for_opening = get_round_off_account_and_cost_center(
 		gl_map[0].company, gl_map[0].voucher_type, gl_map[0].voucher_no
 	)
@@ -535,6 +544,12 @@ def make_round_off_gle(gl_map, debit_credit_diff, precision):
 			"credit_in_account_currency": debit_credit_diff if debit_credit_diff > 0 else 0,
 			"debit": abs(debit_credit_diff) if debit_credit_diff < 0 else 0,
 			"credit": debit_credit_diff if debit_credit_diff > 0 else 0,
+			"debit_in_transaction_currency": abs(trx_cur_debit_credit_diff)
+			if trx_cur_debit_credit_diff < 0
+			else 0,
+			"credit_in_transaction_currency": trx_cur_debit_credit_diff
+			if trx_cur_debit_credit_diff > 0
+			else 0,
 			"cost_center": round_off_cost_center,
 			"party_type": None,
 			"party": None,

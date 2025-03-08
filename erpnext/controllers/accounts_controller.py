@@ -1125,20 +1125,19 @@ class AccountsController(TransactionBase):
 			)
 
 		# Update details in transaction currency
-		gl_dict.update(
-			{
-				"transaction_currency": self.get("currency") or self.company_currency,
-				"transaction_exchange_rate": item.get("exchange_rate", 1)
-				if self.doctype == "Journal Entry" and item
-				else self.get("conversion_rate", 1),
-				"debit_in_transaction_currency": self.get_value_in_transaction_currency(
-					account_currency, gl_dict, "debit"
-				),
-				"credit_in_transaction_currency": self.get_value_in_transaction_currency(
-					account_currency, gl_dict, "credit"
-				),
-			}
-		)
+		if self.doctype not in ["Purchase Invoice", "Sales Invoice", "Journal Entry", "Payment Entry"]:
+			gl_dict.update(
+				{
+					"transaction_currency": self.get("currency") or self.company_currency,
+					"transaction_exchange_rate": self.get("conversion_rate", 1),
+					"debit_in_transaction_currency": self.get_value_in_transaction_currency(
+						account_currency, gl_dict, "debit"
+					),
+					"credit_in_transaction_currency": self.get_value_in_transaction_currency(
+						account_currency, gl_dict, "credit"
+					),
+				}
+			)
 
 		if not args.get("against_voucher_type") and self.get("against_voucher_type"):
 			gl_dict.update({"against_voucher_type": self.get("against_voucher_type")})
@@ -2781,6 +2780,11 @@ class AccountsController(TransactionBase):
 				self.make_advance_payment_ledger_for_journal()
 			elif self.doctype == "Payment Entry":
 				self.make_advance_payment_ledger_for_payment()
+
+	def set_transaction_currency_and_rate_in_gl_map(self, gl_entries):
+		for x in gl_entries:
+			x["transaction_currency"] = self.currency
+			x["transaction_exchange_rate"] = self.get("conversion_rate") or 1
 
 
 @frappe.whitelist()
