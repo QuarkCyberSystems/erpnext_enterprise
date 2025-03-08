@@ -66,6 +66,10 @@ def execute():
 		if acc_frozen_upto and getdate(acc_frozen_upto) > getdate(posting_date):
 			posting_date = acc_frozen_upto
 
+		stock_frozen_upto = frappe.db.get_single_value("Stock Settings", "stock_frozen_upto")
+		if stock_frozen_upto and getdate(stock_frozen_upto) > getdate(posting_date):
+			posting_date = stock_frozen_upto
+
 		fiscal_year = get_fiscal_year(frappe.utils.datetime.date.today(), raise_on_missing=False)
 		if fiscal_year and getdate(fiscal_year[1]) > getdate(posting_date):
 			posting_date = fiscal_year[1]
