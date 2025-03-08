@@ -1445,6 +1445,7 @@ class PurchaseInvoice(BuyingController):
 						"account": self.unrealized_profit_loss_account,
 						"against": self.supplier,
 						"credit": flt(self.total_taxes_and_charges),
+						"credit_in_transaction_currency": flt(self.total_taxes_and_charges),
 						"credit_in_account_currency": flt(self.base_total_taxes_and_charges),
 						"cost_center": self.cost_center,
 					},
