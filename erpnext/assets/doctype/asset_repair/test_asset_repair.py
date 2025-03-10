@@ -282,7 +282,9 @@ class TestAssetRepair(IntegrationTestCase):
 
 
 def num_of_depreciations(asset):
-	return asset.finance_books[0].total_number_of_depreciations
+	return asset.finance_books[0].total_number_of_depreciations + (
+		asset.finance_books[0].increase_in_asset_life / 12
+	)
 
 
 def create_asset_repair(**args):
