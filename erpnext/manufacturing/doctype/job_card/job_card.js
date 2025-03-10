@@ -217,7 +217,7 @@ frappe.ui.form.on("Job Card", {
 				label: __("Completed Quantity"),
 				fieldname: "qty",
 				reqd: 1,
-				default: frm.doc.for_quantity - frm.doc.manufactured_qty,
+				default: frm.doc.for_quantity - frm.doc.total_completed_qty,
 			},
 			{
 				fieldtype: "Datetime",
