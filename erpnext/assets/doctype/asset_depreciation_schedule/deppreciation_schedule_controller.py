@@ -102,6 +102,7 @@ class DepreciationScheduleController(StraightLineMethod, WDVMethod):
 		self.skip_row = False
 		self.depreciation_amount = 0
 		self.prev_per_day_depr = True
+		self.prev_depreciation_amount = 0
 		self.current_fiscal_year_end_date = None
 		self.yearly_opening_wdv = self.pending_depreciation_amount
 		self.get_number_of_pending_months()
@@ -193,20 +194,11 @@ class DepreciationScheduleController(StraightLineMethod, WDVMethod):
 		then from date should be 01-04-2024
 		"""
 		if self.asset_doc.opening_number_of_booked_depreciations > 0:
-			from_date = add_months(
-				self.asset_doc.available_for_use_date,
-				(
-					self.asset_doc.opening_number_of_booked_depreciations
-					* self.fb_row.frequency_of_depreciation
-				)
-				- 1,
+			from_date = add_days(
+				add_months(self.fb_row.depreciation_start_date, (self.fb_row.frequency_of_depreciation * -1)),
+				1,
 			)
-			if is_last_day_of_the_month(self.fb_row.depreciation_start_date):
-				return add_days(get_last_day(from_date), 1)
-
-			# get from date when depreciation start date is not last day of the month
-			months_difference = month_diff(self.fb_row.depreciation_start_date, from_date) - 1
-			return add_days(add_months(self.fb_row.depreciation_start_date, -1 * months_difference), 1)
+			return from_date
 		else:
 			return self.asset_doc.available_for_use_date
 
@@ -259,10 +251,11 @@ class DepreciationScheduleController(StraightLineMethod, WDVMethod):
 		if cint(frappe.db.get_single_value("Accounts Settings", "calculate_depr_using_total_days")):
 			last_depr_date = self.get_last_booked_depreciation_date()
 			if last_depr_date:
-				self.total_pending_days = date_diff(self.final_schedule_date, last_depr_date) + 1
-			self.total_pending_days = date_diff(
-				self.final_schedule_date, self.asset_doc.available_for_use_date
-			)
+				self.total_pending_days = date_diff(self.final_schedule_date, last_depr_date) - 1
+			else:
+				self.total_pending_days = date_diff(
+					self.final_schedule_date, self.asset_doc.available_for_use_date
+				)
 		else:
 			self.total_pending_years = self.pending_months / 12
 
@@ -283,9 +276,12 @@ class DepreciationScheduleController(StraightLineMethod, WDVMethod):
 			self.fiscal_year_changed = True
 
 	def get_prev_depreciation_amount(self, row_idx):
-		self.prev_depreciation_amount = 0
-		if row_idx > 0 and len(self.get("depreciation_schedule")) > row_idx - 1:
-			self.prev_depreciation_amount = self.get("depreciation_schedule")[row_idx - 1].depreciation_amount
+		if row_idx > 1:
+			self.prev_depreciation_amount = 0
+			if len(self.get("depreciation_schedule")) > row_idx - 1:
+				self.prev_depreciation_amount = self.get("depreciation_schedule")[
+					row_idx - 1
+				].depreciation_amount
 
 	def get_next_schedule_date(self, row_idx):
 		schedule_date = add_months(

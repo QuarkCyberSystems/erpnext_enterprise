@@ -86,7 +86,11 @@ class WDVMethod(Document):
 			yearly_amount = (
 				flt(self.pending_depreciation_amount) * flt(self.fb_row.rate_of_depreciation) / 100
 			)
-			return (yearly_amount * self.fb_row.frequency_of_depreciation) / 12
+
+			depreciation_amount = (yearly_amount * self.fb_row.frequency_of_depreciation) / 12
+			self.prev_depreciation_amount = depreciation_amount
+
+			return depreciation_amount
 		else:
 			return self.prev_depreciation_amount
 
