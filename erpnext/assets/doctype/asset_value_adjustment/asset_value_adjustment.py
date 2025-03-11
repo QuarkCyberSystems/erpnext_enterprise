@@ -176,15 +176,14 @@ class AssetValueAdjustment(Document):
 		difference_amount = self.difference_amount if self.docstatus == 1 else -1 * self.difference_amount
 
 		asset = frappe.get_doc("Asset", self.asset)
-		if not asset.calculate_depreciation:
-			asset.value_after_depreciation += flt(difference_amount)
-			asset.db_update()
-		else:
+		if asset.calculate_depreciation:
 			for row in asset.finance_books:
 				if cstr(row.finance_book) == cstr(self.finance_book):
 					row.value_after_depreciation += flt(difference_amount)
 					row.db_update()
 
+		asset.value_after_depreciation += flt(difference_amount)
+		asset.db_update()
 		return asset
 
 	def get_adjustment_note(self):
