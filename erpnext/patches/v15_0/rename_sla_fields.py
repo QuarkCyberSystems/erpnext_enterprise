@@ -4,7 +4,7 @@ from frappe.model.utils.rename_field import rename_field
 
 
 def execute():
-	doctypes = frappe.get_all("Service Level Agreement", pluck="document_type")
+	doctypes = list(set(frappe.get_all("Service Level Agreement", pluck="document_type")))
 	for doctype in doctypes:
 		if doctype == "Issue":
 			continue
