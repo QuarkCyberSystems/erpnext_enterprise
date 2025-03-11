@@ -971,7 +971,6 @@ class PurchaseInvoice(BuyingController):
 
 		for item in self.get("items"):
 			if flt(item.base_net_amount):
-				account_currency = get_account_currency(item.expense_account)
 				if item.item_code:
 					frappe.get_cached_value("Item", item.item_code, "asset_category")
 
@@ -980,6 +979,7 @@ class PurchaseInvoice(BuyingController):
 					and self.auto_accounting_for_stock
 					and (item.item_code in stock_items or item.is_fixed_asset)
 				):
+					account_currency = get_account_currency(item.expense_account)
 					# warehouse account
 					warehouse_debit_amount = self.make_stock_adjustment_entry(
 						gl_entries, item, voucher_wise_stock_value, account_currency
@@ -1114,6 +1114,7 @@ class PurchaseInvoice(BuyingController):
 						else item.deferred_expense_account
 					)
 
+					account_currency = get_account_currency(expense_account)
 					amount, base_amount = self.get_amount_and_base_amount(item, None)
 
 					if provisional_accounting_for_non_stock_items:
