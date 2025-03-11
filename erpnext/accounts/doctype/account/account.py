@@ -500,7 +500,7 @@ def update_account_number(name, account_name, account_number=None, from_descenda
 				"name",
 			)
 
-			if old_name:
+			if old_name and not from_descendant:
 				# same account in parent company exists
 				allow_child_account_creation = _("Allow Account Creation Against Child Company")
 
