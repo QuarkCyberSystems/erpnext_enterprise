@@ -3,7 +3,7 @@
 
 import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
-from frappe.utils import cstr, flt
+from frappe.utils import cstr, date_diff, flt
 
 from erpnext.assets.doctype.asset.depreciation import (
 	post_depreciation_entries,
@@ -13,6 +13,7 @@ from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_sched
 	get_asset_depr_schedule_doc,
 	get_depr_schedule,
 )
+from erpnext.assets.doctype.asset_repair.test_asset_repair import create_asset_repair
 
 
 class UnitTestAssetDepreciationSchedule(UnitTestCase):
@@ -377,3 +378,368 @@ class TestAssetDepreciationSchedule(IntegrationTestCase):
 		asset.reload()
 
 		self.assertEqual(asset.finance_books[0].total_number_of_booked_depreciations, 14)
+
+	def test_depreciation_schedule_after_cancelling_asset_repair(self):
+		asset = create_asset(
+			item_code="Macbook Pro",
+			gross_purchase_amount=500,
+			calculate_depreciation=1,
+			depreciation_method="Straight Line",
+			available_for_use_date="2023-01-01",
+			depreciation_start_date="2023-01-31",
+			frequency_of_depreciation=1,
+			total_number_of_depreciations=12,
+			submit=1,
+		)
+
+		expected_depreciation_before_repair = [
+			["2023-01-31", 41.67, 41.67],
+			["2023-02-28", 41.67, 83.34],
+			["2023-03-31", 41.67, 125.01],
+			["2023-04-30", 41.67, 166.68],
+			["2023-05-31", 41.67, 208.35],
+			["2023-06-30", 41.67, 250.02],
+			["2023-07-31", 41.67, 291.69],
+			["2023-08-31", 41.67, 333.36],
+			["2023-09-30", 41.67, 375.03],
+			["2023-10-31", 41.67, 416.7],
+			["2023-11-30", 41.67, 458.37],
+			["2023-12-31", 41.63, 500.0],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_before_repair)
+		self.assertEqual(asset.finance_books[0].value_after_depreciation, 500)
+
+		asset_repair = create_asset_repair(
+			asset=asset,
+			capitalize_repair_cost=1,
+			item="_Test Non Stock Item",
+			failure_date="2023-04-01",
+			pi_repair_cost1=60,
+			pi_repair_cost2=40,
+			increase_in_asset_life=0,
+			submit=1,
+		)
+		self.assertEqual(asset_repair.total_repair_cost, 100)
+
+		expected_depreciation_after_repair = [
+			["2023-01-31", 50.0, 50.0],
+			["2023-02-28", 50.0, 100.0],
+			["2023-03-31", 50.0, 150.0],
+			["2023-04-30", 50.0, 200.0],
+			["2023-05-31", 50.0, 250.0],
+			["2023-06-30", 50.0, 300.0],
+			["2023-07-31", 50.0, 350.0],
+			["2023-08-31", 50.0, 400.0],
+			["2023-09-30", 50.0, 450.0],
+			["2023-10-31", 50.0, 500.0],
+			["2023-11-30", 50.0, 550.0],
+			["2023-12-31", 50.0, 600.0],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_after_repair)
+		asset.reload()
+		self.assertEqual(asset.finance_books[0].value_after_depreciation, 600)
+
+		asset_repair.cancel()
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_before_repair)
+		asset.reload()
+		self.assertEqual(asset.finance_books[0].value_after_depreciation, 500)
+
+	def test_depreciation_schedule_after_cancelling_asset_repair_for_6_months_frequency(self):
+		asset = create_asset(
+			item_code="Macbook Pro",
+			gross_purchase_amount=500,
+			calculate_depreciation=1,
+			depreciation_method="Straight Line",
+			available_for_use_date="2023-01-01",
+			depreciation_start_date="2023-06-30",
+			frequency_of_depreciation=6,
+			total_number_of_depreciations=4,
+			submit=1,
+		)
+
+		expected_depreciation_before_repair = [
+			["2023-06-30", 125.0, 125.0],
+			["2023-12-31", 125.0, 250.0],
+			["2024-06-30", 125.0, 375.0],
+			["2024-12-31", 125.0, 500.0],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+
+		self.assertEqual(schedules, expected_depreciation_before_repair)
+
+		asset_repair = create_asset_repair(
+			asset=asset,
+			capitalize_repair_cost=1,
+			item="_Test Non Stock Item",
+			failure_date="2023-04-01",
+			pi_repair_cost1=60,
+			pi_repair_cost2=40,
+			increase_in_asset_life=0,
+			submit=1,
+		)
+		self.assertEqual(asset_repair.total_repair_cost, 100)
+
+		expected_depreciation_after_repair = [
+			["2023-06-30", 150.0, 150.0],
+			["2023-12-31", 150.0, 300.0],
+			["2024-06-30", 150.0, 450.0],
+			["2024-12-31", 150.0, 600.0],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+
+		self.assertEqual(schedules, expected_depreciation_after_repair)
+		asset.reload()
+		self.assertEqual(asset.finance_books[0].value_after_depreciation, 600)
+
+		asset_repair.cancel()
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_before_repair)
+		asset.reload()
+		self.assertEqual(asset.finance_books[0].value_after_depreciation, 500)
+
+	def test_depreciation_schedule_after_cancelling_asset_repair_for_existing_asset(self):
+		asset = create_asset(
+			item_code="Macbook Pro",
+			gross_purchase_amount=500,
+			calculate_depreciation=1,
+			depreciation_method="Straight Line",
+			available_for_use_date="2023-01-15",
+			depreciation_start_date="2023-03-31",
+			frequency_of_depreciation=1,
+			total_number_of_depreciations=12,
+			is_existing_asset=1,
+			opening_accumulated_depreciation=64.52,
+			opening_number_of_booked_depreciations=2,
+			submit=1,
+		)
+
+		expected_depreciation_before_repair = [
+			["2023-03-31", 41.26, 105.78],
+			["2023-04-30", 41.26, 147.04],
+			["2023-05-31", 41.26, 188.3],
+			["2023-06-30", 41.26, 229.56],
+			["2023-07-31", 41.26, 270.82],
+			["2023-08-31", 41.26, 312.08],
+			["2023-09-30", 41.26, 353.34],
+			["2023-10-31", 41.26, 394.6],
+			["2023-11-30", 41.26, 435.86],
+			["2023-12-31", 41.26, 477.12],
+			["2024-01-15", 22.88, 500.0],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_before_repair)
+
+		asset_repair = create_asset_repair(
+			asset=asset,
+			capitalize_repair_cost=1,
+			item="_Test Non Stock Item",
+			failure_date="2023-04-01",
+			pi_repair_cost1=60,
+			pi_repair_cost2=40,
+			increase_in_asset_life=0,
+			submit=1,
+		)
+		self.assertEqual(asset_repair.total_repair_cost, 100)
+
+		expected_depreciation_after_repair = [
+			["2023-03-31", 50.74, 115.26],
+			["2023-04-30", 50.74, 166.0],
+			["2023-05-31", 50.74, 216.74],
+			["2023-06-30", 50.74, 267.48],
+			["2023-07-31", 50.74, 318.22],
+			["2023-08-31", 50.74, 368.96],
+			["2023-09-30", 50.74, 419.7],
+			["2023-10-31", 50.74, 470.44],
+			["2023-11-30", 50.74, 521.18],
+			["2023-12-31", 50.74, 571.92],
+			["2024-01-15", 28.08, 600.0],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_after_repair)
+
+		asset_repair.cancel()
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+
+		self.assertEqual(schedules, expected_depreciation_before_repair)
+		asset.reload()
+		self.assertEqual(asset.finance_books[0].value_after_depreciation, 435.48)
+
+	def test_wdv_depreciation_schedule_after_cancelling_asset_repair(self):
+		asset = create_asset(
+			item_code="Macbook Pro",
+			gross_purchase_amount=500,
+			calculate_depreciation=1,
+			depreciation_method="Written Down Value",
+			available_for_use_date="2023-04-01",
+			depreciation_start_date="2023-12-31",
+			frequency_of_depreciation=12,
+			total_number_of_depreciations=4,
+			rate_of_depreciation=40,
+			submit=1,
+		)
+
+		expected_depreciation_before_repair = [
+			["2023-12-31", 150.68, 150.68],
+			["2024-12-31", 139.73, 290.41],
+			["2025-12-31", 83.84, 374.25],
+			["2026-12-31", 50.3, 424.55],
+			["2027-04-01", 75.45, 500.0],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_before_repair)
+
+		asset_repair = create_asset_repair(
+			asset=asset,
+			capitalize_repair_cost=1,
+			item="_Test Non Stock Item",
+			failure_date="2024-01-01",
+			pi_repair_cost1=60,
+			pi_repair_cost2=40,
+			increase_in_asset_life=0,
+			submit=1,
+		)
+
+		expected_depreciation_after_repair = [
+			["2023-12-31", 180.82, 180.82],
+			["2024-12-31", 167.67, 348.49],
+			["2025-12-31", 100.6, 449.09],
+			["2026-12-31", 60.36, 509.45],
+			["2027-04-01", 90.55, 600.0],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_after_repair)
+
+		asset_repair.cancel()
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+
+		self.assertEqual(schedules, expected_depreciation_before_repair)
+
+	def test_daily_prorata_based_depreciation_schedule_after_cancelling_asset_repair_for(self):
+		asset = create_asset(
+			item_code="Macbook Pro",
+			gross_purchase_amount=500,
+			calculate_depreciation=1,
+			depreciation_method="Straight Line",
+			available_for_use_date="2023-01-01",
+			depreciation_start_date="2023-01-31",
+			daily_prorata_based=1,
+			frequency_of_depreciation=1,
+			total_number_of_depreciations=12,
+			submit=1,
+		)
+
+		expected_depreciation_before_repair = [
+			["2023-01-31", 42.47, 42.47],
+			["2023-02-28", 38.36, 80.83],
+			["2023-03-31", 42.47, 123.3],
+			["2023-04-30", 41.1, 164.4],
+			["2023-05-31", 42.47, 206.87],
+			["2023-06-30", 41.1, 247.97],
+			["2023-07-31", 42.47, 290.44],
+			["2023-08-31", 42.47, 332.91],
+			["2023-09-30", 41.1, 374.01],
+			["2023-10-31", 42.47, 416.48],
+			["2023-11-30", 41.1, 457.58],
+			["2023-12-31", 42.42, 500.0],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_before_repair)
+
+		asset_repair = create_asset_repair(
+			asset=asset,
+			capitalize_repair_cost=1,
+			item="_Test Non Stock Item",
+			failure_date="2023-04-01",
+			pi_repair_cost1=60,
+			pi_repair_cost2=40,
+			increase_in_asset_life=0,
+			submit=1,
+		)
+		self.assertEqual(asset_repair.total_repair_cost, 100)
+
+		expected_depreciation_after_repair = [
+			["2023-01-31", 50.96, 50.96],
+			["2023-02-28", 46.03, 96.99],
+			["2023-03-31", 50.96, 147.95],
+			["2023-04-30", 49.32, 197.27],
+			["2023-05-31", 50.96, 248.23],
+			["2023-06-30", 49.32, 297.55],
+			["2023-07-31", 50.96, 348.51],
+			["2023-08-31", 50.96, 399.47],
+			["2023-09-30", 49.32, 448.79],
+			["2023-10-31", 50.96, 499.75],
+			["2023-11-30", 49.32, 549.07],
+			["2023-12-31", 50.93, 600.0],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_after_repair)
+		asset.reload()
+		self.assertEqual(asset.finance_books[0].value_after_depreciation, 600)
+
+		asset_repair.cancel()
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_before_repair)
+		asset.reload()
+		self.assertEqual(asset.finance_books[0].value_after_depreciation, 500)

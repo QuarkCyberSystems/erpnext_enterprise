@@ -154,7 +154,11 @@ class TestAssetValueAdjustment(IntegrationTestCase):
 
 		# create asset repair
 		asset_repair = create_asset_repair(
-			asset=asset_doc, capitalize_repair_cost=1, item="_Test Non Stock Item", submit=1
+			asset=asset_doc,
+			capitalize_repair_cost=1,
+			item="_Test Non Stock Item",
+			submit=1,
+			increase_in_asset_life=1,
 		)
 
 		first_asset_depr_schedule = get_asset_depr_schedule_doc(asset_doc.name, "Active")
