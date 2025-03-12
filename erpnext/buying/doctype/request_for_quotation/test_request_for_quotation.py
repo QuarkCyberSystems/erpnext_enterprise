@@ -5,7 +5,7 @@
 from urllib.parse import urlparse
 
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase, UnitTestCase, change_settings
 from frappe.utils import nowdate
 
 from erpnext.buying.doctype.request_for_quotation.request_for_quotation import (
@@ -40,6 +40,15 @@ class TestRequestforQuotation(IntegrationTestCase):
 		rfq.items[0].qty = 1
 		rfq.save()
 		self.assertEqual(rfq.items[0].qty, 1)
+
+	def test_rfq_zero_qty(self):
+		"""
+		Test if RFQ with zero qty (Unit Price Item) is conditionally allowed.
+		"""
+		rfq = make_request_for_quotation(qty=0, do_not_save=True)
+
+		with change_settings("Buying Settings", {"allow_zero_qty_in_request_for_quotation": 1}):
+			rfq.save()
 
 	def test_quote_status(self):
 		rfq = make_request_for_quotation()
@@ -180,6 +189,15 @@ class TestRequestforQuotation(IntegrationTestCase):
 
 		supplier_doc.reload()
 		self.assertTrue(supplier_doc.portal_users[0].user)
+
+	@change_settings("Buying Settings", {"allow_zero_qty_in_request_for_quotation": 1})
+	def test_map_supplier_quotation_from_zero_qty_rfq(self):
+		rfq = make_request_for_quotation(qty=0)
+		sq = make_supplier_quotation_from_rfq(rfq.name, for_supplier=rfq.get("suppliers")[0].supplier)
+
+		self.assertEqual(len(sq.items), 1)
+		self.assertEqual(sq.items[0].qty, 0)
+		self.assertEqual(sq.items[0].item_code, rfq.items[0].item_code)
 
 
 def make_request_for_quotation(**args) -> "RequestforQuotation":
