@@ -733,7 +733,8 @@ class ReceivablePayableReport:
 		for party_type in self.party_type:
 			party_field = scrub(party_type)
 			if self.filters.get(party_field):
-				or_filters.update({party_field: self.filters.get(party_field)})
+				or_filters.update({party_field: ["in", self.filters.get(party_field)]})
+
 		self.return_entries = frappe._dict(
 			frappe.get_all(
 				doctype, filters=filters, or_filters=or_filters, fields=["name", "return_against"], as_list=1
