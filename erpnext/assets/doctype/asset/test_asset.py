@@ -256,14 +256,12 @@ class TestAsset(AssetSetup):
 			asset.precision("gross_purchase_amount"),
 		)
 
-		second_asset_depr_schedule.depreciation_amount = 9000
+		second_asset_depr_schedule.depreciation_amount = 8932.70
 		second_asset_depr_schedule.asset_doc = asset
 		second_asset_depr_schedule.get_finance_book_row()
 		second_asset_depr_schedule.fetch_asset_details()
 
 		pro_rata_amount, _, _ = second_asset_depr_schedule._get_pro_rata_amt(
-			asset.finance_books[0],
-			9000,
 			add_days(get_last_day(add_months(purchase_date, 1)), 1),
 			date,
 			original_schedule_date=get_last_day(nowdate()),
@@ -347,7 +345,7 @@ class TestAsset(AssetSetup):
 		self.assertEqual(second_asset_depr_schedule.status, "Active")
 		self.assertEqual(first_asset_depr_schedule.status, "Cancelled")
 
-		second_asset_depr_schedule.depreciation_amount = 9000
+		second_asset_depr_schedule.depreciation_amount = 8932.70
 		second_asset_depr_schedule.asset_doc = asset
 		second_asset_depr_schedule.get_finance_book_row()
 		second_asset_depr_schedule.fetch_asset_details()
@@ -950,12 +948,12 @@ class TestDepreciationMethods(AssetSetup):
 		)
 
 		expected_schedules = [
-			["2022-02-28", 310.89, 310.89],
-			["2022-03-31", 654.45, 965.34],
-			["2022-04-30", 654.45, 1619.79],
-			["2022-05-31", 654.45, 2274.24],
-			["2022-06-30", 654.45, 2928.69],
-			["2022-07-15", 2071.31, 5000.0],
+			["2022-02-28", 337.72, 337.72],
+			["2022-03-31", 675.45, 1013.17],
+			["2022-04-30", 675.45, 1688.62],
+			["2022-05-31", 675.45, 2364.07],
+			["2022-06-30", 675.45, 3039.52],
+			["2022-07-15", 1960.48, 5000.0],
 		]
 
 		schedules = [
@@ -1030,6 +1028,7 @@ class TestDepreciationBasics(AssetSetup):
 				"depreciation_start_date": "2020-12-31",
 			},
 		)
+		asset.submit()
 
 		asset_depr_schedule_doc = get_asset_depr_schedule_doc(asset.name, "Active")
 
@@ -1361,7 +1360,7 @@ class TestDepreciationBasics(AssetSetup):
 
 		asset_depr_schedule_doc = get_asset_depr_schedule_doc(asset.name, "Active")
 
-		asset_depr_schedule_doc.clear_depr_schedule()
+		asset_depr_schedule_doc.clear()
 
 		self.assertEqual(len(asset_depr_schedule_doc.get("depreciation_schedule")), 1)
 
@@ -1408,15 +1407,15 @@ class TestDepreciationBasics(AssetSetup):
 		asset.load_from_db()
 
 		asset_depr_schedule_doc_1 = get_asset_depr_schedule_doc(asset.name, "Active", "Test Finance Book 1")
-		asset_depr_schedule_doc_1.clear_depr_schedule()
+		asset_depr_schedule_doc_1.clear()
 		self.assertEqual(len(asset_depr_schedule_doc_1.get("depreciation_schedule")), 3)
 
 		asset_depr_schedule_doc_2 = get_asset_depr_schedule_doc(asset.name, "Active", "Test Finance Book 2")
-		asset_depr_schedule_doc_2.clear_depr_schedule()
+		asset_depr_schedule_doc_2.clear()
 		self.assertEqual(len(asset_depr_schedule_doc_2.get("depreciation_schedule")), 3)
 
 		asset_depr_schedule_doc_3 = get_asset_depr_schedule_doc(asset.name, "Active", "Test Finance Book 3")
-		asset_depr_schedule_doc_3.clear_depr_schedule()
+		asset_depr_schedule_doc_3.clear()
 		self.assertEqual(len(asset_depr_schedule_doc_3.get("depreciation_schedule")), 0)
 
 	def test_depreciation_schedules_are_set_up_for_multiple_finance_books(self):

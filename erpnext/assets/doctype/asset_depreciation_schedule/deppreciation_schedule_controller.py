@@ -244,7 +244,9 @@ class DepreciationScheduleController(StraightLineMethod, WDVMethod):
 			)
 			if getdate(computed_available_for_use_date) < getdate(self.asset_doc.available_for_use_date):
 				computed_available_for_use_date = self.asset_doc.available_for_use_date
-			depr_booked_for_months = date_diff(last_depr_date, computed_available_for_use_date) / (365 / 12)
+			depr_booked_for_months = (date_diff(last_depr_date, computed_available_for_use_date) + 1) / (
+				365 / 12
+			)
 		return depr_booked_for_months
 
 	def get_total_pending_days_or_years(self):

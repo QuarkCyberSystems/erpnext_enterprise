@@ -2981,7 +2981,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		expected_values = [
 			["2020-06-30", 1366.12, 1366.12],
 			["2021-06-30", 20000.0, 21366.12],
-			["2021-09-30", 5041.1, 26407.22],
+			["2021-09-30", 5041.34, 26407.46],
 		]
 
 		for i, schedule in enumerate(get_depr_schedule(asset.name, "Active")):
