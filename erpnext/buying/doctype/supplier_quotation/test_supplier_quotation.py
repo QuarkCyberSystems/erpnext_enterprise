@@ -39,6 +39,7 @@ class TestPurchaseOrder(IntegrationTestCase):
 
 		with change_settings("Buying Settings", {"allow_zero_qty_in_supplier_quotation": 1}):
 			sq.save()
+			self.assertEqual(sq.items[0].qty, 0)
 
 	def test_make_purchase_order(self):
 		sq = frappe.copy_doc(self.globalTestRecords["Supplier Quotation"][0]).insert()
@@ -60,7 +61,7 @@ class TestPurchaseOrder(IntegrationTestCase):
 
 		po.insert()
 
-	@change_settings("Buying Settings", {"allow_zero_qty_in_supplier_quotation": 1})
+	@IntegrationTestCase.change_settings("Buying Settings", {"allow_zero_qty_in_supplier_quotation": 1})
 	def test_map_purchase_order_from_zero_qty_supplier_quotation(self):
 		sq = frappe.copy_doc(self.globalTestRecords["Supplier Quotation"][0])
 		sq.items[0].qty = 0

@@ -49,6 +49,7 @@ class TestRequestforQuotation(IntegrationTestCase):
 
 		with change_settings("Buying Settings", {"allow_zero_qty_in_request_for_quotation": 1}):
 			rfq.save()
+			self.assertEqual(rfq.items[0].qty, 0)
 
 	def test_quote_status(self):
 		rfq = make_request_for_quotation()
@@ -190,8 +191,8 @@ class TestRequestforQuotation(IntegrationTestCase):
 		supplier_doc.reload()
 		self.assertTrue(supplier_doc.portal_users[0].user)
 
-	@change_settings("Buying Settings", {"allow_zero_qty_in_request_for_quotation": 1})
-	def test_map_supplier_quotation_from_zero_qty_rfq(self):
+	@IntegrationTestCase.change_settings("Buying Settings", {"allow_zero_qty_in_request_for_quotation": 1})
+	def test_supplier_quotation_from_zero_qty_rfq(self):
 		rfq = make_request_for_quotation(qty=0)
 		sq = make_supplier_quotation_from_rfq(rfq.name, for_supplier=rfq.get("suppliers")[0].supplier)
 
