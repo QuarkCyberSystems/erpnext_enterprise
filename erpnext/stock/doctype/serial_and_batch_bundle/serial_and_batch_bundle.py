@@ -2112,6 +2112,9 @@ def get_auto_batch_nos(kwargs):
 			picked_batches,
 		)
 
+	if available_batches and kwargs.get("posting_date"):
+		filter_zero_near_batches(available_batches, kwargs)
+
 	if not kwargs.consider_negative_batches:
 		available_batches = list(filter(lambda x: x.qty > 0, available_batches))
 
@@ -2119,6 +2122,26 @@ def get_auto_batch_nos(kwargs):
 		return available_batches
 
 	return get_qty_based_available_batches(available_batches, qty)
+
+
+def filter_zero_near_batches(available_batches, kwargs):
+	kwargs.batch_no = [d.batch_no for d in available_batches]
+
+	del kwargs["posting_date"]
+	del kwargs["posting_time"]
+
+	available_batches_in_future = get_available_batches(kwargs)
+	for batch in available_batches:
+		if batch.qty <= 0:
+			continue
+
+		for future_batch in available_batches_in_future:
+			if (
+				batch.batch_no == future_batch.batch_no
+				and batch.warehouse == future_batch.warehouse
+				and future_batch.qty <= 0
+			):
+				batch.qty = 0
 
 
 def get_qty_based_available_batches(available_batches, qty):

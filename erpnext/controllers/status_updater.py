@@ -220,7 +220,9 @@ class StatusUpdater(Document):
 		}
 		"""
 		if self.doctype not in status_map:
-			return {"status": self.status}
+			return {
+				"status": self.get("status")
+			}  # sometimes status field is not present on certain DocTypes such as Stock Entry
 
 		sl = status_map[self.doctype][:]
 		sl.reverse()
@@ -562,7 +564,8 @@ class StatusUpdater(Document):
 			target = frappe.get_doc(args["target_parent_dt"], args["name"])
 			target.update(update_data)  # status calculus might depend on it
 			status = target.get_status()
-			update_data.update(status)
+			if status.get("status"):
+				update_data.update(status)
 			target.db_set(update_data, update_modified=update_modified, notify=True)
 
 	def _update_modified(self, args, update_modified):

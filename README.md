@@ -114,10 +114,7 @@ To setup the repository locally follow the steps mentioned below:
 2. In a separate terminal window, run the following commands:
    ```
    # Create a new site
-   bench new-site erpnext.dev
-
-   # Map your site to localhost
-   bench --site erpnext.dev add-to-hosts
+   bench new-site erpnext.localhost
    ```
 
 3. Get the ERPNext app and install it
@@ -126,10 +123,10 @@ To setup the repository locally follow the steps mentioned below:
    bench get-app https://github.com/frappe/erpnext
 
    # Install the app
-   bench --site erpnext.dev install-app erpnext
+   bench --site erpnext.localhost install-app erpnext
    ```
 
-4. Open the URL `http://erpnext.dev:8000/app` in your browser, you should see the app running
+4. Open the URL `http://erpnext.localhost:8000/app` in your browser, you should see the app running
 
 ## Learning and community
 
