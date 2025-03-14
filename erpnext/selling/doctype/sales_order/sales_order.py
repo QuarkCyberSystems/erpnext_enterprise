@@ -967,6 +967,9 @@ def make_delivery_note(source_name, target_doc=None, kwargs=None):
 
 	kwargs = frappe._dict(kwargs)
 
+	# 0 qty is accepted, as the qty is uncertain for some items
+	has_unit_price_items = frappe.db.get_value("Sales Order", source_name, "has_unit_price_items")
+
 	sre_details = {}
 	if kwargs.for_reserved_stock:
 		sre_details = get_sre_reserved_qty_details_for_voucher("Sales Order", source_name)
@@ -1016,12 +1019,14 @@ def make_delivery_note(source_name, target_doc=None, kwargs=None):
 			if cstr(doc.delivery_date) > frappe.flags.args.until_delivery_date:
 				return False
 
-		return abs(doc.delivered_qty) < abs(doc.qty) and doc.delivered_by_supplier != 1
+		return (
+			(abs(doc.delivered_qty) < abs(doc.qty)) or has_unit_price_items
+		) and doc.delivered_by_supplier != 1
 
 	def update_item(source, target, source_parent):
 		target.base_amount = (flt(source.qty) - flt(source.delivered_qty)) * flt(source.base_rate)
 		target.amount = (flt(source.qty) - flt(source.delivered_qty)) * flt(source.rate)
-		target.qty = flt(source.qty) - flt(source.delivered_qty)
+		target.qty = flt(source.qty) - flt(source.delivered_qty) if not has_unit_price_items else 0
 
 		item = get_item_defaults(target.item_code, source_parent.company)
 		item_group = get_item_group_defaults(target.item_code, source_parent.company)
