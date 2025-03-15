@@ -95,9 +95,6 @@ force_item_fields = (
 
 
 class AccountsController(TransactionBase):
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
 	def get_print_settings(self):
 		print_setting_fields = []
 		items_field = self.meta.get_field("items")
