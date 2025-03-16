@@ -1031,10 +1031,14 @@ class TestDepreciationBasics(AssetSetup):
 		asset.submit()
 
 		asset_depr_schedule_doc = get_asset_depr_schedule_doc(asset.name, "Active")
+		asset_depr_schedule_doc.asset_doc = asset
+		asset_depr_schedule_doc.get_finance_book_row()
+		asset_depr_schedule_doc.fetch_asset_details()
+		asset_depr_schedule_doc.clear()
+		asset_depr_schedule_doc._check_is_pro_rata()
+		asset_depr_schedule_doc.initialize_variables()
 
-		depreciation_amount = asset_depr_schedule_doc.get_depreciation_amount(
-			asset_depr_schedule_doc, asset, 100000, 100000, asset.finance_books[0]
-		)
+		depreciation_amount = asset_depr_schedule_doc.get_depreciation_amount(0)
 		self.assertEqual(depreciation_amount, 30000)
 
 	def test_make_depr_schedule(self):
@@ -1464,6 +1468,11 @@ class TestDepreciationBasics(AssetSetup):
 			expected_value_after_useful_life=10000,
 			submit=1,
 		)
+
+		depr_expense_account = frappe.get_doc("Account", "_Test Depreciations - _TC")
+		depr_expense_account.root_type = "Expense"
+		depr_expense_account.parent_account = "Expenses - _TC"
+		depr_expense_account.save()
 
 		post_depreciation_entries(date="2021-01-01")
 
