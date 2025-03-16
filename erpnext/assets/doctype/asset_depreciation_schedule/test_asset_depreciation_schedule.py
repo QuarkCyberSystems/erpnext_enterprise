@@ -14,6 +14,9 @@ from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_sched
 	get_depr_schedule,
 )
 from erpnext.assets.doctype.asset_repair.test_asset_repair import create_asset_repair
+from erpnext.assets.doctype.asset_value_adjustment.test_asset_value_adjustment import (
+	make_asset_value_adjustment,
+)
 
 
 class UnitTestAssetDepreciationSchedule(UnitTestCase):
@@ -743,3 +746,239 @@ class TestAssetDepreciationSchedule(IntegrationTestCase):
 		self.assertEqual(schedules, expected_depreciation_before_repair)
 		asset.reload()
 		self.assertEqual(asset.finance_books[0].value_after_depreciation, 500)
+
+	def test_depreciation_schedule_after_cancelling_asset_value_adjustent(self):
+		asset = create_asset(
+			item_code="Macbook Pro",
+			gross_purchase_amount=1000,
+			calculate_depreciation=1,
+			depreciation_method="Straight Line",
+			available_for_use_date="2023-01-01",
+			depreciation_start_date="2023-01-31",
+			frequency_of_depreciation=1,
+			total_number_of_depreciations=12,
+			submit=1,
+		)
+
+		expected_depreciation_before_adjustment = [
+			["2023-01-31", 83.33, 83.33],
+			["2023-02-28", 83.33, 166.66],
+			["2023-03-31", 83.33, 249.99],
+			["2023-04-30", 83.33, 333.32],
+			["2023-05-31", 83.33, 416.65],
+			["2023-06-30", 83.33, 499.98],
+			["2023-07-31", 83.33, 583.31],
+			["2023-08-31", 83.33, 666.64],
+			["2023-09-30", 83.33, 749.97],
+			["2023-10-31", 83.33, 833.3],
+			["2023-11-30", 83.33, 916.63],
+			["2023-12-31", 83.37, 1000.0],
+		]
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_before_adjustment)
+
+		current_asset_value = asset.finance_books[0].value_after_depreciation
+		asset_value_adjustment = make_asset_value_adjustment(
+			asset=asset,
+			date="2023-04-01",
+			current_asset_value=current_asset_value,
+			new_asset_value=1200,
+		)
+		asset_value_adjustment.submit()
+
+		expected_depreciation_after_adjustment = [
+			["2023-01-31", 100.0, 100.0],
+			["2023-02-28", 100.0, 200.0],
+			["2023-03-31", 100.0, 300.0],
+			["2023-04-30", 100.0, 400.0],
+			["2023-05-31", 100.0, 500.0],
+			["2023-06-30", 100.0, 600.0],
+			["2023-07-31", 100.0, 700.0],
+			["2023-08-31", 100.0, 800.0],
+			["2023-09-30", 100.0, 900.0],
+			["2023-10-31", 100.0, 1000.0],
+			["2023-11-30", 100.0, 1100.0],
+			["2023-12-31", 100.0, 1200.0],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_after_adjustment)
+
+		asset_value_adjustment.cancel()
+		asset.reload()
+		self.assertEqual(asset.finance_books[0].value_after_depreciation, 1000)
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_before_adjustment)
+
+	def test_depreciation_schedule_after_cancelling_asset_value_adjustent_for_existing_asset(self):
+		asset = create_asset(
+			item_code="Macbook Pro",
+			gross_purchase_amount=500,
+			calculate_depreciation=1,
+			depreciation_method="Straight Line",
+			available_for_use_date="2023-01-15",
+			depreciation_start_date="2023-03-31",
+			frequency_of_depreciation=1,
+			total_number_of_depreciations=12,
+			is_existing_asset=1,
+			opening_accumulated_depreciation=64.52,
+			opening_number_of_booked_depreciations=2,
+			submit=1,
+		)
+
+		expected_depreciation_before_adjustment = [
+			["2023-03-31", 41.39, 105.91],
+			["2023-04-30", 41.39, 147.3],
+			["2023-05-31", 41.39, 188.69],
+			["2023-06-30", 41.39, 230.08],
+			["2023-07-31", 41.39, 271.47],
+			["2023-08-31", 41.39, 312.86],
+			["2023-09-30", 41.39, 354.25],
+			["2023-10-31", 41.39, 395.64],
+			["2023-11-30", 41.39, 437.03],
+			["2023-12-31", 41.39, 478.42],
+			["2024-01-15", 21.58, 500.0],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_before_adjustment)
+
+		current_asset_value = asset.finance_books[0].value_after_depreciation
+		asset_value_adjustment = make_asset_value_adjustment(
+			asset=asset,
+			date="2023-04-01",
+			current_asset_value=current_asset_value,
+			new_asset_value=600,
+		)
+		asset_value_adjustment.submit()
+
+		expected_depreciation_after_adjustment = [
+			["2023-03-31", 57.03, 121.55],
+			["2023-04-30", 57.03, 178.58],
+			["2023-05-31", 57.03, 235.61],
+			["2023-06-30", 57.03, 292.64],
+			["2023-07-31", 57.03, 349.67],
+			["2023-08-31", 57.03, 406.7],
+			["2023-09-30", 57.03, 463.73],
+			["2023-10-31", 57.03, 520.76],
+			["2023-11-30", 57.03, 577.79],
+			["2023-12-31", 57.03, 634.82],
+			["2024-01-15", 29.7, 664.52],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_after_adjustment)
+
+		asset_value_adjustment.cancel()
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+
+		self.assertEqual(schedules, expected_depreciation_before_adjustment)
+
+	def test_depreciation_schedule_for_parallel_adjustment_and_repair(self):
+		asset = create_asset(
+			item_code="Macbook Pro",
+			gross_purchase_amount=600,
+			calculate_depreciation=1,
+			depreciation_method="Straight Line",
+			available_for_use_date="2021-01-01",
+			depreciation_start_date="2021-12-31",
+			frequency_of_depreciation=12,
+			total_number_of_depreciations=3,
+			is_existing_asset=1,
+			submit=1,
+		)
+		post_depreciation_entries(date="2021-12-31")
+		asset.reload()
+
+		expected_depreciation_before_adjustment = [
+			["2021-12-31", 200, 200],
+			["2022-12-31", 200, 400],
+			["2023-12-31", 200, 600],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_before_adjustment)
+
+		current_asset_value = asset.finance_books[0].value_after_depreciation
+		asset_value_adjustment = make_asset_value_adjustment(
+			asset=asset,
+			date="2022-01-15",
+			current_asset_value=current_asset_value,
+			new_asset_value=500,
+		)
+		asset_value_adjustment.submit()
+
+		expected_depreciation_after_adjustment = [
+			["2021-12-31", 200, 200],
+			["2022-12-31", 250, 450],
+			["2023-12-31", 250, 700],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_after_adjustment)
+
+		asset_repair = create_asset_repair(
+			asset=asset,
+			capitalize_repair_cost=1,
+			item="_Test Non Stock Item",
+			failure_date="2022-01-20",
+			pi_repair_cost1=60,
+			pi_repair_cost2=40,
+			increase_in_asset_life=0,
+			submit=1,
+		)
+		self.assertEqual(asset_repair.total_repair_cost, 100)
+
+		expected_depreciation_after_repair = [
+			["2021-12-31", 200, 200],
+			["2022-12-31", 300, 500],
+			["2023-12-31", 300, 800],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_after_repair)
+		asset.reload()
+
+		asset_value_adjustment.cancel()
+
+		expected_depreciation_after_cancelling_adjustment = [
+			["2021-12-31", 200, 200],
+			["2022-12-31", 250, 450],
+			["2023-12-31", 250, 700],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+
+		self.assertEqual(schedules, expected_depreciation_after_cancelling_adjustment)
