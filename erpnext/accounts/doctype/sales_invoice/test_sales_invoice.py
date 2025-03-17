@@ -3013,7 +3013,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		)
 		asset.load_from_db()
 
-		expected_values = [["2020-12-31", 30000, 30000], ["2021-12-31", 30000, 60000]]
+		expected_values = [["2020-12-31", 30000, 30000], ["2021-12-31", 30041.15, 60041.15]]
 
 		for i, schedule in enumerate(get_depr_schedule(asset.name, "Active")):
 			self.assertEqual(getdate(expected_values[i][0]), schedule.schedule_date)
@@ -3038,10 +3038,10 @@ class TestSalesInvoice(ERPNextTestSuite):
 		expected_values = [
 			["2020-06-30", 1366.12, 1366.12, True],
 			["2021-06-30", 20000.0, 21366.12, True],
-			["2022-06-30", 20000.0, 41366.12, False],
-			["2023-06-30", 20000.0, 61366.12, False],
-			["2024-06-30", 20000.0, 81366.12, False],
-			["2025-06-06", 18633.88, 100000.0, False],
+			["2022-06-30", 20000.95, 41367.07, False],
+			["2023-06-30", 20000.95, 61368.02, False],
+			["2024-06-30", 20000.95, 81368.97, False],
+			["2025-06-06", 18631.03, 100000.0, False],
 		]
 
 		for i, schedule in enumerate(get_depr_schedule(asset.name, "Active")):

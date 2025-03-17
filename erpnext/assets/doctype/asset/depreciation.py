@@ -527,6 +527,7 @@ def cancel_depreciation_entries(asset_doc, date):
 def reset_depreciation_schedule(asset_doc, notes):
 	if asset_doc.calculate_depreciation:
 		reschedule_depreciation(asset_doc, notes)
+		asset_doc.set_total_booked_depreciations()
 
 
 def reverse_depreciation_entry_made_on_disposal(asset):
