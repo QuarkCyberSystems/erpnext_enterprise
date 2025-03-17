@@ -1262,18 +1262,6 @@ class TestPurchaseOrder(IntegrationTestCase):
 
 		po.reload()
 		self.assertEqual(po.items[0].received_qty, 5)
-		# PO still has qty 0, so received % should be unset
-		self.assertFalse(po.per_received)
-		self.assertEqual(po.status, "To Receive and Bill")
-
-		# Test: PR can be made against PO as long PO qty is 0 OR PO qty > received qty
-		pr2 = make_purchase_receipt(po.name)
-		self.assertEqual(pr2.items[0].qty, 0)
-		pr2.items[0].qty = 5
-		pr2.submit()
-
-		po.reload()
-		self.assertEqual(po.items[0].received_qty, 10)
 		self.assertFalse(po.per_received)
 		self.assertEqual(po.status, "To Receive and Bill")
 
@@ -1291,9 +1279,19 @@ class TestPurchaseOrder(IntegrationTestCase):
 		)
 		update_child_qty_rate("Purchase Order", trans_item, po.name)
 
+		# Test: PR can be made against PO as long PO qty is 0 OR PO qty > received qty
+		pr2 = make_purchase_receipt(po.name)
+
+		po.reload()
+		self.assertEqual(po.items[0].qty, 10)
+		self.assertEqual(pr2.items[0].qty, 5)
+
+		pr2.submit()
+
 		# PO should be updated to 100% received
 		po.reload()
 		self.assertEqual(po.items[0].qty, 10)
+		self.assertEqual(po.items[0].received_qty, 10)
 		self.assertEqual(po.per_received, 100.0)
 		self.assertEqual(po.status, "To Bill")
 

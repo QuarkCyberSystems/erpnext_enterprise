@@ -747,8 +747,11 @@ def set_missing_values(source, target):
 def make_purchase_receipt(source_name, target_doc=None):
 	has_unit_price_items = frappe.db.get_value("Purchase Order", source_name, "has_unit_price_items")
 
+	def is_unit_price_row(source):
+		return has_unit_price_items and source.qty == 0
+
 	def update_item(obj, target, source_parent):
-		target.qty = flt(obj.qty) - flt(obj.received_qty) if not has_unit_price_items else 0
+		target.qty = flt(obj.qty) if is_unit_price_row(obj) else flt(obj.qty) - flt(obj.received_qty)
 		target.stock_qty = (flt(obj.qty) - flt(obj.received_qty)) * flt(obj.conversion_factor)
 		target.amount = (flt(obj.qty) - flt(obj.received_qty)) * flt(obj.rate)
 		target.base_amount = (
@@ -780,7 +783,7 @@ def make_purchase_receipt(source_name, target_doc=None):
 				},
 				"postprocess": update_item,
 				"condition": lambda doc: (
-					abs(doc.received_qty) < abs(doc.qty) if not has_unit_price_items else True
+					True if is_unit_price_row(doc) else abs(doc.received_qty) < abs(doc.qty)
 				)
 				and doc.delivered_by_supplier != 1,
 			},

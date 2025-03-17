@@ -381,10 +381,14 @@ def _make_sales_order(source_name, target_doc=None, ignore_permissions=False):
 			as_list=1,
 		)
 	)
+
+	selected_rows = [x.get("name") for x in frappe.flags.get("args", {}).get("selected_items", [])]
+
 	# 0 qty is accepted, as the qty uncertain for some items
 	has_unit_price_items = frappe.db.get_value("Quotation", source_name, "has_unit_price_items")
 
-	selected_rows = [x.get("name") for x in frappe.flags.get("args", {}).get("selected_items", [])]
+	def is_unit_price_row(source) -> bool:
+		return has_unit_price_items and source.qty == 0
 
 	def set_missing_values(source, target):
 		if customer:
@@ -414,7 +418,7 @@ def _make_sales_order(source_name, target_doc=None, ignore_permissions=False):
 		target.run_method("calculate_taxes_and_totals")
 
 	def update_item(obj, target, source_parent):
-		balance_qty = obj.qty - ordered_items.get(obj.item_code, 0.0)
+		balance_qty = obj.qty if is_unit_price_row(obj) else obj.qty - ordered_items.get(obj.item_code, 0.0)
 		target.qty = balance_qty if balance_qty > 0 else 0
 		target.stock_qty = flt(target.qty) * flt(obj.conversion_factor)
 
@@ -428,23 +432,22 @@ def _make_sales_order(source_name, target_doc=None, ignore_permissions=False):
 		Row mapping from Quotation to Sales order:
 		1. If no selections, map all non-alternative rows (that sum up to the grand total)
 		2. If selections: Is Alternative Item/Has Alternative Item: Map if selected and adequate qty
-		3. If selections: Simple row: Map if adequate qty
+		3. If no selections: Simple row: Map if adequate qty
 		"""
 		balance_qty = item.qty - ordered_items.get(item.item_code, 0.0)
-		if balance_qty <= 0 and not has_unit_price_items:
-			# False if qty <=0 in a 'normal' scenario
-			return False
+		has_valid_qty: bool = (balance_qty > 0) or is_unit_price_row(item)
 
-		has_qty: bool = (balance_qty > 0) or has_unit_price_items
+		if not has_valid_qty:
+			return False
 
 		if not selected_rows:
 			return not item.is_alternative
 
 		if selected_rows and (item.is_alternative or item.has_alternative_item):
-			return (item.name in selected_rows) and has_qty
+			return item.name in selected_rows
 
 		# Simple row
-		return has_qty
+		return True
 
 	doclist = get_mapped_doc(
 		"Quotation",

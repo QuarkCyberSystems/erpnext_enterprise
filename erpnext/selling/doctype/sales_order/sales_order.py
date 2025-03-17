@@ -967,9 +967,6 @@ def make_delivery_note(source_name, target_doc=None, kwargs=None):
 
 	kwargs = frappe._dict(kwargs)
 
-	# 0 qty is accepted, as the qty is uncertain for some items
-	has_unit_price_items = frappe.db.get_value("Sales Order", source_name, "has_unit_price_items")
-
 	sre_details = {}
 	if kwargs.for_reserved_stock:
 		sre_details = get_sre_reserved_qty_details_for_voucher("Sales Order", source_name)
@@ -979,6 +976,12 @@ def make_delivery_note(source_name, target_doc=None, kwargs=None):
 		"Sales Taxes and Charges": {"doctype": "Sales Taxes and Charges", "reset_value": True},
 		"Sales Team": {"doctype": "Sales Team", "add_if_empty": True},
 	}
+
+	# 0 qty is accepted, as the qty is uncertain for some items
+	has_unit_price_items = frappe.db.get_value("Sales Order", source_name, "has_unit_price_items")
+
+	def is_unit_price_row(source):
+		return has_unit_price_items and source.qty == 0
 
 	def set_missing_values(source, target):
 		if kwargs.get("ignore_pricing_rule"):
@@ -1020,13 +1023,15 @@ def make_delivery_note(source_name, target_doc=None, kwargs=None):
 				return False
 
 		return (
-			(abs(doc.delivered_qty) < abs(doc.qty)) or has_unit_price_items
+			(abs(doc.delivered_qty) < abs(doc.qty)) or is_unit_price_row(doc)
 		) and doc.delivered_by_supplier != 1
 
 	def update_item(source, target, source_parent):
 		target.base_amount = (flt(source.qty) - flt(source.delivered_qty)) * flt(source.base_rate)
 		target.amount = (flt(source.qty) - flt(source.delivered_qty)) * flt(source.rate)
-		target.qty = flt(source.qty) - flt(source.delivered_qty) if not has_unit_price_items else 0
+		target.qty = (
+			flt(source.qty) if is_unit_price_row(source) else flt(source.qty) - flt(source.delivered_qty)
+		)
 
 		item = get_item_defaults(target.item_code, source_parent.company)
 		item_group = get_item_group_defaults(target.item_code, source_parent.company)
@@ -1109,6 +1114,12 @@ def make_delivery_note(source_name, target_doc=None, kwargs=None):
 
 @frappe.whitelist()
 def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
+	# 0 qty is accepted, as the qty is uncertain for some items
+	has_unit_price_items = frappe.db.get_value("Sales Order", source_name, "has_unit_price_items")
+
+	def is_unit_price_row(source):
+		return has_unit_price_items and source.qty == 0
+
 	def postprocess(source, target):
 		set_missing_values(source, target)
 		# Get the advance paid Journal Entries in Sales Invoice Advance
@@ -1150,7 +1161,7 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 		target.qty = (
 			target.amount / flt(source.rate)
 			if (source.rate and source.billed_amt)
-			else source.qty - source.returned_qty
+			else (source.qty if is_unit_price_row(source) else source.qty - source.returned_qty)
 		)
 
 		if source_parent.project:
@@ -1163,8 +1174,6 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 			if cost_center:
 				target.cost_center = cost_center
 
-	# has_unit_price_items = 0 is accepted as the qty uncertain for some items
-	has_unit_price_items = frappe.db.get_value("Sales Order", source_name, "has_unit_price_items")
 	doclist = get_mapped_doc(
 		"Sales Order",
 		source_name,
@@ -1186,9 +1195,10 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 				},
 				"postprocess": update_item,
 				"condition": lambda doc: (
-					doc.qty and (doc.base_amount == 0 or abs(doc.billed_amt) < abs(doc.amount))
-				)
-				or has_unit_price_items,
+					True
+					if is_unit_price_row(doc)
+					else (doc.qty and (doc.base_amount == 0 or abs(doc.billed_amt) < abs(doc.amount)))
+				),
 			},
 			"Sales Taxes and Charges": {
 				"doctype": "Sales Taxes and Charges",
