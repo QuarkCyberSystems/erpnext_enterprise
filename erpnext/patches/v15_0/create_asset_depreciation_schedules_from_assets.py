@@ -22,7 +22,7 @@ def execute():
 				asset_depr_schedule_doc.name,
 				{"docstatus": 1, "status": "Active"},
 			)
-			
+
 		update_depreciation_schedules(depreciation_schedules, asset_depr_schedule_doc.name)
 
 

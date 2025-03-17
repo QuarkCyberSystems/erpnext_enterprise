@@ -3,8 +3,9 @@
 
 import frappe
 from frappe.tests import IntegrationTestCase, UnitTestCase
-from frappe.utils import cstr, date_diff, flt
+from frappe.utils import cstr, date_diff, flt, getdate
 
+from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
 from erpnext.assets.doctype.asset.depreciation import (
 	post_depreciation_entries,
 )
@@ -982,3 +983,161 @@ class TestAssetDepreciationSchedule(IntegrationTestCase):
 		]
 
 		self.assertEqual(schedules, expected_depreciation_after_cancelling_adjustment)
+
+	def test_depreciation_schedule_after_sale_of_asset(self):
+		asset = create_asset(
+			item_code="Macbook Pro",
+			gross_purchase_amount=600,
+			calculate_depreciation=1,
+			depreciation_method="Straight Line",
+			available_for_use_date="2021-01-01",
+			depreciation_start_date="2021-12-31",
+			frequency_of_depreciation=12,
+			total_number_of_depreciations=3,
+			is_existing_asset=1,
+			submit=1,
+		)
+		post_depreciation_entries(date="2021-12-31")
+		asset.reload()
+
+		expected_depreciation_before_adjustment = [
+			["2021-12-31", 200, 200],
+			["2022-12-31", 200, 400],
+			["2023-12-31", 200, 600],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_before_adjustment)
+
+		current_asset_value = asset.finance_books[0].value_after_depreciation
+		asset_value_adjustment = make_asset_value_adjustment(
+			asset=asset,
+			date="2022-01-15",
+			current_asset_value=current_asset_value,
+			new_asset_value=500,
+		)
+		asset_value_adjustment.submit()
+
+		expected_depreciation_after_adjustment = [
+			["2021-12-31", 200, 200],
+			["2022-12-31", 250, 450],
+			["2023-12-31", 250, 700],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_after_adjustment)
+
+		si = create_sales_invoice(
+			item_code="Macbook Pro", asset=asset.name, qty=1, rate=300, posting_date=getdate("2022-04-01")
+		)
+		asset.load_from_db()
+
+		self.assertEqual(frappe.db.get_value("Asset", asset.name, "status"), "Sold")
+
+		expected_depreciation_after_sale = [
+			["2021-12-31", 200.0, 200.0],
+			["2022-04-01", 62.33, 262.33],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_after_sale)
+
+		si.cancel()
+		asset.reload()
+
+		self.assertEqual(frappe.db.get_value("Asset", asset.name, "status"), "Partially Depreciated")
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_after_adjustment)
+
+	def test_depreciation_schedule_after_sale_of_asset_wdv_method(self):
+		asset = create_asset(
+			item_code="Macbook Pro",
+			gross_purchase_amount=500,
+			calculate_depreciation=1,
+			depreciation_method="Written Down Value",
+			available_for_use_date="2021-01-01",
+			depreciation_start_date="2021-12-31",
+			rate_of_depreciation=50,
+			frequency_of_depreciation=12,
+			total_number_of_depreciations=3,
+			is_existing_asset=1,
+			submit=1,
+		)
+		post_depreciation_entries(date="2021-12-31")
+		asset.reload()
+
+		expected_depreciation_before_repair = [
+			["2021-12-31", 250.0, 250.0],
+			["2022-12-31", 125.0, 375.0],
+			["2023-12-31", 125.0, 500.0],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_before_repair)
+
+		create_asset_repair(
+			asset=asset,
+			capitalize_repair_cost=1,
+			item="_Test Non Stock Item",
+			failure_date="2022-03-01",
+			pi_repair_cost1=60,
+			pi_repair_cost2=40,
+			increase_in_asset_life=0,
+			submit=1,
+		)
+
+		expected_depreciation_after_repair = [
+			["2021-12-31", 250.0, 250.0],
+			["2022-12-31", 175.0, 425.0],
+			["2023-12-31", 175.0, 600.0],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_after_repair)
+
+		si = create_sales_invoice(
+			item_code="Macbook Pro", asset=asset.name, qty=1, rate=300, posting_date=getdate("2022-04-01")
+		)
+		asset.load_from_db()
+
+		self.assertEqual(frappe.db.get_value("Asset", asset.name, "status"), "Sold")
+
+		expected_depreciation_after_sale = [
+			["2021-12-31", 250.0, 250.0],
+			["2022-04-01", 43.63, 293.63],
+		]
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_after_sale)
+
+		si.cancel()
+		asset.reload()
+		self.assertEqual(frappe.db.get_value("Asset", asset.name, "status"), "Partially Depreciated")
+
+		schedules = [
+			[cstr(d.schedule_date), d.depreciation_amount, d.accumulated_depreciation_amount]
+			for d in get_depr_schedule(asset.name, "Active")
+		]
+		self.assertEqual(schedules, expected_depreciation_after_repair)
