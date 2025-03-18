@@ -160,7 +160,7 @@ class Batch(Document):
 		from erpnext.stock.utils import get_valuation_method
 
 		if self.is_new():
-			if get_valuation_method(self.item) != "FIFO":
+			if get_valuation_method(self.item) == "Moving Average":
 				self.use_batchwise_valuation = 0
 				return
 
