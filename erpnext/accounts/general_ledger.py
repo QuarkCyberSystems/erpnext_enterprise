@@ -82,6 +82,10 @@ def make_acc_dimensions_offsetting_entry(gl_map):
 					"credit_in_account_currency": credit,
 					"remarks": _("Offsetting for Accounting Dimension") + f" - {dimension.name}",
 					"against_voucher": None,
+					"account_currency": dimension.account_currency,
+					# Party Type and Party are restricted to Receivable and Payable accounts
+					"party_type": None,
+					"party": None,
 				}
 			)
 			offsetting_entry["against_voucher_type"] = None
@@ -109,6 +113,9 @@ def get_accounting_dimensions_for_offsetting_entry(gl_map, company):
 	accounting_dimensions_to_offset = []
 	for acc_dimension in acc_dimensions:
 		values = set([entry.get(acc_dimension.fieldname) for entry in gl_map])
+		acc_dimension.account_currency = frappe.get_cached_value(
+			"Account", acc_dimension.offsetting_account, "account_currency"
+		)
 		if len(values) > 1:
 			accounting_dimensions_to_offset.append(acc_dimension)
 
