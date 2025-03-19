@@ -713,6 +713,7 @@ erpnext.utils.update_child_items = function (opts) {
 								uom,
 								conversion_factor,
 								item_name,
+								bom_no,
 							} = r.message;
 
 							const row = dialog.fields_dict.trans_items.df.data.find(
@@ -725,6 +726,7 @@ erpnext.utils.update_child_items = function (opts) {
 									qty: me.doc.qty || qty,
 									rate: me.doc.rate || rate,
 									item_name: item_name,
+									bom_no: bom_no,
 								});
 								dialog.fields_dict.trans_items.grid.refresh();
 							}

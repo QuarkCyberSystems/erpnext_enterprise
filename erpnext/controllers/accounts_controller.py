@@ -3731,6 +3731,9 @@ def update_child_qty_rate(parent_doctype, trans_items, parent_doctype_name, chil
 		if d.get("schedule_date") and parent_doctype == "Purchase Order":
 			child_item.schedule_date = d.get("schedule_date")
 
+		if d.get("bom_no") and parent_doctype == "Sales Order":
+			child_item.bom_no = d.get("bom_no")
+
 		if flt(child_item.price_list_rate):
 			if flt(child_item.rate) > flt(child_item.price_list_rate):
 				#  if rate is greater than price_list_rate, set margin
