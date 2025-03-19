@@ -479,6 +479,7 @@ def get_basic_details(ctx: ItemDetailsCtx, item, overwrite_warehouse=True) -> It
 			"weight_per_unit": ctx.weight_per_unit or item.get("weight_per_unit"),
 			"weight_uom": ctx.weight_uom or item.get("weight_uom"),
 			"grant_commission": item.get("grant_commission"),
+			"default_bom": item.default_bom,
 		}
 	)
 
