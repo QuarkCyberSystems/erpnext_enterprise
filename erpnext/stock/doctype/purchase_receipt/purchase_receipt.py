@@ -1108,6 +1108,9 @@ def update_billing_percentage(pr_doc, update_modified=True, adjust_incoming_rate
 	total_amount, total_billed_amount = 0, 0
 	item_wise_returned_qty = get_item_wise_returned_qty(pr_doc)
 
+	if adjust_incoming_rate:
+		item_wise_billed_qty = get_billed_qty_against_purchase_receipt(pr_doc)
+
 	for item in pr_doc.items:
 		returned_qty = flt(item_wise_returned_qty.get(item.name))
 		returned_amount = flt(returned_qty) * flt(item.rate)
@@ -1127,10 +1130,15 @@ def update_billing_percentage(pr_doc, update_modified=True, adjust_incoming_rate
 
 		if adjust_incoming_rate:
 			adjusted_amt = 0.0
-			billed_qty = get_billed_qty_against_item(item.name)
 
-			if item.billed_amt is not None and item.amount is not None and billed_qty:
-				adjusted_amt = (flt(item.billed_amt / billed_qty) - flt(item.rate)) * item.qty
+			if (
+				item.billed_amt is not None
+				and item.amount is not None
+				and item_wise_billed_qty.get(item.name)
+			):
+				adjusted_amt = (
+					flt(item.billed_amt / item_wise_billed_qty.get(item.name)) - flt(item.rate)
+				) * item.qty
 
 			adjusted_amt = flt(adjusted_amt * flt(pr_doc.conversion_rate), item.precision("amount"))
 			item.db_set("amount_difference_with_purchase_invoice", adjusted_amt, update_modified=False)
@@ -1146,14 +1154,20 @@ def update_billing_percentage(pr_doc, update_modified=True, adjust_incoming_rate
 		adjust_incoming_rate_for_pr(pr_doc)
 
 
-def get_billed_qty_against_item(name):
+def get_billed_qty_against_purchase_receipt(pr_doc):
+	pr_names = [d.name for d in pr_doc.items]
 	table = frappe.qb.DocType("Purchase Invoice Item")
 	query = (
 		frappe.qb.from_(table)
-		.select(fn.Sum(table.qty).as_("qty"))
-		.where((table.pr_detail == name) & (table.docstatus == 1))
+		.select(table.pr_detail, fn.Sum(table.qty).as_("qty"))
+		.where((table.pr_detail.isin(pr_names)) & (table.docstatus == 1))
+		.groupby(table.pr_detail)
 	)
-	return query.run(as_dict=True)[0].get("qty", 0)
+	invoice_data = query.run(as_list=1)
+
+	if not invoice_data:
+		return frappe._dict()
+	return frappe._dict(invoice_data)
 
 
 def adjust_incoming_rate_for_pr(doc):
