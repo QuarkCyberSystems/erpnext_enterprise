@@ -80,8 +80,7 @@ def execute(filters=None):
 
 		sle.update({"in_qty": max(sle.actual_qty, 0), "out_qty": min(sle.actual_qty, 0)})
 
-		if frappe.get_value("Item", sle.item_code, "has_serial_no"):
-			update_available_serial_nos(available_serial_nos, sle)
+		update_available_serial_nos(available_serial_nos, sle)
 
 		if sle.actual_qty:
 			sle["in_out_rate"] = flt(sle.stock_value_difference / sle.actual_qty, precision)
@@ -306,10 +305,8 @@ def get_items(filters):
 			if condition := get_item_group_condition(item_group, item):
 				conditions.append(condition)
 
-	items = []
 	if conditions:
 		for condition in conditions:
 			query = query.where(condition)
-		items = [r[0] for r in query.run()]
 
-	return items
+	return query.run(pluck=True)
