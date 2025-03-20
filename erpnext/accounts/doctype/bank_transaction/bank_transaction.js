@@ -2,7 +2,15 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on("Bank Transaction", {
-	onload(frm) {
+	setup: function (frm) {
+		frm.set_query("party_type", function () {
+			return {
+				filters: {
+					name: ["in", Object.keys(frappe.boot.party_account_types)],
+				},
+			};
+		});
+
 		frm.set_query("payment_document", "payment_entries", function () {
 			const payment_doctypes = frm.events.get_payment_doctypes(frm);
 			return {
@@ -12,6 +20,7 @@ frappe.ui.form.on("Bank Transaction", {
 			};
 		});
 	},
+
 	refresh(frm) {
 		if (!frm.is_dirty() && frm.doc.payment_entries.length > 0) {
 			frm.add_custom_button(__("Unreconcile Transaction"), () => {
@@ -19,18 +28,9 @@ frappe.ui.form.on("Bank Transaction", {
 			});
 		}
 	},
+
 	bank_account: function (frm) {
 		set_bank_statement_filter(frm);
-	},
-
-	setup: function (frm) {
-		frm.set_query("party_type", function () {
-			return {
-				filters: {
-					name: ["in", Object.keys(frappe.boot.party_account_types)],
-				},
-			};
-		});
 	},
 
 	get_payment_doctypes: function () {
