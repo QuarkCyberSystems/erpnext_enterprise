@@ -19,6 +19,14 @@ frappe.ui.form.on("Bank Transaction", {
 				},
 			};
 		});
+
+		frm.set_query("payment_entry", "payment_entries", function () {
+			return {
+				filters: {
+					docstatus: ["!=", 2],
+				},
+			};
+		});
 	},
 
 	refresh(frm) {
