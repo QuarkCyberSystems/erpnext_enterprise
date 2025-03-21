@@ -141,7 +141,7 @@ class JournalEntry(AccountsController):
 		self.validate_credit_debit_note()
 		self.validate_empty_accounts_table()
 		self.validate_inter_company_accounts()
-		self.validate_depr_entry_voucher_type()
+		self.validate_depr_account_and_depr_entry_voucher_type()
 		self.validate_company_in_accounting_dimension()
 		self.validate_advance_accounts()
 
@@ -268,12 +268,16 @@ class JournalEntry(AccountsController):
 				):
 					frappe.throw(_("Total Credit/ Debit Amount should be same as linked Journal Entry"))
 
-	def validate_depr_entry_voucher_type(self):
-		if (
-			any(d.account_type == "Depreciation" for d in self.get("accounts"))
-			and self.voucher_type != "Depreciation Entry"
-		):
-			frappe.throw(_("Journal Entry type should be set as Depreciation Entry for asset depreciation"))
+	def validate_depr_account_and_depr_entry_voucher_type(self):
+		for d in self.get("accounts"):
+			if d.account_type == "Depreciation":
+				if self.voucher_type != "Depreciation Entry":
+					frappe.throw(
+						_("Journal Entry type should be set as Depreciation Entry for asset depreciation")
+					)
+
+				if frappe.get_cached_value("Account", d.account, "root_type") != "Expense":
+					frappe.throw(_("Account {0} should be of type Expense").format(d.account))
 
 	def validate_stock_accounts(self):
 		stock_accounts = get_stock_accounts(self.company, accounts=self.accounts)
