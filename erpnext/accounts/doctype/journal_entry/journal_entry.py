@@ -828,14 +828,13 @@ class JournalEntry(AccountsController):
 				"Debit Note",
 				"Credit Note",
 			]:
-				invoice = frappe.db.get_value(
-					reference_type, reference_name, ["docstatus", "outstanding_amount"], as_dict=1
-				)
+				invoice = frappe.get_doc(reference_type, reference_name)
 
 				if invoice.docstatus != 1:
 					frappe.throw(_("{0} {1} is not submitted").format(reference_type, reference_name))
 
-				if total and flt(invoice.outstanding_amount) < total:
+				precision = invoice.precision("outstanding_amount")
+				if total and flt(invoice.outstanding_amount, precision) < flt(total, precision):
 					frappe.throw(
 						_("Payment against {0} {1} cannot be greater than Outstanding Amount {2}").format(
 							reference_type, reference_name, invoice.outstanding_amount
