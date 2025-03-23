@@ -480,26 +480,26 @@ class TestAsset(AssetSetup):
 		asset = create_asset(
 			calculate_depreciation=1,
 			asset_quantity=10,
-			available_for_use_date="2020-01-01",
-			purchase_date="2020-01-01",
+			available_for_use_date="2023-01-01",
+			purchase_date="2023-01-01",
 			expected_value_after_useful_life=0,
 			total_number_of_depreciations=6,
 			opening_number_of_booked_depreciations=1,
-			frequency_of_depreciation=10,
-			depreciation_start_date="2021-01-01",
-			opening_accumulated_depreciation=20000,
-			gross_purchase_amount=120000,
+			frequency_of_depreciation=12,
+			depreciation_start_date="2024-03-31",
+			opening_accumulated_depreciation=493.15,
+			gross_purchase_amount=12000,
 			submit=1,
 		)
 
 		first_asset_depr_schedule = get_asset_depr_schedule_doc(asset.name, "Active")
 		self.assertEqual(first_asset_depr_schedule.status, "Active")
 
-		post_depreciation_entries(date="2021-01-01")
+		post_depreciation_entries(date="2024-03-31")
 
 		self.assertEqual(asset.asset_quantity, 10)
-		self.assertEqual(asset.gross_purchase_amount, 120000)
-		self.assertEqual(asset.opening_accumulated_depreciation, 20000)
+		self.assertEqual(asset.gross_purchase_amount, 12000)
+		self.assertEqual(asset.opening_accumulated_depreciation, 493.15)
 
 		new_asset = split_asset(asset.name, 2)
 		asset.load_from_db()
@@ -515,25 +515,25 @@ class TestAsset(AssetSetup):
 		depr_schedule_of_new_asset = first_asset_depr_schedule_of_new_asset.get("depreciation_schedule")
 
 		self.assertEqual(new_asset.asset_quantity, 2)
-		self.assertEqual(new_asset.gross_purchase_amount, 24000)
-		self.assertEqual(new_asset.opening_accumulated_depreciation, 4000)
+		self.assertEqual(new_asset.gross_purchase_amount, 2400)
+		self.assertEqual(new_asset.opening_accumulated_depreciation, 98.63)
 		self.assertEqual(new_asset.split_from, asset.name)
-		self.assertEqual(depr_schedule_of_new_asset[0].depreciation_amount, 4000)
-		self.assertEqual(depr_schedule_of_new_asset[1].depreciation_amount, 4000)
+		self.assertEqual(depr_schedule_of_new_asset[0].depreciation_amount, 400)
+		self.assertEqual(depr_schedule_of_new_asset[1].depreciation_amount, 400)
 
 		self.assertEqual(asset.asset_quantity, 8)
-		self.assertEqual(asset.gross_purchase_amount, 96000)
-		self.assertEqual(asset.opening_accumulated_depreciation, 16000)
-		self.assertEqual(depr_schedule_of_asset[0].depreciation_amount, 16000)
-		self.assertEqual(depr_schedule_of_asset[1].depreciation_amount, 16000)
+		self.assertEqual(asset.gross_purchase_amount, 9600)
+		self.assertEqual(asset.opening_accumulated_depreciation, 394.52)
+		self.assertEqual(depr_schedule_of_asset[0].depreciation_amount, 1600)
+		self.assertEqual(depr_schedule_of_asset[1].depreciation_amount, 1600)
 
 		journal_entry = depr_schedule_of_asset[0].journal_entry
 
 		jv = frappe.get_doc("Journal Entry", journal_entry)
-		self.assertEqual(jv.accounts[0].credit_in_account_currency, 16000)
-		self.assertEqual(jv.accounts[1].debit_in_account_currency, 16000)
-		self.assertEqual(jv.accounts[2].credit_in_account_currency, 4000)
-		self.assertEqual(jv.accounts[3].debit_in_account_currency, 4000)
+		self.assertEqual(jv.accounts[0].credit_in_account_currency, 1600)
+		self.assertEqual(jv.accounts[1].debit_in_account_currency, 1600)
+		self.assertEqual(jv.accounts[2].credit_in_account_currency, 400)
+		self.assertEqual(jv.accounts[3].debit_in_account_currency, 400)
 
 		self.assertEqual(jv.accounts[0].reference_name, asset.name)
 		self.assertEqual(jv.accounts[1].reference_name, asset.name)
