@@ -2380,6 +2380,9 @@ class AccountsController(TransactionBase):
 						base_grand_total * flt(d.invoice_portion) / 100, d.precision("base_payment_amount")
 					)
 					d.outstanding = d.payment_amount
+					d.base_outstanding = flt(
+						d.payment_amount * self.get("conversion_rate"), d.precision("base_outstanding")
+					)
 				elif not d.invoice_portion:
 					d.base_payment_amount = flt(
 						d.payment_amount * self.get("conversion_rate"), d.precision("base_payment_amount")
