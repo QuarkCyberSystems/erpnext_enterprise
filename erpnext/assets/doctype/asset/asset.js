@@ -135,7 +135,7 @@ frappe.ui.form.on("Asset", {
 				);
 			}
 
-			if (in_list(["Submitted", "Partially Depreciated"], frm.doc.status)) {
+			if (["Submitted", "Partially Depreciated"].includes(frm.doc.status)) {
 				frm.add_custom_button(
 					__("Adjust Asset Value"),
 					function () {

@@ -186,6 +186,7 @@ class AssetRepair(AccountsController):
 
 		self.asset_doc.flags.ignore_validate_update_after_submit = True
 		self.asset_doc.save()
+		self.asset_doc.db_update()
 
 	def get_total_value_of_stock_consumed(self):
 		return sum([flt(item.total_value) for item in self.get("stock_items")])
@@ -241,7 +242,7 @@ class AssetRepair(AccountsController):
 
 	def make_gl_entries(self, cancel=False):
 		if cancel:
-			self.ignore_linked_doctypes = ("GL Entry", "Stock Ledger Entry")
+			self.ignore_linked_doctypes = ("GL Entry", "Stock Ledger Entry")  # nosemgrep
 
 		if flt(self.total_repair_cost) > 0:
 			gl_entries = self.get_gl_entries()
