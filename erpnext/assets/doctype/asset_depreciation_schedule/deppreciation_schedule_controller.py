@@ -59,7 +59,8 @@ class DepreciationScheduleController(StraightLineMethod, WDVMethod):
 			if self.skip_row:
 				continue
 
-			if self.has_fiscal_year_changed(row_idx):
+			self.has_fiscal_year_changed(row_idx)
+			if self.fiscal_year_changed:
 				self.yearly_opening_wdv = self.pending_depreciation_amount
 
 			self.get_prev_depreciation_amount(row_idx)
