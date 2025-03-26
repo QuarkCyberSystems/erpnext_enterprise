@@ -86,6 +86,11 @@ frappe.ui.form.on("Job Card", {
 
 		frm.toggle_enable("for_quantity", !has_stock_entry);
 
+		if (frm.doc.docstatus != 0) {
+			frm.fields_dict["time_logs"].grid.update_docfield_property("completed_qty", "read_only", 1);
+			frm.fields_dict["time_logs"].grid.update_docfield_property("time_in_mins", "read_only", 1);
+		}
+
 		if (!frm.is_new() && !frm.doc.skip_material_transfer && has_items && frm.doc.docstatus < 2) {
 			let to_request = frm.doc.for_quantity > frm.doc.transferred_qty;
 			let excess_transfer_allowed = frm.doc.__onload.job_card_excess_transfer;
@@ -219,13 +224,17 @@ frappe.ui.form.on("Job Card", {
 				reqd: 1,
 				default: frm.doc.for_quantity - frm.doc.total_completed_qty,
 			},
-			{
+		];
+
+		let last_completed_row = get_last_completed_row(frm.doc.time_logs);
+		if (!last_completed_row || !last_completed_row.to_time) {
+			fields.push({
 				fieldtype: "Datetime",
 				label: __("End Time"),
 				fieldname: "end_time",
 				default: frappe.datetime.now_datetime(),
-			},
-		];
+			});
+		}
 
 		frappe.prompt(
 			fields,
@@ -626,8 +635,31 @@ frappe.ui.form.on("Job Card Time Log", {
 	to_time: function (frm) {
 		frm.set_value("started_time", "");
 	},
+
+	time_in_mins(frm, cdt, cdn) {
+		let d = locals[cdt][cdn];
+		if (d.time_in_mins) {
+			d.to_time = add_mins_to_time(d.from_time, d.time_in_mins);
+			frappe.model.set_value(cdt, cdn, "to_time", d.to_time);
+		}
+	},
 });
 
 function get_seconds_diff(d1, d2) {
 	return moment(d1).diff(d2, "seconds");
+}
+
+function add_mins_to_time(datetime, mins) {
+	let new_date = moment(datetime).add(mins, "minutes");
+
+	return new_date.format("YYYY-MM-DD HH:mm:ss");
+}
+
+function get_last_completed_row(time_logs) {
+	let completed_rows = time_logs.filter((d) => d.to_time);
+
+	if (completed_rows?.length) {
+		let last_completed_row = completed_rows[completed_rows.length - 1];
+		return last_completed_row;
+	}
 }
