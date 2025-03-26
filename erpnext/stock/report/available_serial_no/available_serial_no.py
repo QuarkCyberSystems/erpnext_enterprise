@@ -7,10 +7,7 @@ from frappe.query_builder.functions import Sum
 from frappe.utils import cint, flt
 
 from erpnext.stock.doctype.inventory_dimension.inventory_dimension import get_inventory_dimensions
-from erpnext.stock.doctype.serial_no.serial_no import (
-	get_serial_nos,
-	get_serial_nos_from_serial_and_batch_bundle,
-)
+from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos, get_serial_nos_from_sle_list
 from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import get_stock_balance_for
 from erpnext.stock.report.stock_ledger.stock_ledger import (
 	check_inventory_dimension_filters_applied,
@@ -51,12 +48,15 @@ def execute(filters=None):
 		actual_qty = opening_row.get("qty_after_transaction")
 		stock_value = opening_row.get("stock_value")
 
-	available_serial_nos = {}
 	inventory_dimension_filters_applied = check_inventory_dimension_filters_applied(filters)
 
 	batch_balance_dict = frappe._dict({})
 	if actual_qty and filters.get("batch_no"):
 		batch_balance_dict[filters.batch_no] = [actual_qty, stock_value]
+
+	available_serial_nos = get_serial_nos_from_sle_list(
+		[sle.serial_and_batch_bundle for sle in sl_entries if sle.serial_and_batch_bundle]
+	)
 
 	for sle in sl_entries:
 		item_detail = item_details[sle.item_code]
@@ -101,7 +101,7 @@ def update_available_serial_nos(available_serial_nos, sle):
 	serial_nos = (
 		get_serial_nos(sle.serial_no)
 		if sle.serial_no
-		else get_serial_nos_from_serial_and_batch_bundle(sle.serial_and_batch_bundle)
+		else available_serial_nos.get(sle.serial_and_batch_bundle)
 	)
 	key = (sle.item_code, sle.warehouse)
 	if key not in available_serial_nos:
