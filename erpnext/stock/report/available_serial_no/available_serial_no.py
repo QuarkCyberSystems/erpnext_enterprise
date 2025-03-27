@@ -30,27 +30,41 @@ def execute(filters=None):
 	items = get_items(filters)
 	sl_entries = get_stock_ledger_entries(filters, items)
 	item_details = get_item_details(items, sl_entries, include_uom)
+
+	opening_row, actual_qty, stock_value = get_opening_balance_data(filters, columns, sl_entries)
+
+	precision = cint(frappe.db.get_single_value("System Settings", "float_precision"))
+	data, conversion_factors = process_stock_ledger_entries(
+		filters, sl_entries, item_details, opening_row, actual_qty, stock_value, precision
+	)
+
+	update_included_uom_in_report(columns, data, include_uom, conversion_factors)
+	return columns, data
+
+
+def get_opening_balance_data(filters, columns, sl_entries):
 	if filters.get("batch_no"):
 		opening_row = get_opening_balance_from_batch(filters, columns, sl_entries)
 	else:
 		opening_row = get_opening_balance(filters, columns, sl_entries)
 
-	precision = cint(frappe.db.get_single_value("System Settings", "float_precision"))
+	actual_qty = opening_row.get("qty_after_transaction") if opening_row else 0
+	stock_value = opening_row.get("stock_value") if opening_row else 0
+	return opening_row, actual_qty, stock_value
 
+
+def process_stock_ledger_entries(
+	filters, sl_entries, item_details, opening_row, actual_qty, stock_value, precision
+):
 	data = []
 	conversion_factors = []
+
 	if opening_row:
 		data.append(opening_row)
 		conversion_factors.append(0)
 
-	actual_qty = stock_value = 0
-	if opening_row:
-		actual_qty = opening_row.get("qty_after_transaction")
-		stock_value = opening_row.get("stock_value")
-
-	inventory_dimension_filters_applied = check_inventory_dimension_filters_applied(filters)
-
 	batch_balance_dict = frappe._dict({})
+
 	if actual_qty and filters.get("batch_no"):
 		batch_balance_dict[filters.batch_no] = [actual_qty, stock_value]
 
@@ -59,42 +73,44 @@ def execute(filters=None):
 	)
 
 	for sle in sl_entries:
-		item_detail = item_details[sle.item_code]
-
-		sle.update(item_detail)
-
-		if filters.get("batch_no") or inventory_dimension_filters_applied:
-			actual_qty += flt(sle.actual_qty, precision)
-			stock_value += sle.stock_value_difference
-			if sle.batch_no:
-				if not batch_balance_dict.get(sle.batch_no):
-					batch_balance_dict[sle.batch_no] = [0, 0]
-
-				batch_balance_dict[sle.batch_no][0] += sle.actual_qty
-
-			if sle.voucher_type == "Stock Reconciliation" and not sle.actual_qty:
-				actual_qty = sle.qty_after_transaction
-				stock_value = sle.stock_value
-
-			sle.update({"qty_after_transaction": actual_qty, "stock_value": stock_value})
-
-		sle.update({"in_qty": max(sle.actual_qty, 0), "out_qty": min(sle.actual_qty, 0)})
-
+		update_stock_ledger_entry(
+			sle, item_details, filters, actual_qty, stock_value, batch_balance_dict, precision
+		)
 		update_available_serial_nos(available_serial_nos, sle)
-
-		if sle.actual_qty:
-			sle["in_out_rate"] = flt(sle.stock_value_difference / sle.actual_qty, precision)
-
-		elif sle.voucher_type == "Stock Reconciliation":
-			sle["in_out_rate"] = sle.valuation_rate
-
 		data.append(sle)
 
-		if include_uom:
-			conversion_factors.append(item_detail.conversion_factor)
+		if filters.get("include_uom"):
+			conversion_factors.append(item_details[sle.item_code].conversion_factor)
 
-	update_included_uom_in_report(columns, data, include_uom, conversion_factors)
-	return columns, data
+	return data, conversion_factors
+
+
+def update_stock_ledger_entry(
+	sle, item_details, filters, actual_qty, stock_value, batch_balance_dict, precision
+):
+	item_detail = item_details[sle.item_code]
+	sle.update(item_detail)
+
+	if filters.get("batch_no") or check_inventory_dimension_filters_applied(filters):
+		actual_qty += flt(sle.actual_qty, precision)
+		stock_value += sle.stock_value_difference
+
+		if sle.batch_no:
+			batch_balance_dict.setdefault(sle.batch_no, [0, 0])
+			batch_balance_dict[sle.batch_no][0] += sle.actual_qty
+
+		if sle.voucher_type == "Stock Reconciliation" and not sle.actual_qty:
+			actual_qty = sle.qty_after_transaction
+			stock_value = sle.stock_value
+
+		sle.update({"qty_after_transaction": actual_qty, "stock_value": stock_value})
+
+	sle.update({"in_qty": max(sle.actual_qty, 0), "out_qty": min(sle.actual_qty, 0)})
+
+	if sle.actual_qty:
+		sle["in_out_rate"] = flt(sle.stock_value_difference / sle.actual_qty, precision)
+	elif sle.voucher_type == "Stock Reconciliation":
+		sle["in_out_rate"] = sle.valuation_rate
 
 
 def update_available_serial_nos(available_serial_nos, sle):
