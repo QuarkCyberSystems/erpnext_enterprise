@@ -1281,12 +1281,13 @@ def get_account_balances(accounts, company):
 	return accounts
 
 
-def create_payment_gateway_account(gateway, payment_channel="Email"):
+def create_payment_gateway_account(gateway, payment_channel="Email", company=None):
 	from erpnext.setup.setup_wizard.operations.install_fixtures import create_bank_account
 
-	company = frappe.get_cached_value("Global Defaults", "Global Defaults", "default_company")
 	if not company:
-		return
+		company = frappe.get_cached_value("Global Defaults", "Global Defaults", "default_company")
+		if not company:
+			return
 
 	# NOTE: we translate Payment Gateway account name because that is going to be used by the end user
 	bank_account = frappe.db.get_value(
