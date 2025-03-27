@@ -2344,7 +2344,9 @@ class AccountsController(TransactionBase):
 				and automatically_fetch_payment_terms
 				and self.linked_order_has_payment_terms(po_or_so, fieldname, doctype)
 			):
-				self.fetch_payment_terms_from_order(po_or_so, doctype, grand_total, base_grand_total)
+				self.fetch_payment_terms_from_order(
+					po_or_so, doctype, grand_total, base_grand_total, automatically_fetch_payment_terms
+				)
 				if self.get("payment_terms_template"):
 					self.ignore_default_payment_terms_template = 1
 			elif self.get("payment_terms_template"):
@@ -2385,7 +2387,9 @@ class AccountsController(TransactionBase):
 						d.payment_amount * self.get("conversion_rate"), d.precision("base_payment_amount")
 					)
 		else:
-			self.fetch_payment_terms_from_order(po_or_so, doctype, grand_total, base_grand_total)
+			self.fetch_payment_terms_from_order(
+				po_or_so, doctype, grand_total, base_grand_total, automatically_fetch_payment_terms
+			)
 			self.ignore_default_payment_terms_template = 1
 
 	def get_order_details(self):
@@ -2425,7 +2429,9 @@ class AccountsController(TransactionBase):
 	def linked_order_has_payment_schedule(self, po_or_so):
 		return frappe.get_all("Payment Schedule", filters={"parent": po_or_so})
 
-	def fetch_payment_terms_from_order(self, po_or_so, po_or_so_doctype, grand_total, base_grand_total):
+	def fetch_payment_terms_from_order(
+		self, po_or_so, po_or_so_doctype, grand_total, base_grand_total, automatically_fetch_payment_terms
+	):
 		"""
 		Fetch Payment Terms from Purchase/Sales Order on creating a new Purchase/Sales Invoice.
 		"""
@@ -2444,7 +2450,7 @@ class AccountsController(TransactionBase):
 				"paid_amount": schedule.paid_amount,
 			}
 
-			if payment_schedule["invoice_portion"]:
+			if automatically_fetch_payment_terms:
 				payment_schedule["payment_amount"] = flt(
 					grand_total * flt(payment_schedule["invoice_portion"]) / 100,
 					schedule.precision("payment_amount"),
