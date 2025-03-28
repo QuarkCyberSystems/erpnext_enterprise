@@ -286,7 +286,7 @@ def repost(doc):
 
 		status = "Failed"
 		# If failed because of timeout, set status to In Progress
-		if traceback and "timeout" in traceback.lower():
+		if traceback and ("timeout" in traceback.lower() or "Deadlock found" in traceback):
 			status = "In Progress"
 
 		if traceback:
@@ -301,13 +301,14 @@ def repost(doc):
 			},
 		)
 
-		outgoing_email_account = frappe.get_cached_value(
-			"Email Account", {"default_outgoing": 1, "enable_outgoing": 1}, "name"
-		)
+		if status == "Failed":
+			outgoing_email_account = frappe.get_cached_value(
+				"Email Account", {"default_outgoing": 1, "enable_outgoing": 1}, "name"
+			)
 
-		if outgoing_email_account and not isinstance(e, RecoverableErrors):
-			notify_error_to_stock_managers(doc, message)
-			doc.set_status("Failed")
+			if outgoing_email_account and not isinstance(e, RecoverableErrors):
+				notify_error_to_stock_managers(doc, message)
+				doc.set_status("Failed")
 	finally:
 		if not frappe.flags.in_test:
 			frappe.db.commit()
