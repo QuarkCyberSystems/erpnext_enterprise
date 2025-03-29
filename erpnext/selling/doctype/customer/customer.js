@@ -30,7 +30,7 @@ frappe.ui.form.on("Customer", {
 			"Payment Entry": () =>
 				frappe.model.open_mapped_doc({
 					method: "erpnext.selling.doctype.customer.customer.make_payment_entry",
-					frm: cur_frm,
+					frm: frm,
 				}),
 			"Pricing Rule": () => erpnext.utils.make_pricing_rule(frm.doc.doctype, frm.doc.name),
 		};
