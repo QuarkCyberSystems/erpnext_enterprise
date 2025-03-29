@@ -440,8 +440,6 @@ def make_opportunity(source_name, target_doc=None):
 
 @frappe.whitelist()
 def make_payment_entry(source_name, target_doc=None):
-	print(source_name, target_doc)
-	
 	def set_missing_values(source, target):
 		_set_missing_values(source, target)
 
