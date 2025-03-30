@@ -129,6 +129,7 @@ class JobCard(Document):
 		time_required: DF.Float
 		total_completed_qty: DF.Float
 		total_time_in_mins: DF.Float
+		track_semi_finished_goods: DF.Check
 		transferred_qty: DF.Float
 		wip_warehouse: DF.Link | None
 		work_order: DF.Link
@@ -723,7 +724,7 @@ class JobCard(Document):
 			)
 
 	def validate_job_card(self):
-		if self.finished_good:
+		if self.track_semi_finished_goods:
 			return
 
 		if self.work_order and frappe.get_cached_value("Work Order", self.work_order, "status") == "Stopped":
@@ -794,7 +795,7 @@ class JobCard(Document):
 			)
 
 	def update_work_order(self):
-		if self.finished_good:
+		if self.track_semi_finished_goods:
 			return
 
 		if not self.work_order:
@@ -1037,7 +1038,7 @@ class JobCard(Document):
 		if self.docstatus == 0 and self.time_logs:
 			self.status = "Work In Progress"
 
-		if not self.finished_good and self.docstatus < 2:
+		if not self.track_semi_finished_goods and self.docstatus < 2:
 			if flt(self.for_quantity) <= flt(self.transferred_qty):
 				self.status = "Material Transferred"
 
@@ -1254,6 +1255,10 @@ class JobCard(Document):
 
 		if kwargs.end_time:
 			self.add_time_logs(to_time=kwargs.end_time, completed_qty=kwargs.qty, employees=self.employee)
+
+			if kwargs.for_quantity:
+				self.for_quantity = kwargs.for_quantity
+
 			self.save()
 		else:
 			self.add_time_logs(completed_qty=kwargs.qty, employees=self.employee)
