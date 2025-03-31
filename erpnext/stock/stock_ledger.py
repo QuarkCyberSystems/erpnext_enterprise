@@ -185,11 +185,16 @@ def validate_serial_no(sle):
 			frappe.throw(_(msg), title=_(title), exc=SerialNoExistsInFutureTransaction)
 
 
-def validate_cancellation(args):
-	if args[0].get("is_cancelled"):
+def validate_cancellation(kargs):
+	if kargs[0].get("is_cancelled"):
 		repost_entry = frappe.db.get_value(
 			"Repost Item Valuation",
-			{"voucher_type": args[0].voucher_type, "voucher_no": args[0].voucher_no, "docstatus": 1},
+			{
+				"voucher_type": kargs[0].voucher_type,
+				"voucher_no": kargs[0].voucher_no,
+				"docstatus": 1,
+				"recreate_stock_ledgers": 0,
+			},
 			["name", "status"],
 			as_dict=1,
 		)
