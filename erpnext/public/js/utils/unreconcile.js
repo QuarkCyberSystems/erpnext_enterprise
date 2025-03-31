@@ -91,7 +91,13 @@ erpnext.accounts.unreconcile_payment = {
 					read_only: 1,
 					options: "account_currency",
 				},
-				{ label: __("Currency"), fieldname: "account_currency", fieldtype: "Currency", read_only: 1 },
+				{
+					label: __("Currency"),
+					fieldname: "account_currency",
+					fieldtype: "Link",
+					options: "Currency",
+					read_only: 1,
+				},
 			];
 			let unreconcile_dialog_fields = [
 				{
