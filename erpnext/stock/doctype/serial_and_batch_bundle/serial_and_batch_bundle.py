@@ -2117,7 +2117,7 @@ def get_auto_batch_nos(kwargs):
 			picked_batches,
 		)
 
-	if available_batches and kwargs.get("posting_date"):
+	if not kwargs.get("do_not_check_future_batches") and available_batches and kwargs.get("posting_date"):
 		filter_zero_near_batches(available_batches, kwargs)
 
 	if not kwargs.consider_negative_batches:
@@ -2135,7 +2135,8 @@ def filter_zero_near_batches(available_batches, kwargs):
 	del kwargs["posting_date"]
 	del kwargs["posting_time"]
 
-	available_batches_in_future = get_available_batches(kwargs)
+	kwargs.do_not_check_future_batches = 1
+	available_batches_in_future = get_auto_batch_nos(kwargs)
 	for batch in available_batches:
 		if batch.qty <= 0:
 			continue
