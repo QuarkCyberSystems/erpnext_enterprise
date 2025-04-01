@@ -161,6 +161,8 @@ frappe.ui.form.on("Work Order", {
 		erpnext.work_order.set_custom_buttons(frm);
 		frm.set_intro("");
 
+		frm.toggle_enable("use_multi_level_bom", !frm.doc.track_semi_finished_goods);
+
 		if (frm.doc.docstatus === 0 && !frm.is_new()) {
 			frm.set_intro(__("Submit this Work Order for further processing."));
 		} else {

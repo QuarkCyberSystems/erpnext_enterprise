@@ -467,6 +467,7 @@ class calculate_taxes_and_totals:
 							self.doc.grand_total - flt(self.doc.discount_amount) - tax.total,
 							self.doc.precision("rounding_adjustment"),
 						)
+
 				logger.debug(
 					f"  net_amount: {current_net_amount:<20} tax_amount: {current_tax_amount:<20} - {tax.description}"
 				)
@@ -727,40 +728,36 @@ class calculate_taxes_and_totals:
 				return
 
 			total_for_discount_amount = self.get_total_for_discount_amount()
-			taxes = self.doc.get("taxes")
 			net_total = 0
+			expected_net_total = 0
 
 			if total_for_discount_amount:
 				# calculate item amount after Discount Amount
-				for i, item in enumerate(self._items):
+				for item in self._items:
 					distributed_amount = (
 						flt(self.doc.discount_amount) * item.net_amount / total_for_discount_amount
 					)
 
-					item.net_amount = flt(item.net_amount - distributed_amount, item.precision("net_amount"))
+					adjusted_net_amount = item.net_amount - distributed_amount
+					expected_net_total += adjusted_net_amount
+					item.net_amount = flt(adjusted_net_amount, item.precision("net_amount"))
 					item.distributed_discount_amount = flt(
 						distributed_amount, item.precision("distributed_discount_amount")
 					)
 					net_total += item.net_amount
 
-					# discount amount rounding loss adjustment if no taxes
-					if (
-						self.doc.apply_discount_on == "Net Total"
-						or not taxes
-						or total_for_discount_amount == self.doc.net_total
-					) and i == len(self._items) - 1:
-						discount_amount_loss = flt(
-							self.doc.net_total - net_total - self.doc.discount_amount,
-							self.doc.precision("net_total"),
-						)
-
+					# discount amount rounding adjustment
+					if rounding_difference := flt(
+						expected_net_total - net_total, self.doc.precision("net_total")
+					):
 						item.net_amount = flt(
-							item.net_amount + discount_amount_loss, item.precision("net_amount")
+							item.net_amount + rounding_difference, item.precision("net_amount")
 						)
 						item.distributed_discount_amount = flt(
-							distributed_amount + discount_amount_loss,
+							distributed_amount + rounding_difference,
 							item.precision("distributed_discount_amount"),
 						)
+						net_total += rounding_difference
 
 					item.net_rate = (
 						flt(item.net_amount / item.qty, item.precision("net_rate")) if item.qty else 0
@@ -776,20 +773,44 @@ class calculate_taxes_and_totals:
 	def get_total_for_discount_amount(self):
 		if self.doc.apply_discount_on == "Net Total":
 			return self.doc.net_total
-		else:
-			actual_taxes_dict = {}
 
-			for tax in self.doc.get("taxes"):
-				if tax.charge_type in ["Actual", "On Item Quantity"]:
-					tax_amount = self.get_tax_amount_if_for_valuation_or_deduction(tax.tax_amount, tax)
-					actual_taxes_dict.setdefault(tax.idx, tax_amount)
-				elif tax.row_id in actual_taxes_dict:
-					actual_tax_amount = flt(actual_taxes_dict.get(tax.row_id, 0)) * flt(tax.rate) / 100
-					actual_taxes_dict.setdefault(tax.idx, actual_tax_amount)
+		total_actual_tax = 0
+		actual_taxes_dict = {}
 
-			return flt(
-				self.doc.grand_total - sum(actual_taxes_dict.values()), self.doc.precision("grand_total")
+		def update_actual_tax_dict(tax, tax_amount):
+			nonlocal total_actual_tax
+
+			if tax.get("add_deduct_tax") == "Deduct":
+				tax_amount *= -1
+
+			if tax.get("category") != "Valuation":
+				total_actual_tax += tax_amount
+
+			actual_taxes_dict[int(tax.idx)] = {
+				"tax_amount": tax_amount,
+				"cumulative_tax_amount": total_actual_tax,
+			}
+
+		for tax in self.doc.get("taxes"):
+			if tax.charge_type in ["Actual", "On Item Quantity"]:
+				update_actual_tax_dict(tax, tax.tax_amount)
+				continue
+
+			if not tax.row_id:
+				continue
+
+			base_row = actual_taxes_dict.get(int(tax.row_id))
+			if not base_row:
+				continue
+
+			base_tax_amount = (
+				base_row["tax_amount"]
+				if tax.charge_type == "On Previous Row Amount"
+				else base_row["cumulative_tax_amount"]
 			)
+			update_actual_tax_dict(tax, base_tax_amount * tax.rate / 100)
+
+		return self.doc.grand_total - total_actual_tax
 
 	def calculate_total_advance(self):
 		if not self.doc.docstatus.is_cancelled():

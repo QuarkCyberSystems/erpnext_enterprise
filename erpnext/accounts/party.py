@@ -280,32 +280,50 @@ def get_regional_address_details(party_details, doctype, company):
 
 
 def complete_contact_details(party_details):
-	if not party_details.contact_person:
-		party_details.update(
-			{
-				"contact_person": None,
-				"contact_display": None,
-				"contact_email": None,
-				"contact_mobile": None,
-				"contact_phone": None,
-				"contact_designation": None,
-				"contact_department": None,
-			}
+	contact_details = frappe._dict()
+
+	if party_details.party_type == "Employee":
+		contact_details = frappe.db.get_value(
+			"Employee",
+			party_details.party,
+			[
+				"employee_name as contact_display",
+				"prefered_email as contact_email",
+				"cell_number as contact_mobile",
+				"designation as contact_designation",
+				"department as contact_department",
+			],
+			as_dict=True,
+		)
+
+		contact_details.update({"contact_person": None, "contact_phone": None})
+	elif party_details.contact_person:
+		contact_details = frappe.db.get_value(
+			"Contact",
+			party_details.contact_person,
+			[
+				"name as contact_person",
+				"full_name as contact_display",
+				"email_id as contact_email",
+				"mobile_no as contact_mobile",
+				"phone as contact_phone",
+				"designation as contact_designation",
+				"department as contact_department",
+			],
+			as_dict=True,
 		)
 	else:
-		fields = [
-			"name as contact_person",
-			"full_name as contact_display",
-			"email_id as contact_email",
-			"mobile_no as contact_mobile",
-			"phone as contact_phone",
-			"designation as contact_designation",
-			"department as contact_department",
-		]
+		contact_details = {
+			"contact_person": None,
+			"contact_display": None,
+			"contact_email": None,
+			"contact_mobile": None,
+			"contact_phone": None,
+			"contact_designation": None,
+			"contact_department": None,
+		}
 
-		contact_details = frappe.db.get_value("Contact", party_details.contact_person, fields, as_dict=True)
-
-		party_details.update(contact_details)
+	party_details.update(contact_details)
 
 
 def set_contact_details(party_details, party, party_type):
@@ -780,9 +798,9 @@ def validate_account_party_type(self):
 		account_type = frappe.get_cached_value("Account", self.account, "account_type")
 		if account_type and (account_type not in ["Receivable", "Payable", "Equity"]):
 			frappe.throw(
-				_(
-					"Party Type and Party can only be set for Receivable / Payable account<br><br>" "{0}"
-				).format(self.account)
+				_("Party Type and Party can only be set for Receivable / Payable account<br><br>{0}").format(
+					self.account
+				)
 			)
 
 
