@@ -344,7 +344,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 
 	calculate_taxes() {
 		var me = this;
-		this.frm.doc.rounding_adjustment = 0;
+		this.grand_total_diff = 0;
 		var actual_tax_dict = {};
 
 		// maintain actual tax rate based on idx
@@ -418,7 +418,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 					// adjust Discount Amount loss in last tax iteration
 					if ((i == me.frm.doc["taxes"].length - 1) && me.discount_amount_applied
 						&& me.frm.doc.apply_discount_on == "Grand Total" && me.frm.doc.discount_amount) {
-						me.frm.doc.rounding_adjustment = flt(me.frm.doc.grand_total -
+						me.grand_total_diff = flt(me.frm.doc.grand_total -
 							flt(me.frm.doc.discount_amount) - tax.total, precision("rounding_adjustment"));
 					}
 				}
@@ -551,7 +551,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 	adjust_grand_total_for_inclusive_tax() {
 		var me = this;
 
-		// if fully inclusive taxes and diff
+		// if any inclusive taxes and diff
 		if (this.frm.doc["taxes"] && this.frm.doc["taxes"].length) {
 			var any_inclusive_tax = false;
 			$.each(this.frm.doc.taxes || [], function(i, d) {
@@ -562,7 +562,9 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 				var non_inclusive_tax_amount = frappe.utils.sum($.map(this.frm.doc.taxes || [],
 					function(d) {
 						if(!d.included_in_print_rate) {
-							return flt(d.tax_amount_after_discount_amount);
+							let tax_amount = d.category === "Valuation" ? 0 : d.tax_amount_after_discount_amount;
+							if (d.add_deduct_tax === "Deduct") tax_amount *= -1;
+							return tax_amount;
 						}
 					}
 				));
@@ -576,9 +578,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 				diff = flt(diff, precision("rounding_adjustment"));
 
 				if ( diff && Math.abs(diff) <= (5.0 / Math.pow(10, precision("tax_amount", last_tax))) ) {
-					me.frm.doc.grand_total_diff = diff;
-				} else {
-					me.frm.doc.grand_total_diff = 0;
+					me.grand_total_diff = diff;
 				}
 			}
 		}
@@ -589,7 +589,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 		var me = this;
 		var tax_count = this.frm.doc["taxes"] ? this.frm.doc["taxes"].length : 0;
 		this.frm.doc.grand_total = flt(tax_count
-			? this.frm.doc["taxes"][tax_count - 1].total + flt(this.frm.doc.grand_total_diff)
+			? this.frm.doc["taxes"][tax_count - 1].total + this.grand_total_diff
 			: this.frm.doc.net_total);
 
 		if(["Quotation", "Sales Order", "Delivery Note", "Sales Invoice", "POS Invoice"].includes(this.frm.doc.doctype)) {
@@ -621,9 +621,9 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 		}
 
 		this.frm.doc.total_taxes_and_charges = flt(this.frm.doc.grand_total - this.frm.doc.net_total
-			- flt(this.frm.doc.grand_total_diff), precision("total_taxes_and_charges"));
+			- this.grand_total_diff, precision("total_taxes_and_charges"));
 
-		this.set_in_company_currency(this.frm.doc, ["total_taxes_and_charges", "rounding_adjustment"]);
+		this.set_in_company_currency(this.frm.doc, ["total_taxes_and_charges"]);
 
 		// Round grand total as per precision
 		frappe.model.round_floats_in(this.frm.doc, ["grand_total", "base_grand_total"]);
@@ -643,6 +643,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 		if (cint(disable_rounded_total)) {
 			this.frm.doc.rounded_total = 0;
 			this.frm.doc.base_rounded_total = 0;
+			this.frm.doc.rounding_adjustment = 0;
 			return;
 		}
 
