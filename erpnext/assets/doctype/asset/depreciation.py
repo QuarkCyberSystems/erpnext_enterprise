@@ -513,7 +513,7 @@ def depreciate_asset(asset_doc, date, notes):
 	# As per Income Tax Act (India), the asset should not be depreciated
 	# in the financial year in which it is sold/scraped
 	asset_doc.reload()
-	# cancel_depreciation_entries(asset_doc, date)
+	cancel_depreciation_entries(asset_doc, date)
 
 
 @erpnext.allow_regional
