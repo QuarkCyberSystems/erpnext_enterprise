@@ -384,9 +384,7 @@ class calculate_taxes_and_totals:
 			self._calculate()
 
 	def calculate_taxes(self):
-		rounding_adjustment_computed = self.doc.get("is_consolidated") and self.doc.get("rounding_adjustment")
-		if not rounding_adjustment_computed:
-			self.doc.rounding_adjustment = 0
+		self.grand_total_diff = 0
 
 		# maintain actual tax rate based on idx
 		actual_tax_dict = dict(
@@ -461,9 +459,8 @@ class calculate_taxes_and_totals:
 						and self.discount_amount_applied
 						and self.doc.discount_amount
 						and self.doc.apply_discount_on == "Grand Total"
-						and not rounding_adjustment_computed
 					):
-						self.doc.rounding_adjustment = flt(
+						self.grand_total_diff = flt(
 							self.doc.grand_total - flt(self.doc.discount_amount) - tax.total,
 							self.doc.precision("rounding_adjustment"),
 						)
@@ -593,11 +590,11 @@ class calculate_taxes_and_totals:
 		return self.adjust_grand_total_for_inclusive_tax()
 
 	def adjust_grand_total_for_inclusive_tax(self):
-		# if fully inclusive taxes and diff
+		# if any inclusive taxes and diff
 		if self.doc.get("taxes") and any(cint(t.included_in_print_rate) for t in self.doc.get("taxes")):
 			last_tax = self.doc.get("taxes")[-1]
 			non_inclusive_tax_amount = sum(
-				flt(d.tax_amount_after_discount_amount)
+				self.get_tax_amount_if_for_valuation_or_deduction(d.tax_amount_after_discount_amount, d)
 				for d in self.doc.get("taxes")
 				if not d.included_in_print_rate
 			)
@@ -614,27 +611,23 @@ class calculate_taxes_and_totals:
 			diff = flt(diff, self.doc.precision("rounding_adjustment"))
 
 			if diff and abs(diff) <= (5.0 / 10 ** last_tax.precision("tax_amount")):
-				self.doc.grand_total_diff = diff
-			else:
-				self.doc.grand_total_diff = 0
+				self.grand_total_diff = diff
 
 	def calculate_totals(self):
 		if self.doc.get("taxes"):
-			self.doc.grand_total = flt(self.doc.get("taxes")[-1].total) + flt(
-				self.doc.get("grand_total_diff")
-			)
+			self.doc.grand_total = flt(self.doc.get("taxes")[-1].total) + self.grand_total_diff
 		else:
 			self.doc.grand_total = flt(self.doc.net_total)
 
 		if self.doc.get("taxes"):
 			self.doc.total_taxes_and_charges = flt(
-				self.doc.grand_total - self.doc.net_total - flt(self.doc.get("grand_total_diff")),
+				self.doc.grand_total - self.doc.net_total - self.grand_total_diff,
 				self.doc.precision("total_taxes_and_charges"),
 			)
 		else:
 			self.doc.total_taxes_and_charges = 0.0
 
-		self._set_in_company_currency(self.doc, ["total_taxes_and_charges", "rounding_adjustment"])
+		self._set_in_company_currency(self.doc, ["total_taxes_and_charges"])
 
 		if self.doc.doctype in [
 			"Quotation",
@@ -684,7 +677,9 @@ class calculate_taxes_and_totals:
 
 		if self.doc.meta.get_field("rounded_total"):
 			if self.doc.is_rounded_total_disabled():
-				self.doc.rounded_total = self.doc.base_rounded_total = 0
+				self.doc.rounded_total = 0
+				self.doc.base_rounded_total = 0
+				self.doc.rounding_adjustment = 0
 				return
 
 			self.doc.rounded_total = round_based_on_smallest_currency_fraction(
