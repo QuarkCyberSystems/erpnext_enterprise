@@ -75,7 +75,12 @@ class StraightLineMethod(Document):
 
 
 class WDVMethod(Document):
+	@erpnext.allow_regional
 	def get_wdv_or_dd_depr_amount(self, row_idx):
+		return self.calculate_wdv_or_dd_based_depreciation_amount(row_idx)
+
+	@staticmethod
+	def calculate_wdv_or_dd_based_depreciation_amount(self, row_idx):
 		if self.fb_row.daily_prorata_based:
 			return self.get_daily_prorata_based_wdv_depr_amount(row_idx)
 		else:
