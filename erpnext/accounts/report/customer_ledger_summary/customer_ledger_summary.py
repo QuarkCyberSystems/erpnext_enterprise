@@ -29,7 +29,7 @@ class PartyLedgerSummaryReport:
 		self.filters.party_type = args.get("party_type")
 
 		self.validate_filters()
-		self.get_paty_details()
+		self.get_party_details()
 
 		if not self.parties:
 			return [], []
@@ -59,7 +59,7 @@ class PartyLedgerSummaryReport:
 			if self.filters.get(key):
 				self.filters[key] = get_children(doctype, self.filters[key])
 
-	def get_paty_details(self):
+	def get_party_details(self):
 		"""
 		Additional Columns for 'User Permission' based access control
 		"""
