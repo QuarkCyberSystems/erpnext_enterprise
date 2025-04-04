@@ -1234,7 +1234,11 @@ class update_entries_after:
 		stock_entry.db_update()
 		for d in stock_entry.items:
 			# Update only the row that matches the voucher_detail_no or the row containing the FG/Scrap Item.
-			if d.name == voucher_detail_no or (not d.s_warehouse and d.t_warehouse):
+			if (
+				d.name == voucher_detail_no
+				or (not d.s_warehouse and d.t_warehouse)
+				or stock_entry.purpose in ["Manufacture", "Repack"]
+			):
 				d.db_update()
 
 	def update_rate_on_delivery_and_sales_return(self, sle, outgoing_rate):
