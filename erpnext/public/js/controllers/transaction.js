@@ -251,6 +251,15 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 		}
 	}
 
+	use_serial_batch_fields(frm, cdt, cdn) {
+		const item = locals[cdt][cdn];
+		if (!item.use_serial_batch_fields) {
+			frappe.model.set_value(cdt, cdn, "serial_no", "");
+			frappe.model.set_value(cdt, cdn, "batch_no", "");
+			frappe.model.set_value(cdt, cdn, "rejected_serial_no", "");
+		}
+	}
+
 	set_fields_onload_for_line_item() {
 		if (this.frm.is_new() && this.frm.doc?.items) {
 			this.frm.doc.items.forEach(item => {
