@@ -374,8 +374,6 @@ def auto_reconcile_vouchers(
 	from_reference_date=None,
 	to_reference_date=None,
 ):
-	frappe.flags.auto_reconcile_vouchers = True
-
 	bank_transactions = get_bank_transactions(bank_account)
 
 	if len(bank_transactions) > 10:
@@ -404,6 +402,8 @@ def auto_reconcile_vouchers(
 def start_auto_reconcile(
 	bank_transactions, from_date, to_date, filter_by_reference_date, from_reference_date, to_reference_date
 ):
+	frappe.flags.auto_reconcile_vouchers = True
+
 	reconciled, partially_reconciled = set(), set()
 	for transaction in bank_transactions:
 		linked_payments = get_linked_payments(
