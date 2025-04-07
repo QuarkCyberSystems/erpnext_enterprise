@@ -53,11 +53,6 @@ frappe.query_reports["General Ledger"] = {
 			},
 		},
 		{
-			fieldname: "against_voucher_no",
-			label: __("Against Voucher No"),
-			fieldtype: "Data",
-		},
-		{
 			fieldtype: "Break",
 		},
 		{
