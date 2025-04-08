@@ -1069,11 +1069,11 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 		) {
 			const to_clear = [];
 			if (doc.payment_terms_template) {
-				to_clear.push("Payment Terms Template");
+				to_clear.push(__(frappe.meta.get_label(cdt, "payment_terms_template")));
 			}
 
 			if (doc.payment_schedule?.length) {
-				to_clear.push("Payment Schedule Table");
+				to_clear.push(__(frappe.meta.get_label(cdt, "payment_schedule")));
 			}
 
 			frappe.confirm(
