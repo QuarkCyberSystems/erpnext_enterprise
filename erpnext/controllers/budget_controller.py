@@ -105,7 +105,7 @@ class BudgetValidation:
 			budget_against = frappe.scrub(_bud.budget_against)
 			dimension = _bud.get(budget_against)
 
-			if frappe.db.get_value(_bud.budget_against, dimension, "is_group"):
+			if _bud.is_tree and frappe.db.get_value(_bud.budget_against, dimension, "is_group"):
 				child_nodes = self.get_child_nodes(_bud.budget_against, dimension)
 				for child in child_nodes:
 					key = (budget_against, child[0], _bud.account)
@@ -179,6 +179,10 @@ class BudgetValidation:
 			query = query.select(bud[x.get("fieldname")])
 
 		_budgets = query.run(as_dict=True)
+
+		for x in _budgets:
+			x.is_tree = frappe.get_meta(x.budget_against).is_tree
+
 		return _budgets
 
 	def get_ordered_amount(self, key: tuple | None = None):
