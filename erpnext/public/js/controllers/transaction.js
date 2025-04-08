@@ -1042,9 +1042,14 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 		}
 	}
 
-	due_date(doc) {
+	due_date(doc, cdt) {
 		// due_date is to be changed, payment terms template and/or payment schedule must
 		// be removed as due_date is automatically changed based on payment terms
+		if (doc.doctype !== cdt) {
+			// triggered by change to the due_date field in payment schedule child table
+			// do nothing to avoid infinite clearing loop
+			return;
+		}
 
 		// if there is only one row in payment schedule child table, set its due date as the due date
 		if (doc.payment_schedule.length == 1){
