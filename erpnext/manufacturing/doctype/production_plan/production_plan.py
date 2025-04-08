@@ -1329,7 +1329,7 @@ def get_material_request_items(
 	total_qty = row["qty"]
 
 	required_qty = 0
-	if ignore_existing_ordered_qty or bin_dict.get("projected_qty", 0) < 0:
+	if not ignore_existing_ordered_qty or bin_dict.get("projected_qty", 0) < 0:
 		required_qty = total_qty
 	elif total_qty > bin_dict.get("projected_qty", 0):
 		required_qty = total_qty - bin_dict.get("projected_qty", 0)
@@ -1688,7 +1688,7 @@ def get_items_for_material_requests(doc, warehouses=None, get_parent_warehouse_d
 				if items:
 					mr_items.append(items)
 
-	if (not ignore_existing_ordered_qty or get_parent_warehouse_data) and warehouses:
+	if (ignore_existing_ordered_qty or get_parent_warehouse_data) and warehouses:
 		new_mr_items = []
 		for item in mr_items:
 			get_materials_from_other_locations(item, warehouses, new_mr_items, company)
