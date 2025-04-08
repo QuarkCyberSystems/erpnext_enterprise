@@ -1042,32 +1042,32 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 		}
 	}
 
-	due_date() {
+	due_date(doc) {
 		// due_date is to be changed, payment terms template and/or payment schedule must
 		// be removed as due_date is automatically changed based on payment terms
 
 		// if there is only one row in payment schedule child table, set its due date as the due date
-		if (this.frm.doc.payment_schedule.length == 1){
-			this.frm.doc.payment_schedule[0].due_date = this.frm.doc.due_date;
+		if (doc.payment_schedule.length == 1){
+			doc.payment_schedule[0].due_date = doc.due_date;
 			this.frm.refresh_field("payment_schedule");
 			return
 		}
 
 		if (
-			this.frm.doc.due_date &&
+			doc.due_date &&
 			!this.frm.updating_party_details &&
-			!this.frm.doc.is_pos &&
+			!doc.is_pos &&
 			(
-				this.frm.doc.payment_terms_template ||
-				this.frm.doc.payment_schedule?.length
+				doc.payment_terms_template ||
+				doc.payment_schedule?.length
 			)
 		) {
 			const to_clear = [];
-			if (this.frm.doc.payment_terms_template) {
+			if (doc.payment_terms_template) {
 				to_clear.push("Payment Terms Template");
 			}
 
-			if (this.frm.doc.payment_schedule?.length) {
+			if (doc.payment_schedule?.length) {
 				to_clear.push("Payment Schedule Table");
 			}
 
