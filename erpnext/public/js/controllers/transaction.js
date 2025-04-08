@@ -1078,8 +1078,11 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 
 			frappe.confirm(
 				__(
-					"Do you want to clear the selected {0}?",
-					[frappe.utils.comma_and(to_clear.map(dt => __(dt)))]
+					"For the new {0} to take effect, would you like to clear the current {1}?",
+					[
+						__(frappe.meta.get_label(cdt, "due_date")),
+						frappe.utils.comma_and(to_clear)
+					],
 				),
 				() => {
 					this.frm.set_value("payment_terms_template", "");
