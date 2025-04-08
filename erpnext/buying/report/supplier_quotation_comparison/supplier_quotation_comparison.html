@@ -124,9 +124,7 @@
 	</tbody>
 </table>
 
-<h4 class="text-center"> Analysis Chart </h4>
+<h4 class="text-center">{%= __("Analysis Chart") %}</h4>
 <div id="chart_div"></div>
 
-
-
-<p class="text-right text-muted">Printed On {%= frappe.datetime.str_to_user(frappe.datetime.get_datetime_as_string()) %}</p>
+<p class="text-right text-muted">{%= __("Printed On {0}", [frappe.datetime.str_to_user(frappe.datetime.get_datetime_as_string())]) %}</p>
