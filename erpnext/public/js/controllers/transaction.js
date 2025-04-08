@@ -1083,6 +1083,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 						__(frappe.meta.get_label(cdt, "due_date")),
 						frappe.utils.comma_and(to_clear)
 					],
+					"Clear payment terms template and/or payment schedule when due date is changed"
 				),
 				() => {
 					this.frm.set_value("payment_terms_template", "");
