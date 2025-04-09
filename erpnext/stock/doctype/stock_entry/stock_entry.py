@@ -1368,7 +1368,7 @@ class StockEntry(StockController):
 					)
 				)
 
-	def update_stock_ledger(self):
+	def update_stock_ledger(self, allow_negative_stock=False):
 		sl_entries = []
 		finished_item_row = self.get_finished_item_row()
 
@@ -1382,7 +1382,7 @@ class StockEntry(StockController):
 		if self.docstatus == 2:
 			sl_entries.reverse()
 
-		self.make_sl_entries(sl_entries)
+		self.make_sl_entries(sl_entries, allow_negative_stock=allow_negative_stock)
 
 	def get_finished_item_row(self):
 		finished_item_row = None

@@ -663,7 +663,7 @@ class StockReconciliation(StockController):
 				title=_("Stock Reservation"),
 			)
 
-	def update_stock_ledger(self):
+	def update_stock_ledger(self, allow_negative_stock=False):
 		"""find difference between current and expected entries
 		and create stock ledger entries based on the difference"""
 		from erpnext.stock.stock_ledger import get_previous_sle
@@ -719,7 +719,11 @@ class StockReconciliation(StockController):
 				sl_entries.append(self.get_sle_for_items(row))
 
 		if sl_entries:
-			allow_negative_stock = cint(frappe.db.get_single_value("Stock Settings", "allow_negative_stock"))
+			if not allow_negative_stock:
+				allow_negative_stock = cint(
+					frappe.db.get_single_value("Stock Settings", "allow_negative_stock")
+				)
+
 			self.make_sl_entries(sl_entries, allow_negative_stock=allow_negative_stock)
 
 	def make_adjustment_entry(self, row, sl_entries):
