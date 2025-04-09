@@ -53,6 +53,7 @@ class POSProfile(Document):
 		payments: DF.Table[POSPaymentMethod]
 		print_format: DF.Link | None
 		print_receipt_on_order_complete: DF.Check
+		project: DF.Link | None
 		select_print_heading: DF.Link | None
 		selling_price_list: DF.Link | None
 		tax_category: DF.Link | None
