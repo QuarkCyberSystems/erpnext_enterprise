@@ -322,6 +322,15 @@ class SerialandBatchBundle(Document):
 				else:
 					valuation_rate = valuation_details["batches"].get(row.batch_no)
 
+				if frappe.flags.through_repost_item_valuation and not valuation_rate:
+					# if different serial nos / batches are returned
+					if row.serial_no:
+						serial_nos = sorted(list(valuation_details["serial_nos"].keys()))
+						valuation_rate = valuation_details["serial_nos"].get(serial_nos[cint(row.idx) - 1])
+					else:
+						batches = sorted(list(valuation_details["batches"].keys()))
+						valuation_rate = valuation_details["batches"].get(batches[cint(row.idx) - 1])
+
 				row.incoming_rate = flt(valuation_rate)
 				row.stock_value_difference = flt(row.qty) * flt(row.incoming_rate)
 
@@ -337,6 +346,9 @@ class SerialandBatchBundle(Document):
 			self.set_incoming_rate_for_inward_transaction(row, save)
 
 	def validate_returned_serial_batch_no(self, return_against, row, original_inv_details):
+		if frappe.flags.through_repost_item_valuation:
+			return
+
 		if row.serial_no and row.serial_no not in original_inv_details["serial_nos"]:
 			self.throw_error_message(
 				_(
