@@ -459,6 +459,7 @@ class StockReservationEntry(Document):
 			voucher_delivered_qty = flt(delivered_qty) * flt(conversion_factor)
 
 		allowed_qty = min(self.available_qty, (self.voucher_qty - voucher_delivered_qty - total_reserved_qty))
+		allowed_qty = flt(allowed_qty, self.precision("reserved_qty"))
 
 		if self.get("_action") != "submit" and self.voucher_type == "Sales Order" and allowed_qty <= 0:
 			msg = _("Item {0} is already reserved/delivered against Sales Order {1}.").format(
