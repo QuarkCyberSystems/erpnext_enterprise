@@ -962,6 +962,7 @@ class ProductionPlan(Document):
 		"Fetch sub assembly items and optionally combine them."
 		self.sub_assembly_items = []
 		sub_assembly_items_store = []  # temporary store to process all subassembly items
+		bin_details = frappe._dict()
 
 		for row in self.po_items:
 			if self.skip_available_sub_assembly_item and not self.sub_assembly_warehouse:
@@ -977,6 +978,7 @@ class ProductionPlan(Document):
 
 			get_sub_assembly_items(
 				[item.production_item for item in sub_assembly_items_store],
+				bin_details,
 				row.bom_no,
 				bom_data,
 				row.planned_qty,
@@ -1777,6 +1779,7 @@ def get_item_data(item_code):
 
 def get_sub_assembly_items(
 	sub_assembly_items,
+	bin_details,
 	bom_no,
 	bom_data,
 	to_produce_qty,
@@ -1791,25 +1794,27 @@ def get_sub_assembly_items(
 			parent_item_code = frappe.get_cached_value("BOM", bom_no, "item")
 			stock_qty = (d.stock_qty / d.parent_bom_qty) * flt(to_produce_qty)
 
-			bin_details = frappe._dict()
 			if skip_available_sub_assembly_item and d.item_code not in sub_assembly_items:
-				bin_details = get_bin_details(d, company, for_warehouse=warehouse)
+				bin_details.setdefault(d.item_code, get_bin_details(d, company, for_warehouse=warehouse))
 
-				for _bin_dict in bin_details:
+				for _bin_dict in bin_details[d.item_code]:
 					if _bin_dict.projected_qty > 0:
-						if _bin_dict.projected_qty > stock_qty:
+						if _bin_dict.projected_qty >= stock_qty:
+							_bin_dict.projected_qty -= stock_qty
 							stock_qty = 0
 							continue
 						else:
 							stock_qty = stock_qty - _bin_dict.projected_qty
 			elif warehouse:
-				bin_details = get_bin_details(d, company, for_warehouse=warehouse)
+				bin_details.setdefault(d.item_code, get_bin_details(d, company, for_warehouse=warehouse))
 
 			if stock_qty > 0:
 				bom_data.append(
 					frappe._dict(
 						{
-							"actual_qty": bin_details[0].get("actual_qty", 0) if bin_details else 0,
+							"actual_qty": bin_details[d.item_code][0].get("actual_qty", 0)
+							if bin_details
+							else 0,
 							"parent_item_code": parent_item_code,
 							"description": d.description,
 							"production_item": d.item_code,
@@ -1828,6 +1833,7 @@ def get_sub_assembly_items(
 				if d.value:
 					get_sub_assembly_items(
 						sub_assembly_items,
+						bin_details,
 						d.value,
 						bom_data,
 						stock_qty,
