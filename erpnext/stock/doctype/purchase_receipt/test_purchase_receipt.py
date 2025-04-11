@@ -3376,7 +3376,7 @@ class TestPurchaseReceipt(IntegrationTestCase):
 		bundle = dn.items[0].serial_and_batch_bundle
 
 		valuation_rate = frappe.db.get_value("Serial and Batch Bundle", bundle, "avg_rate")
-		self.assertEqual(valuation_rate, 150)
+		self.assertEqual(valuation_rate, 100.0)
 
 		doc = frappe.get_doc("Stock Settings")
 		doc.do_not_use_batchwise_valuation = 1

@@ -1978,6 +1978,53 @@ class TestStockEntry(IntegrationTestCase):
 		self.assertEqual(se.items[0].amount, 300)
 		self.assertEqual(se.items[0].basic_amount, 300)
 
+	def test_use_batch_wise_valuation_for_moving_average_item(self):
+		item_code = "_Test Use Batch Wise MA Valuation Item"
+
+		make_item(
+			item_code,
+			{
+				"is_stock_item": 1,
+				"valuation_method": "Moving Average",
+				"has_batch_no": 1,
+				"create_new_batch": 1,
+				"batch_naming_series": "Test-UBWVMAV-T-NNS.#####",
+			},
+		)
+
+		frappe.db.set_single_value("Stock Settings", "do_not_use_batchwise_valuation", 0)
+
+		batches = []
+		se = make_stock_entry(
+			item_code=item_code,
+			qty=10,
+			to_warehouse="_Test Warehouse - _TC",
+			basic_rate=100,
+			posting_date=add_days(nowdate(), -2),
+		)
+
+		batches.append(get_batch_from_bundle(se.items[0].serial_and_batch_bundle))
+
+		se = make_stock_entry(
+			item_code=item_code,
+			qty=10,
+			to_warehouse="_Test Warehouse - _TC",
+			basic_rate=300,
+			posting_date=add_days(nowdate(), -1),
+		)
+
+		batches.append(get_batch_from_bundle(se.items[0].serial_and_batch_bundle))
+
+		se = make_stock_entry(
+			item_code=item_code,
+			qty=5,
+			from_warehouse="_Test Warehouse - _TC",
+			batch_no=batches[1],
+			posting_date=nowdate(),
+		)
+
+		self.assertEqual(se.items[0].basic_rate, 300)
+
 
 def make_serialized_item(self, **args):
 	args = frappe._dict(args)
