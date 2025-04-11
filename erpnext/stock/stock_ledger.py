@@ -548,9 +548,6 @@ class update_entries_after:
 		self.allow_zero_rate = allow_zero_rate
 		self.via_landed_cost_voucher = via_landed_cost_voucher
 		self.item_code = args.get("item_code")
-		self.use_moving_avg_for_batch = frappe.db.get_single_value(
-			"Stock Settings", "do_not_use_batchwise_valuation"
-		)
 
 		self.allow_negative_stock = allow_negative_stock or is_negative_stock_allowed(
 			item_code=self.item_code
@@ -843,7 +840,7 @@ class update_entries_after:
 				if sle.get(dimension.get("fieldname")):
 					has_dimensions = True
 
-		if sle.serial_and_batch_bundle and (not self.use_moving_avg_for_batch or sle.has_serial_no):
+		if sle.serial_and_batch_bundle:
 			self.calculate_valuation_for_serial_batch_bundle(sle)
 		elif sle.serial_no and not self.args.get("sle_id"):
 			# Only run in reposting
@@ -912,15 +909,6 @@ class update_entries_after:
 
 		sle.doctype = "Stock Ledger Entry"
 		frappe.get_doc(sle).db_update()
-
-		if (
-			sle.serial_and_batch_bundle
-			and self.valuation_method == "Moving Average"
-			and self.use_moving_avg_for_batch
-			and (sle.batch_no or sle.has_batch_no)
-		):
-			valuation_rate = flt(stock_value_difference) / flt(sle.actual_qty)
-			self.update_valuation_rate_in_serial_and_batch_bundle(sle, valuation_rate)
 
 		if not self.args.get("sle_id") or (
 			sle.serial_and_batch_bundle and sle.auto_created_serial_and_batch_bundle
@@ -1036,15 +1024,6 @@ class update_entries_after:
 			self.wh_data.valuation_rate = flt(self.wh_data.stock_value, self.flt_precision) / flt(
 				self.wh_data.qty_after_transaction, self.flt_precision
 			)
-
-	def update_valuation_rate_in_serial_and_batch_bundle(self, sle, valuation_rate):
-		# Only execute if the item has batch_no and the valuation method is moving average
-		if not frappe.db.exists("Serial and Batch Bundle", sle.serial_and_batch_bundle):
-			return
-
-		doc = frappe.get_cached_doc("Serial and Batch Bundle", sle.serial_and_batch_bundle)
-		doc.update_valuation_rate(valuation_rate, save=True)
-		doc.calculate_qty_and_amount(save=True)
 
 	def get_outgoing_rate_for_batched_item(self, sle):
 		if self.wh_data.qty_after_transaction == 0:
