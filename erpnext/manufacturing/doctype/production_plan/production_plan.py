@@ -1813,7 +1813,7 @@ def get_sub_assembly_items(
 					frappe._dict(
 						{
 							"actual_qty": bin_details[d.item_code][0].get("actual_qty", 0)
-							if bin_details
+							if bin_details[d.item_code]
 							else 0,
 							"parent_item_code": parent_item_code,
 							"description": d.description,
