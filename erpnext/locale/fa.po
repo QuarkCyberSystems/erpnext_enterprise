@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
 "POT-Creation-Date: 2025-04-06 09:35+0000\n"
-"PO-Revision-Date: 2025-04-08 03:21\n"
+"PO-Revision-Date: 2025-04-11 04:10\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -3286,7 +3286,7 @@ msgstr "مدیر"
 #. Label of the advance_account (Link) field in DocType 'Party Account'
 #: erpnext/accounts/doctype/party_account/party_account.json
 msgid "Advance Account"
-msgstr "پیش حساب"
+msgstr "حساب پیش پرداخت"
 
 #: erpnext/utilities/transaction_base.py:212
 msgid "Advance Account: {0} must be in either customer billing currency: {1} or Company default currency: {2}"
@@ -5882,11 +5882,11 @@ msgstr "دارایی برگردانده شد"
 
 #: erpnext/assets/doctype/asset/depreciation.py:475
 msgid "Asset scrapped"
-msgstr "دارایی از بین رفته است"
+msgstr "دارایی اسقاط شده است"
 
 #: erpnext/assets/doctype/asset/depreciation.py:477
 msgid "Asset scrapped via Journal Entry {0}"
-msgstr "دارایی از طریق ثبت دفتر روزنامه {0} کنار گذاشته شد"
+msgstr "دارایی از طریق ثبت دفتر روزنامه {0} اسقاط شد"
 
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1403
 msgid "Asset sold"
@@ -5918,7 +5918,7 @@ msgstr "دارایی {0} را نمی‌توان در یک مکان دریافت 
 
 #: erpnext/assets/doctype/asset/depreciation.py:440
 msgid "Asset {0} cannot be scrapped, as it is already {1}"
-msgstr "دارایی {0} قابل حذف نیست، زیرا قبلاً {1} است"
+msgstr "دارایی {0} قابل اسقاط نیست، زیرا قبلاً {1} است"
 
 #: erpnext/assets/doctype/asset_capitalization/asset_capitalization.py:215
 msgid "Asset {0} does not belong to Item {1}"
@@ -7536,7 +7536,7 @@ msgstr "مبنا کل مبلغ صورتحساب"
 #. 'Timesheet'
 #: erpnext/projects/doctype/timesheet/timesheet.json
 msgid "Base Total Costing Amount"
-msgstr "مبنا کل بهای تمام شده"
+msgstr "مجموع مبلغ هزینه‌یابی مبنا"
 
 #. Label of the base_url (Data) field in DocType 'Support Search Source'
 #: erpnext/support/doctype/support_search_source/support_search_source.json
@@ -10033,7 +10033,7 @@ msgstr "مدیر ارشد مالی"
 
 #: erpnext/setup/setup_wizard/data/designation.txt:11
 msgid "Chief Operating Officer"
-msgstr ""
+msgstr "مدیر ارشد عملیات"
 
 #: erpnext/setup/setup_wizard/data/designation.txt:12
 msgid "Chief Technology Officer"
@@ -11221,7 +11221,7 @@ msgstr "کامل"
 #: erpnext/manufacturing/doctype/job_card/job_card.js:190
 #: erpnext/manufacturing/doctype/workstation/workstation.js:151
 msgid "Complete Job"
-msgstr "کار کامل"
+msgstr "تکمیل کار"
 
 #: erpnext/selling/page/point_of_sale/pos_payment.js:19
 msgid "Complete Order"
@@ -12438,7 +12438,7 @@ msgstr "مرکز هزینه و بودجه"
 
 #: erpnext/public/js/utils/sales_common.js:460
 msgid "Cost Center for Item rows has been updated to {0}"
-msgstr ""
+msgstr "مرکز هزینه برای ردیف های آیتم به {0} به روز شده است"
 
 #: erpnext/accounts/doctype/cost_center/cost_center.py:75
 msgid "Cost Center is a part of Cost Center Allocation, hence cannot be converted to a group"
@@ -12545,19 +12545,19 @@ msgstr "هزینه، بیمه و حمل"
 #: erpnext/manufacturing/doctype/bom_operation/bom_operation.json
 #: erpnext/projects/doctype/task/task.json
 msgid "Costing"
-msgstr "هزینه یابی"
+msgstr "هزینه‌یابی"
 
 #. Label of the costing_amount (Currency) field in DocType 'Timesheet Detail'
 #. Label of the base_costing_amount (Currency) field in DocType 'Timesheet
 #. Detail'
 #: erpnext/projects/doctype/timesheet_detail/timesheet_detail.json
 msgid "Costing Amount"
-msgstr "مبلغ هزینه"
+msgstr "مبلغ هزینه‌یابی"
 
 #. Label of the costing_detail (Section Break) field in DocType 'BOM Creator'
 #: erpnext/manufacturing/doctype/bom_creator/bom_creator.json
 msgid "Costing Details"
-msgstr "جزئیات هزینه"
+msgstr "جزئیات هزینه‌یابی"
 
 #. Label of the costing_rate (Currency) field in DocType 'Activity Cost'
 #. Label of the costing_rate (Currency) field in DocType 'Timesheet Detail'
@@ -12566,12 +12566,12 @@ msgstr "جزئیات هزینه"
 #: erpnext/projects/doctype/activity_cost/activity_cost.json
 #: erpnext/projects/doctype/timesheet_detail/timesheet_detail.json
 msgid "Costing Rate"
-msgstr "نرخ هزینه"
+msgstr "نرخ هزینه‌یابی"
 
 #. Label of the project_details (Section Break) field in DocType 'Project'
 #: erpnext/projects/doctype/project/project.json
 msgid "Costing and Billing"
-msgstr "هزینه یابی و صورتحساب"
+msgstr "هزینه‌یابی و صورتحساب"
 
 #: erpnext/setup/demo.py:55
 msgid "Could Not Delete Demo Data"
@@ -13383,7 +13383,7 @@ msgstr "بستانکاران"
 #. Label of the criteria (Table) field in DocType 'Supplier Scorecard Period'
 #: erpnext/buying/doctype/supplier_scorecard_period/supplier_scorecard_period.json
 msgid "Criteria"
-msgstr "شاخص"
+msgstr "معیارها"
 
 #. Label of the formula (Small Text) field in DocType 'Supplier Scorecard
 #. Criteria'
@@ -15188,7 +15188,7 @@ msgstr "حساب بهای تمام شده کالاهای فروخته شده پ�
 #. Label of the costing_rate (Currency) field in DocType 'Activity Type'
 #: erpnext/projects/doctype/activity_type/activity_type.json
 msgid "Default Costing Rate"
-msgstr "نرخ هزینه پیش‌فرض"
+msgstr "نرخ هزینه‌یابی پیش‌فرض"
 
 #. Label of the default_currency (Link) field in DocType 'Company'
 #. Label of the default_currency (Link) field in DocType 'Global Defaults'
@@ -17411,7 +17411,7 @@ msgstr "انجام ارسال مجدد برای هر تراکنش موجودی"
 
 #: erpnext/assets/doctype/asset/asset.js:824
 msgid "Do you really want to restore this scrapped asset?"
-msgstr "آیا واقعاً می‌خواهید این دارایی از بین رفته را بازیابی کنید؟"
+msgstr "آیا واقعاً می‌خواهید این دارایی اسقاط شده را بازیابی کنید؟"
 
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.js:15
 msgid "Do you still want to enable immutable ledger?"
@@ -18901,7 +18901,7 @@ msgstr "شماره تلفن مشتری را وارد کنید"
 
 #: erpnext/assets/doctype/asset/asset.js:795
 msgid "Enter date to scrap asset"
-msgstr ""
+msgstr "تاریخ اسقاط دارایی را وارد کنید"
 
 #: erpnext/assets/doctype/asset/asset.py:391
 msgid "Enter depreciation details"
@@ -20265,11 +20265,11 @@ msgstr "UOM خوب به پایان رسید"
 
 #: erpnext/subcontracting/doctype/subcontracting_bom/subcontracting_bom.py:51
 msgid "Finished Good {0} does not have a default BOM."
-msgstr "Finished Good {0} BOM پیش‌فرض ندارد."
+msgstr "کالای تمام شده {0} BOM پیش‌فرض ندارد."
 
 #: erpnext/subcontracting/doctype/subcontracting_bom/subcontracting_bom.py:46
 msgid "Finished Good {0} is disabled."
-msgstr "Finished Good {0} غیرفعال است."
+msgstr "کالای تمام شده {0} غیرفعال است."
 
 #: erpnext/subcontracting/doctype/subcontracting_bom/subcontracting_bom.py:48
 msgid "Finished Good {0} must be a stock item."
@@ -20518,12 +20518,12 @@ msgstr "مدیر ناوگان"
 #. Label of the details_tab (Tab Break) field in DocType 'Plant Floor'
 #: erpnext/manufacturing/doctype/plant_floor/plant_floor.json
 msgid "Floor"
-msgstr ""
+msgstr "سالن"
 
 #. Label of the floor_name (Data) field in DocType 'Plant Floor'
 #: erpnext/manufacturing/doctype/plant_floor/plant_floor.json
 msgid "Floor Name"
-msgstr ""
+msgstr "نام سالن"
 
 #. Name of a UOM
 #: erpnext/setup/setup_wizard/data/uom_data.json
@@ -21699,7 +21699,7 @@ msgstr "دریافت پیش پرداخت"
 #. Label of the get_allocations (Button) field in DocType 'Unreconcile Payment'
 #: erpnext/accounts/doctype/unreconcile_payment/unreconcile_payment.json
 msgid "Get Allocations"
-msgstr "تخصیص ها را دریافت کنید"
+msgstr "دریافت تخصیص ها"
 
 #. Label of the get_current_stock (Button) field in DocType 'Purchase Receipt'
 #. Label of the get_current_stock (Button) field in DocType 'Subcontracting
@@ -21707,7 +21707,7 @@ msgstr "تخصیص ها را دریافت کنید"
 #: erpnext/stock/doctype/purchase_receipt/purchase_receipt.json
 #: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.json
 msgid "Get Current Stock"
-msgstr "موجودی جاری را دریافت کنید"
+msgstr "دریافت موجودی جاری"
 
 #: erpnext/selling/doctype/customer/customer.js:180
 msgid "Get Customer Group Details"
@@ -21733,11 +21733,11 @@ msgstr "دریافت کالاهای تمام شده برای تولید"
 #: erpnext/accounts/doctype/invoice_discounting/invoice_discounting.js:57
 #: erpnext/accounts/doctype/invoice_discounting/invoice_discounting.js:159
 msgid "Get Invoices"
-msgstr "فاکتورها را دریافت کنید"
+msgstr "دریافت فاکتورها"
 
 #: erpnext/accounts/doctype/invoice_discounting/invoice_discounting.js:104
 msgid "Get Invoices based on Filters"
-msgstr "فاکتورها را بر اساس فیلترها دریافت کنید"
+msgstr "دریافت فاکتورها بر اساس فیلترها"
 
 #. Label of the get_item_locations (Button) field in DocType 'Pick List'
 #: erpnext/stock/doctype/pick_list/pick_list.json
@@ -21806,7 +21806,7 @@ msgstr "دریافت آیتم‌ها از BOM"
 
 #: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:375
 msgid "Get Items from Material Requests against this Supplier"
-msgstr "اقلام را از درخواست های مواد در برابر این تامین کننده دریافت کنید"
+msgstr "دریافت آیتم‌ها از درخواست های مواد در برابر این تامین کننده"
 
 #. Label of the get_items_from_open_material_requests (Button) field in DocType
 #. 'Purchase Order'
@@ -21880,7 +21880,7 @@ msgstr "دریافت سفارش‌های فروش"
 #. Receipt'
 #: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.json
 msgid "Get Scrap Items"
-msgstr "آیتم‌های ضایعات را دریافت کنید"
+msgstr "دریافت آیتم‌های ضایعات"
 
 #. Label of the get_started_sections (Code) field in DocType 'Support Settings'
 #: erpnext/support/doctype/support_settings/support_settings.json
@@ -21889,7 +21889,7 @@ msgstr "بخش های شروع به کار"
 
 #: erpnext/manufacturing/doctype/production_plan/production_plan.js:439
 msgid "Get Stock"
-msgstr "موجودی دریافت کنید"
+msgstr "دریافت موجودی"
 
 #. Label of the get_sub_assembly_items (Button) field in DocType 'Production
 #. Plan'
@@ -21899,20 +21899,20 @@ msgstr "دریافت آیتم‌های زیر مونتاژ"
 
 #: erpnext/buying/doctype/supplier/supplier.js:124
 msgid "Get Supplier Group Details"
-msgstr "جزئیات گروه تامین کننده را دریافت کنید"
+msgstr "دریافت جزئیات گروه تامین کننده"
 
 #: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:417
 #: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:437
 msgid "Get Suppliers"
-msgstr "تامین کنندگان را دریافت کنید"
+msgstr "دریافت تامین کنندگان"
 
 #: erpnext/buying/doctype/request_for_quotation/request_for_quotation.js:441
 msgid "Get Suppliers By"
-msgstr "تامین کنندگان را دریافت کنید"
+msgstr "دریافت تامین کنندگان بر اساس"
 
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.js:1083
 msgid "Get Timesheets"
-msgstr "برگه های زمانی را دریافت کنید"
+msgstr "دریافت برگه‌های زمانی"
 
 #: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.js:84
 #: erpnext/accounts/doctype/bank_reconciliation_tool/bank_reconciliation_tool.js:87
@@ -21921,7 +21921,7 @@ msgstr "برگه های زمانی را دریافت کنید"
 #: erpnext/accounts/doctype/payment_reconciliation/payment_reconciliation.js:86
 #: erpnext/accounts/doctype/payment_reconciliation/payment_reconciliation.js:91
 msgid "Get Unreconciled Entries"
-msgstr "ورودی های ناسازگار را دریافت کنید"
+msgstr "دریافت ثبت‌های ناسازگار"
 
 #: erpnext/templates/includes/footer/footer_extension.html:10
 msgid "Get Updates"
@@ -23171,7 +23171,7 @@ msgstr "اگر به یک فروشنده قرارداد فرعی شده است"
 
 #: erpnext/manufacturing/doctype/work_order/work_order.js:1069
 msgid "If the BOM results in Scrap material, the Scrap Warehouse needs to be selected."
-msgstr "اگر BOM منجر به مواد قراضه شود، انبار ضایعات باید انتخاب شود."
+msgstr "اگر BOM منجر به مواد ضایعات شود، انبار ضایعات باید انتخاب شود."
 
 #. Description of the 'Frozen' (Select) field in DocType 'Account'
 #: erpnext/accounts/doctype/account/account.json
@@ -23665,7 +23665,7 @@ msgstr "در حال درون‌بُرد {0} از {1}، {2}"
 #. Plan Sub Assembly Item'
 #: erpnext/manufacturing/doctype/production_plan_sub_assembly_item/production_plan_sub_assembly_item.json
 msgid "In House"
-msgstr "در خانه"
+msgstr "داخلی"
 
 #. Option for the 'Status' (Select) field in DocType 'Asset'
 #: erpnext/assets/doctype/asset/asset.json
@@ -27306,7 +27306,7 @@ msgstr "خلاصه کارت کار"
 #. Name of a DocType
 #: erpnext/manufacturing/doctype/job_card_time_log/job_card_time_log.json
 msgid "Job Card Time Log"
-msgstr "گزارش زمان کارت کار"
+msgstr "لاگ زمان کارت کار"
 
 #. Label of the job_card_section (Tab Break) field in DocType 'Manufacturing
 #. Settings'
@@ -27471,7 +27471,7 @@ msgstr "نوع ثبت دفتر روزنامه"
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.py:531
 msgid "Journal Entry for Asset scrapping cannot be cancelled. Please restore the Asset."
-msgstr "ثبت دفتر روزنامه برای حذف دارایی را نمی‌توان لغو کرد. لطفا دارایی را بازیابی کنید."
+msgstr "ثبت دفتر روزنامه برای اسقاط دارایی را نمی‌توان لغو کرد. لطفا دارایی را بازیابی کنید."
 
 #. Label of the journal_entry_for_scrap (Link) field in DocType 'Asset'
 #: erpnext/assets/doctype/asset/asset.json
@@ -31904,7 +31904,7 @@ msgstr "هیچ {0} معوقاتی برای {1} {2} که واجد شرایط فی
 
 #: erpnext/public/js/controllers/buying.js:463
 msgid "No pending Material Requests found to link for the given items."
-msgstr "هیچ درخواست مواد معلقی برای پیوند برای موارد داده شده یافت نشد."
+msgstr "هیچ درخواست مواد در انتظاری برای پیوند برای آیتم‌های داده شده یافت نشد."
 
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.py:435
 msgid "No primary email found for customer: {0}"
@@ -32546,7 +32546,7 @@ msgstr ""
 
 #: erpnext/manufacturing/doctype/production_plan/production_plan.js:613
 msgid "On expanding a row in the Items to Manufacture table, you'll see an option to 'Include Exploded Items'. Ticking this includes raw materials of the sub-assembly items in the production process."
-msgstr "با گسترش یک ردیف در جدول Items to Manufacture، گزینه ای برای \"شامل آیتم‌های گسترده شده\" را مشاهده خواهید کرد. تیک زدن این شامل مواد اولیه آیتم‌های زیر مونتاژ در فرآیند تولید می‌شود."
+msgstr "با گسترش یک ردیف در جدول آیتم‌ها برای تولید، گزینه ای برای \"شامل آیتم‌های گسترده شده\" را مشاهده خواهید کرد. تیک زدن این شامل مواد اولیه آیتم‌های زیر مونتاژ در فرآیند تولید می‌شود."
 
 #. Description of the 'Use Serial / Batch Fields' (Check) field in DocType
 #. 'Stock Settings'
@@ -35678,14 +35678,14 @@ msgstr "انتظار"
 
 #: erpnext/setup/doctype/email_digest/templates/default.html:93
 msgid "Pending Activities"
-msgstr "فعالیت های معلق"
+msgstr "فعالیت های در انتظار"
 
 #: erpnext/accounts/report/delivered_items_to_be_billed/delivered_items_to_be_billed.py:65
 #: erpnext/accounts/report/received_items_to_be_billed/received_items_to_be_billed.py:65
 #: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:291
 #: erpnext/selling/report/sales_order_analysis/sales_order_analysis.py:306
 msgid "Pending Amount"
-msgstr "مبلغ معلق"
+msgstr "مبلغ در انتظار"
 
 #. Label of the pending_qty (Float) field in DocType 'Production Plan Item'
 #: erpnext/buying/report/purchase_order_analysis/purchase_order_analysis.py:254
@@ -35695,12 +35695,12 @@ msgstr "مبلغ معلق"
 #: erpnext/selling/doctype/sales_order/sales_order.js:1213
 #: erpnext/selling/report/pending_so_items_for_purchase_request/pending_so_items_for_purchase_request.py:45
 msgid "Pending Qty"
-msgstr "تعداد معلق"
+msgstr "مقدار در انتظار"
 
 #: erpnext/buying/report/subcontracted_item_to_be_received/subcontracted_item_to_be_received.py:55
 #: erpnext/buying/report/subcontracted_raw_materials_to_be_transferred/subcontracted_raw_materials_to_be_transferred.py:44
 msgid "Pending Quantity"
-msgstr "مقدار معلق"
+msgstr "مقدار در انتظار"
 
 #. Option for the 'Status' (Select) field in DocType 'Task'
 #: erpnext/projects/doctype/task/task.json
@@ -35721,7 +35721,7 @@ msgstr "دستور کار در انتظار"
 
 #: erpnext/setup/doctype/email_digest/email_digest.py:182
 msgid "Pending activities for today"
-msgstr "فعالیت های معلق برای امروز"
+msgstr "فعالیت های در انتظار برای امروز"
 
 #: erpnext/stock/doctype/repost_item_valuation/repost_item_valuation.py:214
 msgid "Pending processing"
@@ -35977,7 +35977,7 @@ msgstr "موجودی دائمی برای شرکت {0} برای مشاهده ای
 #. Label of the personal_details (Tab Break) field in DocType 'Employee'
 #: erpnext/setup/doctype/employee/employee.json
 msgid "Personal Details"
-msgstr ""
+msgstr "جزئیات شخصی"
 
 #. Option for the 'Preferred Contact Email' (Select) field in DocType
 #. 'Employee'
@@ -36619,7 +36619,7 @@ msgstr "لطفا کد مورد را برای دریافت شماره دسته و
 
 #: erpnext/manufacturing/doctype/production_plan/production_plan.js:66
 msgid "Please enter Item first"
-msgstr "لطفا ابتدا مورد را وارد کنید"
+msgstr "لطفا ابتدا آیتم را وارد کنید"
 
 #: erpnext/maintenance/doctype/maintenance_schedule/maintenance_schedule.py:224
 msgid "Please enter Maintenance Details first"
@@ -37880,7 +37880,7 @@ msgstr "طرح تخفیف قیمت"
 #. Scheme'
 #: erpnext/accounts/doctype/promotional_scheme/promotional_scheme.json
 msgid "Price Discount Slabs"
-msgstr "اسلب تخفیف قیمت"
+msgstr "طبقه‌های تخفیف قیمت"
 
 #. Label of the selling_price_list (Link) field in DocType 'POS Invoice'
 #. Label of the selling_price_list (Link) field in DocType 'POS Profile'
@@ -38094,7 +38094,7 @@ msgstr "قیمت یا تخفیف محصول"
 
 #: erpnext/accounts/doctype/promotional_scheme/promotional_scheme.py:149
 msgid "Price or product discount slabs are required"
-msgstr "اسلب های تخفیف قیمت یا محصول مورد نیاز است"
+msgstr "طبقه های تخفیف قیمت یا محصول مورد نیاز است"
 
 #: erpnext/buying/report/supplier_quotation_comparison/supplier_quotation_comparison.py:235
 msgid "Price per Unit (Stock UOM)"
@@ -38815,7 +38815,7 @@ msgstr "طرح تخفیف محصول"
 #. Scheme'
 #: erpnext/accounts/doctype/promotional_scheme/promotional_scheme.json
 msgid "Product Discount Slabs"
-msgstr "اسلب تخفیف محصول"
+msgstr "طبقه‌های تخفیف محصول"
 
 #. Option for the 'Request Type' (Select) field in DocType 'Lead'
 #: erpnext/crm/doctype/lead/lead.json
@@ -42998,7 +42998,7 @@ msgstr "گزارش خطا"
 #. Statement Of Accounts'
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.json
 msgid "Report Filters"
-msgstr "گزارش فیلترها"
+msgstr "فیلترهای گزارش"
 
 #. Label of the report_type (Select) field in DocType 'Account'
 #: erpnext/accounts/doctype/account/account.json
@@ -43781,7 +43781,7 @@ msgstr "رزومه"
 
 #: erpnext/manufacturing/doctype/job_card/job_card.js:160
 msgid "Resume Job"
-msgstr "رزومه کاری"
+msgstr "از سر گیری کار"
 
 #: erpnext/projects/doctype/timesheet/timesheet.js:64
 msgid "Resume Timer"
@@ -44523,7 +44523,7 @@ msgstr "ردیف #{0}: کالای تمام شده باید {1} باشد"
 
 #: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.py:434
 msgid "Row #{0}: Finished Good reference is mandatory for Scrap Item {1}."
-msgstr "ردیف #{0}: مرجع کالای تمام شده برای ضایعات {1} اجباری است."
+msgstr "ردیف #{0}: مرجع کالای تمام شده برای آیتم ضایعات {1} اجباری است."
 
 #: erpnext/accounts/doctype/bank_clearance/bank_clearance.py:100
 msgid "Row #{0}: For {1} Clearance date {2} cannot be before Cheque Date {3}"
@@ -44654,7 +44654,7 @@ msgstr "ردیف #{0}: نوع سند مرجع باید یکی از سفارش‌
 
 #: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.py:427
 msgid "Row #{0}: Rejected Qty cannot be set for Scrap Item {1}."
-msgstr "ردیف #{0}: تعداد رد شده را نمی‌توان برای ضایعات {1} تنظیم کرد."
+msgstr "ردیف #{0}: مقدار رد شده را نمی‌توان برای آیتم ضایعات {1} تنظیم کرد."
 
 #: erpnext/controllers/subcontracting_controller.py:65
 msgid "Row #{0}: Rejected Warehouse is mandatory for the rejected Item {1}"
@@ -44662,7 +44662,7 @@ msgstr "ردیف #{0}: انبار مرجوعی برای مورد رد شده ا�
 
 #: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.py:422
 msgid "Row #{0}: Scrap Item Qty cannot be zero"
-msgstr "ردیف #{0}: تعداد مورد ضایعات نمی‌تواند صفر باشد"
+msgstr "ردیف #{0}: مقدار آیتم ضایعات نمی‌تواند صفر باشد"
 
 #: erpnext/controllers/selling_controller.py:230
 msgid "Row #{0}: Selling rate for item {1} is lower than its {2}.\n"
@@ -46562,7 +46562,7 @@ msgstr "انبار ضایعات"
 
 #: erpnext/assets/doctype/asset/depreciation.py:484
 msgid "Scrap date cannot be before purchase date"
-msgstr "تاریخ ضایعات نمی‌تواند قبل از تاریخ خرید باشد"
+msgstr "تاریخ اسقاط نمی‌تواند قبل از تاریخ خرید باشد"
 
 #. Option for the 'Status' (Select) field in DocType 'Asset'
 #: erpnext/assets/doctype/asset/asset.json
@@ -46766,7 +46766,7 @@ msgstr "کارکنان را انتخاب کنید"
 
 #: erpnext/buying/doctype/purchase_order/purchase_order.js:211
 msgid "Select Finished Good"
-msgstr "Finished Good را انتخاب کنید"
+msgstr "کالای تمام شده را انتخاب کنید"
 
 #: erpnext/selling/doctype/sales_order/sales_order.js:1182
 #: erpnext/selling/doctype/sales_order/sales_order.js:1194
@@ -46846,7 +46846,7 @@ msgstr "زمان را انتخاب کنید"
 #: erpnext/accounts/report/balance_sheet/balance_sheet.js:10
 #: erpnext/accounts/report/profit_and_loss_statement/profit_and_loss_statement.js:10
 msgid "Select View"
-msgstr ""
+msgstr "انتخاب نما"
 
 #: erpnext/public/js/bank_reconciliation_tool/dialog_manager.js:251
 msgid "Select Vouchers to Match"
@@ -46858,7 +46858,7 @@ msgstr "انتخاب انبار..."
 
 #: erpnext/manufacturing/doctype/production_plan/production_plan.js:438
 msgid "Select Warehouses to get Stock for Materials Planning"
-msgstr "برای بدست آوردن انبار برای برنامه ریزی مواد، انبارها را انتخاب کنید"
+msgstr "برای دریافت موجودی برای برنامه ریزی مواد، انبارها را انتخاب کنید"
 
 #: erpnext/public/js/communication.js:80
 msgid "Select a Company"
@@ -47378,7 +47378,7 @@ msgstr "انتخاب‌گر شماره سریال و دسته زمانی که ف
 #. field in DocType 'Work Order'
 #: erpnext/manufacturing/doctype/work_order/work_order.json
 msgid "Serial No and Batch for Finished Good"
-msgstr "شماره سریال و دسته ای برای Finished Good"
+msgstr "شماره سریال و دسته برای کالای تمام شده"
 
 #: erpnext/stock/doctype/serial_and_batch_bundle/serial_and_batch_bundle.py:845
 msgid "Serial No is mandatory"
@@ -47973,7 +47973,7 @@ msgstr ""
 #. Operation'
 #: erpnext/manufacturing/doctype/bom_operation/bom_operation.json
 msgid "Set Operating Cost Based On BOM Quantity"
-msgstr "هزینه عملیاتی را بر اساس مقدار BOM تنظیم کنید"
+msgstr "تنظیم هزینه عملیاتی بر اساس مقدار BOM"
 
 #: erpnext/manufacturing/doctype/bom_creator/bom_creator.py:88
 msgid "Set Parent Row No in Items Table"
@@ -48784,7 +48784,7 @@ msgstr "نمایش موجودی از نظر انبار"
 #: erpnext/manufacturing/report/bom_stock_calculated/bom_stock_calculated.js:28
 #: erpnext/manufacturing/report/bom_stock_report/bom_stock_report.js:19
 msgid "Show exploded view"
-msgstr "نمایش نمای انفجاری"
+msgstr "نمایش نمای گسترده شده"
 
 #. Label of the show_in_website (Check) field in DocType 'BOM'
 #: erpnext/manufacturing/doctype/bom/bom.json
@@ -48805,7 +48805,7 @@ msgstr "فقط عبارت فوری آینده را نشان دهید"
 
 #: erpnext/stock/utils.py:575
 msgid "Show pending entries"
-msgstr "نمایش ورودی های معلق"
+msgstr "نمایش ثبت های در انتظار"
 
 #: erpnext/accounts/report/trial_balance/trial_balance.js:99
 msgid "Show unclosed fiscal year's P&L balances"
@@ -53849,7 +53849,7 @@ msgstr "این برنامه زمانی ایجاد شد که دارایی {0} ا�
 
 #: erpnext/assets/doctype/asset/depreciation.py:448
 msgid "This schedule was created when Asset {0} was scrapped."
-msgstr "این برنامه زمانی ایجاد شد که دارایی {0} لغو شد."
+msgstr "این برنامه زمانی ایجاد شد که دارایی {0} اسقاط شد."
 
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1385
 msgid "This schedule was created when Asset {0} was sold through Sales Invoice {1}."
@@ -54054,7 +54054,7 @@ msgstr "زمان به دقیقه."
 
 #: erpnext/manufacturing/doctype/job_card/job_card.py:739
 msgid "Time logs are required for {0} {1}"
-msgstr "گزارش زمان برای {0} {1} مورد نیاز است"
+msgstr "لاگ زمان برای {0} {1} مورد نیاز است"
 
 #: erpnext/crm/doctype/appointment/appointment.py:60
 msgid "Time slot is not available"
@@ -55005,14 +55005,14 @@ msgstr "کل هزینه (ارز شرکت)"
 #. Label of the total_costing_amount (Currency) field in DocType 'Timesheet'
 #: erpnext/projects/doctype/timesheet/timesheet.json
 msgid "Total Costing Amount"
-msgstr "مجموع مبلغ هزینه"
+msgstr "مجموع مبلغ هزینه‌یابی"
 
 #. Label of the total_costing_amount (Currency) field in DocType 'Project'
 #. Label of the total_costing_amount (Currency) field in DocType 'Task'
 #: erpnext/projects/doctype/project/project.json
 #: erpnext/projects/doctype/task/task.json
 msgid "Total Costing Amount (via Timesheet)"
-msgstr "مبلغ کل هزینه (از طریق جدول زمانی)"
+msgstr "مبلغ کل هزینه‌یابی (از طریق جدول زمانی)"
 
 #. Label of the total_credit (Currency) field in DocType 'Journal Entry'
 #: erpnext/accounts/doctype/journal_entry/journal_entry.json
@@ -56817,7 +56817,7 @@ msgstr "فرکانس به روز رسانی پروژه"
 #. Update Tool'
 #: erpnext/manufacturing/doctype/bom_update_tool/bom_update_tool.json
 msgid "Update latest price in all BOMs"
-msgstr "آخرین قیمت را در همه BOM ها به روز کنید"
+msgstr "به روز رسانی آخرین قیمت در همه BOMها"
 
 #: erpnext/assets/doctype/asset/asset.py:382
 msgid "Update stock must be enabled for the purchase invoice {0}"
