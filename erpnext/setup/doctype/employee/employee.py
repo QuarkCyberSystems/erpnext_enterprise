@@ -248,15 +248,6 @@ def validate_employee_role(doc, method=None, ignore_emp_check=False):
 		doc.get("roles").remove(doc.get("roles", {"role": "Employee Self Service"})[0])
 
 
-def update_user_permissions(doc, method):
-	# called via User hook
-	if "Employee" in [d.role for d in doc.get("roles")]:
-		if not has_permission("User Permission", ptype="write", print_logs=False):
-			return
-		employee = frappe.get_doc("Employee", {"user_id": doc.name})
-		employee.update_user_permissions()
-
-
 def get_employee_email(employee_doc):
 	return (
 		employee_doc.get("user_id") or employee_doc.get("personal_email") or employee_doc.get("company_email")
