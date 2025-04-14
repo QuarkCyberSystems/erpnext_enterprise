@@ -71,6 +71,7 @@ def get_party_details(
 	party_address=None,
 	company_address=None,
 	shipping_address=None,
+	dispatch_address=None,
 	pos_profile=None,
 ):
 	if not party:
@@ -92,6 +93,7 @@ def get_party_details(
 		party_address,
 		company_address,
 		shipping_address,
+		dispatch_address,
 		pos_profile,
 	)
 
@@ -111,6 +113,7 @@ def _get_party_details(
 	party_address=None,
 	company_address=None,
 	shipping_address=None,
+	dispatch_address=None,
 	pos_profile=None,
 ):
 	party_details = frappe._dict(
@@ -134,6 +137,7 @@ def _get_party_details(
 		party_address,
 		company_address,
 		shipping_address,
+		dispatch_address,
 		ignore_permissions=ignore_permissions,
 	)
 	set_contact_details(party_details, party, party_type)
@@ -191,6 +195,7 @@ def set_address_details(
 	party_address=None,
 	company_address=None,
 	shipping_address=None,
+	dispatch_address=None,
 	*,
 	ignore_permissions=False,
 ):
@@ -217,6 +222,21 @@ def set_address_details(
 		if doctype:
 			party_details.update(
 				get_fetch_values(doctype, "shipping_address_name", party_details.shipping_address_name)
+			)
+
+	# dispatch address
+	elif party_type == "Supplier":
+		party_details.dispatch_address = dispatch_address or get_party_shipping_address(
+			party_type, party.name
+		)
+
+		party_details.dispatch_address_display = render_address(
+			party_details["dispatch_address"], check_permissions=not ignore_permissions
+		)
+
+		if doctype:
+			party_details.update(
+				get_fetch_values(doctype, "dispatch_address", party_details.dispatch_address)
 			)
 
 	if company_address:
@@ -254,6 +274,24 @@ def set_address_details(
 					shipping_address=party_details.billing_address,
 					shipping_address_display=party_details.billing_address_display,
 					**get_fetch_values(doctype, "shipping_address", party_details.billing_address),
+				)
+
+		if doctype != "Supplier Quotation":
+			if dispatch_address:
+				party_details.update(
+					dispatch_address=dispatch_address,
+					dispatch_address_display=render_address(
+						dispatch_address, check_permissions=not ignore_permissions
+					),
+					**get_fetch_values(doctype, "dispatch_address", dispatch_address),
+				)
+
+			# dispatch address - if not already set
+			if not party_details.dispatch_address:
+				party_details.update(
+					dispatch_address=party_details.supplier_address,
+					dispatch_address_display=party_details.address_display,
+					**get_fetch_values(doctype, "dispatch_address", party_details.supplier_address),
 				)
 
 	party_address, shipping_address = (

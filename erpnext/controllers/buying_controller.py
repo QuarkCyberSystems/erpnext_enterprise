@@ -141,6 +141,7 @@ class BuyingController(SubcontractingController):
 					company=self.company,
 					party_address=self.get("supplier_address"),
 					shipping_address=self.get("shipping_address"),
+					dispatch_address=self.get("dispatch_address"),
 					company_address=self.get("billing_address"),
 					fetch_payment_terms_template=not self.get("ignore_default_payment_terms_template"),
 					ignore_permissions=self.flags.ignore_permissions,
@@ -242,6 +243,7 @@ class BuyingController(SubcontractingController):
 		address_dict = {
 			"supplier_address": "address_display",
 			"shipping_address": "shipping_address_display",
+			"dispatch_address": "dispatch_address_display",
 			"billing_address": "billing_address_display",
 		}
 
