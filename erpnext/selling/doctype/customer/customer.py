@@ -438,6 +438,31 @@ def make_opportunity(source_name, target_doc=None):
 	return target_doc
 
 
+@frappe.whitelist()
+def make_payment_entry(source_name, target_doc=None):
+	def set_missing_values(source, target):
+		_set_missing_values(source, target)
+
+	target_doc = get_mapped_doc(
+		"Customer",
+		source_name,
+		{
+			"Customer": {
+				"doctype": "Payment Entry",
+				"field_map": {
+					"name": "party",
+				},
+			}
+		},
+		target_doc,
+		set_missing_values,
+	)
+	target_doc.party_type = "Customer"
+	target_doc.party_name = target_doc.party
+
+	return target_doc
+
+
 def _set_missing_values(source, target):
 	address = frappe.get_all(
 		"Dynamic Link",
