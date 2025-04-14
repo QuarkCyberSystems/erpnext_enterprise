@@ -575,7 +575,10 @@ class update_entries_after:
 		posting_datetime = get_combine_datetime(self.args.posting_date, self.args.posting_time)
 		query = (
 			frappe.qb.from_(sre)
-			.select(Sum(sre.reserved_qty) - Sum(sre.delivered_qty))
+			.select(
+				Sum(sre.reserved_qty)
+				- (Sum(sre.delivered_qty) + Sum(sre.transferred_qty) + Sum(sre.consumed_qty))
+			)
 			.where(
 				(sre.item_code == self.item_code)
 				& (sre.warehouse == self.args.warehouse)
