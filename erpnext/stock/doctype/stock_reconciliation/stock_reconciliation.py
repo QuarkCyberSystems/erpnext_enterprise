@@ -336,6 +336,7 @@ class StockReconciliation(StockController):
 				posting_date=self.posting_date,
 				posting_time=self.posting_time,
 				for_stock_levels=True,
+				consider_negative_batches=True,
 			)
 
 			total_current_qty += current_qty
@@ -1101,6 +1102,7 @@ class StockReconciliation(StockController):
 					posting_time=doc.posting_time,
 					ignore_voucher_nos=[doc.voucher_no],
 					for_stock_levels=True,
+					consider_negative_batches=True,
 				)
 				or 0
 			) * -1
