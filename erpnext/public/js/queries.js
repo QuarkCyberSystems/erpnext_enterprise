@@ -112,6 +112,23 @@ $.extend(erpnext.queries, {
 		};
 	},
 
+	supplier_address_query: function (doc) {
+		if (!doc.supplier) {
+			cur_frm.scroll_to_field("supplier");
+			frappe.show_alert({
+				message: __("Please set {0} first.", [
+					__(frappe.meta.get_label(doc.doctype, "supplier", doc.name)),
+				]),
+				indicator: "orange",
+			});
+		}
+
+		return {
+			query: "frappe.contacts.doctype.address.address.address_query",
+			filters: { link_doctype: "Supplier", link_name: doc.supplier },
+		};
+	},
+
 	dispatch_address_query: function (doc) {
 		var filters = { link_doctype: "Company", link_name: doc.company || "" };
 		var is_drop_ship = doc.items.some((item) => item.delivered_by_supplier);

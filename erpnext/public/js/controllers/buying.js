@@ -57,13 +57,11 @@ erpnext.buying = {
 
 				if(this.frm.get_field('dispatch_address')) {
 					this.frm.set_query("dispatch_address", () => {
-						if(this.frm.doc.supplier) {
-							return {
-								query: 'frappe.contacts.doctype.address.address.address_query',
-								filters: { link_doctype: 'Supplier', link_name: this.frm.doc.supplier }
-							};
-						} else
-							return erpnext.queries.dispatch_address_query(this.frm.doc)
+						if(this.frm.doc.is_return){
+							return erpnext.queries.company_address_query(this.frm.doc);
+						}
+
+						return erpnext.queries.supplier_address_query(this.frm.doc);
 					});
 				}
 			}
