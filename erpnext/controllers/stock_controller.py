@@ -1156,6 +1156,12 @@ class StockController(AccountsController):
 		if self.doctype not in ["Purchase Invoice", "Purchase Receipt"]:
 			return
 
+		self.__inter_company_reference = (
+			self.get("inter_company_reference")
+			if self.doctype == "Purchase Invoice"
+			else self.get("inter_company_invoice_reference")
+		)
+
 		item_wise_transfer_qty = self.get_item_wise_inter_transfer_qty()
 		if not item_wise_transfer_qty:
 			return
@@ -1185,15 +1191,11 @@ class StockController(AccountsController):
 						bold(key[1]),
 						bold(flt(transferred_qty, precision)),
 						bold(parent_doctype),
-						get_link_to_form(parent_doctype, self.get("inter_company_reference")),
+						get_link_to_form(parent_doctype, self.__inter_company_reference),
 					)
 				)
 
 	def get_item_wise_inter_transfer_qty(self):
-		reference_field = "inter_company_reference"
-		if self.doctype == "Purchase Invoice":
-			reference_field = "inter_company_invoice_reference"
-
 		parent_doctype = {
 			"Purchase Receipt": "Delivery Note",
 			"Purchase Invoice": "Sales Invoice",
@@ -1213,7 +1215,7 @@ class StockController(AccountsController):
 				child_tab.item_code,
 				child_tab.qty,
 			)
-			.where((parent_tab.name == self.get(reference_field)) & (parent_tab.docstatus == 1))
+			.where((parent_tab.name == self.__inter_company_reference) & (parent_tab.docstatus == 1))
 		)
 
 		data = query.run(as_dict=True)
