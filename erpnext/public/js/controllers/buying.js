@@ -61,7 +61,7 @@ erpnext.buying = {
 							return erpnext.queries.company_address_query(this.frm.doc);
 						}
 
-						return erpnext.queries.supplier_address_query(this.frm.doc);
+						return erpnext.queries.supplier_address_query(this.frm);
 					});
 				}
 			}

@@ -112,12 +112,12 @@ $.extend(erpnext.queries, {
 		};
 	},
 
-	supplier_address_query: function (doc) {
-		if (!doc.supplier) {
-			cur_frm.scroll_to_field("supplier");
+	supplier_address_query: function (frm) {
+		if (!frm.doc.supplier) {
+			frm.scroll_to_field("supplier");
 			frappe.show_alert({
 				message: __("Please set {0} first.", [
-					__(frappe.meta.get_label(doc.doctype, "supplier", doc.name)),
+					__(frappe.meta.get_label(frm.doc.doctype, "supplier", frm.doc.name)),
 				]),
 				indicator: "orange",
 			});
@@ -125,7 +125,7 @@ $.extend(erpnext.queries, {
 
 		return {
 			query: "frappe.contacts.doctype.address.address.address_query",
-			filters: { link_doctype: "Supplier", link_name: doc.supplier },
+			filters: { link_doctype: "Supplier", link_name: frm.doc.supplier },
 		};
 	},
 
