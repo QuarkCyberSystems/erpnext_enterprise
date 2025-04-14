@@ -542,13 +542,15 @@ class PaymentEntry(AccountsController):
 				self.set(self.party_account_field, party_account)
 				self.party_account = party_account
 
-		if self.paid_from and not self.paid_from_account_currency:
+		if self.paid_from and (not self.paid_from_account_currency or not self.paid_from_account_type):
 			acc = get_account_details(self.paid_from, self.posting_date, self.cost_center)
 			self.paid_from_account_currency = acc.account_currency
+			self.paid_from_account_type = acc.account_type
 
-		if self.paid_to and not self.paid_to_account_currency:
+		if self.paid_to and (not self.paid_to_account_currency or not self.paid_to_account_type):
 			acc = get_account_details(self.paid_to, self.posting_date, self.cost_center)
 			self.paid_to_account_currency = acc.account_currency
+			self.paid_to_account_type = acc.account_type
 
 		self.party_account_currency = (
 			self.paid_from_account_currency
