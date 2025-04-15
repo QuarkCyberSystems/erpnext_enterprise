@@ -144,6 +144,11 @@ class QualityInspection(Document):
 			child_row_references.remove(child_row_references[0])
 
 	def validate_inspection_required(self):
+		if frappe.db.get_single_value(
+			"Stock Settings", "allow_to_make_quality_inspection_after_purchase_or_delivery"
+		):
+			return
+
 		if self.reference_type in ["Purchase Receipt", "Purchase Invoice"] and not frappe.get_cached_value(
 			"Item", self.item_code, "inspection_required_before_purchase"
 		):
@@ -181,6 +186,9 @@ class QualityInspection(Document):
 			child = self.append("readings", {})
 			child.update(d)
 			child.status = "Accepted"
+			child.parameter_group = frappe.get_value(
+				"Quality Inspection Parameter", d.specification, "parameter_group"
+			)
 
 	@frappe.whitelist()
 	def get_quality_inspection_template(self):
@@ -194,8 +202,19 @@ class QualityInspection(Document):
 		self.quality_inspection_template = template
 		self.get_item_specification_details()
 
+	def on_update(self):
+		if (
+			frappe.db.get_single_value("Stock Settings", "action_if_quality_inspection_is_not_submitted")
+			== "Warn"
+		):
+			self.update_qc_reference()
+
 	def on_submit(self):
-		self.update_qc_reference()
+		if (
+			frappe.db.get_single_value("Stock Settings", "action_if_quality_inspection_is_not_submitted")
+			== "Stop"
+		):
+			self.update_qc_reference()
 
 	def on_cancel(self):
 		self.ignore_linked_doctypes = "Serial and Batch Bundle"
@@ -203,15 +222,15 @@ class QualityInspection(Document):
 		self.update_qc_reference()
 
 	def on_trash(self):
-		self.update_qc_reference()
+		self.update_qc_reference(remove_reference=True)
 
 	def validate_readings_status_mandatory(self):
 		for reading in self.readings:
 			if not reading.status:
 				frappe.throw(_("Row #{0}: Status is mandatory").format(reading.idx))
 
-	def update_qc_reference(self):
-		quality_inspection = self.name if self.docstatus == 1 else ""
+	def update_qc_reference(self, remove_reference=False):
+		quality_inspection = self.name if self.docstatus < 2 and not remove_reference else ""
 
 		if self.reference_type == "Job Card":
 			if self.reference_name:
@@ -241,7 +260,7 @@ class QualityInspection(Document):
 					)
 				)
 
-				if self.batch_no and self.docstatus == 1:
+				if self.batch_no and self.docstatus < 2:
 					query = query.where(child_doc.batch_no == self.batch_no)
 
 				if self.docstatus == 2:  # if cancel, then remove qi link wherever same name

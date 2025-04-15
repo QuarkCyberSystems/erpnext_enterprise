@@ -517,10 +517,10 @@ class ReceivablePayableReport:
 			select
 				si.name, si.party_account_currency, si.currency, si.conversion_rate,
 				si.total_advance, ps.due_date, ps.payment_term, ps.payment_amount, ps.base_payment_amount,
-				ps.description, ps.paid_amount, ps.discounted_amount
+				ps.description, ps.paid_amount, ps.base_paid_amount, ps.discounted_amount
 			from `tab{row.voucher_type}` si, `tabPayment Schedule` ps
 			where
-				si.name = ps.parent and
+				si.name = ps.parent and ps.parenttype = '{row.voucher_type}' and
 				si.name = %s and
 				si.is_return = 0
 			order by ps.paid_amount desc, due_date
@@ -540,20 +540,24 @@ class ReceivablePayableReport:
 		# Deduct that from paid amount pre allocation
 		row.paid -= flt(payment_terms_details[0].total_advance)
 
+		company_currency = frappe.get_value("Company", self.filters.get("company"), "default_currency")
+
 		# If single payment terms, no need to split the row
 		if len(payment_terms_details) == 1 and payment_terms_details[0].payment_term:
-			self.append_payment_term(row, payment_terms_details[0], original_row)
+			self.append_payment_term(row, payment_terms_details[0], original_row, company_currency)
 			return
 
 		for d in payment_terms_details:
 			term = frappe._dict(original_row)
-			self.append_payment_term(row, d, term)
+			self.append_payment_term(row, d, term, company_currency)
 
-	def append_payment_term(self, row, d, term):
-		if d.currency == d.party_account_currency:
+	def append_payment_term(self, row, d, term, company_currency):
+		invoiced = d.base_payment_amount
+		paid_amount = d.base_paid_amount
+
+		if company_currency == d.party_account_currency or self.filters.get("in_party_currency"):
 			invoiced = d.payment_amount
-		else:
-			invoiced = d.base_payment_amount
+			paid_amount = d.paid_amount
 
 		row.payment_terms.append(
 			term.update(
@@ -562,15 +566,15 @@ class ReceivablePayableReport:
 					"invoiced": invoiced,
 					"invoice_grand_total": row.invoiced,
 					"payment_term": d.description or d.payment_term,
-					"paid": d.paid_amount + d.discounted_amount,
+					"paid": paid_amount + d.discounted_amount,
 					"credit_note": 0.0,
-					"outstanding": invoiced - d.paid_amount - d.discounted_amount,
+					"outstanding": invoiced - paid_amount - d.discounted_amount,
 				}
 			)
 		)
 
-		if d.paid_amount:
-			row["paid"] -= d.paid_amount + d.discounted_amount
+		if paid_amount:
+			row["paid"] -= paid_amount + d.discounted_amount
 
 	def allocate_closing_to_term(self, row, term, key):
 		if row[key]:
@@ -729,11 +733,13 @@ class ReceivablePayableReport:
 			"company": self.filters.company,
 			"update_outstanding_for_self": 0,
 		}
+
 		or_filters = {}
-		for party_type in self.party_type:
+		if party_type := self.filters.party_type:
 			party_field = scrub(party_type)
-			if self.filters.get(party_field):
-				or_filters.update({party_field: self.filters.get(party_field)})
+			if parties := self.filters.get("party"):
+				or_filters.update({party_field: ["in", parties]})
+
 		self.return_entries = frappe._dict(
 			frappe.get_all(
 				doctype, filters=filters, or_filters=or_filters, fields=["name", "return_against"], as_list=1

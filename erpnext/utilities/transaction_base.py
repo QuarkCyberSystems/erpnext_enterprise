@@ -318,16 +318,29 @@ class TransactionBase(StatusUpdater):
 					"warehouse": item_obj.from_warehouse
 					if self.doctype in ["Purchase Receipt", "Purchase Invoice"]
 					else item_obj.warehouse,
-					"posting_date": self.posting_date,
-					"posting_time": self.posting_time,
 					"qty": item_obj.qty * item_obj.conversion_factor,
-					"serial_no": item_obj.serial_no,
-					"batch_no": item_obj.batch_no,
 					"voucher_type": self.doctype,
 					"company": self.company,
-					"allow_zero_valuation_rate": item_obj.allow_zero_valuation_rate,
 				}
 			)
+
+			if self.doctype in ["Purchase Order", "Sales Order"]:
+				args.update(
+					{
+						"posting_date": self.transaction_date,
+					}
+				)
+			else:
+				args.update(
+					{
+						"posting_date": self.posting_date,
+						"posting_time": self.posting_time,
+						"serial_no": item_obj.serial_no,
+						"batch_no": item_obj.batch_no,
+						"allow_zero_valuation_rate": item_obj.allow_zero_valuation_rate,
+					}
+				)
+
 			rate = get_incoming_rate(args=args)
 			item_obj.rate = rate * item_obj.conversion_factor
 		else:

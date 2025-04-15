@@ -141,6 +141,7 @@ class JournalEntry(AccountsController):
 		self.validate_empty_accounts_table()
 		self.validate_inter_company_accounts()
 		self.validate_depr_entry_voucher_type()
+		self.validate_company_in_accounting_dimension()
 		self.validate_advance_accounts()
 
 		if self.docstatus == 0:
@@ -578,8 +579,22 @@ class JournalEntry(AccountsController):
 		if customers:
 			from erpnext.selling.doctype.customer.customer import check_credit_limit
 
+			customer_details = frappe._dict(
+				frappe.db.get_all(
+					"Customer Credit Limit",
+					filters={
+						"parent": ["in", customers],
+						"parenttype": ["=", "Customer"],
+						"company": ["=", self.company],
+					},
+					fields=["parent", "bypass_credit_limit_check"],
+					as_list=True,
+				)
+			)
+
 			for customer in customers:
-				check_credit_limit(customer, self.company)
+				ignore_outstanding_sales_order = bool(customer_details.get(customer))
+				check_credit_limit(customer, self.company, ignore_outstanding_sales_order)
 
 	def validate_cheque_info(self):
 		if self.voucher_type in ["Bank Entry"]:
@@ -827,14 +842,13 @@ class JournalEntry(AccountsController):
 				"Debit Note",
 				"Credit Note",
 			]:
-				invoice = frappe.db.get_value(
-					reference_type, reference_name, ["docstatus", "outstanding_amount"], as_dict=1
-				)
+				invoice = frappe.get_doc(reference_type, reference_name)
 
 				if invoice.docstatus != 1:
 					frappe.throw(_("{0} {1} is not submitted").format(reference_type, reference_name))
 
-				if total and flt(invoice.outstanding_amount) < total:
+				precision = invoice.precision("outstanding_amount")
+				if total and flt(invoice.outstanding_amount, precision) < flt(total, precision):
 					frappe.throw(
 						_("Payment against {0} {1} cannot be greater than Outstanding Amount {2}").format(
 							reference_type, reference_name, invoice.outstanding_amount
@@ -1062,14 +1076,15 @@ class JournalEntry(AccountsController):
 		gl_map = []
 
 		company_currency = erpnext.get_company_currency(self.company)
+		self.transaction_currency = company_currency
+		self.transaction_exchange_rate = 1
 		if self.multi_currency:
 			for row in self.get("accounts"):
 				if row.account_currency != company_currency:
-					self.currency = row.account_currency
-					self.conversion_rate = row.exchange_rate
+					# Journal assumes the first foreign currency as transaction currency
+					self.transaction_currency = row.account_currency
+					self.transaction_exchange_rate = row.exchange_rate
 					break
-		else:
-			self.currency = company_currency
 
 		for d in self.get("accounts"):
 			if d.debit or d.credit or (self.voucher_type == "Exchange Gain Or Loss"):
@@ -1094,6 +1109,18 @@ class JournalEntry(AccountsController):
 							"credit_in_account_currency": flt(
 								d.credit_in_account_currency, d.precision("credit_in_account_currency")
 							),
+							"transaction_currency": self.transaction_currency,
+							"transaction_exchange_rate": self.transaction_exchange_rate,
+							"debit_in_transaction_currency": flt(
+								d.debit_in_account_currency, d.precision("debit_in_account_currency")
+							)
+							if self.transaction_currency == d.account_currency
+							else flt(d.debit, d.precision("debit")) / self.transaction_exchange_rate,
+							"credit_in_transaction_currency": flt(
+								d.credit_in_account_currency, d.precision("credit_in_account_currency")
+							)
+							if self.transaction_currency == d.account_currency
+							else flt(d.credit, d.precision("credit")) / self.transaction_exchange_rate,
 							"against_voucher_type": d.reference_type,
 							"against_voucher": d.reference_name,
 							"remarks": remarks,

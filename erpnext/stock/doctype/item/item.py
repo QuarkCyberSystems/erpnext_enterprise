@@ -896,13 +896,17 @@ class Item(Document):
 			for d in frappe.db.get_all("Item", filters={"variant_of": self.name}):
 				check_stock_uom_with_bin(d.name, self.stock_uom)
 		if self.variant_of:
-			template_uom = frappe.db.get_value("Item", self.variant_of, "stock_uom")
-			if template_uom != self.stock_uom:
-				frappe.throw(
-					_("Default Unit of Measure for Variant '{0}' must be same as in Template '{1}'").format(
-						self.stock_uom, template_uom
+			allow_different_uom = frappe.get_cached_value(
+				"Item Variant Settings", "Item Variant Settings", "allow_different_uom"
+			)
+			if not allow_different_uom:
+				template_uom = frappe.db.get_value("Item", self.variant_of, "stock_uom")
+				if template_uom != self.stock_uom:
+					frappe.throw(
+						_(
+							"Default Unit of Measure for Variant '{0}' must be same as in Template '{1}'"
+						).format(self.stock_uom, template_uom)
 					)
-				)
 
 	def validate_uom_conversion_factor(self):
 		if self.uoms:
@@ -1196,7 +1200,7 @@ def get_last_purchase_details(item_code, doc_name=None, conversion_rate=1.0):
 	return out
 
 
-def get_purchase_voucher_details(doctype, item_code, document_name):
+def get_purchase_voucher_details(doctype, item_code, document_name=None):
 	parent_doc = frappe.qb.DocType(doctype)
 	child_doc = frappe.qb.DocType(doctype + " Item")
 
@@ -1215,8 +1219,10 @@ def get_purchase_voucher_details(doctype, item_code, document_name):
 		)
 		.where(parent_doc.docstatus == 1)
 		.where(child_doc.item_code == item_code)
-		.where(parent_doc.name != document_name)
 	)
+
+	if document_name:
+		query = query.where(parent_doc.name != document_name)
 
 	if doctype in ("Purchase Receipt", "Purchase Invoice"):
 		query = query.select(parent_doc.posting_date, parent_doc.posting_time)

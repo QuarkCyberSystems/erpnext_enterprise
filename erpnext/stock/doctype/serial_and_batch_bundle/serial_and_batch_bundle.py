@@ -145,6 +145,11 @@ class SerialandBatchBundle(Document):
 				)
 
 		elif not frappe.db.exists("Stock Ledger Entry", {"voucher_detail_no": self.voucher_detail_no}):
+			if self.voucher_type == "Delivery Note" and frappe.db.exists(
+				"Packed Item", self.voucher_detail_no
+			):
+				return
+
 			frappe.throw(
 				_("The serial and batch bundle {0} not linked to {1} {2}").format(
 					bold(self.name), self.voucher_type, bold(self.voucher_no)
@@ -317,6 +322,15 @@ class SerialandBatchBundle(Document):
 				else:
 					valuation_rate = valuation_details["batches"].get(row.batch_no)
 
+				if frappe.flags.through_repost_item_valuation and not valuation_rate:
+					# if different serial nos / batches are returned
+					if row.serial_no:
+						serial_nos = sorted(list(valuation_details["serial_nos"].keys()))
+						valuation_rate = valuation_details["serial_nos"].get(serial_nos[cint(row.idx) - 1])
+					else:
+						batches = sorted(list(valuation_details["batches"].keys()))
+						valuation_rate = valuation_details["batches"].get(batches[cint(row.idx) - 1])
+
 				row.incoming_rate = flt(valuation_rate)
 				row.stock_value_difference = flt(row.qty) * flt(row.incoming_rate)
 
@@ -332,6 +346,9 @@ class SerialandBatchBundle(Document):
 			self.set_incoming_rate_for_inward_transaction(row, save)
 
 	def validate_returned_serial_batch_no(self, return_against, row, original_inv_details):
+		if frappe.flags.through_repost_item_valuation:
+			return
+
 		if row.serial_no and row.serial_no not in original_inv_details["serial_nos"]:
 			self.throw_error_message(
 				_(
@@ -2112,13 +2129,38 @@ def get_auto_batch_nos(kwargs):
 			picked_batches,
 		)
 
+	if not kwargs.get("do_not_check_future_batches") and available_batches and kwargs.get("posting_date"):
+		filter_zero_near_batches(available_batches, kwargs)
+
 	if not kwargs.consider_negative_batches:
-		available_batches = list(filter(lambda x: x.qty > 0, available_batches))
+		precision = frappe.get_precision("Stock Ledger Entry", "actual_qty")
+		available_batches = [d for d in available_batches if flt(d.qty, precision) > 0]
 
 	if not qty:
 		return available_batches
 
 	return get_qty_based_available_batches(available_batches, qty)
+
+
+def filter_zero_near_batches(available_batches, kwargs):
+	kwargs.batch_no = [d.batch_no for d in available_batches]
+
+	del kwargs["posting_date"]
+	del kwargs["posting_time"]
+
+	kwargs.do_not_check_future_batches = 1
+	available_batches_in_future = get_auto_batch_nos(kwargs)
+	for batch in available_batches:
+		if batch.qty <= 0:
+			continue
+
+		for future_batch in available_batches_in_future:
+			if (
+				batch.batch_no == future_batch.batch_no
+				and batch.warehouse == future_batch.warehouse
+				and future_batch.qty <= 0
+			):
+				batch.qty = 0
 
 
 def get_qty_based_available_batches(available_batches, qty):

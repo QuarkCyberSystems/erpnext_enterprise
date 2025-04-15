@@ -1848,6 +1848,64 @@ class TestProductionPlan(IntegrationTestCase):
 			self.assertEqual(row.production_item, sf_item)
 			self.assertEqual(row.qty, 5.0)
 
+	def test_calculation_of_sub_assembly_items(self):
+		make_item("Sub Assembly Item ", properties={"is_stock_item": 1})
+		make_item("RM Item 1", properties={"is_stock_item": 1})
+		make_item("RM Item 2", properties={"is_stock_item": 1})
+		make_bom(item="Sub Assembly Item", raw_materials=["RM Item 1", "RM Item 2"])
+		make_bom(item="_Test FG Item", raw_materials=["Sub Assembly Item", "RM Item 1"])
+		make_bom(item="_Test FG Item 2", raw_materials=["Sub Assembly Item"])
+
+		from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
+
+		make_stock_entry(
+			item_code="Sub Assembly Item",
+			qty=80,
+			purpose="Material Receipt",
+			to_warehouse="_Test Warehouse - _TC",
+		)
+		make_stock_entry(
+			item_code="RM Item 1", qty=90, purpose="Material Receipt", to_warehouse="_Test Warehouse - _TC"
+		)
+
+		plan = create_production_plan(
+			skip_available_sub_assembly_item=1,
+			sub_assembly_warehouse="_Test Warehouse - _TC",
+			warehouse="_Test Warehouse - _TC",
+			item_code="_Test FG Item",
+			skip_getting_mr_items=1,
+			planned_qty=100,
+			do_not_save=1,
+		)
+		plan.get_items_from = ""
+		plan.append(
+			"po_items",
+			{
+				"use_multi_level_bom": 1,
+				"item_code": "_Test FG Item 2",
+				"bom_no": frappe.db.get_value("Item", "_Test FG Item 2", "default_bom"),
+				"planned_qty": 50,
+				"planned_start_date": now_datetime(),
+				"stock_uom": "Nos",
+				"warehouse": "_Test Warehouse - _TC",
+			},
+		)
+		plan.save()
+
+		plan.get_sub_assembly_items()
+
+		self.assertEqual(plan.sub_assembly_items[0].qty, 20)
+		self.assertEqual(plan.sub_assembly_items[1].qty, 50)
+
+		from erpnext.manufacturing.doctype.production_plan.production_plan import (
+			get_items_for_material_requests,
+		)
+
+		mr_items = get_items_for_material_requests(plan.as_dict())
+
+		self.assertEqual(mr_items[0].get("quantity"), 80)
+		self.assertEqual(mr_items[1].get("quantity"), 70)
+
 
 def create_production_plan(**args):
 	"""

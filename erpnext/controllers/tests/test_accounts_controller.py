@@ -935,6 +935,35 @@ class TestAccountsController(IntegrationTestCase):
 		self.assertEqual(exc_je_for_si, [])
 		self.assertEqual(exc_je_for_pe, [])
 
+	@IntegrationTestCase.change_settings("Accounts Settings", {"add_taxes_from_item_tax_template": 1})
+	def test_18_fetch_taxes_based_on_taxes_and_charges_template(self):
+		# Create a Sales Taxes and Charges Template
+		if not frappe.db.exists("Sales Taxes and Charges Template", "_Test Tax - _TC"):
+			doc = frappe.new_doc("Sales Taxes and Charges Template")
+			doc.company = self.company
+			doc.title = "_Test Tax"
+			doc.append(
+				"taxes",
+				{
+					"charge_type": "On Net Total",
+					"account_head": "Sales Expenses - _TC",
+					"description": "Test taxes",
+					"rate": 9,
+				},
+			)
+			doc.insert()
+
+		# Create a Sales Invoice
+		sinv = frappe.new_doc("Sales Invoice")
+		sinv.customer = self.customer
+		sinv.company = self.company
+		sinv.currency = "INR"
+		sinv.taxes_and_charges = "_Test Tax - _TC"
+		sinv.append("items", {"item_code": "_Test Item", "qty": 1, "rate": 50})
+		sinv.insert()
+
+		self.assertEqual(sinv.total_taxes_and_charges, 4.5)
+
 	def test_20_journal_against_sales_invoice(self):
 		# Invoice in Foreign Currency
 		si = self.create_sales_invoice(qty=1, conversion_rate=80, rate=1)
@@ -2150,3 +2179,59 @@ class TestAccountsController(IntegrationTestCase):
 		si_1 = create_sales_invoice(do_not_submit=True)
 		si_1.items[0].project = project.name
 		self.assertRaises(frappe.ValidationError, si_1.save)
+
+	def test_party_billing_and_shipping_address(self):
+		from erpnext.crm.doctype.prospect.test_prospect import make_address
+
+		customer_billing = make_address(address_title="Customer")
+		customer_billing.append("links", {"link_doctype": "Customer", "link_name": "_Test Customer"})
+		customer_billing.save()
+		supplier_billing = make_address(address_title="Supplier", address_line1="2", city="Ahmedabad")
+		supplier_billing.append("links", {"link_doctype": "Supplier", "link_name": "_Test Supplier"})
+		supplier_billing.save()
+
+		customer_shipping = make_address(
+			address_title="Customer", address_type="Shipping", address_line1="10"
+		)
+		customer_shipping.append("links", {"link_doctype": "Customer", "link_name": "_Test Customer"})
+		customer_shipping.save()
+		supplier_shipping = make_address(
+			address_title="Supplier", address_type="Shipping", address_line1="20", city="Ahmedabad"
+		)
+		supplier_shipping.append("links", {"link_doctype": "Supplier", "link_name": "_Test Supplier"})
+		supplier_shipping.save()
+
+		si = create_sales_invoice(do_not_save=True)
+		si.customer_address = supplier_billing.name
+		self.assertRaises(frappe.ValidationError, si.save)
+		si.customer_address = customer_billing.name
+		si.save()
+
+		si.shipping_address_name = supplier_shipping.name
+		self.assertRaises(frappe.ValidationError, si.save)
+		si.shipping_address_name = customer_shipping.name
+		si.reload()
+		si.save()
+
+		pi = make_purchase_invoice(do_not_save=True)
+		pi.supplier_address = customer_shipping.name
+		self.assertRaises(frappe.ValidationError, pi.save)
+		pi.supplier_address = supplier_shipping.name
+		pi.save()
+
+	def test_party_contact(self):
+		from frappe.contacts.doctype.contact.test_contact import create_contact
+
+		customer_contact = create_contact(name="Customer", salutation="Mr", save=False)
+		customer_contact.append("links", {"link_doctype": "Customer", "link_name": "_Test Customer"})
+		customer_contact.save()
+
+		supplier_contact = create_contact(name="Supplier", salutation="Mr", save=False)
+		supplier_contact.append("links", {"link_doctype": "Supplier", "link_name": "_Test Supplier"})
+		supplier_contact.save()
+
+		si = create_sales_invoice(do_not_save=True)
+		si.contact_person = supplier_contact.name
+		self.assertRaises(frappe.ValidationError, si.save)
+		si.contact_person = customer_contact.name
+		si.save()

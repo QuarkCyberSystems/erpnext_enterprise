@@ -75,9 +75,13 @@ erpnext.sales_common = {
 
 				if (this.frm.fields_dict["items"].grid.get_field("item_code")) {
 					this.frm.set_query("item_code", "items", function () {
+						let customer = me.frm.doc.customer;
+						if (me.frm.doc.doctype == "Quotation" && me.frm.doc.quotation_to == "Customer") {
+							customer = me.frm.doc.party_name;
+						}
 						return {
 							query: "erpnext.controllers.queries.item_query",
-							filters: { is_sales_item: 1, customer: me.frm.doc.customer, has_variants: 0 },
+							filters: { is_sales_item: 1, customer: customer, has_variants: 0 },
 						};
 					});
 				}
@@ -447,22 +451,21 @@ erpnext.sales_common = {
 							args: { project: this.frm.doc.project },
 							callback: function (r, rt) {
 								if (!r.exc) {
-									$.each(me.frm.doc["items"] || [], function (i, row) {
-										if (r.message) {
+									if (r.message) {
+										$.each(me.frm.doc["items"] || [], function (i, row) {
 											frappe.model.set_value(
 												row.doctype,
 												row.name,
 												"cost_center",
 												r.message
 											);
-											frappe.msgprint(
-												__(
-													"Cost Center For Item with Item Code {0} has been Changed to {1}",
-													[row.item_name, r.message]
-												)
-											);
-										}
-									});
+										});
+										frappe.msgprint(
+											__("Cost Center for Item rows has been updated to {0}", [
+												r.message,
+											])
+										);
+									}
 								}
 							},
 						});

@@ -149,6 +149,26 @@ erpnext.PointOfSale.Controller = class {
 				this.make_app();
 			},
 		});
+
+		frappe.realtime.on(`poe_${this.pos_opening}_closed`, (data) => {
+			const route = frappe.get_route_str();
+			if (data && route == "point-of-sale") {
+				frappe.dom.freeze();
+				frappe.msgprint({
+					title: __("POS Closed"),
+					indicator: "orange",
+					message: __("POS has been closed at {0}. Please refresh the page.", [
+						frappe.datetime.str_to_user(data.creation).bold(),
+					]),
+					primary_action_label: __("Refresh"),
+					primary_action: {
+						action() {
+							window.location.reload();
+						},
+					},
+				});
+			}
+		});
 	}
 
 	set_opening_entry_status() {
@@ -449,6 +469,7 @@ erpnext.PointOfSale.Controller = class {
 	init_order_summary() {
 		this.order_summary = new erpnext.PointOfSale.PastOrderSummary({
 			wrapper: this.$components_wrapper,
+			settings: this.settings,
 			events: {
 				get_frm: () => this.frm,
 
@@ -489,7 +510,6 @@ erpnext.PointOfSale.Controller = class {
 					]);
 				},
 			},
-			pos_profile: this.pos_profile,
 		});
 	}
 

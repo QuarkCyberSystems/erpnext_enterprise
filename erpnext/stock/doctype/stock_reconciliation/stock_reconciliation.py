@@ -92,7 +92,7 @@ class StockReconciliation(StockController):
 		dimensions = get_inventory_dimensions()
 		for dimension in dimensions:
 			for row in self.items:
-				if not row.batch_no and row.current_qty and row.get(dimension.get("fieldname")):
+				if not row.batch_no and row.current_qty and row.get(dimension.get("source_fieldname")):
 					frappe.throw(
 						_(
 							"Row #{0}: You cannot use the inventory dimension '{1}' in Stock Reconciliation to modify the quantity or valuation rate. Stock reconciliation with inventory dimensions is intended solely for performing opening entries."
@@ -336,6 +336,7 @@ class StockReconciliation(StockController):
 				posting_date=self.posting_date,
 				posting_time=self.posting_time,
 				for_stock_levels=True,
+				consider_negative_batches=True,
 			)
 
 			total_current_qty += current_qty
@@ -663,7 +664,7 @@ class StockReconciliation(StockController):
 				title=_("Stock Reservation"),
 			)
 
-	def update_stock_ledger(self):
+	def update_stock_ledger(self, allow_negative_stock=False):
 		"""find difference between current and expected entries
 		and create stock ledger entries based on the difference"""
 		from erpnext.stock.stock_ledger import get_previous_sle
@@ -719,7 +720,11 @@ class StockReconciliation(StockController):
 				sl_entries.append(self.get_sle_for_items(row))
 
 		if sl_entries:
-			allow_negative_stock = cint(frappe.db.get_single_value("Stock Settings", "allow_negative_stock"))
+			if not allow_negative_stock:
+				allow_negative_stock = cint(
+					frappe.db.get_single_value("Stock Settings", "allow_negative_stock")
+				)
+
 			self.make_sl_entries(sl_entries, allow_negative_stock=allow_negative_stock)
 
 	def make_adjustment_entry(self, row, sl_entries):
@@ -964,6 +969,9 @@ class StockReconciliation(StockController):
 			if voucher_detail_no != row.name:
 				continue
 
+			if row.current_qty < 0:
+				return
+
 			val_rate = 0.0
 			current_qty = 0.0
 			if row.current_serial_and_batch_bundle:
@@ -1094,6 +1102,7 @@ class StockReconciliation(StockController):
 					posting_time=doc.posting_time,
 					ignore_voucher_nos=[doc.voucher_no],
 					for_stock_levels=True,
+					consider_negative_batches=True,
 				)
 				or 0
 			) * -1

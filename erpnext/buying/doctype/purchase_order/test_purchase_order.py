@@ -948,6 +948,7 @@ class TestPurchaseOrder(IntegrationTestCase):
 		automatically_fetch_payment_terms(enable=0)
 
 	def test_internal_transfer_flow(self):
+		from erpnext.accounts.doctype.cost_center.test_cost_center import create_cost_center
 		from erpnext.accounts.doctype.sales_invoice.sales_invoice import (
 			make_inter_company_purchase_invoice,
 		)
@@ -963,8 +964,16 @@ class TestPurchaseOrder(IntegrationTestCase):
 		prepare_data_for_internal_transfer()
 		supplier = "_Test Internal Supplier 2"
 
+		create_cost_center(
+			cost_center_name="_Test Cost Center for perpetual inventory Account",
+			company="_Test Company with perpetual inventory",
+		)
+
 		mr = make_material_request(
-			qty=2, company="_Test Company with perpetual inventory", warehouse="Stores - TCP1"
+			qty=2,
+			company="_Test Company with perpetual inventory",
+			warehouse="Stores - TCP1",
+			cost_center="_Test Cost Center for perpetual inventory Account - TCP1",
 		)
 
 		po = create_purchase_order(
@@ -1104,9 +1113,9 @@ class TestPurchaseOrder(IntegrationTestCase):
 
 		# Test - 2: Subcontracted Quantity for the PO Items of each line item should be updated accordingly
 		po.reload()
-		self.assertEqual(po.items[0].sco_qty, 5)
-		self.assertEqual(po.items[1].sco_qty, 0)
-		self.assertEqual(po.items[2].sco_qty, 12.5)
+		self.assertEqual(po.items[0].subcontracted_quantity, 5)
+		self.assertEqual(po.items[1].subcontracted_quantity, 0)
+		self.assertEqual(po.items[2].subcontracted_quantity, 12.5)
 
 		# Test - 3: Amount for both FG Item and its Service Item should be updated correctly based on change in Quantity
 		self.assertEqual(sco.items[0].amount, 2000)
@@ -1142,10 +1151,10 @@ class TestPurchaseOrder(IntegrationTestCase):
 
 		# Test - 8: Subcontracted Quantity for each PO Item should be subtracted if SCO gets cancelled
 		po.reload()
-		self.assertEqual(po.items[2].sco_qty, 25)
+		self.assertEqual(po.items[2].subcontracted_quantity, 25)
 		sco.cancel()
 		po.reload()
-		self.assertEqual(po.items[2].sco_qty, 12.5)
+		self.assertEqual(po.items[2].subcontracted_quantity, 12.5)
 
 		sco = make_subcontracting_order(po.name)
 		sco.save()

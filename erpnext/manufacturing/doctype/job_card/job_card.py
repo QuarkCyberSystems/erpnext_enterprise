@@ -129,6 +129,7 @@ class JobCard(Document):
 		time_required: DF.Float
 		total_completed_qty: DF.Float
 		total_time_in_mins: DF.Float
+		track_semi_finished_goods: DF.Check
 		transferred_qty: DF.Float
 		wip_warehouse: DF.Link | None
 		work_order: DF.Link
@@ -723,7 +724,7 @@ class JobCard(Document):
 			)
 
 	def validate_job_card(self):
-		if self.finished_good:
+		if self.track_semi_finished_goods:
 			return
 
 		if self.work_order and frappe.get_cached_value("Work Order", self.work_order, "status") == "Stopped":
@@ -794,7 +795,7 @@ class JobCard(Document):
 			)
 
 	def update_work_order(self):
-		if self.finished_good:
+		if self.track_semi_finished_goods:
 			return
 
 		if not self.work_order:
@@ -1037,7 +1038,7 @@ class JobCard(Document):
 		if self.docstatus == 0 and self.time_logs:
 			self.status = "Work In Progress"
 
-		if not self.finished_good and self.docstatus < 2:
+		if not self.track_semi_finished_goods and self.docstatus < 2:
 			if flt(self.for_quantity) <= flt(self.transferred_qty):
 				self.status = "Material Transferred"
 
@@ -1187,6 +1188,14 @@ class JobCard(Document):
 				row = self.append("time_logs", kwargs)
 				row.db_update()
 				self.db_set("status", "Work In Progress")
+			elif not kwargs.from_time and not kwargs.to_time and kwargs.completed_qty:
+				update_status = True
+				for row in self.time_logs:
+					if row.employee != kwargs.employee:
+						continue
+
+					row.completed_qty = kwargs.completed_qty
+					row.db_update()
 			else:
 				update_status = True
 				for row in self.time_logs:
@@ -1246,6 +1255,13 @@ class JobCard(Document):
 
 		if kwargs.end_time:
 			self.add_time_logs(to_time=kwargs.end_time, completed_qty=kwargs.qty, employees=self.employee)
+
+			if kwargs.for_quantity:
+				self.for_quantity = kwargs.for_quantity
+
+			self.save()
+		else:
+			self.add_time_logs(completed_qty=kwargs.qty, employees=self.employee)
 			self.save()
 
 		if kwargs.auto_submit:
@@ -1423,8 +1439,18 @@ def make_stock_entry(source_name, target_doc=None):
 			target.qty = pending_rm_qty
 
 	def set_missing_values(source, target):
+		if source.finished_good and not source.target_warehouse:
+			frappe.throw(_("Please set the Target Warehouse in the Job Card"))
+
+		if not source.skip_material_transfer or source.backflush_from_wip_warehouse:
+			if not source.wip_warehouse:
+				frappe.throw(_("Please set the WIP Warehouse in the Job Card"))
+
 		target.purpose = "Material Transfer for Manufacture"
 		target.from_bom = 1
+
+		if source.semi_fg_bom:
+			target.bom_no = source.semi_fg_bom
 
 		# avoid negative 'For Quantity'
 		pending_fg_qty = flt(source.get("for_quantity", 0)) - flt(source.get("transferred_qty", 0))

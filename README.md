@@ -1,5 +1,5 @@
 <div align="center">
-    <a href="https://erpnext.com">
+    <a href="https://frappe.io/erpnext">
 	<img src="./erpnext/public/images/v16/erpnext.svg" alt="ERPNext Logo" height="80px" width="80xp"/>
     </a>
     <h2>ERPNext</h2>
@@ -17,11 +17,11 @@
 </div>
 
 <div align="center">
-	<a href="https://erpnext-demo.frappe.cloud/app/home">Live Demo</a>
+	<a href="https://erpnext-demo.frappe.cloud/api/method/erpnext_demo.erpnext_demo.auth.login_demo">Live Demo</a>
 	-
-	<a href="https://erpnext.com">Website</a>
+	<a href="https://frappe.io/erpnext">Website</a>
 	-
-	<a href="https://docs.erpnext.com">Documentation</a>
+	<a href="https://docs.frappe.io/erpnext/">Documentation</a>
 </div>
 
 ## ERPNext
@@ -114,26 +114,23 @@ To setup the repository locally follow the steps mentioned below:
 2. In a separate terminal window, run the following commands:
    ```
    # Create a new site
-   bench new-site erpnext.dev
-   
-   # Map your site to localhost
-   bench --site erpnext.dev add-to-hosts
+   bench new-site erpnext.localhost
    ```
-	
+
 3. Get the ERPNext app and install it
    ```
    # Get the ERPNext app
    bench get-app https://github.com/frappe/erpnext
-   
+
    # Install the app
-   bench --site erpnext.dev install-app erpnext
+   bench --site erpnext.localhost install-app erpnext
    ```
 
-4. Open the URL `http://erpnext.dev:8000/app` in your browser, you should see the app running
+4. Open the URL `http://erpnext.localhost:8000/app` in your browser, you should see the app running
 
 ## Learning and community
 
-1. [Frappe School](https://frappe.school) - Learn Frappe Framework and ERPNext from the various courses by the maintainers or from the community.
+1. [Frappe School](https://school.frappe.io) - Learn Frappe Framework and ERPNext from the various courses by the maintainers or from the community.
 2. [Official documentation](https://docs.erpnext.com/) - Extensive documentation for ERPNext.
 3. [Discussion Forum](https://discuss.erpnext.com/) - Engage with community of ERPNext users and service providers.
 4. [Telegram Group](https://erpnext_public.t.me) - Get instant help from huge community of users.

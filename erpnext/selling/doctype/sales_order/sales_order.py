@@ -782,6 +782,13 @@ class SalesOrder(SellingController):
 			voucher_type=self.doctype, voucher_no=self.name, sre_list=sre_list, notify=notify
 		)
 
+	def set_missing_values(self, for_validate=False):
+		super().set_missing_values(for_validate)
+
+		if self.delivery_date:
+			for item in self.items:
+				item.delivery_date = self.delivery_date
+
 
 def get_unreserved_qty(item: object, reserved_qty_details: dict) -> float:
 	"""Returns the unreserved quantity for the Sales Order Item."""
@@ -907,7 +914,8 @@ def make_material_request(source_name, target_doc=None):
 				"field_map": {
 					"name": "sales_order_item",
 					"parent": "sales_order",
-					"delivery_date": "required_by",
+					"delivery_date": "schedule_date",
+					"bom_no": "bom_no",
 				},
 				"condition": lambda item: not frappe.db.exists(
 					"Product Bundle", {"name": item.item_code, "disabled": 0}
@@ -1089,7 +1097,7 @@ def make_delivery_note(source_name, target_doc=None, kwargs=None):
 					ignore_permissions=True,
 				)
 
-				dn_item.qty = flt(sre.reserved_qty) * flt(dn_item.get("conversion_factor", 1))
+				dn_item.qty = flt(sre.reserved_qty) / flt(dn_item.get("conversion_factor", 1))
 				dn_item.warehouse = sre.warehouse
 
 				if sre.reservation_based_on == "Serial and Batch" and (sre.has_serial_no or sre.has_batch_no):
@@ -1493,6 +1501,8 @@ def make_purchase_order(source_name, selected_items=None, target_doc=None):
 			target.customer = target.customer_name = target.shipping_address = None
 
 		target.run_method("set_missing_values")
+		if not target.taxes:
+			target.append_taxes_from_item_tax_template()
 		target.run_method("calculate_taxes_and_totals")
 
 	def update_item(source, target, source_parent):
