@@ -1460,6 +1460,8 @@ def make_purchase_order(source_name, selected_items=None, target_doc=None):
 			target.customer = target.customer_name = target.shipping_address = None
 
 		target.run_method("set_missing_values")
+		if not target.taxes:
+			target.append_taxes_from_item_tax_template()
 		target.run_method("calculate_taxes_and_totals")
 
 	def update_item(source, target, source_parent):
