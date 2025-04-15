@@ -75,9 +75,13 @@ erpnext.sales_common = {
 
 				if (this.frm.fields_dict["items"].grid.get_field("item_code")) {
 					this.frm.set_query("item_code", "items", function () {
+						let customer = me.frm.doc.customer;
+						if (me.frm.doc.doctype == "Quotation" && me.frm.doc.quotation_to == "Customer") {
+							customer = me.frm.doc.party_name;
+						}
 						return {
 							query: "erpnext.controllers.queries.item_query",
-							filters: { is_sales_item: 1, customer: me.frm.doc.customer, has_variants: 0 },
+							filters: { is_sales_item: 1, customer: customer, has_variants: 0 },
 						};
 					});
 				}
