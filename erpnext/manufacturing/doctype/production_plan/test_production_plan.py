@@ -180,7 +180,7 @@ class TestProductionPlan(IntegrationTestCase):
 		)
 
 		pln = create_production_plan(
-			item_code="Test Production Item 1", use_multi_level_bom=0, ignore_existing_ordered_qty=0
+			item_code="Test Production Item 1", use_multi_level_bom=0, ignore_existing_ordered_qty=1
 		)
 		self.assertFalse(len(pln.mr_items))
 
@@ -725,6 +725,7 @@ class TestProductionPlan(IntegrationTestCase):
 			},
 		)
 
+		pln.skip_available_sub_assembly_item = 0
 		pln.get_sub_assembly_items("In House")
 		pln.submit()
 		pln.make_work_order()
@@ -1454,6 +1455,7 @@ class TestProductionPlan(IntegrationTestCase):
 		)
 
 		plan.for_warehouse = mrp_warhouse
+		plan.ignore_existing_ordered_qty = 1
 
 		items = get_items_for_material_requests(
 			plan.as_dict(), warehouses=[{"warehouse": wh1}, {"warehouse": wh2}]
@@ -1690,6 +1692,7 @@ class TestProductionPlan(IntegrationTestCase):
 		)
 
 		pln.for_warehouse = rm_warehouse
+		pln.ignore_existing_ordered_qty = 1
 		items = get_items_for_material_requests(pln.as_dict(), warehouses=[{"warehouse": store_warehouse}])
 
 		for row in items:
@@ -1891,6 +1894,7 @@ class TestProductionPlan(IntegrationTestCase):
 			},
 		)
 		plan.save()
+		plan.ignore_existing_ordered_qty = 1
 
 		plan.get_sub_assembly_items()
 
