@@ -413,7 +413,7 @@ def set_missing_values(source, target_doc):
 def update_item(obj, target, source_parent):
 	target.conversion_factor = obj.conversion_factor
 
-	qty = obj.received_qty or obj.ordered_qty
+	qty = obj.ordered_qty or obj.received_qty
 	target.qty = flt(flt(obj.stock_qty) - flt(qty)) / target.conversion_factor
 	target.stock_qty = target.qty * target.conversion_factor
 	if getdate(target.schedule_date) < getdate(nowdate()):
@@ -489,7 +489,7 @@ def make_purchase_order(source_name, target_doc=None, args=None):
 		filtered_items = args.get("filtered_children", [])
 		child_filter = d.name in filtered_items if filtered_items else True
 
-		qty = d.received_qty or d.ordered_qty
+		qty = d.ordered_qty or d.received_qty
 
 		return qty < d.stock_qty and child_filter
 
