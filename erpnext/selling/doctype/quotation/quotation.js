@@ -70,7 +70,8 @@ erpnext.selling.QuotationController = class QuotationController extends erpnext.
 	onload(doc, dt, dn) {
 		super.onload(doc, dt, dn);
 
-		this.frm.trigger("disable_customer_if_creating_from_opportunity");
+		// TODO: think of better way to do this
+		// this.frm.trigger("disable_customer_if_creating_from_opportunity");
 	}
 	party_name() {
 		var me = this;
