@@ -5,6 +5,7 @@
     <h2>ERPNext</h2>
     <p align="center">
         <p>Powerful, Intuitive and Open-Source ERP</p>
+        [![Learn on Frappe School](https://img.shields.io/badge/Frappe%20School-Learn%20ERPNext-blue?style=flat-square)](https://frappe.school)
     </p>
 
 [![CI](https://github.com/frappe/erpnext/actions/workflows/server-tests-mariadb.yml/badge.svg?event=schedule)](https://github.com/frappe/erpnext/actions/workflows/server-tests-mariadb.yml)
