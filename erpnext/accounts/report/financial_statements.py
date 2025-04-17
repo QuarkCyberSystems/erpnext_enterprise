@@ -519,9 +519,6 @@ def get_accounting_entries(
 		.where(gl_entry.company == filters.company)
 	)
 
-	if group_by_account:
-		query = query.groupby(gl_entry.account)
-
 	ignore_is_opening = frappe.db.get_single_value(
 		"Accounts Settings", "ignore_is_opening_check_for_reporting"
 	)
@@ -550,6 +547,9 @@ def get_accounting_entries(
 
 	if match_conditions:
 		query += "and" + match_conditions
+
+	if group_by_account:
+		query += " GROUP BY `account`"
 
 	return frappe.db.sql(query, params, as_dict=True)
 
