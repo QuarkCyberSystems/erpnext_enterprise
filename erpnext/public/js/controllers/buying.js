@@ -305,6 +305,12 @@ erpnext.buying = {
 					"shipping_address_display", true);
 			}
 
+			dispatch_address(){
+				var me = this;
+				erpnext.utils.get_address_display(this.frm, "dispatch_address",
+					"dispatch_address_display", true);
+			}
+
 			billing_address() {
 				erpnext.utils.get_address_display(this.frm, "billing_address",
 					"billing_address_display", true);
