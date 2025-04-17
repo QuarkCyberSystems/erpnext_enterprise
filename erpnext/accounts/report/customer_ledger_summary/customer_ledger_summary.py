@@ -100,7 +100,7 @@ class PartyLedgerSummaryReport:
 			conditions.append(doctype.territory.isin(self.filters.territory))
 
 		if self.filters.get(group_field):
-			conditions.append(doctype.get(group_field).isin(self.filters.get(group_field)))
+			conditions.append(doctype[group_field].isin(self.filters.get(group_field)))
 
 		if self.filters.payment_terms_template:
 			conditions.append(doctype.payment_terms == self.filters.payment_terms_template)
