@@ -57,11 +57,7 @@ erpnext.buying = {
 
 				if(this.frm.get_field('dispatch_address')) {
 					this.frm.set_query("dispatch_address", () => {
-						if(this.frm.doc.is_return){
-							return erpnext.queries.company_address_query(this.frm.doc);
-						}
-
-						return erpnext.queries.supplier_address_query(this.frm);
+						return erpnext.queries.address_query(this.frm.doc);
 					});
 				}
 			}

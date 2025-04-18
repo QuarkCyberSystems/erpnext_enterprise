@@ -202,42 +202,43 @@ def set_address_details(
 	billing_address_field = (
 		"customer_address" if party_type in ["Lead", "Prospect"] else party_type.lower() + "_address"
 	)
+
 	party_details[billing_address_field] = party_address or get_default_address(party_type, party.name)
 	if doctype:
 		party_details.update(
 			get_fetch_values(doctype, billing_address_field, party_details[billing_address_field])
 		)
+
 	# address display
 	party_details.address_display = render_address(
 		party_details[billing_address_field], check_permissions=not ignore_permissions
 	)
-	# shipping address
+
+	# Initialize shipping address fields based on party type
 	if party_type in ["Customer", "Lead"]:
-		party_details.shipping_address_name = shipping_address or get_party_shipping_address(
-			party_type, party.name
-		)
-		party_details.shipping_address = render_address(
-			party_details["shipping_address_name"], check_permissions=not ignore_permissions
-		)
-		if doctype:
-			party_details.update(
-				get_fetch_values(doctype, "shipping_address_name", party_details.shipping_address_name)
+		party_shipping_address_field = "shipping_address_name"
+		party_shipping_address_display_field = "shipping_address"
+		is_party_type_supplier = False
+
+	else:  # Default to Supplier
+		party_shipping_address_field = "dispatch_address"
+		party_shipping_address_display_field = "dispatch_address_display"
+		is_party_type_supplier = True
+
+	party_details[party_shipping_address_field] = (
+		dispatch_address if is_party_type_supplier else shipping_address
+	) or get_party_shipping_address(party_type, party.name)
+
+	party_details[party_shipping_address_display_field] = render_address(
+		party_details[party_shipping_address_field], check_permissions=not ignore_permissions
+	)
+
+	if doctype:
+		party_details.update(
+			get_fetch_values(
+				doctype, party_shipping_address_field, party_details[party_shipping_address_field]
 			)
-
-	# dispatch address
-	elif party_type == "Supplier":
-		party_details.dispatch_address = dispatch_address or get_party_shipping_address(
-			party_type, party.name
 		)
-
-		party_details.dispatch_address_display = render_address(
-			party_details["dispatch_address"], check_permissions=not ignore_permissions
-		)
-
-		if doctype:
-			party_details.update(
-				get_fetch_values(doctype, "dispatch_address", party_details.dispatch_address)
-			)
 
 	if company_address:
 		party_details.company_address = company_address
@@ -276,27 +277,9 @@ def set_address_details(
 					**get_fetch_values(doctype, "shipping_address", party_details.billing_address),
 				)
 
-		if doctype != "Supplier Quotation":
-			if dispatch_address:
-				party_details.update(
-					dispatch_address=dispatch_address,
-					dispatch_address_display=render_address(
-						dispatch_address, check_permissions=not ignore_permissions
-					),
-					**get_fetch_values(doctype, "dispatch_address", dispatch_address),
-				)
-
-			# dispatch address - if not already set
-			if not party_details.dispatch_address:
-				party_details.update(
-					dispatch_address=party_details.supplier_address,
-					dispatch_address_display=party_details.address_display,
-					**get_fetch_values(doctype, "dispatch_address", party_details.supplier_address),
-				)
-
 	party_address, shipping_address = (
 		party_details.get(billing_address_field),
-		party_details.shipping_address_name,
+		party_details.get(party_shipping_address_field),
 	)
 
 	party_details["tax_category"] = get_address_tax_category(
