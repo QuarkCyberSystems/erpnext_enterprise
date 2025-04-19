@@ -343,12 +343,14 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 	}
 
 	calculate_taxes() {
+		const doc = this.frm.doc;
+		if (!doc.taxes?.length) return;
+
 		var me = this;
-		this.grand_total_diff = 0;
 		var actual_tax_dict = {};
 
 		// maintain actual tax rate based on idx
-		$.each(this.frm.doc["taxes"] || [], function(i, tax) {
+		$.each(doc.taxes, function(i, tax) {
 			if (tax.charge_type == "Actual") {
 				actual_tax_dict[tax.idx] = flt(tax.tax_amount, precision("tax_amount", tax));
 			}
@@ -356,7 +358,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 
 		$.each(this.frm._items || [], function(n, item) {
 			var item_tax_map = me._load_item_tax_rate(item.item_tax_rate);
-			$.each(me.frm.doc["taxes"] || [], function(i, tax) {
+			$.each(doc.taxes, function(i, tax) {
 				// tax_amount represents the amount of tax for the current step
 				var current_tax_amount = me.get_current_tax_amount(item, tax, item_tax_map);
 				if (frappe.flags.round_row_wise_tax) {
@@ -401,29 +403,40 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 					tax.grand_total_for_current_item =
 						flt(me.frm.doc["taxes"][i-1].grand_total_for_current_item + current_tax_amount);
 				}
-
-				// set precision in the last item iteration
-				if (n == me.frm._items.length - 1) {
-					me.round_off_totals(tax);
-					me.set_in_company_currency(tax,
-						["tax_amount", "tax_amount_after_discount_amount"]);
-
-					me.round_off_base_values(tax);
-
-					// in tax.total, accumulate grand total for each item
-					me.set_cumulative_total(i, tax);
-
-					me.set_in_company_currency(tax, ["total"]);
-
-					// adjust Discount Amount loss in last tax iteration
-					if ((i == me.frm.doc["taxes"].length - 1) && me.discount_amount_applied
-						&& me.frm.doc.apply_discount_on == "Grand Total" && me.frm.doc.discount_amount) {
-						me.grand_total_diff = flt(me.frm.doc.grand_total -
-							flt(me.frm.doc.discount_amount) - tax.total, precision("rounding_adjustment"));
-					}
-				}
 			});
 		});
+
+		const discount_amount_applied = this.discount_amount_applied;
+		if (doc.apply_discount_on === "Grand Total" && (discount_amount_applied || doc.discount_amount || doc.additional_discount_percentage)) {
+			const tax_amount_precision = precision("tax_amount", doc.taxes[0]);
+
+			for (const [i, tax] of doc.taxes.entries()) {
+				if (discount_amount_applied)
+					tax.tax_amount_after_discount_amount = flt(tax.tax_amount_after_discount_amount, tax_amount_precision);
+
+				this.set_cumulative_total(i, tax);
+			}
+
+			if (!this.discount_amount_applied) {
+				this.grand_total_for_distributing_discount = doc.taxes[doc.taxes.length - 1].total;
+			} else {
+				this.grand_total_diff = flt(
+					this.grand_total_for_distributing_discount - doc.discount_amount - doc.taxes[doc.taxes.length - 1].total, precision("grand_total"));
+			}
+		}
+
+		for (const [i, tax] of doc.taxes.entries()) {
+			me.round_off_totals(tax);
+			me.set_in_company_currency(tax,
+				["tax_amount", "tax_amount_after_discount_amount"]);
+
+			me.round_off_base_values(tax);
+
+			// in tax.total, accumulate grand total for each tax
+			me.set_cumulative_total(i, tax);
+
+			me.set_in_company_currency(tax, ["total"]);
+		}
 	}
 
 	set_cumulative_total(row_idx, tax) {
@@ -586,10 +599,12 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 
 	calculate_totals() {
 		// Changing sequence can cause rounding_adjustmentng issue and on-screen discrepency
-		var me = this;
-		var tax_count = this.frm.doc["taxes"] ? this.frm.doc["taxes"].length : 0;
+		const me = this;
+		const tax_count = this.frm.doc.taxes?.length;
+		const grand_total_diff = this.grand_total_diff || 0;
+
 		this.frm.doc.grand_total = flt(tax_count
-			? this.frm.doc["taxes"][tax_count - 1].total + this.grand_total_diff
+			? this.frm.doc["taxes"][tax_count - 1].total + grand_total_diff
 			: this.frm.doc.net_total);
 
 		if(["Quotation", "Sales Order", "Delivery Note", "Sales Invoice", "POS Invoice"].includes(this.frm.doc.doctype)) {
@@ -621,7 +636,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 		}
 
 		this.frm.doc.total_taxes_and_charges = flt(this.frm.doc.grand_total - this.frm.doc.net_total
-			- this.grand_total_diff, precision("total_taxes_and_charges"));
+			- grand_total_diff, precision("total_taxes_and_charges"));
 
 		this.set_in_company_currency(this.frm.doc, ["total_taxes_and_charges"]);
 
@@ -744,8 +759,10 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 	}
 
 	get_total_for_discount_amount() {
-		if(this.frm.doc.apply_discount_on == "Net Total")
-			return this.frm.doc.net_total;
+		const doc = this.frm.doc;
+
+		if (doc.apply_discount_on == "Net Total" || !doc.taxes?.length)
+			return doc.net_total;
 
 		let total_actual_tax = 0.0;
 		let actual_taxes_dict = {};
@@ -760,7 +777,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 			};
 		}
 
-		$.each(this.frm.doc["taxes"] || [], function(i, tax) {
+		doc.taxes.forEach(tax => {
 			if (["Actual", "On Item Quantity"].includes(tax.charge_type)) {
 				update_actual_taxes_dict(tax, tax.tax_amount);
 				return;
@@ -775,7 +792,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 			update_actual_taxes_dict(tax, base_tax_amount * tax.rate / 100);
 		});
 
-		return this.frm.doc.grand_total - total_actual_tax;
+		return (this.grand_total_for_distributing_discount || doc.grand_total) - total_actual_tax;
 	}
 
 	calculate_total_advance(update_paid_amount) {
