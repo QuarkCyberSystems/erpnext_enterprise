@@ -928,7 +928,7 @@ def get_item_uom_query(doctype, txt, searchfield, start, page_len, filters):
 
 	return frappe.get_all(
 		"UOM",
-		filters={"name": ["like", f"%{txt}%"]},
+		filters={"name": ["like", f"%{txt}%"], "enabled": 1},
 		fields=["name"],
 		limit_start=start,
 		limit_page_length=page_len,
