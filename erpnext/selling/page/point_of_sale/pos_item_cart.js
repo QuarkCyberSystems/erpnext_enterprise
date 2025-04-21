@@ -188,6 +188,7 @@ erpnext.PointOfSale.ItemCart = class {
 
 			await me.events.checkout();
 			me.toggle_checkout_btn(false);
+			me.disable_customer_selection();
 
 			me.allow_discount_change && me.$add_discount_elem.removeClass("d-none");
 		});
@@ -195,6 +196,7 @@ erpnext.PointOfSale.ItemCart = class {
 		this.$totals_section.on("click", ".edit-cart-btn", () => {
 			this.events.edit_cart();
 			this.toggle_checkout_btn(true);
+			me.enable_customer_selection();
 		});
 
 		this.$component.on("click", ".add-discount-wrapper", () => {
@@ -696,6 +698,25 @@ erpnext.PointOfSale.ItemCart = class {
 			this.$totals_section.find(".checkout-btn").css("display", "none");
 			this.$totals_section.find(".edit-cart-btn").css("display", "flex");
 		}
+	}
+
+	disable_customer_selection() {
+		this.$customer_section.find(".reset-customer-btn").css("visibility", "hidden");
+		this.$customer_section.off("click", ".customer-display");
+		this.$customer_section.off("click", ".reset-customer-btn");
+	}
+
+	enable_customer_selection() {
+		this.$customer_section.find(".reset-customer-btn").css("visibility", "visible");
+		this.$customer_section.on("click", ".customer-display", (e) => {
+			if ($(e.target).closest(".reset-customer-btn").length) return;
+
+			const show = this.$cart_container.is(":visible");
+			this.toggle_customer_info(show);
+		});
+		this.$customer_section.on("click", ".reset-customer-btn", () => {
+			this.reset_customer_selector();
+		});
 	}
 
 	highlight_checkout_btn(toggle) {
