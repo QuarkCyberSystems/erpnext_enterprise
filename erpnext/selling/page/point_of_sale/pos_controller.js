@@ -376,7 +376,6 @@ erpnext.PointOfSale.Controller = class {
 
 				highlight_cart_item: (item) => {
 					const cart_item = this.cart.get_cart_item(item);
-					this.cart.toggle_item_highlight(cart_item);
 				},
 
 				item_field_focused: (fieldname) => {

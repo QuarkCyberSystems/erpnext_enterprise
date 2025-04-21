@@ -280,7 +280,7 @@ erpnext.PointOfSale.ItemCart = class {
 
 	toggle_item_highlight(item) {
 		const $cart_item = $(item);
-		const item_is_highlighted = $cart_item.attr("style") == "background-color:var(--gray-50);";
+		const item_is_highlighted = $cart_item.attr("style") == "background-color: var(--control-bg);";
 
 		if (!item || item_is_highlighted) {
 			this.item_is_selected = false;

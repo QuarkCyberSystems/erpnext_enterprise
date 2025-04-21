@@ -104,11 +104,11 @@ erpnext.PointOfSale.ItemSelector = class {
 				return `<div class="item-qty-pill">
 							<span class="indicator-pill whitespace-nowrap ${indicator_color}">${qty_to_display}</span>
 						</div>
-						<div class="flex items-center justify-center border-b-grey text-6xl text-grey-100" style="height:8rem; min-height:8rem">
+						<div class="item-display">
 							<img
 								onerror="cur_pos.item_selector.handle_broken_image(this)"
-								class="h-full item-img" src="${item_image}"
-								alt="${frappe.get_abbr(item.item_name)}"
+								class="item-img" src="${item_image}"
+								alt="${item.item_name}"
 							>
 						</div>`;
 			} else {
