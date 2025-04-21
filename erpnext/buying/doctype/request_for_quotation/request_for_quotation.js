@@ -154,15 +154,15 @@ frappe.ui.form.on("Request for Quotation", {
 			);
 
 			frm.page.set_inner_btn_group_as_primary(__("Create"));
-		}
 
-		frm.add_custom_button(
-			__("Supplier Quotation Comparison"),
-			function () {
-				frm.trigger("show_supplier_quotation_comparison");
-			},
-			__("View")
-		);
+			frm.add_custom_button(
+				__("Supplier Quotation Comparison"),
+				function () {
+					frm.trigger("show_supplier_quotation_comparison");
+				},
+				__("View")
+			);
+		}
 	},
 
 	show_supplier_quotation_comparison(frm) {
