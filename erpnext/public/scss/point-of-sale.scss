@@ -153,9 +153,11 @@
 					margin-bottom: 0px;
 					min-height: 8rem;
 					height: 8rem;
+					overflow: hidden;
 
 					> img {
 						@extend .image;
+						width: 100%;
 					}
 				}
 
@@ -395,9 +397,11 @@
 							border-radius: var(--border-radius-md);
 							color: var(--text-light);
 							margin-right: var(--margin-md);
+							overflow: hidden;
 
 							> img {
 								@extend .image;
+								width: 100%;
 							}
 						}
 
@@ -699,14 +703,16 @@
 				display: flex;
 				align-items: center;
 				justify-content: center;
-				width: 11rem;
-				height: 11rem;
+				max-width: 11rem;
+				max-height: 11rem;
 				border-radius: var(--border-radius-md);
 				margin-left: var(--margin-md);
 				color: var(--gray-500);
+				overflow: hidden;
 
 				> img {
 					@extend .image;
+					width: 100%;
 				}
 
 				> .item-abbr {
@@ -1162,6 +1168,16 @@
 						font-weight: 500;
 					}
 				}
+			}
+		}
+	}
+}
+
+@media screen and (max-width: 1200px) {
+	.point-of-sale-app {
+		> .items-selector {
+			> .items-container {
+				grid-template-columns: repeat(3, minmax(0, 1fr));
 			}
 		}
 	}
