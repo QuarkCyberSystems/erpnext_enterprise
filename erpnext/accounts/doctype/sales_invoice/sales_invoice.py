@@ -2295,7 +2295,10 @@ def make_inter_company_transaction(doctype, source_name, target_doc=None):
 			# Invert Addresses
 			update_address(target_doc, "supplier_address", "address_display", source_doc.company_address)
 			update_address(
-				target_doc, "shipping_address", "shipping_address_display", source_doc.customer_address
+				target_doc, "dispatch_address", "dispatch_address_display", source_doc.dispatch_address_name
+			)
+			update_address(
+				target_doc, "shipping_address", "shipping_address_display", source_doc.shipping_address_name
 			)
 			update_address(
 				target_doc, "billing_address", "billing_address_display", source_doc.customer_address
