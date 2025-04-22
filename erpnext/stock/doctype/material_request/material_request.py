@@ -27,15 +27,14 @@ form_grid_templates = {"items": "templates/form_grid/material_request_grid.html"
 
 class MaterialRequest(BuyingController):
 	# begin: auto-generated types
-	# ruff: noqa
-
 	# This code is auto-generated. Do not modify anything in this block.
 
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from erpnext.stock.doctype.material_request_item.material_request_item import MaterialRequestItem
 		from frappe.types import DF
+
+		from erpnext.stock.doctype.material_request_item.material_request_item import MaterialRequestItem
 
 		amended_from: DF.Link | None
 		company: DF.Link
@@ -51,7 +50,7 @@ class MaterialRequest(BuyingController):
 			"Subcontracting",
 			"Customer Provided",
 		]
-		naming_series: DF.Literal["MAT-MR-.YYYY.-", "MAT/MR/.YYYY.-"]
+		naming_series: DF.Literal["MAT-MR-.YYYY.-"]
 		per_ordered: DF.Percent
 		per_received: DF.Percent
 		scan_barcode: DF.Data | None
@@ -79,7 +78,6 @@ class MaterialRequest(BuyingController):
 		transaction_date: DF.Date
 		transfer_status: DF.Literal["", "Not Started", "In Transit", "Completed"]
 		work_order: DF.Link | None
-	# ruff: noqa
 	# end: auto-generated types
 
 	def check_if_already_pulled(self):
