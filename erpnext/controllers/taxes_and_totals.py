@@ -21,8 +21,6 @@ from erpnext.deprecation_dumpster import deprecated
 from erpnext.stock.get_item_details import ItemDetailsCtx, _get_item_tax_template, get_item_tax_map
 from erpnext.utilities.regional import temporary_flag
 
-logger = frappe.logger(__name__)
-
 ItemWiseTaxDetail = frappe._dict
 
 
@@ -397,10 +395,8 @@ class calculate_taxes_and_totals:
 			]
 		)
 
-		logger.debug(f"{self.doc} ...")
 		for n, item in enumerate(self._items):
 			item_tax_map = self._load_item_tax_rate(item.item_tax_rate)
-			logger.debug(f" Item {n}: {item.item_code}" + (f" - {item_tax_map}" if item_tax_map else ""))
 			for i, tax in enumerate(doc.taxes):
 				# tax_amount represents the amount of tax for the current step
 				current_net_amount, current_tax_amount = self.get_current_tax_and_net_amount(
@@ -442,10 +438,6 @@ class calculate_taxes_and_totals:
 					tax.grand_total_for_current_item = flt(
 						doc.taxes[i - 1].grand_total_for_current_item + current_tax_amount
 					)
-
-				logger.debug(
-					f"  net_amount: {current_net_amount:<20} tax_amount: {current_tax_amount:<20} - {tax.description}"
-				)
 
 		discount_amount_applied = self.discount_amount_applied
 		if doc.apply_discount_on == "Grand Total" and (
