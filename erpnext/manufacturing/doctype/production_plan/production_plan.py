@@ -17,6 +17,7 @@ from frappe.utils import (
 	comma_and,
 	flt,
 	get_link_to_form,
+	get_url_to_form,
 	getdate,
 	now_datetime,
 	nowdate,
@@ -948,11 +949,9 @@ class ProductionPlan(Document):
 
 		frappe.flags.mute_messages = False
 
-		from urllib.parse import quote_plus
-
 		if material_request_list:
 			material_request_list = [
-				f"""<a href="/app/Form/Material Request/{quote_plus(m.name)}">{m.name}</a>"""
+				f"""<a href="{get_url_to_form("Material Request", m.name)}">{m.name}</a>"""
 				for m in material_request_list
 			]
 			msgprint(_("{0} created").format(comma_and(material_request_list)))
