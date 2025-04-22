@@ -81,7 +81,7 @@ def has_ignored_field(reference_doctype, doctype):
 				continue
 			if isinstance(options, str):
 				options = options.split("\n")
-			if doctype in options or "Doctype" in options:
+			if doctype in options or "DocType" in options:
 				return True
 
 	return False
