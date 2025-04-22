@@ -991,7 +991,13 @@ class StockController(AccountsController):
 	def update_billing_percentage(self, update_modified=True):
 		target_ref_field = "amount"
 		if self.doctype == "Delivery Note":
-			target_ref_field = "amount - (returned_qty * rate)"
+			total_amount = total_returned = 0
+			for item in self.items:
+				total_amount += flt(item.amount)
+				total_returned += flt(item.returned_qty * item.rate)
+
+			if total_returned < total_amount:
+				target_ref_field = "(amount - (returned_qty * rate))"
 
 		self._update_percent_field(
 			{
