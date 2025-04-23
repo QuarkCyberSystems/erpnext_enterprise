@@ -1170,7 +1170,6 @@ def get_values_from_purchase_doc(purchase_doc_name, item_code, doctype):
 		frappe.throw(_(f"Selected {doctype} does not contain the Item Code {item_code}"))
 
 	first_item = matching_items[0]
-	is_multiple_items = len(matching_items) > 1
 
 	return {
 		"company": purchase_doc.company,
@@ -1179,7 +1178,6 @@ def get_values_from_purchase_doc(purchase_doc_name, item_code, doctype):
 		"asset_quantity": first_item.qty,
 		"cost_center": first_item.cost_center or purchase_doc.get("cost_center"),
 		"asset_location": first_item.get("asset_location"),
-		"is_multiple_items": is_multiple_items,
 		"purchase_receipt_item": first_item.name if doctype == "Purchase Receipt" else None,
 		"purchase_invoice_item": first_item.name if doctype == "Purchase Invoice" else None,
 	}
