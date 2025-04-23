@@ -398,27 +398,29 @@ def get_data_with_opening_closing(filters, account_details, accounting_dimension
 	add_total_to_data(totals, "opening")
 
 	if filters.get("group_by") != "Group by Voucher (Consolidated)":
-		for _acc, acc_dict in gle_map.items():
-			# acc
-			if acc_dict.entries:
-				# opening
-				data.append({"debit_in_transaction_currency": None, "credit_in_transaction_currency": None})
-				if (not filters.get("group_by") and not filters.get("voucher_no")) or (
-					filters.get("group_by") and filters.get("group_by") != "Group by Voucher"
-				):
-					add_total_to_data(acc_dict.totals, "opening")
+		set_opening_closing = (not filters.get("group_by") and not filters.get("voucher_no")) or (
+			filters.get("group_by") and filters.get("group_by") != "Group by Voucher"
+		)
+		set_total = filters.get("group_by") or not filters.voucher_no
 
-				data += acc_dict.entries
+		for acc_dict in gle_map.values():
+			if not acc_dict.entries:
+				continue
 
-				# totals
-				if filters.get("group_by") or not filters.voucher_no:
-					add_total_to_data(acc_dict.totals, "total")
+			# opening
+			data.append({"debit_in_transaction_currency": None, "credit_in_transaction_currency": None})
+			if set_opening_closing:
+				add_total_to_data(acc_dict.totals, "opening")
 
-				# closing
-				if (not filters.get("group_by") and not filters.get("voucher_no")) or (
-					filters.get("group_by") and filters.get("group_by") != "Group by Voucher"
-				):
-					add_total_to_data(acc_dict.totals, "closing")
+			data += acc_dict.entries
+
+			# totals
+			if set_total:
+				add_total_to_data(acc_dict.totals, "total")
+
+			# closing
+			if set_opening_closing:
+				add_total_to_data(acc_dict.totals, "closing")
 
 		data.append({"debit_in_transaction_currency": None, "credit_in_transaction_currency": None})
 	else:
