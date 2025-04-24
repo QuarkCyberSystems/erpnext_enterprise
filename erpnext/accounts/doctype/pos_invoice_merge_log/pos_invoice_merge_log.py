@@ -337,7 +337,7 @@ class POSInvoiceMergeLog(Document):
 		for doc in invoice_docs:
 			doc.load_from_db()
 			inv = sales_invoice
-			if doc.is_return:
+			if doc.is_return and credit_notes:
 				for key, value in credit_notes.items():
 					if doc.name in value:
 						inv = key
