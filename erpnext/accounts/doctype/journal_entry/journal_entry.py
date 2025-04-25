@@ -1235,9 +1235,7 @@ class JournalEntry(AccountsController):
 
 
 @frappe.whitelist()
-def get_default_bank_cash_account(
-	company, account_type=None, mode_of_payment=None, account=None, ignore_permissions=False
-):
+def get_default_bank_cash_account(company, account_type=None, mode_of_payment=None, account=None):
 	from erpnext.accounts.doctype.sales_invoice.sales_invoice import get_bank_cash_account
 
 	if mode_of_payment:
@@ -1275,7 +1273,7 @@ def get_default_bank_cash_account(
 		return frappe._dict(
 			{
 				"account": account,
-				"balance": get_balance_on(account, ignore_account_permission=ignore_permissions),
+				"balance": get_balance_on(account),
 				"account_currency": account_details.account_currency,
 				"account_type": account_details.account_type,
 			}
