@@ -7,8 +7,9 @@ import frappe
 from frappe import _
 from frappe.tests import IntegrationTestCase
 
-from erpnext.accounts.doctype.pos_invoice.pos_invoice import PartialPaymentValidationError, make_sales_return
+from erpnext.accounts.doctype.pos_invoice.pos_invoice import make_sales_return
 from erpnext.accounts.doctype.pos_profile.test_pos_profile import make_pos_profile
+from erpnext.accounts.doctype.sales_invoice.sales_invoice import PartialPaymentValidationError
 from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
 from erpnext.stock.doctype.item.test_item import make_item
 from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import make_purchase_receipt

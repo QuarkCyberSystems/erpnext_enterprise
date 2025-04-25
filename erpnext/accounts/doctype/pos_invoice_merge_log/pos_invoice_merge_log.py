@@ -8,7 +8,6 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.mapper import map_child_doc, map_doc
-from frappe.query_builder import DocType
 from frappe.utils import cint, flt, get_time, getdate, nowdate, nowtime
 from frappe.utils.background_jobs import enqueue, is_job_enqueued
 from frappe.utils.scheduler import is_scheduler_inactive
@@ -16,6 +15,7 @@ from frappe.utils.scheduler import is_scheduler_inactive
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_checks_for_pl_and_bs_accounts,
 )
+from erpnext.controllers.sales_and_purchase_return import get_sales_invoice_item_from_consolidated_invoice
 from erpnext.controllers.taxes_and_totals import ItemWiseTaxDetail
 
 
@@ -238,7 +238,7 @@ class POSInvoiceMergeLog(Document):
 				si_item.pos_invoice = doc.name
 				si_item.pos_invoice_item = item.name
 				if doc.is_return:
-					si_item.sales_invoice_item = get_sales_invoice_item(
+					si_item.sales_invoice_item = get_sales_invoice_item_from_consolidated_invoice(
 						doc.return_against, item.pos_invoice_item
 					)
 				if item.serial_and_batch_bundle:
@@ -633,26 +633,3 @@ def get_error_message(message) -> str:
 		return message["message"]
 	except Exception:
 		return str(message)
-
-
-def get_sales_invoice_item(return_against_pos_invoice, pos_invoice_item):
-	try:
-		SalesInvoice = DocType("Sales Invoice")
-		SalesInvoiceItem = DocType("Sales Invoice Item")
-
-		query = (
-			frappe.qb.from_(SalesInvoice)
-			.from_(SalesInvoiceItem)
-			.select(SalesInvoiceItem.name)
-			.where(
-				(SalesInvoice.name == SalesInvoiceItem.parent)
-				& (SalesInvoice.is_return == 0)
-				& (SalesInvoiceItem.pos_invoice == return_against_pos_invoice)
-				& (SalesInvoiceItem.pos_invoice_item == pos_invoice_item)
-			)
-		)
-
-		result = query.run(as_dict=True)
-		return result[0].name if result else None
-	except Exception:
-		return None

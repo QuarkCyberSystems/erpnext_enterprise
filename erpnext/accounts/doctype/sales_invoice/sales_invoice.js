@@ -180,6 +180,10 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends (
 		}
 
 		erpnext.accounts.unreconcile_payment.add_unreconcile_btn(me.frm);
+
+		if (this.frm.doc.is_created_using_pos && !this.frm.doc.is_return) {
+			erpnext.accounts.dimensions.update_dimension(this.frm, this.frm.doctype);
+		}
 	}
 
 	make_invoice_discounting() {
