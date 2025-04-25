@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 
+import hashlib
 import json
 
 import frappe
@@ -303,10 +304,17 @@ class POSInvoiceMergeLog(Document):
 		accounting_dimensions = get_checks_for_pl_and_bs_accounts()
 		accounting_dimensions_fields = [d.fieldname for d in accounting_dimensions]
 		dimension_values = frappe.db.get_value(
-			"POS Profile", {"name": invoice.pos_profile}, accounting_dimensions_fields, as_dict=1
+			"POS Profile",
+			{"name": invoice.pos_profile},
+			[*accounting_dimensions_fields, "cost_center", "project"],
+			as_dict=1,
 		)
 		for dimension in accounting_dimensions:
-			dimension_value = dimension_values.get(dimension.fieldname)
+			dimension_value = (
+				data[0].get(dimension.fieldname)
+				if data[0].get(dimension.fieldname)
+				else dimension_values.get(dimension.fieldname)
+			)
 
 			if not dimension_value and (dimension.mandatory_for_pl or dimension.mandatory_for_bs):
 				frappe.throw(
@@ -317,6 +325,14 @@ class POSInvoiceMergeLog(Document):
 				)
 
 			invoice.set(dimension.fieldname, dimension_value)
+
+		invoice.set(
+			"cost_center",
+			data[0].get("cost_center") if data[0].get("cost_center") else dimension_values.get("cost_center"),
+		)
+		invoice.set(
+			"project", data[0].get("project") if data[0].get("project") else dimension_values.get("project")
+		)
 
 		if self.merge_invoices_based_on == "Customer Group":
 			invoice.flags.ignore_pos_profile = True
@@ -446,7 +462,32 @@ def get_invoice_customer_map(pos_invoices):
 		pos_invoice_customer_map.setdefault(customer, [])
 		pos_invoice_customer_map[customer].append(invoice)
 
+	for customer, invoices in pos_invoice_customer_map.items():
+		pos_invoice_customer_map[customer] = split_invoices_by_accounting_dimension(invoices)
+
 	return pos_invoice_customer_map
+
+
+def split_invoices_by_accounting_dimension(pos_invoices):
+	# pos_invoices = {
+	# 	{'dim_field1': 'dim_field1_value1', 'dim_field2': 'dim_field2_value1'}: [],
+	# 	{'dim_field1': 'dim_field1_value2', 'dim_field2': 'dim_field2_value1'}: []
+	# }
+	pos_invoice_accounting_dimensions_map = {}
+	for invoice in pos_invoices:
+		dimension_fields = [d.fieldname for d in get_checks_for_pl_and_bs_accounts()]
+		accounting_dimensions = frappe.db.get_value(
+			"POS Invoice", invoice.pos_invoice, [*dimension_fields, "cost_center", "project"], as_dict=1
+		)
+
+		accounting_dimensions_dic_hash = hashlib.sha256(
+			json.dumps(accounting_dimensions).encode()
+		).hexdigest()
+
+		pos_invoice_accounting_dimensions_map.setdefault(accounting_dimensions_dic_hash, [])
+		pos_invoice_accounting_dimensions_map[accounting_dimensions_dic_hash].append(invoice)
+
+	return pos_invoice_accounting_dimensions_map
 
 
 def consolidate_pos_invoices(pos_invoices=None, closing_entry=None):
@@ -532,20 +573,21 @@ def split_invoices(invoices):
 
 def create_merge_logs(invoice_by_customer, closing_entry=None):
 	try:
-		for customer, invoices in invoice_by_customer.items():
-			for _invoices in split_invoices(invoices):
-				merge_log = frappe.new_doc("POS Invoice Merge Log")
-				merge_log.posting_date = (
-					getdate(closing_entry.get("posting_date")) if closing_entry else nowdate()
-				)
-				merge_log.posting_time = (
-					get_time(closing_entry.get("posting_time")) if closing_entry else nowtime()
-				)
-				merge_log.customer = customer
-				merge_log.pos_closing_entry = closing_entry.get("name") if closing_entry else None
-				merge_log.set("pos_invoices", _invoices)
-				merge_log.save(ignore_permissions=True)
-				merge_log.submit()
+		for customer, invoices_acc_dim in invoice_by_customer.items():
+			for invoices in invoices_acc_dim.values():
+				for _invoices in split_invoices(invoices):
+					merge_log = frappe.new_doc("POS Invoice Merge Log")
+					merge_log.posting_date = (
+						getdate(closing_entry.get("posting_date")) if closing_entry else nowdate()
+					)
+					merge_log.posting_time = (
+						get_time(closing_entry.get("posting_time")) if closing_entry else nowtime()
+					)
+					merge_log.customer = customer
+					merge_log.pos_closing_entry = closing_entry.get("name") if closing_entry else None
+					merge_log.set("pos_invoices", _invoices)
+					merge_log.save(ignore_permissions=True)
+					merge_log.submit()
 		if closing_entry:
 			closing_entry.set_status(update=True, status="Submitted")
 			closing_entry.db_set("error_message", "")
