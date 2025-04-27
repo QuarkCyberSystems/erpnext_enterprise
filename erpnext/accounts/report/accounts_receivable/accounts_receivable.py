@@ -90,10 +90,7 @@ class ReceivablePayableReport:
 				self.skip_total_row = 1
 
 	def get_data(self):
-		self.get_ple_entries()
 		self.get_sales_invoices_or_customers_based_on_sales_person()
-		self.voucher_balance = OrderedDict()
-		self.init_voucher_balance()  # invoiced, paid, credit_note, outstanding
 
 		# Build delivery note map against all sales invoices
 		self.build_delivery_note_map()
@@ -110,7 +107,15 @@ class ReceivablePayableReport:
 		# Get Exchange Rate Revaluations
 		self.get_exchange_rate_revaluations()
 
+		self.prepare_ple_query()
 		self.data = []
+		self.voucher_balance = OrderedDict()
+		self.ple_entries = []
+
+		with frappe.db.unbuffered_cursor():
+			for ple in frappe.db.sql(self.ple_query.get_sql(), as_dict=True, as_iterator=True):
+				self.init_voucher_balance(ple)  # invoiced, paid, credit_note, outstanding
+				self.ple_entries.append(ple)
 
 		for ple in self.ple_entries:
 			self.update_voucher_balance(ple)
@@ -136,26 +141,22 @@ class ReceivablePayableReport:
 			outstanding_in_account_currency=0.0,
 		)
 
-	def init_voucher_balance(self):
-		# build all keys, since we want to exclude vouchers beyond the report date
-		for ple in self.ple_entries:
-			# get the balance object for voucher_type
+	def init_voucher_balance(self, ple):
+		if self.filters.get("ignore_accounts"):
+			key = (ple.voucher_type, ple.voucher_no, ple.party)
+		else:
+			key = (ple.account, ple.voucher_type, ple.voucher_no, ple.party)
 
-			if self.filters.get("ignore_accounts"):
-				key = (ple.voucher_type, ple.voucher_no, ple.party)
-			else:
-				key = (ple.account, ple.voucher_type, ple.voucher_no, ple.party)
+		if key not in self.voucher_balance:
+			self.voucher_balance[key] = self.build_voucher_dict(ple)
 
-			if key not in self.voucher_balance:
-				self.voucher_balance[key] = self.build_voucher_dict(ple)
+		if ple.voucher_type == ple.against_voucher_type and ple.voucher_no == ple.against_voucher_no:
+			self.voucher_balance[key].cost_center = ple.cost_center
 
-			if ple.voucher_type == ple.against_voucher_type and ple.voucher_no == ple.against_voucher_no:
-				self.voucher_balance[key].cost_center = ple.cost_center
+		self.get_invoices(ple)
 
-			self.get_invoices(ple)
-
-			if self.filters.get("group_by_party"):
-				self.init_subtotal_row(ple.party)
+		if self.filters.get("group_by_party"):
+			self.init_subtotal_row(ple.party)
 
 		if self.filters.get("group_by_party") and not self.filters.get("in_party_currency"):
 			self.init_subtotal_row("Total")
@@ -778,7 +779,7 @@ class ReceivablePayableReport:
 		)
 		row["range" + str(index + 1)] = row.outstanding
 
-	def get_ple_entries(self):
+	def prepare_ple_query(self):
 		# get all the GL entries filtered by the given filters
 
 		self.prepare_conditions()
@@ -831,7 +832,7 @@ class ReceivablePayableReport:
 		else:
 			query = query.orderby(self.ple.posting_date, self.ple.party)
 
-		self.ple_entries = query.run(as_dict=True)
+		self.ple_query = query
 
 	def get_sales_invoices_or_customers_based_on_sales_person(self):
 		if self.filters.get("sales_person"):
