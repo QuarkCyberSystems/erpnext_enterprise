@@ -3,7 +3,9 @@
 
 
 import frappe
+import frappe.utils
 from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.utils import add_days, today
 
 from erpnext.controllers.accounts_controller import InvalidQtyError
 
@@ -47,6 +49,6 @@ class TestPurchaseOrder(IntegrationTestCase):
 
 		for doc in po.get("items"):
 			if doc.get("item_code"):
-				doc.set("schedule_date", "2013-04-12")
+				doc.set("schedule_date", add_days(today(), 1))
 
 		po.insert()
