@@ -1804,6 +1804,7 @@ def get_sub_assembly_items(
 							continue
 						else:
 							stock_qty = stock_qty - _bin_dict.projected_qty
+				sub_assembly_items.append(d.item_code)
 			elif warehouse:
 				bin_details.setdefault(d.item_code, get_bin_details(d, company, for_warehouse=warehouse))
 
