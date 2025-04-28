@@ -203,10 +203,11 @@ class QualityInspection(Document):
 		self.get_item_specification_details()
 
 	def on_update(self):
-		if (
-			frappe.db.get_single_value("Stock Settings", "action_if_quality_inspection_is_not_submitted")
-			== "Warn"
-		):
+		action_if_qi_in_draft = frappe.db.get_single_value(
+			"Stock Settings", "action_if_quality_inspection_is_not_submitted"
+		)
+
+		if not action_if_qi_in_draft or action_if_qi_in_draft == "Warn":
 			self.update_qc_reference()
 
 	def on_submit(self):
