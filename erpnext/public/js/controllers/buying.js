@@ -54,6 +54,12 @@ erpnext.buying = {
 							return erpnext.queries.company_address_query(this.frm.doc)
 					});
 				}
+
+				if(this.frm.get_field('dispatch_address')) {
+					this.frm.set_query("dispatch_address", () => {
+						return erpnext.queries.address_query(this.frm.doc);
+					});
+				}
 			}
 
 			setup_queries(doc, cdt, cdn) {
@@ -293,6 +299,12 @@ erpnext.buying = {
 				var me = this;
 				erpnext.utils.get_address_display(this.frm, "shipping_address",
 					"shipping_address_display", true);
+			}
+
+			dispatch_address(){
+				var me = this;
+				erpnext.utils.get_address_display(this.frm, "dispatch_address",
+					"dispatch_address_display", true);
 			}
 
 			billing_address() {

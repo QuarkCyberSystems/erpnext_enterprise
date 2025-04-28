@@ -71,6 +71,7 @@ def get_party_details(
 	party_address=None,
 	company_address=None,
 	shipping_address=None,
+	dispatch_address=None,
 	pos_profile=None,
 ):
 	if not party:
@@ -92,6 +93,7 @@ def get_party_details(
 		party_address,
 		company_address,
 		shipping_address,
+		dispatch_address,
 		pos_profile,
 	)
 
@@ -111,6 +113,7 @@ def _get_party_details(
 	party_address=None,
 	company_address=None,
 	shipping_address=None,
+	dispatch_address=None,
 	pos_profile=None,
 ):
 	party_details = frappe._dict(
@@ -134,6 +137,7 @@ def _get_party_details(
 		party_address,
 		company_address,
 		shipping_address,
+		dispatch_address,
 		ignore_permissions=ignore_permissions,
 	)
 	set_contact_details(party_details, party, party_type)
@@ -191,34 +195,51 @@ def set_address_details(
 	party_address=None,
 	company_address=None,
 	shipping_address=None,
+	dispatch_address=None,
 	*,
 	ignore_permissions=False,
 ):
-	billing_address_field = (
+	# party_billing
+	party_billing_field = (
 		"customer_address" if party_type in ["Lead", "Prospect"] else party_type.lower() + "_address"
 	)
-	party_details[billing_address_field] = party_address or get_default_address(party_type, party.name)
+
+	party_details[party_billing_field] = party_address or get_default_address(party_type, party.name)
 	if doctype:
 		party_details.update(
-			get_fetch_values(doctype, billing_address_field, party_details[billing_address_field])
+			get_fetch_values(doctype, party_billing_field, party_details[party_billing_field])
 		)
-	# address display
-	party_details.address_display = render_address(
-		party_details[billing_address_field], check_permissions=not ignore_permissions
-	)
-	# shipping address
-	if party_type in ["Customer", "Lead"]:
-		party_details.shipping_address_name = shipping_address or get_party_shipping_address(
-			party_type, party.name
-		)
-		party_details.shipping_address = render_address(
-			party_details["shipping_address_name"], check_permissions=not ignore_permissions
-		)
-		if doctype:
-			party_details.update(
-				get_fetch_values(doctype, "shipping_address_name", party_details.shipping_address_name)
-			)
 
+	party_details.address_display = render_address(
+		party_details[party_billing_field], check_permissions=not ignore_permissions
+	)
+
+	# party_shipping
+	if party_type in ["Customer", "Lead"]:
+		party_shipping_field = "shipping_address_name"
+		party_shipping_display = "shipping_address"
+		default_shipping = shipping_address
+
+	else:
+		# Supplier
+		party_shipping_field = "dispatch_address"
+		party_shipping_display = "dispatch_address_display"
+		default_shipping = dispatch_address
+
+	party_details[party_shipping_field] = default_shipping or get_party_shipping_address(
+		party_type, party.name
+	)
+
+	party_details[party_shipping_display] = render_address(
+		party_details[party_shipping_field], check_permissions=not ignore_permissions
+	)
+
+	if doctype:
+		party_details.update(
+			get_fetch_values(doctype, party_shipping_field, party_details[party_shipping_field])
+		)
+
+	# company_address
 	if company_address:
 		party_details.company_address = company_address
 	else:
@@ -256,22 +277,20 @@ def set_address_details(
 					**get_fetch_values(doctype, "shipping_address", party_details.billing_address),
 				)
 
-	party_address, shipping_address = (
-		party_details.get(billing_address_field),
-		party_details.shipping_address_name,
+	party_billing, party_shipping = (
+		party_details.get(party_billing_field),
+		party_details.get(party_shipping_field),
 	)
 
 	party_details["tax_category"] = get_address_tax_category(
-		party.get("tax_category"),
-		party_address,
-		shipping_address if party_type != "Supplier" else party_address,
+		party.get("tax_category"), party_billing, party_shipping
 	)
 
 	if doctype in TRANSACTION_TYPES:
 		with temporary_flag("company", company):
 			get_regional_address_details(party_details, doctype, company)
 
-	return party_address, shipping_address
+	return party_billing, party_shipping
 
 
 @erpnext.allow_regional
