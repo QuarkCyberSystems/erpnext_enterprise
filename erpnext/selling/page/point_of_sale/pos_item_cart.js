@@ -188,6 +188,7 @@ erpnext.PointOfSale.ItemCart = class {
 
 			await me.events.checkout();
 			me.toggle_checkout_btn(false);
+			me.disable_customer_selection();
 
 			me.allow_discount_change && me.$add_discount_elem.removeClass("d-none");
 		});
@@ -195,6 +196,7 @@ erpnext.PointOfSale.ItemCart = class {
 		this.$totals_section.on("click", ".edit-cart-btn", () => {
 			this.events.edit_cart();
 			this.toggle_checkout_btn(true);
+			me.enable_customer_selection();
 		});
 
 		this.$component.on("click", ".add-discount-wrapper", () => {
@@ -204,6 +206,11 @@ erpnext.PointOfSale.ItemCart = class {
 		});
 
 		frappe.ui.form.on("POS Invoice", "paid_amount", (frm) => {
+			// called when discount is applied
+			this.update_totals_section(frm);
+		});
+
+		frappe.ui.form.on("Sales Invoice", "paid_amount", (frm) => {
 			// called when discount is applied
 			this.update_totals_section(frm);
 		});
@@ -278,7 +285,7 @@ erpnext.PointOfSale.ItemCart = class {
 
 	toggle_item_highlight(item) {
 		const $cart_item = $(item);
-		const item_is_highlighted = $cart_item.attr("style") == "background-color:var(--gray-50);";
+		const item_is_highlighted = $cart_item.attr("style") == "background-color: var(--control-bg);";
 
 		if (!item || item_is_highlighted) {
 			this.item_is_selected = false;
@@ -698,6 +705,25 @@ erpnext.PointOfSale.ItemCart = class {
 		}
 	}
 
+	disable_customer_selection() {
+		this.$customer_section.find(".reset-customer-btn").css("visibility", "hidden");
+		this.$customer_section.off("click", ".customer-display");
+		this.$customer_section.off("click", ".reset-customer-btn");
+	}
+
+	enable_customer_selection() {
+		this.$customer_section.find(".reset-customer-btn").css("visibility", "visible");
+		this.$customer_section.on("click", ".customer-display", (e) => {
+			if ($(e.target).closest(".reset-customer-btn").length) return;
+
+			const show = this.$cart_container.is(":visible");
+			this.toggle_customer_info(show);
+		});
+		this.$customer_section.on("click", ".reset-customer-btn", () => {
+			this.reset_customer_selector();
+		});
+	}
+
 	highlight_checkout_btn(toggle) {
 		if (toggle) {
 			this.$add_discount_elem.css("display", "flex");
@@ -968,13 +994,13 @@ erpnext.PointOfSale.ItemCart = class {
 	}
 
 	fetch_customer_transactions() {
-		frappe.db
-			.get_list("POS Invoice", {
-				filters: { customer: this.customer_info.customer, docstatus: 1 },
-				fields: ["name", "grand_total", "status", "posting_date", "posting_time", "currency"],
-				limit: 20,
+		frappe
+			.call({
+				method: "erpnext.selling.page.point_of_sale.point_of_sale.get_customer_recent_transactions",
+				args: { customer: this.customer_info.customer },
 			})
 			.then((res) => {
+				res = res.message;
 				const transaction_container = this.$customer_section.find(".customer-transactions");
 
 				if (!res.length) {
@@ -998,6 +1024,7 @@ erpnext.PointOfSale.ItemCart = class {
 						Draft: "red",
 						Return: "gray",
 						Consolidated: "blue",
+						"Credit Note Issued": "gray",
 					};
 
 					transaction_container.append(

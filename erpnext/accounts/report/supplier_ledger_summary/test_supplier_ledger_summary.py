@@ -59,3 +59,33 @@ class TestSupplierLedgerSummary(AccountsTestMixin, IntegrationTestCase):
 		for field in expected:
 			with self.subTest(field=field):
 				self.assertEqual(report_output[0].get(field), expected.get(field))
+
+	def test_supplier_ledger_summary_with_filters(self):
+		self.create_purchase_invoice()
+
+		supplier_group = frappe.db.get_value("Supplier", self.supplier, "supplier_group")
+
+		filters = {
+			"company": self.company,
+			"from_date": today(),
+			"to_date": today(),
+			"supplier_group": supplier_group,
+		}
+
+		expected = {
+			"party": "_Test Supplier",
+			"party_name": "_Test Supplier",
+			"opening_balance": 0,
+			"invoiced_amount": 300.0,
+			"paid_amount": 0,
+			"return_amount": 0,
+			"closing_balance": 300.0,
+			"currency": "INR",
+			"supplier_name": "_Test Supplier",
+		}
+
+		report_output = execute(filters)[1]
+		self.assertEqual(len(report_output), 1)
+		for field in expected:
+			with self.subTest(field=field):
+				self.assertEqual(report_output[0].get(field), expected.get(field))

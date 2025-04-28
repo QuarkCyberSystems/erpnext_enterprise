@@ -2705,13 +2705,13 @@ class TestPurchaseInvoice(IntegrationTestCase, StockTestMixin):
 		To test if after applying discount on grand total,
 		the grand total is calculated correctly without any rounding errors
 		"""
-		invoice = make_purchase_invoice(qty=2, rate=100, do_not_save=True, do_not_submit=True)
+		invoice = make_purchase_invoice(qty=3, rate=100, do_not_save=True, do_not_submit=True)
 		invoice.append(
 			"items",
 			{
 				"item_code": "_Test Item",
-				"qty": 1,
-				"rate": 21.39,
+				"qty": 3,
+				"rate": 50.3,
 			},
 		)
 		invoice.append(
@@ -2720,18 +2720,19 @@ class TestPurchaseInvoice(IntegrationTestCase, StockTestMixin):
 				"charge_type": "On Net Total",
 				"account_head": "_Test Account VAT - _TC",
 				"description": "VAT",
-				"rate": 15.5,
+				"rate": 15,
 			},
 		)
 
-		# the grand total here will be 255.71
+		# the grand total here will be 518.54
 		invoice.disable_rounded_total = 1
-		# apply discount on grand total to adjust the grand total to 255
-		invoice.discount_amount = 0.71
+		# apply discount on grand total to adjust the grand total to 518
+		invoice.discount_amount = 0.54
+
 		invoice.save()
 
-		# check if grand total is 496 and not something like 254.99 due to rounding errors
-		self.assertEqual(invoice.grand_total, 255)
+		# check if grand total is 518 and not something like 517.99 due to rounding errors
+		self.assertEqual(invoice.grand_total, 518)
 
 	def test_apply_discount_on_grand_total_with_previous_row_total_tax(self):
 		"""

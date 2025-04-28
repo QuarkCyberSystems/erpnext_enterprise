@@ -6,6 +6,7 @@ erpnext.PointOfSale.ItemDetails = class {
 		this.allow_rate_change = settings.allow_rate_change;
 		this.allow_discount_change = settings.allow_discount_change;
 		this.current_item = {};
+		this.frm_doctype = settings.frm_doctype;
 
 		this.init_component();
 	}
@@ -323,7 +324,9 @@ erpnext.PointOfSale.ItemDetails = class {
 			};
 		}
 
-		frappe.model.on("POS Invoice Item", "*", (fieldname, value, item_row) => {
+		const frm_doctype = this.events.get_frm().doc.doctype;
+
+		frappe.model.on(`${frm_doctype} Item`, "*", (fieldname, value, item_row) => {
 			const field_control = this[`${fieldname}_control`];
 			const item_row_is_being_edited = this.compare_with_current_item(item_row);
 			if (
@@ -423,7 +426,7 @@ erpnext.PointOfSale.ItemDetails = class {
 					warehouse: this.warehouse_control.get_value() || "",
 					batch_nos: this.current_item.batch_no || "",
 					posting_date: expiry_date,
-					for_doctype: "POS Invoice",
+					for_doctype: this.frm_doctype,
 				},
 			});
 

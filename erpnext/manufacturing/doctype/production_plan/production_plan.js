@@ -334,7 +334,7 @@ frappe.ui.form.on("Production Plan", {
 
 		frm.set_value("consider_minimum_order_qty", 0);
 
-		if (frm.doc.ignore_existing_ordered_qty) {
+		if (!frm.doc.ignore_existing_ordered_qty) {
 			frm.events.get_items_for_material_requests(frm);
 		} else {
 			const title = __("Transfer Materials For Warehouse {0}", [frm.doc.for_warehouse]);

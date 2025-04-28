@@ -4386,6 +4386,27 @@ class TestSalesInvoice(IntegrationTestCase):
 
 		self.assertRaises(StockOverReturnError, return_doc.save)
 
+	def test_pos_sales_invoice_creation_during_pos_invoice_mode(self):
+		# Deleting all opening entry
+		frappe.db.sql("delete from `tabPOS Opening Entry`")
+
+		with self.change_settings("Accounts Settings", {"use_sales_invoice_in_pos": 0}):
+			pos_profile = make_pos_profile()
+
+			pos_profile.payments = []
+			pos_profile.append("payments", {"default": 1, "mode_of_payment": "Cash"})
+
+			pos_profile.save()
+
+			pos = create_sales_invoice(qty=10, do_not_save=True)
+
+			pos.is_pos = 1
+			pos.pos_profile = pos_profile.name
+			pos.is_created_using_pos = 1
+
+			pos.append("payments", {"mode_of_payment": "Cash", "account": "Cash - _TC", "amount": 1000})
+			self.assertRaises(frappe.ValidationError, pos.insert)
+
 
 def set_advance_flag(company, flag, default_account):
 	frappe.db.set_value(
