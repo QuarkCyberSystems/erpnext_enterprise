@@ -3,7 +3,6 @@
 
 
 import frappe
-import frappe.utils
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import add_days, today
 
