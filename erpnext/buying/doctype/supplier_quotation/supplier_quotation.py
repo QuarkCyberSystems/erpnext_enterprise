@@ -234,6 +234,7 @@ def make_purchase_order(source_name, target_doc=None):
 		{
 			"Supplier Quotation": {
 				"doctype": "Purchase Order",
+				"field_no_map": ["transaction_date"],
 				"validation": {
 					"docstatus": ["=", 1],
 				},
