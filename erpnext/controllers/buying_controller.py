@@ -98,7 +98,29 @@ class BuyingController(SubcontractingController):
 						item.from_warehouse,
 						type_of_transaction="Outward",
 						do_not_submit=True,
+						qty=item.qty,
 					)
+				elif (
+					not self.is_new()
+					and item.serial_and_batch_bundle
+					and next(
+						(
+							old_item
+							for old_item in self.get_doc_before_save().items
+							if old_item.name == item.name and old_item.qty != item.qty
+						),
+						None,
+					)
+					and len(
+						sabe := frappe.get_all(
+							"Serial and Batch Entry",
+							filters={"parent": item.serial_and_batch_bundle, "serial_no": ["is", "not set"]},
+							pluck="name",
+						)
+					)
+					== 1
+				):
+					frappe.set_value("Serial and Batch Entry", sabe[0], "qty", item.qty)
 
 	def set_rate_for_standalone_debit_note(self):
 		if self.get("is_return") and self.get("update_stock") and not self.return_against:
