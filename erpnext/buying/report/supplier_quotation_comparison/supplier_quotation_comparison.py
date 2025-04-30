@@ -82,7 +82,9 @@ def prepare_data(supplier_quotation_data, filters):
 	group_wise_map = defaultdict(list)
 	supplier_qty_price_map = {}
 
-	group_by_field = "supplier_name" if filters.get("group_by") == "Group by Supplier" else "item_code"
+	group_by_field = (
+		"supplier_name" if filters.get("categorize_by") == "Categorize by Supplier" else "item_code"
+	)
 	float_precision = cint(frappe.db.get_default("float_precision")) or 2
 
 	for data in supplier_quotation_data:
@@ -266,7 +268,7 @@ def get_columns(filters):
 		},
 	]
 
-	if filters.get("group_by") == "Group by Item":
+	if filters.get("categorize_by") == "Categorize by Item":
 		group_by_columns.reverse()
 
 	columns[0:0] = group_by_columns  # add positioned group by columns to the report
