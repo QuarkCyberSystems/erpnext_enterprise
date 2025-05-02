@@ -1827,7 +1827,11 @@ def make_bundle_for_material_transfer(**kwargs):
 	bundle_doc.is_cancelled = 0
 
 	qty = 0
-	if len(bundle_doc.entries) == 1 and kwargs.qty < bundle_doc.total_qty and not bundle_doc.has_serial_no:
+	if (
+		len(bundle_doc.entries) == 1
+		and flt(kwargs.qty) < flt(bundle_doc.total_qty)
+		and not bundle_doc.has_serial_no
+	):
 		qty = kwargs.qty
 
 	for row in bundle_doc.entries:
