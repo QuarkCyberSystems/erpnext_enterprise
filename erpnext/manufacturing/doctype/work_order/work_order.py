@@ -1397,6 +1397,8 @@ class WorkOrder(Document):
 
 	def set_reserved_qty_for_wip_and_fg(self, stock_entry):
 		items = frappe._dict()
+
+		stock_entry.reload()
 		if stock_entry.purpose == "Manufacture" and self.sales_order:
 			items = self.get_finished_goods_for_reservation(stock_entry)
 		elif stock_entry.purpose == "Material Transfer for Manufacture":
@@ -1439,7 +1441,10 @@ class WorkOrder(Document):
 		items = frappe._dict()
 
 		so_details = self.get_so_details()
-		qty = so_details.stock_qty - so_details.stock_reserved_qty
+		if not so_details:
+			return items
+
+		qty = so_details.stock_qty - (so_details.stock_reserved_qty + so_details.delivered_qty)
 		if not qty:
 			return items
 
@@ -1462,6 +1467,7 @@ class WorkOrder(Document):
 						"from_voucher_no": stock_entry.name,
 						"from_voucher_type": stock_entry.doctype,
 						"from_voucher_detail_no": row.name,
+						"serial_and_batch_bundles": [row.serial_and_batch_bundle],
 					}
 				)
 			else:
@@ -1476,9 +1482,8 @@ class WorkOrder(Document):
 				"parent": self.sales_order,
 				"item_code": self.production_item,
 				"docstatus": 1,
-				"stock_reserved_qty": 0,
 			},
-			["name", "stock_qty", "stock_reserved_qty"],
+			["name", "stock_qty", "stock_reserved_qty", "delivered_qty"],
 			as_dict=1,
 		)
 
