@@ -1702,6 +1702,9 @@ class TestPurchaseInvoice(IntegrationTestCase, StockTestMixin):
 		# Configure Buying Settings to allow rate change
 		frappe.db.set_single_value("Buying Settings", "maintain_same_rate", 0)
 
+		# Configure Accounts Settings to allow 300% over billing
+		frappe.db.set_single_value("Accounts Settings", "over_billing_allowance", 300)
+
 		# Create PR: rate = 1000, qty = 5
 		pr = make_purchase_receipt(
 			item_code="_Test Non Stock Item", rate=1000, posting_date=add_days(nowdate(), -2)
