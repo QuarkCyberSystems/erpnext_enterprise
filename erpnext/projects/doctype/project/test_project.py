@@ -23,6 +23,29 @@ class UnitTestProject(UnitTestCase):
 
 
 class TestProject(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.make_projects()
+
+	@classmethod
+	def make_projects(cls):
+		records = [
+			{
+				"doctype": "Project",
+				"company": "_Test Company",
+				"project_name": "_Test Project",
+				"status": "Open",
+			}
+		]
+
+		cls.projects = []
+		for x in records:
+			if not frappe.db.exists("Project", {"project_name": x.get("project_name")}):
+				cls.projects.append(frappe.get_doc(x).insert())
+			else:
+				cls.projects.append(frappe.get_doc("Project", {"project_name": x.get("project_name")}))
+
 	def test_project_with_template_having_no_parent_and_depend_tasks(self):
 		project_name = "Test Project with Template - No Parent and Dependend Tasks"
 		frappe.db.sql(""" delete from tabTask where project = %s """, project_name)
