@@ -13,6 +13,53 @@ from erpnext.crm.utils import get_linked_communication_list
 
 
 class TestOpportunity(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.make_leads()
+		cls.make_opportunities()
+
+	@classmethod
+	def make_leads(cls):
+		records = [
+			{
+				"doctype": "Lead",
+				"email_id": "test_lead@example.com",
+				"lead_name": "_Test Lead",
+				"status": "Open",
+				"territory": "_Test Territory",
+				"naming_series": "_T-Lead-",
+			},
+		]
+		cls.leads = []
+		for x in records:
+			if not frappe.db.exists("Lead", {"email_id": x.get("email_id")}):
+				cls.leads.append(frappe.get_doc(x).insert())
+			else:
+				cls.leads.append(frappe.get_doc("Lead", {"email_id": x.get("email_id")}))
+
+	@classmethod
+	def make_opportunities(cls):
+		records = [
+			{
+				"doctype": "Opportunity",
+				"name": "_Test Opportunity 1",
+				"opportunity_from": "Lead",
+				"enquiry_type": "Sales",
+				"party_name": cls.leads[0].name,
+				"transaction_date": "2013-12-12",
+				"items": [
+					{"item_name": "Test Item", "description": "Some description", "qty": 5, "rate": 100}
+				],
+			}
+		]
+		cls.opportunities = []
+		for x in records:
+			if not frappe.db.exists("Opportunity", {"name": x.get("name")}):
+				cls.opportunities.append(frappe.get_doc(x).insert())
+			else:
+				cls.opportunities.append(frappe.get_doc("Opportunity", {"party_name": x.get("party_name")}))
+
 	def test_opportunity_status(self):
 		doc = make_opportunity(with_items=0)
 		quotation = make_quotation(doc.name)
