@@ -54,6 +54,9 @@ class ReceivablePayableReport:
 			self.filters.range = "30, 60, 90, 120"
 		self.ranges = [num.strip() for num in self.filters.range.split(",") if num.strip().isdigit()]
 		self.range_numbers = [num for num in range(1, len(self.ranges) + 2)]
+		self.ple_fetch_method = frappe.db.get_single_value(
+			"Accounts Settings", "receivable_payable_fetch_method"
+		)
 
 	def run(self, args):
 		self.filters.update(args)
@@ -110,17 +113,37 @@ class ReceivablePayableReport:
 		self.prepare_ple_query()
 		self.data = []
 		self.voucher_balance = OrderedDict()
-		self.ple_entries = []
 
+		if self.ple_fetch_method == "Buffered Cursor":
+			self.fetch_ple_in_buffered_cursor()
+		elif self.ple_fetch_method == "UnBuffered Cursor":
+			self.fetch_ple_in_unbuffered_cursor()
+
+		self.build_data()
+
+	def fetch_ple_in_buffered_cursor(self):
+		self.ple_entries = frappe.db.sql(self.ple_query.get_sql(), as_dict=True)
+
+		for ple in self.ple_entries:
+			self.init_voucher_balance(ple)  # invoiced, paid, credit_note, outstanding
+
+		# This is unavoidable. Initialization and allocation cannot happen in same loop
+		for ple in self.ple_entries:
+			self.update_voucher_balance(ple)
+
+		delattr(self, "ple_entries")
+
+	def fetch_ple_in_unbuffered_cursor(self):
+		self.ple_entries = []
 		with frappe.db.unbuffered_cursor():
 			for ple in frappe.db.sql(self.ple_query.get_sql(), as_dict=True, as_iterator=True):
 				self.init_voucher_balance(ple)  # invoiced, paid, credit_note, outstanding
 				self.ple_entries.append(ple)
 
+		# This is unavoidable. Initialization and allocation cannot happen in same loop
 		for ple in self.ple_entries:
 			self.update_voucher_balance(ple)
-
-		self.build_data()
+		delattr(self, "ple_entries")
 
 	def build_voucher_dict(self, ple):
 		return frappe._dict(
