@@ -34,7 +34,16 @@ frappe.ui.form.on("Asset Repair", {
 				query: "erpnext.assets.doctype.asset_repair.asset_repair.get_purchase_invoice",
 				filters: {
 					company: frm.doc.company,
-					docstatus: 1,
+				},
+			};
+		});
+
+		frm.set_query("expense_account", "invoices", function (doc, cdt, cdn) {
+			let row = locals[cdt][cdn];
+			return {
+				query: "erpnext.assets.doctype.asset_repair.asset_repair.get_expense_accounts",
+				filters: {
+					purchase_invoice: row.purchase_invoice,
 				},
 			};
 		});
@@ -56,16 +65,6 @@ frappe.ui.form.on("Asset Repair", {
 					voucher_type: doc.doctype,
 					voucher_no: ["in", [doc.name, ""]],
 					is_cancelled: 0,
-				},
-			};
-		});
-
-		frm.set_query("expense_account", "invoices", function () {
-			return {
-				filters: {
-					company: frm.doc.company,
-					is_group: ["=", 0],
-					report_type: ["=", "Profit and Loss"],
 				},
 			};
 		});
