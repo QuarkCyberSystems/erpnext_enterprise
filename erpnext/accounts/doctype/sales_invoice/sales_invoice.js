@@ -1086,6 +1086,18 @@ frappe.ui.form.on("Sales Invoice Timesheet", {
 	},
 });
 
+frappe.ui.form.on("Sales Invoice Payment", {
+	mode_of_payment: function (frm) {
+		frappe.call({
+			doc: frm.doc,
+			method: "set_account_for_mode_of_payment",
+			callback: function (r) {
+				refresh_field("payments");
+			},
+		});
+	},
+});
+
 var set_timesheet_detail_rate = function (cdt, cdn, currency, timelog) {
 	frappe.call({
 		method: "erpnext.projects.doctype.timesheet.timesheet.get_timesheet_detail_rate",
