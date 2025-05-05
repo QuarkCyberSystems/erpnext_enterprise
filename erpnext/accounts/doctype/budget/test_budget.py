@@ -11,10 +11,64 @@ from erpnext.accounts.doctype.journal_entry.test_journal_entry import make_journ
 from erpnext.accounts.utils import get_fiscal_year
 from erpnext.buying.doctype.purchase_order.test_purchase_order import create_purchase_order
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Monthly Distribution"]
-
 
 class TestBudget(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.make_monthly_distribution()
+		cls.make_projects()
+
+	@classmethod
+	def make_monthly_distribution(cls):
+		records = [
+			{
+				"doctype": "Monthly Distribution",
+				"distribution_id": "_Test Distribution",
+				"fiscal_year": "_Test Fiscal Year 2013",
+				"percentages": [
+					{"month": "January", "percentage_allocation": "8"},
+					{"month": "February", "percentage_allocation": "8"},
+					{"month": "March", "percentage_allocation": "8"},
+					{"month": "April", "percentage_allocation": "8"},
+					{"month": "May", "percentage_allocation": "8"},
+					{"month": "June", "percentage_allocation": "8"},
+					{"month": "July", "percentage_allocation": "8"},
+					{"month": "August", "percentage_allocation": "8"},
+					{"month": "September", "percentage_allocation": "8"},
+					{"month": "October", "percentage_allocation": "8"},
+					{"month": "November", "percentage_allocation": "10"},
+					{"month": "December", "percentage_allocation": "10"},
+				],
+			}
+		]
+		cls.monthly_distribution = []
+		for x in records:
+			if not frappe.db.exists("Monthly Distribution", {"distribution_id": x.get("distribution_id")}):
+				cls.monthly_distribution.append(frappe.get_doc(x).insert())
+			else:
+				cls.monthly_distribution.append(
+					frappe.get_doc("Monthly Distribution", {"distribution_id": x.get("distribution_id")})
+				)
+
+	@classmethod
+	def make_projects(cls):
+		records = [
+			{
+				"doctype": "Project",
+				"company": "_Test Company",
+				"project_name": "_Test Project",
+				"status": "Open",
+			}
+		]
+
+		cls.projects = []
+		for x in records:
+			if not frappe.db.exists("Project", {"project_name": x.get("project_name")}):
+				cls.projects.append(frappe.get_doc(x).insert())
+			else:
+				cls.projects.append(frappe.get_doc("Project", {"project_name": x.get("project_name")}))
+
 	def test_monthly_budget_crossed_ignore(self):
 		set_total_expense_zero(nowdate(), "cost_center")
 
