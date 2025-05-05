@@ -135,9 +135,12 @@ class TestSalesInvoice(IntegrationTestCase):
 				"user_id": "test2@example.com",
 			},
 		]
+		cls.employees = []
 		for x in records:
 			if not frappe.db.exists("Employee", {"first_name": x.get("first_name")}):
-				frappe.get_doc(x).insert()
+				cls.employees.append(frappe.get_doc(x).insert())
+			else:
+				cls.employees.append(frappe.get_doc("Employee", {"first_name": x.get("first_name")}))
 
 	@classmethod
 	def make_sales_person(cls):
@@ -164,9 +167,14 @@ class TestSalesInvoice(IntegrationTestCase):
 				"sales_person_name": "_Test Sales Person 2",
 			},
 		]
+		cls.sales_person = []
 		for x in records:
 			if not frappe.db.exists("Sales Person", {"sales_person_name": x.get("sales_person_name")}):
-				frappe.get_doc(x).insert()
+				cls.sales_person.append(frappe.get_doc(x).insert())
+			else:
+				cls.sales_person.append(
+					frappe.get_doc("Sales Person", {"sales_person_name": x.get("sales_person_name")})
+				)
 
 	def test_sales_invoice_qty(self):
 		si = create_sales_invoice(qty=0, do_not_save=True)
