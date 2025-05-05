@@ -26,7 +26,15 @@ frappe.ui.form.on("Purchase Order", {
 		}
 
 		frm.set_indicator_formatter("item_code", function (doc) {
-			return doc.qty <= doc.received_qty ? "green" : "orange";
+			let color;
+			if (!doc.qty && frm.doc.has_unit_price_items) {
+				color = "yellow";
+			} else if (doc.qty <= doc.received_qty) {
+				color = "green";
+			} else {
+				color = "orange";
+			}
+			return color;
 		});
 
 		frm.set_query("expense_account", "items", function () {
@@ -62,6 +70,10 @@ frappe.ui.form.on("Purchase Order", {
 					return false;
 				}
 			});
+		}
+
+		if (frm.doc.docstatus == 0) {
+			erpnext.set_unit_price_items_note(frm);
 		}
 	},
 

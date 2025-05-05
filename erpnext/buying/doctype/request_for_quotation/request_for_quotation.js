@@ -28,6 +28,10 @@ frappe.ui.form.on("Request for Quotation", {
 				is_group: 0,
 			},
 		}));
+
+		frm.set_indicator_formatter("item_code", function (doc) {
+			return !doc.qty && frm.doc.has_unit_price_items ? "yellow" : "";
+		});
 	},
 
 	onload: function (frm) {
@@ -162,6 +166,10 @@ frappe.ui.form.on("Request for Quotation", {
 				},
 				__("View")
 			);
+		}
+
+		if (frm.doc.docstatus === 0) {
+			erpnext.set_unit_price_items_note(frm);
 		}
 	},
 

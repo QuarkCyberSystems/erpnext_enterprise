@@ -1262,6 +1262,9 @@ class AccountsController(TransactionBase):
 			)
 
 	def validate_qty_is_not_zero(self):
+		if self.flags.allow_zero_qty:
+			return
+
 		for item in self.items:
 			if self.doctype == "Purchase Receipt" and item.rejected_qty:
 				continue
@@ -3759,9 +3762,9 @@ def update_child_qty_rate(parent_doctype, trans_items, parent_doctype_name, chil
 		)
 		if amount_below_billed_amt and row_rate > 0.0:
 			frappe.throw(
-				_("Row #{0}: Cannot set Rate if amount is greater than billed amount for Item {1}.").format(
-					child_item.idx, child_item.item_code
-				)
+				_(
+					"Row #{0}: Cannot set Rate if the billed amount is greater than the amount for Item {1}."
+				).format(child_item.idx, child_item.item_code)
 			)
 		else:
 			child_item.rate = row_rate
