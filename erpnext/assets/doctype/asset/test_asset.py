@@ -193,7 +193,7 @@ class TestAsset(AssetSetup):
 		self.assertEqual(doc.items[0].is_fixed_asset, 1)
 
 	def test_scrap_asset(self):
-		date = nowdate()
+		date = "2025-05-05"
 		purchase_date = add_months(get_first_day(date), -2)
 
 		asset = create_asset(
@@ -256,7 +256,7 @@ class TestAsset(AssetSetup):
 			asset.precision("gross_purchase_amount"),
 		)
 
-		second_asset_depr_schedule.depreciation_amount = 8932.70
+		second_asset_depr_schedule.depreciation_amount = 9006.17
 		second_asset_depr_schedule.asset_doc = asset
 		second_asset_depr_schedule.get_finance_book_row()
 		second_asset_depr_schedule.fetch_asset_details()
@@ -264,7 +264,7 @@ class TestAsset(AssetSetup):
 		pro_rata_amount, _, _ = second_asset_depr_schedule._get_pro_rata_amt(
 			add_days(get_last_day(add_months(purchase_date, 1)), 1),
 			date,
-			original_schedule_date=get_last_day(nowdate()),
+			original_schedule_date=get_last_day(date),
 		)
 		pro_rata_amount = flt(pro_rata_amount, asset.precision("gross_purchase_amount"))
 		self.assertEqual(
@@ -312,7 +312,7 @@ class TestAsset(AssetSetup):
 		self.assertEqual(accumulated_depr_amount, 18000.0 + this_month_depr_amount)
 
 	def test_gle_made_by_asset_sale(self):
-		date = nowdate()
+		date = "2025-05-05"
 		purchase_date = add_months(get_first_day(date), -2)
 
 		asset = create_asset(
@@ -332,7 +332,7 @@ class TestAsset(AssetSetup):
 
 		si = make_sales_invoice(asset=asset.name, item_code="Macbook Pro", company="_Test Company")
 		si.customer = "_Test Customer"
-		si.due_date = nowdate()
+		si.due_date = date
 		si.get("items")[0].rate = 25000
 		si.insert()
 		si.submit()
@@ -345,7 +345,7 @@ class TestAsset(AssetSetup):
 		self.assertEqual(second_asset_depr_schedule.status, "Active")
 		self.assertEqual(first_asset_depr_schedule.status, "Cancelled")
 
-		second_asset_depr_schedule.depreciation_amount = 8932.70
+		second_asset_depr_schedule.depreciation_amount = 9006.17
 		second_asset_depr_schedule.asset_doc = asset
 		second_asset_depr_schedule.get_finance_book_row()
 		second_asset_depr_schedule.fetch_asset_details()
@@ -353,7 +353,7 @@ class TestAsset(AssetSetup):
 		pro_rata_amount, _, _ = second_asset_depr_schedule._get_pro_rata_amt(
 			add_days(get_last_day(add_months(purchase_date, 1)), 1),
 			date,
-			original_schedule_date=get_last_day(nowdate()),
+			original_schedule_date=get_last_day(date),
 		)
 		pro_rata_amount = flt(pro_rata_amount, asset.precision("gross_purchase_amount"))
 
