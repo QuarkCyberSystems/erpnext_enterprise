@@ -14,11 +14,131 @@ def add_default_params(func, doctype):
 	return partial(func, doctype=doctype, txt="", searchfield="name", start=0, page_len=20, filters=None)
 
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Employee", "Lead", "Item", "BOM", "Project", "Account"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Item", "BOM", "Account"]
 
 
 class TestQueries(IntegrationTestCase):
 	# All tests are based on self.globalTestRecords[doctype]
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.make_employees()
+		cls.make_leads()
+		cls.make_projects()
+
+	@classmethod
+	def make_employees(cls):
+		records = [
+			{
+				"company": "_Test Company",
+				"date_of_birth": "1980-01-01",
+				"date_of_joining": "2010-01-01",
+				"department": "_Test Department - _TC",
+				"doctype": "Employee",
+				"first_name": "_Test Employee",
+				"gender": "Female",
+				"naming_series": "_T-Employee-",
+				"status": "Active",
+				"user_id": "test@example.com",
+			},
+			{
+				"company": "_Test Company",
+				"date_of_birth": "1980-01-01",
+				"date_of_joining": "2010-01-01",
+				"department": "_Test Department 1 - _TC",
+				"doctype": "Employee",
+				"first_name": "_Test Employee 1",
+				"gender": "Male",
+				"naming_series": "_T-Employee-",
+				"status": "Active",
+				"user_id": "test1@example.com",
+			},
+			{
+				"company": "_Test Company",
+				"date_of_birth": "1980-01-01",
+				"date_of_joining": "2010-01-01",
+				"department": "_Test Department 1 - _TC",
+				"doctype": "Employee",
+				"first_name": "_Test Employee 2",
+				"gender": "Male",
+				"naming_series": "_T-Employee-",
+				"status": "Active",
+				"user_id": "test2@example.com",
+			},
+		]
+		cls.employees = []
+		for x in records:
+			if not frappe.db.exists("Employee", {"first_name": x.get("first_name")}):
+				cls.employees.append(frappe.get_doc(x).insert())
+			else:
+				cls.employees.append(frappe.get_doc("Employee", {"first_name": x.get("first_name")}))
+
+	@classmethod
+	def make_leads(cls):
+		records = [
+			{
+				"doctype": "Lead",
+				"email_id": "test_lead@example.com",
+				"lead_name": "_Test Lead",
+				"status": "Open",
+				"territory": "_Test Territory",
+				"naming_series": "_T-Lead-",
+			},
+			{
+				"doctype": "Lead",
+				"email_id": "test_lead1@example.com",
+				"lead_name": "_Test Lead 1",
+				"status": "Open",
+				"naming_series": "_T-Lead-",
+			},
+			{
+				"doctype": "Lead",
+				"email_id": "test_lead2@example.com",
+				"lead_name": "_Test Lead 2",
+				"status": "Lead",
+				"naming_series": "_T-Lead-",
+			},
+			{
+				"doctype": "Lead",
+				"email_id": "test_lead3@example.com",
+				"lead_name": "_Test Lead 3",
+				"status": "Converted",
+				"naming_series": "_T-Lead-",
+			},
+			{
+				"doctype": "Lead",
+				"email_id": "test_lead4@example.com",
+				"lead_name": "_Test Lead 4",
+				"company_name": "_Test Lead 4",
+				"status": "Open",
+				"naming_series": "_T-Lead-",
+			},
+		]
+		cls.leads = []
+		for x in records:
+			if not frappe.db.exists("Lead", {"email_id": x.get("email_id")}):
+				cls.leads.append(frappe.get_doc(x).insert())
+			else:
+				cls.leads.append(frappe.get_doc("Lead", {"email_id": x.get("email_id")}))
+
+	@classmethod
+	def make_projects(cls):
+		records = [
+			{
+				"doctype": "Project",
+				"company": "_Test Company",
+				"project_name": "_Test Project",
+				"status": "Open",
+			}
+		]
+
+		cls.projects = []
+		for x in records:
+			if not frappe.db.exists("Project", {"project_name": x.get("project_name")}):
+				cls.projects.append(frappe.get_doc(x).insert())
+			else:
+				cls.projects.append(frappe.get_doc("Project", {"project_name": x.get("project_name")}))
 
 	def assert_nested_in(self, item, container):
 		self.assertIn(item, [vals for tuples in container for vals in tuples])
@@ -105,7 +225,7 @@ class TestQueries(IntegrationTestCase):
 			{
 				"user": user.name,
 				"doctype": "Employee",
-				"docname": "_T-Employee-00001",
+				"docname": self.employees[0].name,
 				"is_default": 1,
 				"apply_to_all_doctypes": 1,
 				"applicable_doctypes": [],
