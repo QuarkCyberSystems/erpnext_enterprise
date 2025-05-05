@@ -13,6 +13,29 @@ from erpnext.setup.doctype.employee.test_employee import make_employee
 
 
 class TestTimesheet(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.make_projects()
+
+	@classmethod
+	def make_projects(cls):
+		records = [
+			{
+				"doctype": "Project",
+				"company": "_Test Company",
+				"project_name": "_Test Project",
+				"status": "Open",
+			}
+		]
+
+		cls.projects = []
+		for x in records:
+			if not frappe.db.exists("Project", {"project_name": x.get("project_name")}):
+				cls.projects.append(frappe.get_doc(x).insert())
+			else:
+				cls.projects.append(frappe.get_doc("Project", {"project_name": x.get("project_name")}))
+
 	def setUp(self):
 		frappe.db.delete("Timesheet")
 
