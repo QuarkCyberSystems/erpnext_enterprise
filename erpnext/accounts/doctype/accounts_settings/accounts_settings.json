@@ -79,9 +79,12 @@
   "reports_tab",
   "remarks_section",
   "general_ledger_remarks_length",
-  "ignore_is_opening_check_for_reporting",
   "column_break_lvjk",
   "receivable_payable_remarks_length",
+  "accounts_receivable_payable_tuning_section",
+  "receivable_payable_fetch_method",
+  "legacy_section",
+  "ignore_is_opening_check_for_reporting",
   "payment_request_settings",
   "create_pr_in_draft_status"
  ],
@@ -545,6 +548,23 @@
    "fieldname": "use_sales_invoice_in_pos",
    "fieldtype": "Check",
    "label": "Use Sales Invoice"
+  },
+  {
+   "default": "Buffered Cursor",
+   "fieldname": "receivable_payable_fetch_method",
+   "fieldtype": "Select",
+   "label": "Data Fetch Method",
+   "options": "Buffered Cursor\nUnBuffered Cursor"
+  },
+  {
+   "fieldname": "accounts_receivable_payable_tuning_section",
+   "fieldtype": "Section Break",
+   "label": "Accounts Receivable / Payable Tuning"
+  },
+  {
+   "fieldname": "legacy_section",
+   "fieldtype": "Section Break",
+   "label": "Legacy Fields"
   }
  ],
  "grid_page_length": 50,
@@ -553,7 +573,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-03-30 20:47:17.954736",
+ "modified": "2025-05-05 12:29:38.302027",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Accounts Settings",
