@@ -231,6 +231,9 @@ class SerialandBatchBundle(Document):
 			"warehouse": self.warehouse,
 			"check_serial_nos": True,
 			"serial_nos": serial_nos,
+			"sabb_voucher_type": self.voucher_type,
+			"sabb_voucher_no": self.voucher_no,
+			"sabb_voucher_detail_no": self.voucher_detail_no,
 		}
 		if self.voucher_type == "POS Invoice":
 			kwargs["ignore_voucher_nos"] = [self.voucher_no]
@@ -1874,9 +1877,16 @@ def get_reserved_serial_nos(kwargs) -> list:
 	ignore_serial_nos.extend(get_reserved_serial_nos_for_pos(kwargs))
 
 	reserved_entries = get_reserved_serial_nos_for_sre(kwargs)
+	if not reserved_entries:
+		return ignore_serial_nos
+
+	reserved_voucher_details = get_reserved_voucher_details(kwargs)
 
 	serial_nos = []
 	for entry in reserved_entries:
+		if entry.voucher_no in reserved_voucher_details:
+			continue
+
 		if kwargs.get("serial_nos") and entry.serial_no in kwargs.get("serial_nos"):
 			frappe.throw(
 				_(
@@ -1891,6 +1901,29 @@ def get_reserved_serial_nos(kwargs) -> list:
 	ignore_serial_nos.extend(serial_nos)
 
 	return ignore_serial_nos
+
+
+def get_reserved_voucher_details(kwargs):
+	reserved_voucher_details = []
+
+	value = {
+		"Delivery Note": ["Delivery Note Item", "against_sales_order"],
+	}.get(kwargs.get("voucher_type"))
+
+	if not value or not kwargs.get("sabb_voucher_no"):
+		return reserved_voucher_details
+
+	reserved_voucher_details = frappe.get_all(
+		value[0],
+		pluck=value[1],
+		filters={
+			"name": kwargs.get("sabb_voucher_detail_no"),
+			"parent": kwargs.get("sabb_voucher_no"),
+			"docstatus": 1,
+		},
+	)
+
+	return reserved_voucher_details
 
 
 def get_reserved_serial_nos_for_pos(kwargs):
