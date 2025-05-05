@@ -1093,6 +1093,7 @@ class StockReservation:
 			"Serial and Batch Entry",
 			fields=["serial_no", "batch_no", "qty"],
 			filters={"parent": ("in", serial_batch_bundles)},
+			order_by="creation",
 		)
 
 		for detail in bundle_details:

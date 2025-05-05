@@ -2109,29 +2109,6 @@ def get_future_sle_with_negative_batch_qty(sle_args):
 
 
 def validate_reserved_stock(kwargs):
-	if kwargs.serial_no:
-		serial_nos = kwargs.serial_no.split("\n")
-		validate_reserved_serial_nos(kwargs.item_code, kwargs.warehouse, serial_nos)
-
-	elif kwargs.batch_no:
-		validate_reserved_batch_nos(kwargs.item_code, kwargs.warehouse, [kwargs.batch_no])
-
-	elif kwargs.serial_and_batch_bundle:
-		sbb_entries = frappe.db.get_all(
-			"Serial and Batch Entry",
-			{
-				"parenttype": "Serial and Batch Bundle",
-				"parent": kwargs.serial_and_batch_bundle,
-				"docstatus": 1,
-			},
-			["batch_no", "serial_no"],
-		)
-
-		if serial_nos := [entry.serial_no for entry in sbb_entries if entry.serial_no]:
-			validate_reserved_serial_nos(kwargs.item_code, kwargs.warehouse, serial_nos)
-		elif batch_nos := [entry.batch_no for entry in sbb_entries if entry.batch_no]:
-			validate_reserved_batch_nos(kwargs.item_code, kwargs.warehouse, batch_nos)
-
 	# Qty based validation for non-serial-batch items OR SRE with Reservation Based On Qty.
 	precision = cint(frappe.db.get_default("float_precision")) or 2
 	balance_qty = get_stock_balance(kwargs.item_code, kwargs.warehouse)

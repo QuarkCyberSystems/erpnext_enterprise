@@ -1421,7 +1421,7 @@ class SalesInvoice(SellingController):
 		)
 
 		for item in self.get("items"):
-			if flt(item.base_net_amount, item.precision("base_net_amount")):
+			if flt(item.base_net_amount, item.precision("base_net_amount")) or item.is_fixed_asset:
 				# Do not book income for transfer within same company
 				if self.is_internal_transfer():
 					continue

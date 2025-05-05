@@ -726,6 +726,12 @@ class StockReconciliation(StockController):
 				)
 
 			self.make_sl_entries(sl_entries, allow_negative_stock=allow_negative_stock)
+		elif self.docstatus == 1:
+			frappe.throw(
+				_(
+					"No stock ledger entries were created. Please set the quantity or valuation rate for the items properly and try again."
+				)
+			)
 
 	def make_adjustment_entry(self, row, sl_entries):
 		from erpnext.stock.stock_ledger import get_stock_value_difference
