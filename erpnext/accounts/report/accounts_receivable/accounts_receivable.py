@@ -54,9 +54,10 @@ class ReceivablePayableReport:
 			self.filters.range = "30, 60, 90, 120"
 		self.ranges = [num.strip() for num in self.filters.range.split(",") if num.strip().isdigit()]
 		self.range_numbers = [num for num in range(1, len(self.ranges) + 2)]
-		self.ple_fetch_method = frappe.db.get_single_value(
-			"Accounts Settings", "receivable_payable_fetch_method"
-		)
+		self.ple_fetch_method = (
+			frappe.db.get_single_value("Accounts Settings", "receivable_payable_fetch_method")
+			or "Buffered Cursor"
+		)  # Fail Safe
 
 	def run(self, args):
 		self.filters.update(args)
