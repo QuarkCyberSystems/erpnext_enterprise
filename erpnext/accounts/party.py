@@ -940,12 +940,16 @@ def get_party_shipping_address(doctype: str, name: str) -> str | None:
 			["is_shipping_address", "=", 1],
 			["address_type", "=", "Shipping"],
 		],
-		pluck="name",
-		limit=1,
+		fields=["name", "is_shipping_address"],
 		order_by="is_shipping_address DESC",
 	)
 
-	return shipping_addresses[0] if shipping_addresses else None
+	if shipping_addresses and shipping_addresses[0].is_shipping_address == 1:
+		return shipping_addresses[0].name
+	if len(shipping_addresses) == 1:
+		return shipping_addresses[0].name
+	else:
+		return None
 
 
 def get_partywise_advanced_payment_amount(
