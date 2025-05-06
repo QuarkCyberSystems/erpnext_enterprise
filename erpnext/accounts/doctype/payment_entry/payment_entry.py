@@ -2081,7 +2081,7 @@ class PaymentEntry(AccountsController):
 
 			# Re allocate amount to those references which have PR set (Higher priority)
 			for ref in self.references:
-				if not ref.payment_request:
+				if not (ref.reference_doctype and ref.reference_name and ref.payment_request):
 					continue
 
 				# fetch outstanding_amount of `Reference` (Payment Term) and `Payment Request` to allocate new amount
@@ -2132,7 +2132,7 @@ class PaymentEntry(AccountsController):
 					)
 			# Re allocate amount to those references which have no PR (Lower priority)
 			for ref in self.references:
-				if ref.payment_request:
+				if ref.payment_request or not (ref.reference_doctype and ref.reference_name):
 					continue
 
 				key = (ref.reference_doctype, ref.reference_name, ref.get("payment_term"))
