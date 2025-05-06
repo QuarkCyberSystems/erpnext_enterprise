@@ -200,6 +200,23 @@ class TestRequestforQuotation(IntegrationTestCase):
 		self.assertEqual(sq.items[0].qty, 0)
 		self.assertEqual(sq.items[0].item_code, rfq.items[0].item_code)
 
+	@IntegrationTestCase.change_settings(
+		"Buying Settings",
+		{
+			"allow_zero_qty_in_request_for_quotation": 1,
+			"allow_zero_qty_in_supplier_quotation": 1,
+		},
+	)
+	def test_supplier_quotation_from_zero_qty_rfq_in_portal(self):
+		rfq = make_request_for_quotation(qty=0)
+		rfq.supplier = rfq.suppliers[0].supplier
+		sq_name = create_supplier_quotation(rfq)
+
+		sq = frappe.get_doc("Supplier Quotation", sq_name)
+		self.assertEqual(len(sq.items), 1)
+		self.assertEqual(sq.items[0].qty, 0)
+		self.assertEqual(sq.items[0].item_code, rfq.items[0].item_code)
+
 
 def make_request_for_quotation(**args) -> "RequestforQuotation":
 	"""
