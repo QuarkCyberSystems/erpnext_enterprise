@@ -962,8 +962,8 @@ def get_price_list_rate(ctx: ItemDetailsCtx, item_doc, out: ItemDetails = None):
 			price_list_rate = get_price_list_rate_for(ctx, item_doc.variant_of)
 
 		# insert in database
-		if price_list_rate is None or frappe.db.get_single_value(
-			"Stock Settings", "update_existing_price_list_rate"
+		if price_list_rate is None or frappe.get_cached_value(
+			"Stock Settings", "Stock Settings", "update_existing_price_list_rate"
 		):
 			insert_item_price(ctx)
 
@@ -988,54 +988,69 @@ def insert_item_price(ctx: ItemDetailsCtx):
 	if not ctx.price_list or not ctx.rate or ctx.is_internal_supplier or ctx.is_internal_customer:
 		return
 
-	if frappe.db.get_value("Price List", ctx.price_list, "currency", cache=True) == ctx.currency and cint(
-		frappe.db.get_single_value("Stock Settings", "auto_insert_price_list_rate_if_missing")
-	):
-		if frappe.has_permission("Item Price", "write"):
-			price_list_rate = (
-				(flt(ctx.rate) + flt(ctx.discount_amount)) / ctx.conversion_factor
-				if ctx.conversion_factor
-				else (flt(ctx.rate) + flt(ctx.discount_amount))
-			)
+	stock_settings = frappe.get_cached_doc("Stock Settings")
 
-			item_price = frappe.db.get_value(
-				"Item Price",
-				{
-					"item_code": ctx.item_code,
-					"price_list": ctx.price_list,
-					"currency": ctx.currency,
-					"uom": ctx.stock_uom,
-				},
-				["name", "price_list_rate"],
-				as_dict=1,
-			)
-			if item_price and item_price.name:
-				if item_price.price_list_rate != price_list_rate and frappe.db.get_single_value(
-					"Stock Settings", "update_existing_price_list_rate"
-				):
-					frappe.db.set_value("Item Price", item_price.name, "price_list_rate", price_list_rate)
-					frappe.msgprint(
-						_("Item Price updated for {0} in Price List {1}").format(
-							ctx.item_code, ctx.price_list
-						),
-						alert=True,
-					)
-			else:
-				item_price = frappe.get_doc(
-					{
-						"doctype": "Item Price",
-						"price_list": ctx.price_list,
-						"item_code": ctx.item_code,
-						"currency": ctx.currency,
-						"price_list_rate": price_list_rate,
-						"uom": ctx.stock_uom,
-					}
-				)
-				item_price.insert()
-				frappe.msgprint(
-					_("Item Price added for {0} in Price List {1}").format(ctx.item_code, ctx.price_list),
-					alert=True,
-				)
+	if (
+		not frappe.db.get_value("Price List", ctx.price_list, "currency", cache=True) == ctx.currency
+		or not stock_settings.auto_insert_price_list_rate_if_missing
+		or not frappe.has_permission("Item Price", "write")
+	):
+		return
+
+	item_price = frappe.db.get_value(
+		"Item Price",
+		{
+			"item_code": ctx.item_code,
+			"price_list": ctx.price_list,
+			"currency": ctx.currency,
+			"uom": ctx.stock_uom,
+		},
+		["name", "price_list_rate"],
+		as_dict=1,
+	)
+
+	update_based_on_price_list_rate = stock_settings.update_price_list_based_on == "Price List Rate"
+
+	if item_price and item_price.name:
+		if not stock_settings.update_existing_price_list_rate:
+			return
+
+		rate_to_consider = flt(ctx.price_list_rate) if update_based_on_price_list_rate else flt(ctx.rate)
+		price_list_rate = _get_stock_uom_rate(rate_to_consider, ctx)
+
+		if not price_list_rate or item_price.price_list_rate == price_list_rate:
+			return
+
+		frappe.db.set_value("Item Price", item_price.name, "price_list_rate", price_list_rate)
+		frappe.msgprint(
+			_("Item Price updated for {0} in Price List {1}").format(ctx.item_code, ctx.price_list),
+			alert=True,
+		)
+	else:
+		rate_to_consider = (
+			(flt(ctx.price_list_rate) or flt(ctx.rate)) if update_based_on_price_list_rate else flt(ctx.rate)
+		)
+		price_list_rate = _get_stock_uom_rate(rate_to_consider, ctx)
+
+		item_price = frappe.get_doc(
+			{
+				"doctype": "Item Price",
+				"price_list": ctx.price_list,
+				"item_code": ctx.item_code,
+				"currency": ctx.currency,
+				"price_list_rate": price_list_rate,
+				"uom": ctx.stock_uom,
+			}
+		)
+		item_price.insert()
+		frappe.msgprint(
+			_("Item Price added for {0} in Price List {1}").format(ctx.item_code, ctx.price_list),
+			alert=True,
+		)
+
+
+def _get_stock_uom_rate(rate: float, ctx: ItemDetailsCtx):
+	return rate / ctx.conversion_factor if ctx.conversion_factor else rate
 
 
 def get_item_price(
