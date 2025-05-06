@@ -670,10 +670,10 @@ def validate_due_date(posting_date, due_date, bill_date=None, template_name=None
 
 		frappe.throw(_("Due Date cannot be before {0}").format(doctype_date))
 	else:
-		validate_due_date_with_template(posting_date, due_date, bill_date, template_name)
+		validate_due_date_with_template(posting_date, due_date, bill_date, template_name, doctype)
 
 
-def validate_due_date_with_template(posting_date, due_date, bill_date, template_name):
+def validate_due_date_with_template(posting_date, due_date, bill_date, template_name, doctype=None):
 	if not template_name:
 		return
 
@@ -683,13 +683,12 @@ def validate_due_date_with_template(posting_date, due_date, bill_date, template_
 		return
 
 	if default_due_date != posting_date and getdate(due_date) > getdate(default_due_date):
-		is_credit_controller = (
-			frappe.db.get_single_value("Accounts Settings", "credit_controller") in frappe.get_roles()
-		)
-		if is_credit_controller:
+		if frappe.db.get_single_value("Accounts Settings", "credit_controller") in frappe.get_roles():
+			party_type = "supplier" if doctype == "Purchase Invoice" else "customer"
+
 			msgprint(
-				_("Note: Due Date exceeds allowed customer credit days by {0} day(s)").format(
-					date_diff(due_date, default_due_date)
+				_("Note: Due Date exceeds allowed {0} credit days by {1} day(s)").format(
+					party_type, date_diff(due_date, default_due_date)
 				)
 			)
 		else:
