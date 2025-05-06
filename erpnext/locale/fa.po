@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
 "POT-Creation-Date: 2025-05-04 09:35+0000\n"
-"PO-Revision-Date: 2025-05-05 10:00\n"
+"PO-Revision-Date: 2025-05-06 17:06\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -89,7 +89,7 @@ msgstr "\"آیتم تامین شده توسط مشتری\" نمی‌تواند �
 
 #: erpnext/stock/doctype/item/item.py:237
 msgid "\"Customer Provided Item\" cannot have Valuation Rate"
-msgstr "\"آیتم تامین شده توسط مشتری\" نمی‌تواند دارای نرخ ارزیابی باشد"
+msgstr "\"آیتم تامین شده توسط مشتری\" نمی‌تواند دارای نرخ ارزش‌گذاری باشد"
 
 #: erpnext/stock/doctype/item/item.py:313
 msgid "\"Is Fixed Asset\" cannot be unchecked, as Asset record exists against the item"
@@ -352,7 +352,7 @@ msgstr "(H) تغییر در ارزش موجودی (صف FIFO)"
 
 #: erpnext/stock/report/fifo_queue_vs_qty_after_transaction_comparison/fifo_queue_vs_qty_after_transaction_comparison.py:209
 msgid "(H) Valuation Rate"
-msgstr "(H) نرخ ارزش گذاری"
+msgstr "(H) نرخ ارزش‌گذاری"
 
 #. Description of the 'Actual Operating Cost' (Currency) field in DocType 'Work
 #. Order Operation'
@@ -363,12 +363,12 @@ msgstr "(نرخ ساعت / 60) * زمان عملیات واقعی"
 #: erpnext/stock/report/stock_ledger_invariant_check/stock_ledger_invariant_check.py:273
 #: erpnext/stock/report/stock_ledger_variance/stock_ledger_variance.py:176
 msgid "(I) Valuation Rate"
-msgstr "(I) نرخ ارزش گذاری"
+msgstr "(I) نرخ ارزش‌گذاری"
 
 #: erpnext/stock/report/stock_ledger_invariant_check/stock_ledger_invariant_check.py:278
 #: erpnext/stock/report/stock_ledger_variance/stock_ledger_variance.py:181
 msgid "(J) Valuation Rate as per FIFO"
-msgstr "(J) نرخ ارزش گذاری مطابق با FIFO"
+msgstr "(J) نرخ ارزش‌گذاری مطابق با FIFO"
 
 #: erpnext/stock/report/stock_ledger_invariant_check/stock_ledger_invariant_check.py:288
 #: erpnext/stock/report/stock_ledger_variance/stock_ledger_variance.py:191
@@ -4278,7 +4278,7 @@ msgstr "اجازه نرخ صفر"
 #: erpnext/stock/doctype/stock_entry_detail/stock_entry_detail.json
 #: erpnext/stock/doctype/stock_reconciliation_item/stock_reconciliation_item.json
 msgid "Allow Zero Valuation Rate"
-msgstr "نرخ ارزش گذاری صفر مجاز است"
+msgstr "نرخ ارزش‌گذاری صفر مجاز است"
 
 #. Label of the allow_existing_serial_no (Check) field in DocType 'Stock
 #. Settings'
@@ -13896,7 +13896,7 @@ msgstr "زمان کنونی"
 #. Reconciliation Item'
 #: erpnext/stock/doctype/stock_reconciliation_item/stock_reconciliation_item.json
 msgid "Current Valuation Rate"
-msgstr "نرخ ارزش گذاری فعلی"
+msgstr "نرخ ارزش‌گذاری فعلی"
 
 #: erpnext/selling/report/sales_analytics/sales_analytics.js:90
 msgid "Curves"
@@ -23231,7 +23231,7 @@ msgstr ""
 #. field in DocType 'Stock Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "If enabled, the item rate won't adjust to the valuation rate during internal transfers, but accounting will still use the valuation rate."
-msgstr "اگر فعال شود، نرخ آیتم در انتقالات داخلی با نرخ ارزیابی تنظیم نخواهد شد، اما حسابداری همچنان از نرخ ارزیابی استفاده خواهد کرد."
+msgstr "اگر فعال شود، نرخ آیتم در انتقالات داخلی با نرخ ارزش‌گذاری تنظیم نخواهد شد، اما حسابداری همچنان از نرخ ارزش‌گذاری استفاده خواهد کرد."
 
 #. Description of the 'Allow UOM with Conversion Rate Defined in Item' (Check)
 #. field in DocType 'Stock Settings'
@@ -23253,7 +23253,7 @@ msgstr ""
 #. DocType 'Stock Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "If enabled, the system will use the moving average valuation method to calculate the valuation rate for the batched items and will not consider the individual batch-wise incoming rate."
-msgstr "اگر فعال شود، سیستم از روش ارزیابی میانگین متحرک برای محاسبه نرخ ارزیابی آیتم‌های دسته‌ای استفاده خواهد کرد و نرخ ورودی هر دسته را به‌طور جداگانه در نظر نخواهد گرفت."
+msgstr "اگر فعال شود، سیستم از روش ارزیابی میانگین متحرک برای محاسبه نرخ ارزش‌گذاری آیتم‌های دسته‌ای استفاده خواهد کرد و نرخ ورودی هر دسته را به‌طور جداگانه در نظر نخواهد گرفت."
 
 #. Description of the 'Validate Applied Rule' (Check) field in DocType 'Pricing
 #. Rule'
@@ -23310,7 +23310,7 @@ msgstr "اگر حساب مسدود شود، ورود به کاربران محد�
 
 #: erpnext/stock/stock_ledger.py:1859
 msgid "If the item is transacting as a Zero Valuation Rate item in this entry, please enable 'Allow Zero Valuation Rate' in the {0} Item table."
-msgstr "اگر آیتم به عنوان یک آیتم نرخ ارزش گذاری صفر در این ثبت تراکنش می‌شود، لطفاً \"نرخ ارزش گذاری صفر مجاز\" را در جدول آیتم {0} فعال کنید."
+msgstr "اگر آیتم به عنوان یک آیتم نرخ ارزش‌گذاری صفر در این ثبت تراکنش می‌شود، لطفاً \"نرخ ارزش‌گذاری صفر مجاز\" را در جدول آیتم {0} فعال کنید."
 
 #: erpnext/manufacturing/doctype/work_order/work_order.js:1088
 msgid "If the selected BOM has Operations mentioned in it, the system will fetch all Operations from BOM, these values can be changed."
@@ -23373,7 +23373,7 @@ msgstr "اگر علامت زده شود، می‌توان از چندین ماد
 
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.js:36
 msgid "If ticked, the BOM cost will be automatically updated based on Valuation Rate / Price List Rate / last purchase rate of raw materials."
-msgstr "در صورت علامت زدن، هزینه BOM به طور خودکار بر اساس نرخ ارزش گذاری / نرخ لیست قیمت / آخرین نرخ خرید مواد اولیه به روز می‌شود."
+msgstr "در صورت علامت زدن، هزینه BOM به طور خودکار بر اساس نرخ ارزش‌گذاری / نرخ لیست قیمت / آخرین نرخ خرید مواد اولیه به روز می‌شود."
 
 #: erpnext/accounts/doctype/loyalty_program/loyalty_program.js:14
 msgid "If unlimited expiry for the Loyalty Points, keep the Expiry Duration empty or 0."
@@ -27037,7 +27037,7 @@ msgstr "تعداد مورد را نمی‌توان به روز کرد زیرا �
 
 #: erpnext/stock/doctype/stock_entry/stock_entry.py:865
 msgid "Item rate has been updated to zero as Allow Zero Valuation Rate is checked for item {0}"
-msgstr "نرخ آیتم به صفر به‌روزرسانی شده است زیرا نرخ ارزش گذاری مجاز صفر برای آیتم صفر {0} بررسی می‌شود"
+msgstr "نرخ آیتم به صفر به‌روزرسانی شده است زیرا نرخ ارزش‌گذاری مجاز صفر برای آیتم صفر {0} بررسی می‌شود"
 
 #. Label of the finished_good (Link) field in DocType 'Job Card'
 #: erpnext/manufacturing/doctype/job_card/job_card.json
@@ -27317,7 +27317,7 @@ msgstr "آیتم‌ها برای درخواست مواد خام"
 
 #: erpnext/stock/doctype/stock_entry/stock_entry.py:861
 msgid "Items rate has been updated to zero as Allow Zero Valuation Rate is checked for the following items: {0}"
-msgstr "نرخ آیتم‌ها به صفر به‌روزرسانی شده است زیرا نرخ ارزش گذاری مجاز صفر برای آیتم‌های زیر بررسی می‌شود: {0}"
+msgstr "نرخ آیتم‌ها به صفر به‌روزرسانی شده است زیرا نرخ ارزش‌گذاری مجاز صفر برای آیتم‌های زیر بررسی می‌شود: {0}"
 
 #. Label of the items_to_be_repost (Code) field in DocType 'Repost Item
 #. Valuation'
@@ -30083,7 +30083,7 @@ msgstr "مگاوات"
 
 #: erpnext/stock/stock_ledger.py:1872
 msgid "Mention Valuation Rate in the Item master."
-msgstr "نرخ ارزش گذاری را در آیتم اصلی ذکر کنید."
+msgstr "نرخ ارزش‌گذاری را در آیتم اصلی ذکر کنید."
 
 #. Description of the 'Accounts' (Table) field in DocType 'Customer'
 #: erpnext/selling/doctype/customer/customer.json
@@ -31211,7 +31211,7 @@ msgstr "مقدار منفی مجاز نیست"
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:573
 msgid "Negative Valuation Rate is not allowed"
-msgstr "نرخ ارزش گذاری منفی مجاز نیست"
+msgstr "نرخ ارزش‌گذاری منفی مجاز نیست"
 
 #: erpnext/setup/setup_wizard/data/sales_stage.txt:8
 #: erpnext/setup/setup_wizard/operations/install_fixtures.py:418
@@ -37542,7 +37542,7 @@ msgstr "لطفا حداقل یک ویژگی را در جدول Attributes مشخ
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:563
 msgid "Please specify either Quantity or Valuation Rate or both"
-msgstr "لطفاً مقدار یا نرخ ارزش گذاری یا هر دو را مشخص کنید"
+msgstr "لطفاً مقدار یا نرخ ارزش‌گذاری یا هر دو را مشخص کنید"
 
 #: erpnext/stock/doctype/item_attribute/item_attribute.py:93
 msgid "Please specify from/to range"
@@ -44933,7 +44933,7 @@ msgstr "ردیف #{0}: زمان‌بندی با ردیف {1} در تضاد اس�
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:97
 msgid "Row #{0}: You cannot use the inventory dimension '{1}' in Stock Reconciliation to modify the quantity or valuation rate. Stock reconciliation with inventory dimensions is intended solely for performing opening entries."
-msgstr "ردیف #{0}: نمی‌توانید از بعد موجودی «{1}» در تطبیق موجودی برای تغییر مقدار یا نرخ ارزیابی استفاده کنید. تطبیق موجودی با ابعاد موجودی صرفاً برای انجام ورودی های افتتاحیه در نظر گرفته شده است."
+msgstr "ردیف #{0}: نمی‌توانید از بعد موجودی «{1}» در تطبیق موجودی برای تغییر مقدار یا نرخ ارزش‌گذاری استفاده کنید. تطبیق موجودی با ابعاد موجودی صرفاً برای انجام ورودی های افتتاحیه در نظر گرفته شده است."
 
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1526
 msgid "Row #{0}: You must select an Asset for Item {1}."
@@ -44965,7 +44965,7 @@ msgstr "ردیف #{idx}: هنگام تامین مواد خام به پیمانک
 
 #: erpnext/controllers/buying_controller.py:406
 msgid "Row #{idx}: Item rate has been updated as per valuation rate since its an internal stock transfer."
-msgstr "ردیف #{idx}: نرخ آیتم براساس نرخ ارزیابی به‌روزرسانی شده است، زیرا یک انتقال داخلی موجودی است."
+msgstr "ردیف #{idx}: نرخ آیتم براساس نرخ ارزش‌گذاری به‌روزرسانی شده است، زیرا یک انتقال داخلی موجودی است."
 
 #: erpnext/controllers/buying_controller.py:870
 msgid "Row #{idx}: Please enter a location for the asset item {item_code}."
@@ -45224,7 +45224,7 @@ msgstr "ردیف {0}: الگوی مالیات آیتم بر اساس اعتبا�
 
 #: erpnext/controllers/selling_controller.py:541
 msgid "Row {0}: Item rate has been updated as per valuation rate since its an internal stock transfer"
-msgstr "ردیف {0}: نرخ اقلام براساس نرخ ارزیابی به‌روزرسانی شده است، زیرا یک انتقال داخلی موجودی است"
+msgstr "ردیف {0}: نرخ اقلام براساس نرخ ارزش‌گذاری به‌روزرسانی شده است، زیرا یک انتقال داخلی موجودی است"
 
 #: erpnext/controllers/subcontracting_controller.py:98
 msgid "Row {0}: Item {1} must be a stock item."
@@ -48276,7 +48276,7 @@ msgstr "تنظیم انبار هدف"
 #. Creator'
 #: erpnext/manufacturing/doctype/bom_creator/bom_creator.json
 msgid "Set Valuation Rate Based on Source Warehouse"
-msgstr "نرخ ارزش گذاری را بر اساس انبار منبع تنظیم کنید"
+msgstr "نرخ ارزش‌گذاری را بر اساس انبار منبع تنظیم کنید"
 
 #: erpnext/selling/doctype/sales_order/sales_order.js:216
 msgid "Set Warehouse"
@@ -56938,7 +56938,7 @@ msgstr "به روز رسانی هزینه BOM به صورت خودکار"
 #. 'Manufacturing Settings'
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.json
 msgid "Update BOM cost automatically via scheduler, based on the latest Valuation Rate/Price List Rate/Last Purchase Rate of raw materials"
-msgstr "به‌روزرسانی هزینه BOM به‌طور خودکار از طریق زمان‌بندی، بر اساس آخرین نرخ ارزیابی/نرخ فهرست قیمت/آخرین نرخ خرید مواد خام"
+msgstr "به‌روزرسانی هزینه BOM به‌طور خودکار از طریق زمان‌بندی، بر اساس آخرین نرخ ارزش‌گذاری/نرخ فهرست قیمت/آخرین نرخ خرید مواد خام"
 
 #. Label of the update_billed_amount_in_delivery_note (Check) field in DocType
 #. 'POS Invoice'
@@ -57551,7 +57551,7 @@ msgstr ""
 #. Settings'
 #: erpnext/selling/doctype/selling_settings/selling_settings.json
 msgid "Validate Selling Price for Item Against Purchase Rate or Valuation Rate"
-msgstr "اعتبارسنجی قیمت فروش کالا در مقایسه با نرخ خرید یا نرخ ارزیابی"
+msgstr "اعتبارسنجی قیمت فروش کالا در مقایسه با نرخ خرید یا نرخ ارزش‌گذاری"
 
 #. Label of the validate_stock_on_save (Check) field in DocType 'POS Profile'
 #: erpnext/accounts/doctype/pos_profile/pos_profile.json
@@ -57648,27 +57648,27 @@ msgstr "روش ارزش گذاری"
 #: erpnext/stock/report/stock_balance/stock_balance.py:489
 #: erpnext/stock/report/stock_ledger/stock_ledger.py:297
 msgid "Valuation Rate"
-msgstr "نرخ ارزش گذاری"
+msgstr "نرخ ارزش‌گذاری"
 
 #: erpnext/stock/report/incorrect_serial_no_valuation/incorrect_serial_no_valuation.py:166
 msgid "Valuation Rate (In / Out)"
-msgstr "نرخ ارزش گذاری (ورودی/خروجی)"
+msgstr "نرخ ارزش‌گذاری (ورودی/خروجی)"
 
 #: erpnext/stock/stock_ledger.py:1875
 msgid "Valuation Rate Missing"
-msgstr "نرخ ارزیابی وجود ندارد"
+msgstr "نرخ ارزش‌گذاری وجود ندارد"
 
 #: erpnext/stock/stock_ledger.py:1853
 msgid "Valuation Rate for the Item {0}, is required to do accounting entries for {1} {2}."
-msgstr "نرخ ارزش گذاری برای آیتم {0}، برای انجام ثبت‌های حسابداری برای {1} {2} لازم است."
+msgstr "نرخ ارزش‌گذاری برای آیتم {0}، برای انجام ثبت‌های حسابداری برای {1} {2} لازم است."
 
 #: erpnext/stock/doctype/item/item.py:266
 msgid "Valuation Rate is mandatory if Opening Stock entered"
-msgstr "در صورت ثبت موجودی افتتاحیه، نرخ ارزش گذاری الزامی است"
+msgstr "در صورت ثبت موجودی افتتاحیه، نرخ ارزش‌گذاری الزامی است"
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:710
 msgid "Valuation Rate required for Item {0} at row {1}"
-msgstr "نرخ ارزش گذاری الزامی است برای آیتم {0} در ردیف {1}"
+msgstr "نرخ ارزش‌گذاری الزامی است برای آیتم {0} در ردیف {1}"
 
 #. Option for the 'Consider Tax or Charge for' (Select) field in DocType
 #. 'Purchase Taxes and Charges'
@@ -57678,7 +57678,7 @@ msgstr "ارزش گذاری و کل"
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:929
 msgid "Valuation rate for customer provided items has been set to zero."
-msgstr "نرخ ارزش گذاری برای آیتم‌های ارائه شده توسط مشتری صفر تعیین شده است."
+msgstr "نرخ ارزش‌گذاری برای آیتم‌های ارائه شده توسط مشتری صفر تعیین شده است."
 
 #. Description of the 'Sales Incoming Rate' (Currency) field in DocType
 #. 'Purchase Invoice Item'
