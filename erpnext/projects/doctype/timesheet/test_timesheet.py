@@ -10,31 +10,14 @@ from frappe.utils import add_to_date, now_datetime, nowdate
 from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
 from erpnext.projects.doctype.timesheet.timesheet import OverlapError, make_sales_invoice
 from erpnext.setup.doctype.employee.test_employee import make_employee
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestTimesheet(IntegrationTestCase):
+class TestTimesheet(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.make_projects()
-
-	@classmethod
-	def make_projects(cls):
-		records = [
-			{
-				"doctype": "Project",
-				"company": "_Test Company",
-				"project_name": "_Test Project",
-				"status": "Open",
-			}
-		]
-
-		cls.projects = []
-		for x in records:
-			if not frappe.db.exists("Project", {"project_name": x.get("project_name")}):
-				cls.projects.append(frappe.get_doc(x).insert())
-			else:
-				cls.projects.append(frappe.get_doc("Project", {"project_name": x.get("project_name")}))
 
 	def setUp(self):
 		frappe.db.delete("Timesheet")
