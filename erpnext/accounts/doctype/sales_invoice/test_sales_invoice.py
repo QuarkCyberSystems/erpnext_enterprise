@@ -48,6 +48,7 @@ from erpnext.stock.doctype.stock_reconciliation.test_stock_reconciliation import
 )
 from erpnext.stock.get_item_details import get_item_tax_map
 from erpnext.stock.utils import get_incoming_rate, get_stock_balance
+from erpnext.tests.utils import ERPNextTestSuite
 
 
 class UnitTestSalesInvoice(UnitTestCase):
@@ -59,7 +60,7 @@ class UnitTestSalesInvoice(UnitTestCase):
 	pass
 
 
-class TestSalesInvoice(IntegrationTestCase):
+class TestSalesInvoice(ERPNextTestSuite):
 	def setUp(self):
 		from erpnext.stock.doctype.stock_ledger_entry.test_stock_ledger_entry import create_items
 
@@ -87,6 +88,8 @@ class TestSalesInvoice(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.enterClassContext(cls.change_settings("Selling Settings", validate_selling_price=0))
+		cls.make_employees()
+		cls.make_sales_person()
 		unlink_payment_on_cancel_of_invoice()
 
 	@classmethod

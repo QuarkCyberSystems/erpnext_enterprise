@@ -10,9 +10,15 @@ from frappe.utils import add_to_date, now_datetime, nowdate
 from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
 from erpnext.projects.doctype.timesheet.timesheet import OverlapError, make_sales_invoice
 from erpnext.setup.doctype.employee.test_employee import make_employee
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestTimesheet(IntegrationTestCase):
+class TestTimesheet(ERPNextTestSuite):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.make_projects()
+
 	def setUp(self):
 		frappe.db.delete("Timesheet")
 
