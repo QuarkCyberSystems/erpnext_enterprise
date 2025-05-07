@@ -171,3 +171,84 @@ class ERPNextTestSuite(IntegrationTestCase):
 				cls.projects.append(frappe.get_doc(x).insert())
 			else:
 				cls.projects.append(frappe.get_doc("Project", {"project_name": x.get("project_name")}))
+
+	@classmethod
+	def make_employees(cls):
+		records = [
+			{
+				"company": "_Test Company",
+				"date_of_birth": "1980-01-01",
+				"date_of_joining": "2010-01-01",
+				"department": "_Test Department - _TC",
+				"doctype": "Employee",
+				"first_name": "_Test Employee",
+				"gender": "Female",
+				"naming_series": "_T-Employee-",
+				"status": "Active",
+				"user_id": "test@example.com",
+			},
+			{
+				"company": "_Test Company",
+				"date_of_birth": "1980-01-01",
+				"date_of_joining": "2010-01-01",
+				"department": "_Test Department 1 - _TC",
+				"doctype": "Employee",
+				"first_name": "_Test Employee 1",
+				"gender": "Male",
+				"naming_series": "_T-Employee-",
+				"status": "Active",
+				"user_id": "test1@example.com",
+			},
+			{
+				"company": "_Test Company",
+				"date_of_birth": "1980-01-01",
+				"date_of_joining": "2010-01-01",
+				"department": "_Test Department 1 - _TC",
+				"doctype": "Employee",
+				"first_name": "_Test Employee 2",
+				"gender": "Male",
+				"naming_series": "_T-Employee-",
+				"status": "Active",
+				"user_id": "test2@example.com",
+			},
+		]
+		cls.employees = []
+		for x in records:
+			if not frappe.db.exists("Employee", {"first_name": x.get("first_name")}):
+				cls.employees.append(frappe.get_doc(x).insert())
+			else:
+				cls.employees.append(frappe.get_doc("Employee", {"first_name": x.get("first_name")}))
+
+	@classmethod
+	def make_sales_person(cls):
+		records = [
+			{
+				"doctype": "Sales Person",
+				"employee": "_T-Employee-00001",
+				"is_group": 0,
+				"parent_sales_person": "Sales Team",
+				"sales_person_name": "_Test Sales Person",
+			},
+			{
+				"doctype": "Sales Person",
+				"employee": "_T-Employee-00002",
+				"is_group": 0,
+				"parent_sales_person": "Sales Team",
+				"sales_person_name": "_Test Sales Person 1",
+			},
+			{
+				"doctype": "Sales Person",
+				"employee": "_T-Employee-00003",
+				"is_group": 0,
+				"parent_sales_person": "Sales Team",
+				"sales_person_name": "_Test Sales Person 2",
+			},
+		]
+		cls.sales_person = []
+		for x in records:
+			if not frappe.db.exists("Sales Person", {"sales_person_name": x.get("sales_person_name")}):
+				cls.sales_person.append(frappe.get_doc(x).insert())
+			else:
+				cls.sales_person.append(
+					frappe.get_doc("Sales Person", {"sales_person_name": x.get("sales_person_name")})
+				)
