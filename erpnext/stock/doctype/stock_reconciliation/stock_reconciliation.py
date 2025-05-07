@@ -203,9 +203,19 @@ class StockReconciliation(StockController):
 							)
 						)
 
-					if self.docstatus == 1:
-						bundle.voucher_no = self.name
-						bundle.submit()
+					if (
+						self.docstatus == 1
+						and item.current_serial_and_batch_bundle
+						and frappe.db.get_value(
+							"Serial and Batch Bundle", item.current_serial_and_batch_bundle, "docstatus"
+						)
+						== 0
+					):
+						sabb_doc = frappe.get_doc(
+							"Serial and Batch Bundle", item.current_serial_and_batch_bundle
+						)
+						sabb_doc.voucher_no = self.name
+						sabb_doc.submit()
 
 					item.db_set(
 						{
