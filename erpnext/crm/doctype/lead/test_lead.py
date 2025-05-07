@@ -8,61 +8,14 @@ from frappe.utils import random_string, today
 
 from erpnext.crm.doctype.lead.lead import make_opportunity
 from erpnext.crm.utils import get_linked_prospect
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestLead(IntegrationTestCase):
+class TestLead(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.make_leads()
-
-	@classmethod
-	def make_leads(cls):
-		records = [
-			{
-				"doctype": "Lead",
-				"email_id": "test_lead@example.com",
-				"lead_name": "_Test Lead",
-				"status": "Open",
-				"territory": "_Test Territory",
-				"naming_series": "_T-Lead-",
-			},
-			{
-				"doctype": "Lead",
-				"email_id": "test_lead1@example.com",
-				"lead_name": "_Test Lead 1",
-				"status": "Open",
-				"naming_series": "_T-Lead-",
-			},
-			{
-				"doctype": "Lead",
-				"email_id": "test_lead2@example.com",
-				"lead_name": "_Test Lead 2",
-				"status": "Lead",
-				"naming_series": "_T-Lead-",
-			},
-			{
-				"doctype": "Lead",
-				"email_id": "test_lead3@example.com",
-				"lead_name": "_Test Lead 3",
-				"status": "Converted",
-				"naming_series": "_T-Lead-",
-			},
-			{
-				"doctype": "Lead",
-				"email_id": "test_lead4@example.com",
-				"lead_name": "_Test Lead 4",
-				"company_name": "_Test Lead 4",
-				"status": "Open",
-				"naming_series": "_T-Lead-",
-			},
-		]
-		cls.leads = []
-		for x in records:
-			if not frappe.db.exists("Lead", {"email_id": x.get("email_id")}):
-				cls.leads.append(frappe.get_doc(x).insert())
-			else:
-				cls.leads.append(frappe.get_doc("Lead", {"email_id": x.get("email_id")}))
 
 	def test_make_customer(self):
 		from erpnext.crm.doctype.lead.lead import make_customer
