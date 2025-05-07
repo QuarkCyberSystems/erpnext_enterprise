@@ -9,6 +9,7 @@ from erpnext.projects.doctype.project_template.test_project_template import make
 from erpnext.projects.doctype.task.test_task import create_task
 from erpnext.selling.doctype.sales_order.sales_order import make_project as make_project_from_so
 from erpnext.selling.doctype.sales_order.test_sales_order import make_sales_order
+from erpnext.tests.utils import ERPNextTestSuite
 
 IGNORE_TEST_RECORD_DEPENDENCIES = ["Sales Order"]
 
@@ -22,29 +23,11 @@ class UnitTestProject(UnitTestCase):
 	pass
 
 
-class TestProject(IntegrationTestCase):
+class TestProject(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.make_projects()
-
-	@classmethod
-	def make_projects(cls):
-		records = [
-			{
-				"doctype": "Project",
-				"company": "_Test Company",
-				"project_name": "_Test Project",
-				"status": "Open",
-			}
-		]
-
-		cls.projects = []
-		for x in records:
-			if not frappe.db.exists("Project", {"project_name": x.get("project_name")}):
-				cls.projects.append(frappe.get_doc(x).insert())
-			else:
-				cls.projects.append(frappe.get_doc("Project", {"project_name": x.get("project_name")}))
 
 	def test_project_with_template_having_no_parent_and_depend_tasks(self):
 		project_name = "Test Project with Template - No Parent and Dependend Tasks"
