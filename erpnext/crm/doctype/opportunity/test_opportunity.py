@@ -10,33 +10,17 @@ from erpnext.crm.doctype.lead.lead import make_customer
 from erpnext.crm.doctype.lead.test_lead import make_lead
 from erpnext.crm.doctype.opportunity.opportunity import make_quotation
 from erpnext.crm.utils import get_linked_communication_list
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestOpportunity(IntegrationTestCase):
+class TestOpportunity(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		# Only first lead is required
+		# TODO: dynamically generate limited test records
 		cls.make_leads()
 		cls.make_opportunities()
-
-	@classmethod
-	def make_leads(cls):
-		records = [
-			{
-				"doctype": "Lead",
-				"email_id": "test_lead@example.com",
-				"lead_name": "_Test Lead",
-				"status": "Open",
-				"territory": "_Test Territory",
-				"naming_series": "_T-Lead-",
-			},
-		]
-		cls.leads = []
-		for x in records:
-			if not frappe.db.exists("Lead", {"email_id": x.get("email_id")}):
-				cls.leads.append(frappe.get_doc(x).insert())
-			else:
-				cls.leads.append(frappe.get_doc("Lead", {"email_id": x.get("email_id")}))
 
 	@classmethod
 	def make_opportunities(cls):
