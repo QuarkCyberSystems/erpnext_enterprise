@@ -2813,6 +2813,7 @@ class TestPurchaseInvoice(IntegrationTestCase, StockTestMixin):
 		# Test 4 - Since this PI is overbilled by 130% and only 120% is allowed, it will fail
 		self.assertRaises(frappe.ValidationError, pi.submit)
 
+
 def set_advance_flag(company, flag, default_account):
 	frappe.db.set_value(
 		"Company",
