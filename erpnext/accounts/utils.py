@@ -731,16 +731,13 @@ def update_reference_in_payment_entry(
 	update_advance_paid = []
 
 	# Update Reconciliation effect date in reference
+	reconciliation_takes_effect_on = frappe.get_cached_value(
+		"Company", payment_entry.company, "reconciliation_takes_effect_on"
+	)
 	if payment_entry.book_advance_payments_in_separate_party_account:
-		if (
-			frappe.get_cached_value("Company", payment_entry.company, "reconciliation_takes_effect_on")
-			== "Advance Payment Date"
-		):
+		if reconciliation_takes_effect_on == "Advance Payment Date":
 			reconcile_on = payment_entry.posting_date
-		elif (
-			frappe.get_cached_value("Company", payment_entry.company, "reconciliation_takes_effect_on")
-			== "Oldest Of Invoice Or Advance"
-		):
+		elif reconciliation_takes_effect_on == "Oldest Of Invoice Or Advance":
 			date_field = "posting_date"
 			if d.against_voucher_type in ["Sales Order", "Purchase Order"]:
 				date_field = "transaction_date"
@@ -748,10 +745,7 @@ def update_reference_in_payment_entry(
 
 			if getdate(reconcile_on) < getdate(payment_entry.posting_date):
 				reconcile_on = payment_entry.posting_date
-		elif (
-			frappe.get_cached_value("Company", payment_entry.company, "reconciliation_takes_effect_on")
-			== "Reconciliation Date"
-		):
+		elif reconciliation_takes_effect_on == "Reconciliation Date":
 			reconcile_on = nowdate()
 
 		reference_details.update({"reconcile_effect_on": reconcile_on})
