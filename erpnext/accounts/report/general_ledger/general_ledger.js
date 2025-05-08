@@ -218,6 +218,8 @@ frappe.query_reports["General Ledger"] = {
 			fieldtype: "Check",
 		},
 	],
+	collapsible_filters: true,
+	seperate_check_filters: true,
 };
 
 erpnext.utils.add_dimensions("General Ledger", 15);
