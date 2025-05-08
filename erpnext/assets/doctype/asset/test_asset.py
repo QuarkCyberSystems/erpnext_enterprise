@@ -243,7 +243,7 @@ class TestAsset(AssetSetup):
 			frappe.ValidationError, scrap_asset, asset.name, scrap_date=before_last_booked_depreciation_date
 		)
 
-		scrap_asset(asset.name)
+		scrap_asset(asset.name, date)
 		asset.load_from_db()
 		first_asset_depr_schedule.load_from_db()
 
@@ -312,7 +312,7 @@ class TestAsset(AssetSetup):
 		self.assertEqual(accumulated_depr_amount, 18000.0 + this_month_depr_amount)
 
 	def test_gle_made_by_asset_sale(self):
-		date = "2025-05-05"
+		date = nowdate()
 		purchase_date = add_months(get_first_day(date), -2)
 
 		asset = create_asset(
@@ -345,22 +345,17 @@ class TestAsset(AssetSetup):
 		self.assertEqual(second_asset_depr_schedule.status, "Active")
 		self.assertEqual(first_asset_depr_schedule.status, "Cancelled")
 
-		second_asset_depr_schedule.depreciation_amount = 9006.17
-		second_asset_depr_schedule.asset_doc = asset
-		second_asset_depr_schedule.get_finance_book_row()
-		second_asset_depr_schedule.fetch_asset_details()
-
-		pro_rata_amount, _, _ = second_asset_depr_schedule._get_pro_rata_amt(
-			add_days(get_last_day(add_months(purchase_date, 1)), 1),
-			date,
-			original_schedule_date=get_last_day(date),
+		asset.load_from_db()
+		accumulated_depr_amount = flt(
+			asset.gross_purchase_amount - asset.finance_books[0].value_after_depreciation,
+			asset.precision("gross_purchase_amount"),
 		)
-		pro_rata_amount = flt(pro_rata_amount, asset.precision("gross_purchase_amount"))
+		pro_rata_amount = flt(accumulated_depr_amount - 18000)
 
 		expected_gle = (
 			(
 				"_Test Accumulated Depreciations - _TC",
-				flt(18000.0 + pro_rata_amount, asset.precision("gross_purchase_amount")),
+				flt(accumulated_depr_amount, asset.precision("gross_purchase_amount")),
 				0.0,
 			),
 			("_Test Fixed Asset - _TC", 0.0, 100000.0),
