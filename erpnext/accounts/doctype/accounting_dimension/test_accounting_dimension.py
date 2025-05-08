@@ -58,6 +58,10 @@ class TestAccountingDimension(IntegrationTestCase):
 		self.assertEqual(gle1.get("department"), "_Test Department - _TC")
 
 	def test_mandatory(self):
+		location = frappe.get_doc("Accounting Dimension", "Location")
+		location.dimension_defaults[0].mandatory_for_bs = True
+		location.save()
+
 		si = create_sales_invoice(do_not_save=1)
 		si.append(
 			"items",
