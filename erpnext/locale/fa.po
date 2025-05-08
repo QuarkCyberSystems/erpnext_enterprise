@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
 "POT-Creation-Date: 2025-05-04 09:35+0000\n"
-"PO-Revision-Date: 2025-05-05 10:00\n"
+"PO-Revision-Date: 2025-05-07 17:29\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: Persian\n"
 "MIME-Version: 1.0\n"
@@ -89,7 +89,7 @@ msgstr "\"آیتم تامین شده توسط مشتری\" نمی‌تواند �
 
 #: erpnext/stock/doctype/item/item.py:237
 msgid "\"Customer Provided Item\" cannot have Valuation Rate"
-msgstr "\"آیتم تامین شده توسط مشتری\" نمی‌تواند دارای نرخ ارزیابی باشد"
+msgstr "\"آیتم تامین شده توسط مشتری\" نمی‌تواند دارای نرخ ارزش‌گذاری باشد"
 
 #: erpnext/stock/doctype/item/item.py:313
 msgid "\"Is Fixed Asset\" cannot be unchecked, as Asset record exists against the item"
@@ -352,7 +352,7 @@ msgstr "(H) تغییر در ارزش موجودی (صف FIFO)"
 
 #: erpnext/stock/report/fifo_queue_vs_qty_after_transaction_comparison/fifo_queue_vs_qty_after_transaction_comparison.py:209
 msgid "(H) Valuation Rate"
-msgstr "(H) نرخ ارزش گذاری"
+msgstr "(H) نرخ ارزش‌گذاری"
 
 #. Description of the 'Actual Operating Cost' (Currency) field in DocType 'Work
 #. Order Operation'
@@ -363,12 +363,12 @@ msgstr "(نرخ ساعت / 60) * زمان عملیات واقعی"
 #: erpnext/stock/report/stock_ledger_invariant_check/stock_ledger_invariant_check.py:273
 #: erpnext/stock/report/stock_ledger_variance/stock_ledger_variance.py:176
 msgid "(I) Valuation Rate"
-msgstr "(I) نرخ ارزش گذاری"
+msgstr "(I) نرخ ارزش‌گذاری"
 
 #: erpnext/stock/report/stock_ledger_invariant_check/stock_ledger_invariant_check.py:278
 #: erpnext/stock/report/stock_ledger_variance/stock_ledger_variance.py:181
 msgid "(J) Valuation Rate as per FIFO"
-msgstr "(J) نرخ ارزش گذاری مطابق با FIFO"
+msgstr "(J) نرخ ارزش‌گذاری مطابق با FIFO"
 
 #: erpnext/stock/report/stock_ledger_invariant_check/stock_ledger_invariant_check.py:288
 #: erpnext/stock/report/stock_ledger_variance/stock_ledger_variance.py:191
@@ -2221,7 +2221,7 @@ msgstr "اقدام اگر بازرسی کیفیت رد شود"
 #. Settings'
 #: erpnext/buying/doctype/buying_settings/buying_settings.json
 msgid "Action If Same Rate is Not Maintained"
-msgstr "اگر همان نرخ حفظ نشود، اقدام کنید"
+msgstr "اقدام در صورت عدم حفظ نرخ یکسان"
 
 #: erpnext/quality_management/doctype/quality_review/quality_review_list.js:7
 msgid "Action Initialised"
@@ -4278,7 +4278,7 @@ msgstr "اجازه نرخ صفر"
 #: erpnext/stock/doctype/stock_entry_detail/stock_entry_detail.json
 #: erpnext/stock/doctype/stock_reconciliation_item/stock_reconciliation_item.json
 msgid "Allow Zero Valuation Rate"
-msgstr "نرخ ارزش گذاری صفر مجاز است"
+msgstr "نرخ ارزش‌گذاری صفر مجاز است"
 
 #. Label of the allow_existing_serial_no (Check) field in DocType 'Stock
 #. Settings'
@@ -4320,7 +4320,7 @@ msgstr ""
 #. 'Manufacturing Settings'
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.json
 msgid "Allow transferring raw materials even after the Required Quantity is fulfilled"
-msgstr "امکان انتقال مواد خام حتی پس از برآورده شدن مقدار مورد نیاز"
+msgstr "اجازه انتقال مواد خام حتی پس از برآورده شدن مقدار مورد نیاز"
 
 #. Label of the allowed (Check) field in DocType 'Repost Allowed Types'
 #: erpnext/accounts/doctype/repost_allowed_types/repost_allowed_types.json
@@ -6061,7 +6061,7 @@ msgstr "در ردیف #{0}: مقدار انتخاب شده {1} برای آیتم
 
 #: erpnext/accounts/doctype/exchange_rate_revaluation/exchange_rate_revaluation.py:84
 msgid "At least one account with exchange gain or loss is required"
-msgstr ""
+msgstr "حداقل یک حساب با سود یا زیان تبدیل مورد نیاز است"
 
 #: erpnext/assets/doctype/asset/asset.py:1123
 msgid "At least one asset has to be selected."
@@ -11551,7 +11551,7 @@ msgstr "پیکربندی اسمبلی محصول"
 #. DocType 'Buying Settings'
 #: erpnext/buying/doctype/buying_settings/buying_settings.json
 msgid "Configure the action to stop the transaction or just warn if the same rate is not maintained."
-msgstr "کنش را طوری پیکربندی کنید که تراکنش را متوقف کند یا در صورت عدم حفظ همان نرخ فقط هشدار دهد."
+msgstr "تنظیم کنید که در صورت عدم حفظ همان نرخ، تراکنش متوقف شود یا فقط هشدار داده شود."
 
 #: erpnext/buying/doctype/buying_settings/buying_settings.js:20
 msgid "Configure the default Price List when creating a new Purchase transaction. Item prices will be fetched from this Price List."
@@ -13693,21 +13693,21 @@ msgstr "تبدیل ارز"
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 #: erpnext/accounts/doctype/currency_exchange_settings/currency_exchange_settings.json
 msgid "Currency Exchange Settings"
-msgstr "تنظیمات تبادل ارز"
+msgstr "تنظیمات تبدیل ارز"
 
 #. Name of a DocType
 #: erpnext/accounts/doctype/currency_exchange_settings_details/currency_exchange_settings_details.json
 msgid "Currency Exchange Settings Details"
-msgstr "جزئیات تنظیمات تبادل ارز"
+msgstr "جزئیات تنظیمات تبدیل ارز"
 
 #. Name of a DocType
 #: erpnext/accounts/doctype/currency_exchange_settings_result/currency_exchange_settings_result.json
 msgid "Currency Exchange Settings Result"
-msgstr "نتیجه تنظیمات تبادل ارز"
+msgstr "نتیجه تنظیمات تبدیل ارز"
 
 #: erpnext/setup/doctype/currency_exchange/currency_exchange.py:55
 msgid "Currency Exchange must be applicable for Buying or for Selling."
-msgstr "مبادله ارز باید برای خرید یا فروش قابل اجرا باشد."
+msgstr "تبدیل ارز باید برای خرید یا فروش قابل اجرا باشد."
 
 #. Label of the currency_and_price_list (Section Break) field in DocType 'POS
 #. Invoice'
@@ -13896,7 +13896,7 @@ msgstr "زمان کنونی"
 #. Reconciliation Item'
 #: erpnext/stock/doctype/stock_reconciliation_item/stock_reconciliation_item.json
 msgid "Current Valuation Rate"
-msgstr "نرخ ارزش گذاری فعلی"
+msgstr "نرخ ارزش‌گذاری فعلی"
 
 #: erpnext/selling/report/sales_analytics/sales_analytics.js:90
 msgid "Curves"
@@ -14297,7 +14297,7 @@ msgstr "گروه مشتریان"
 #. Name of a DocType
 #: erpnext/accounts/doctype/customer_group_item/customer_group_item.json
 msgid "Customer Group Item"
-msgstr "مورد گروه مشتری"
+msgstr "آیتم گروه مشتری"
 
 #. Label of the customer_group_name (Data) field in DocType 'Customer Group'
 #: erpnext/setup/doctype/customer_group/customer_group.json
@@ -14316,7 +14316,7 @@ msgstr "گروه های مشتری"
 #. Name of a DocType
 #: erpnext/accounts/doctype/customer_item/customer_item.json
 msgid "Customer Item"
-msgstr "مورد مشتری"
+msgstr "آیتم مشتری"
 
 #. Label of the customer_items (Table) field in DocType 'Item'
 #: erpnext/stock/doctype/item/item.json
@@ -15756,7 +15756,7 @@ msgstr "روزهای تاخیری"
 #. Name of a report
 #: erpnext/stock/report/delayed_item_report/delayed_item_report.json
 msgid "Delayed Item Report"
-msgstr "گزارش مورد تاخیر"
+msgstr "گزارش آیتم با تاخیر"
 
 #. Name of a report
 #: erpnext/stock/report/delayed_order_report/delayed_order_report.json
@@ -17682,7 +17682,7 @@ msgstr ""
 #. DocType 'Selling Settings'
 #: erpnext/selling/doctype/selling_settings/selling_settings.json
 msgid "Don't Reserve Sales Order Qty on Sales Return"
-msgstr "تعداد سفارش فروش را در بازگشت فروش رزرو نکنید"
+msgstr "عدم رزرو مقدار سفارش فروش در بازگشت فروش"
 
 #. Label of the mute_emails (Check) field in DocType 'Bank Statement Import'
 #: erpnext/accounts/doctype/bank_statement_import/bank_statement_import.json
@@ -19305,17 +19305,17 @@ msgstr "زمان راه‌اندازی بیش از حد دستگاه"
 #. 'Company'
 #: erpnext/setup/doctype/company/company.json
 msgid "Exchange Gain / Loss"
-msgstr ""
+msgstr "سود / زیان تبدیل"
 
 #. Label of the exchange_gain_loss_account (Link) field in DocType 'Company'
 #: erpnext/setup/doctype/company/company.json
 msgid "Exchange Gain / Loss Account"
-msgstr "حساب سود / زیان مبادله"
+msgstr "حساب سود / زیان تبدیل"
 
 #. Option for the 'Entry Type' (Select) field in DocType 'Journal Entry'
 #: erpnext/accounts/doctype/journal_entry/journal_entry.json
 msgid "Exchange Gain Or Loss"
-msgstr "سود یا ضرر مبادله"
+msgstr "سود یا ضرر تبدیل"
 
 #. Label of the exchange_gain_loss (Currency) field in DocType 'Payment Entry
 #. Reference'
@@ -19330,12 +19330,12 @@ msgstr "سود یا ضرر مبادله"
 #: erpnext/accounts/doctype/sales_invoice_advance/sales_invoice_advance.json
 #: erpnext/setup/doctype/company/company.py:548
 msgid "Exchange Gain/Loss"
-msgstr "سود/زیان مبادله"
+msgstr "سود/زیان تبدیل"
 
 #: erpnext/controllers/accounts_controller.py:1590
 #: erpnext/controllers/accounts_controller.py:1674
 msgid "Exchange Gain/Loss amount has been booked through {0}"
-msgstr "مبلغ سود/زیان مبادله از طریق {0} رزرو شده است"
+msgstr "مبلغ سود/زیان تبدیل از طریق {0} رزرو شده است"
 
 #. Label of the exchange_rate (Float) field in DocType 'Journal Entry Account'
 #. Label of the exchange_rate (Float) field in DocType 'Payment Entry
@@ -19678,7 +19678,7 @@ msgstr "سر هزینه تغییر کرد"
 
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.py:591
 msgid "Expense account is mandatory for item {0}"
-msgstr "حساب هزینه برای مورد {0} اجباری است"
+msgstr "حساب هزینه برای آیتم {0} اجباری است"
 
 #: erpnext/assets/doctype/asset_repair/asset_repair.py:98
 msgid "Expense account not present in Purchase Invoice {0}"
@@ -20463,7 +20463,7 @@ msgstr "هزینه عملیاتی بر اساس کالاهای تمام شده"
 
 #: erpnext/stock/doctype/stock_entry/stock_entry.py:1340
 msgid "Finished Item {0} does not match with Work Order {1}"
-msgstr "مورد تمام شده {0} با دستور کار {1} مطابقت ندارد"
+msgstr "آیتم تمام شده {0} با دستور کار {1} مطابقت ندارد"
 
 #. Label of the first_email (Time) field in DocType 'Project'
 #: erpnext/projects/doctype/project/project.json
@@ -20809,11 +20809,11 @@ msgstr "برای دستور کار"
 
 #: erpnext/controllers/status_updater.py:267
 msgid "For an item {0}, quantity must be negative number"
-msgstr "برای یک مورد {0}، مقدار باید عدد منفی باشد"
+msgstr "برای یک آیتم {0}، مقدار باید عدد منفی باشد"
 
 #: erpnext/controllers/status_updater.py:264
 msgid "For an item {0}, quantity must be positive number"
-msgstr "برای یک مورد {0}، مقدار باید عدد مثبت باشد"
+msgstr "برای یک آیتم {0}، مقدار باید عدد مثبت باشد"
 
 #. Description of the 'Income Account' (Link) field in DocType 'Dunning'
 #: erpnext/accounts/doctype/dunning/dunning.json
@@ -23231,7 +23231,7 @@ msgstr ""
 #. field in DocType 'Stock Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "If enabled, the item rate won't adjust to the valuation rate during internal transfers, but accounting will still use the valuation rate."
-msgstr "اگر فعال شود، نرخ آیتم در انتقالات داخلی با نرخ ارزیابی تنظیم نخواهد شد، اما حسابداری همچنان از نرخ ارزیابی استفاده خواهد کرد."
+msgstr "اگر فعال شود، نرخ آیتم در انتقالات داخلی با نرخ ارزش‌گذاری تنظیم نخواهد شد، اما حسابداری همچنان از نرخ ارزش‌گذاری استفاده خواهد کرد."
 
 #. Description of the 'Allow UOM with Conversion Rate Defined in Item' (Check)
 #. field in DocType 'Stock Settings'
@@ -23253,7 +23253,7 @@ msgstr ""
 #. DocType 'Stock Settings'
 #: erpnext/stock/doctype/stock_settings/stock_settings.json
 msgid "If enabled, the system will use the moving average valuation method to calculate the valuation rate for the batched items and will not consider the individual batch-wise incoming rate."
-msgstr "اگر فعال شود، سیستم از روش ارزیابی میانگین متحرک برای محاسبه نرخ ارزیابی آیتم‌های دسته‌ای استفاده خواهد کرد و نرخ ورودی هر دسته را به‌طور جداگانه در نظر نخواهد گرفت."
+msgstr "اگر فعال شود، سیستم از روش ارزیابی میانگین متحرک برای محاسبه نرخ ارزش‌گذاری آیتم‌های دسته‌ای استفاده خواهد کرد و نرخ ورودی هر دسته را به‌طور جداگانه در نظر نخواهد گرفت."
 
 #. Description of the 'Validate Applied Rule' (Check) field in DocType 'Pricing
 #. Rule'
@@ -23310,7 +23310,7 @@ msgstr "اگر حساب مسدود شود، ورود به کاربران محد�
 
 #: erpnext/stock/stock_ledger.py:1859
 msgid "If the item is transacting as a Zero Valuation Rate item in this entry, please enable 'Allow Zero Valuation Rate' in the {0} Item table."
-msgstr "اگر آیتم به عنوان یک آیتم نرخ ارزش گذاری صفر در این ثبت تراکنش می‌شود، لطفاً \"نرخ ارزش گذاری صفر مجاز\" را در جدول آیتم {0} فعال کنید."
+msgstr "اگر آیتم به عنوان یک آیتم نرخ ارزش‌گذاری صفر در این ثبت تراکنش می‌شود، لطفاً \"نرخ ارزش‌گذاری صفر مجاز\" را در جدول آیتم {0} فعال کنید."
 
 #: erpnext/manufacturing/doctype/work_order/work_order.js:1088
 msgid "If the selected BOM has Operations mentioned in it, the system will fetch all Operations from BOM, these values can be changed."
@@ -23373,7 +23373,7 @@ msgstr "اگر علامت زده شود، می‌توان از چندین ماد
 
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.js:36
 msgid "If ticked, the BOM cost will be automatically updated based on Valuation Rate / Price List Rate / last purchase rate of raw materials."
-msgstr "در صورت علامت زدن، هزینه BOM به طور خودکار بر اساس نرخ ارزش گذاری / نرخ لیست قیمت / آخرین نرخ خرید مواد اولیه به روز می‌شود."
+msgstr "در صورت علامت زدن، هزینه BOM به طور خودکار بر اساس نرخ ارزش‌گذاری / نرخ لیست قیمت / آخرین نرخ خرید مواد اولیه به روز می‌شود."
 
 #: erpnext/accounts/doctype/loyalty_program/loyalty_program.js:14
 msgid "If unlimited expiry for the Loyalty Points, keep the Expiry Duration empty or 0."
@@ -25436,7 +25436,7 @@ msgstr "تخفیف داده شده است"
 #. Deduction'
 #: erpnext/accounts/doctype/payment_entry_deduction/payment_entry_deduction.json
 msgid "Is Exchange Gain / Loss?"
-msgstr ""
+msgstr "سود / زیان تبدیل است؟"
 
 #. Label of the is_existing_asset (Check) field in DocType 'Asset'
 #: erpnext/assets/doctype/asset/asset.json
@@ -27037,7 +27037,7 @@ msgstr "تعداد مورد را نمی‌توان به روز کرد زیرا �
 
 #: erpnext/stock/doctype/stock_entry/stock_entry.py:865
 msgid "Item rate has been updated to zero as Allow Zero Valuation Rate is checked for item {0}"
-msgstr "نرخ آیتم به صفر به‌روزرسانی شده است زیرا نرخ ارزش گذاری مجاز صفر برای آیتم صفر {0} بررسی می‌شود"
+msgstr "نرخ آیتم به صفر به‌روزرسانی شده است زیرا نرخ ارزش‌گذاری مجاز صفر برای آیتم صفر {0} بررسی می‌شود"
 
 #. Label of the finished_good (Link) field in DocType 'Job Card'
 #: erpnext/manufacturing/doctype/job_card/job_card.json
@@ -27067,7 +27067,7 @@ msgstr "آیتم {0} را نمی‌توان به عنوان یک زیر مونت
 
 #: erpnext/manufacturing/doctype/blanket_order/blanket_order.py:197
 msgid "Item {0} cannot be ordered more than {1} against Blanket Order {2}."
-msgstr "مورد {0} را نمی‌توان بیش از {1} در مقابل سفارش بلانکت {2} سفارش داد."
+msgstr "آیتم {0} را نمی‌توان بیش از {1} در مقابل سفارش کلی {2} سفارش داد."
 
 #: erpnext/assets/doctype/asset/asset.py:268
 #: erpnext/stock/doctype/item/item.py:630
@@ -27113,19 +27113,19 @@ msgstr "مورد {0} قبلاً در برابر سفارش فروش {1} رزرو
 
 #: erpnext/stock/doctype/item/item.py:1146
 msgid "Item {0} is cancelled"
-msgstr "مورد {0} لغو شده است"
+msgstr "آیتم {0} لغو شده است"
 
 #: erpnext/stock/doctype/item/item.py:1130
 msgid "Item {0} is disabled"
-msgstr "مورد {0} غیرفعال است"
+msgstr "آیتم {0} غیرفعال است"
 
 #: erpnext/selling/doctype/installation_note/installation_note.py:79
 msgid "Item {0} is not a serialized Item"
-msgstr "مورد {0} یک مورد سریالی نیست"
+msgstr "آیتم {0} یک آیتم سریالی نیست"
 
 #: erpnext/stock/doctype/item/item.py:1138
 msgid "Item {0} is not a stock Item"
-msgstr "مورد {0} یک مورد موجودی نیست"
+msgstr "آیتم {0} یک آیتم موجودی نیست"
 
 #: erpnext/manufacturing/doctype/production_plan/production_plan.py:875
 msgid "Item {0} is not a subcontracted item"
@@ -27133,7 +27133,7 @@ msgstr "آیتم {0} یک آیتم قرارداد فرعی شده نیست"
 
 #: erpnext/stock/doctype/stock_entry/stock_entry.py:1701
 msgid "Item {0} is not active or end of life has been reached"
-msgstr "مورد {0} فعال نیست یا به پایان عمر رسیده است"
+msgstr "آیتم {0} فعال نیست یا به پایان عمر رسیده است"
 
 #: erpnext/assets/doctype/asset/asset.py:272
 msgid "Item {0} must be a Fixed Asset Item"
@@ -27157,7 +27157,7 @@ msgstr "مورد {0} در جدول \"مواد خام تامین شده\" در {1
 
 #: erpnext/stock/doctype/item_price/item_price.py:56
 msgid "Item {0} not found."
-msgstr "مورد {0} یافت نشد."
+msgstr "آیتم {0} یافت نشد."
 
 #: erpnext/buying/doctype/purchase_order/purchase_order.py:343
 msgid "Item {0}: Ordered qty {1} cannot be less than minimum order qty {2} (defined in Item)."
@@ -27206,7 +27206,7 @@ msgstr "ثبت فروش بر حسب آیتم"
 
 #: erpnext/manufacturing/doctype/bom/bom.py:346
 msgid "Item: {0} does not exist in the system"
-msgstr "مورد: {0} در سیستم وجود ندارد"
+msgstr "آیتم: {0} در سیستم وجود ندارد"
 
 #. Label of the items_section (Section Break) field in DocType 'POS Invoice'
 #. Label of the items (Table) field in DocType 'POS Invoice'
@@ -27317,7 +27317,7 @@ msgstr "آیتم‌ها برای درخواست مواد خام"
 
 #: erpnext/stock/doctype/stock_entry/stock_entry.py:861
 msgid "Items rate has been updated to zero as Allow Zero Valuation Rate is checked for the following items: {0}"
-msgstr "نرخ آیتم‌ها به صفر به‌روزرسانی شده است زیرا نرخ ارزش گذاری مجاز صفر برای آیتم‌های زیر بررسی می‌شود: {0}"
+msgstr "نرخ آیتم‌ها به صفر به‌روزرسانی شده است زیرا نرخ ارزش‌گذاری مجاز صفر برای آیتم‌های زیر بررسی می‌شود: {0}"
 
 #. Label of the items_to_be_repost (Code) field in DocType 'Repost Item
 #. Valuation'
@@ -28797,7 +28797,7 @@ msgstr "حفظ همان نرخ در کل چرخه فروش"
 #. Label of the maintain_same_rate (Check) field in DocType 'Buying Settings'
 #: erpnext/buying/doctype/buying_settings/buying_settings.json
 msgid "Maintain Same Rate Throughout the Purchase Cycle"
-msgstr "همان نرخ را در طول چرخه خرید حفظ کنید"
+msgstr "حفظ همان نرخ در طول چرخه خرید"
 
 #. Label of the is_stock_item (Check) field in DocType 'Item'
 #: erpnext/stock/doctype/item/item.json
@@ -30017,7 +30017,7 @@ msgstr "حداکثر تخفیف برای آیتم {0} {1}% است"
 
 #: erpnext/public/js/utils/barcode_scanner.js:99
 msgid "Maximum quantity scanned for item {0}."
-msgstr "حداکثر مقدار اسکن شده برای مورد {0}."
+msgstr "حداکثر مقدار اسکن شده برای آیتم {0}."
 
 #. Description of the 'Max Sample Quantity' (Int) field in DocType 'Item'
 #: erpnext/stock/doctype/item/item.json
@@ -30083,7 +30083,7 @@ msgstr "مگاوات"
 
 #: erpnext/stock/stock_ledger.py:1872
 msgid "Mention Valuation Rate in the Item master."
-msgstr "نرخ ارزش گذاری را در آیتم اصلی ذکر کنید."
+msgstr "نرخ ارزش‌گذاری را در آیتم اصلی ذکر کنید."
 
 #. Description of the 'Accounts' (Table) field in DocType 'Customer'
 #: erpnext/selling/doctype/customer/customer.json
@@ -31211,7 +31211,7 @@ msgstr "مقدار منفی مجاز نیست"
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:573
 msgid "Negative Valuation Rate is not allowed"
-msgstr "نرخ ارزش گذاری منفی مجاز نیست"
+msgstr "نرخ ارزش‌گذاری منفی مجاز نیست"
 
 #: erpnext/setup/setup_wizard/data/sales_stage.txt:8
 #: erpnext/setup/setup_wizard/operations/install_fixtures.py:418
@@ -32286,7 +32286,7 @@ msgstr "یادداشت"
 
 #: erpnext/manufacturing/doctype/bom_update_log/bom_update_log_list.js:21
 msgid "Note: Automatic log deletion only applies to logs of type <i>Update Cost</i>"
-msgstr "توجه: حذف خودکار لاگ فقط برای گزارش‌هایی از نوع <i>به‌روزرسانی هزینه</i> اعمال می‌شود"
+msgstr "توجه: حذف خودکار لاگ فقط برای لاگ‌هایی از نوع <i>به‌روزرسانی هزینه</i> اعمال می‌شود"
 
 #: erpnext/accounts/party.py:691
 msgid "Note: Due Date exceeds allowed customer credit days by {0} day(s)"
@@ -34073,7 +34073,7 @@ msgstr "آیتم فاکتور POS"
 #. Name of a DocType
 #: erpnext/accounts/doctype/pos_invoice_merge_log/pos_invoice_merge_log.json
 msgid "POS Invoice Merge Log"
-msgstr "گزارش ادغام فاکتور POS"
+msgstr "لاگ ادغام فاکتور POS"
 
 #. Name of a DocType
 #: erpnext/accounts/doctype/pos_invoice_reference/pos_invoice_reference.json
@@ -35961,13 +35961,13 @@ msgstr "تخصیص درصد باید برابر با 100٪ باشد"
 #. 'Buying Settings'
 #: erpnext/buying/doctype/buying_settings/buying_settings.json
 msgid "Percentage you are allowed to order beyond the Blanket Order quantity."
-msgstr "درصدی که مجاز به سفارش آن هستید فراتر از مقدار سفارش کلی."
+msgstr "درصدی که اجازه دارید بیش از مقدار سفارش کلی سفارش دهید."
 
 #. Description of the 'Blanket Order Allowance (%)' (Float) field in DocType
 #. 'Selling Settings'
 #: erpnext/selling/doctype/selling_settings/selling_settings.json
 msgid "Percentage you are allowed to sell beyond the Blanket Order quantity."
-msgstr "درصدی که مجاز به فروش آن هستید فراتر از مقدار سفارش کلی."
+msgstr "درصدی که اجازه دارید بیش از مقدار سفارش کلی بفروشید."
 
 #. Description of the 'Over Transfer Allowance (%)' (Float) field in DocType
 #. 'Buying Settings'
@@ -36396,7 +36396,7 @@ msgstr "X روز قبل عملیات را برنامه ریزی کنید"
 #. Settings'
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.json
 msgid "Plan time logs outside Workstation working hours"
-msgstr "گزارش های زمان را خارج از ساعات کاری ایستگاه کاری برنامه ریزی کنید"
+msgstr "برنامه ریزی لاگ‌های زمان خارج از ساعات کاری ایستگاه کاری"
 
 #. Label of the quantity (Float) field in DocType 'Material Request Plan Item'
 #: erpnext/manufacturing/doctype/material_request_plan_item/material_request_plan_item.json
@@ -37014,7 +37014,7 @@ msgstr "لطفا ابتدا شرکت را انتخاب کنید"
 
 #: erpnext/assets/doctype/asset_maintenance_log/asset_maintenance_log.py:52
 msgid "Please select Completion Date for Completed Asset Maintenance Log"
-msgstr "لطفاً تاریخ تکمیل را برای گزارش کامل تعمیر و نگهداری دارایی انتخاب کنید"
+msgstr "لطفاً تاریخ تکمیل را برای لاگ تعمیر و نگهداری دارایی کامل شده انتخاب کنید"
 
 #: erpnext/maintenance/doctype/maintenance_visit/maintenance_visit.js:84
 #: erpnext/maintenance/doctype/maintenance_visit/maintenance_visit.js:125
@@ -37337,7 +37337,7 @@ msgstr "لطفاً شناسه مالیاتی را برای مشتری \"%s\" ت�
 
 #: erpnext/accounts/doctype/exchange_rate_revaluation/exchange_rate_revaluation.py:338
 msgid "Please set Unrealized Exchange Gain/Loss Account in Company {0}"
-msgstr "لطفاً حساب سود/زیان غیرواقعی مبادله را در شرکت تنظیم کنید {0}"
+msgstr "لطفاً حساب سود/زیان تبدیل تحقق نیافته را در شرکت {0} تنظیم کنید"
 
 #: erpnext/regional/report/vat_audit_report/vat_audit_report.py:56
 msgid "Please set VAT Accounts in {0}"
@@ -37410,7 +37410,7 @@ msgstr "لطفاً حساب پیش‌فرض نقدی یا بانکی را در �
 
 #: erpnext/accounts/utils.py:2218
 msgid "Please set default Exchange Gain/Loss Account in Company {}"
-msgstr "لطفاً حساب سود/زیان مبادله پیش‌فرض را در شرکت تنظیم کنید {}"
+msgstr "لطفاً حساب سود/زیان تبدیل پیش‌فرض را در شرکت تنظیم کنید {}"
 
 #: erpnext/assets/doctype/asset_repair/asset_repair.py:363
 msgid "Please set default Expense Account in Company {0}"
@@ -37498,7 +37498,7 @@ msgstr "لطفاً {0} را در BOM Creator {1} تنظیم کنید"
 
 #: erpnext/accounts/doctype/payment_entry/payment_entry.py:1219
 msgid "Please set {0} in Company {1} to account for Exchange Gain / Loss"
-msgstr ""
+msgstr "لطفاً {0} را در شرکت {1} برای محاسبه سود / زیان تبدیل تنظیم کنید"
 
 #: erpnext/controllers/accounts_controller.py:521
 msgid "Please set {0} to {1}, the same account that was used in the original invoice {2}."
@@ -37542,7 +37542,7 @@ msgstr "لطفا حداقل یک ویژگی را در جدول Attributes مشخ
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:563
 msgid "Please specify either Quantity or Valuation Rate or both"
-msgstr "لطفاً مقدار یا نرخ ارزش گذاری یا هر دو را مشخص کنید"
+msgstr "لطفاً مقدار یا نرخ ارزش‌گذاری یا هر دو را مشخص کنید"
 
 #: erpnext/stock/doctype/item_attribute/item_attribute.py:93
 msgid "Please specify from/to range"
@@ -38813,7 +38813,7 @@ msgstr "فرآیند تطبیق پرداخت"
 #. Name of a DocType
 #: erpnext/accounts/doctype/process_payment_reconciliation_log/process_payment_reconciliation_log.json
 msgid "Process Payment Reconciliation Log"
-msgstr "گزارش تطبیق پرداخت فرآیند"
+msgstr "پردازش لاگ تطبیق پرداخت"
 
 #. Name of a DocType
 #: erpnext/accounts/doctype/process_payment_reconciliation_log_allocations/process_payment_reconciliation_log_allocations.json
@@ -44933,7 +44933,7 @@ msgstr "ردیف #{0}: زمان‌بندی با ردیف {1} در تضاد اس�
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:97
 msgid "Row #{0}: You cannot use the inventory dimension '{1}' in Stock Reconciliation to modify the quantity or valuation rate. Stock reconciliation with inventory dimensions is intended solely for performing opening entries."
-msgstr "ردیف #{0}: نمی‌توانید از بعد موجودی «{1}» در تطبیق موجودی برای تغییر مقدار یا نرخ ارزیابی استفاده کنید. تطبیق موجودی با ابعاد موجودی صرفاً برای انجام ورودی های افتتاحیه در نظر گرفته شده است."
+msgstr "ردیف #{0}: نمی‌توانید از بعد موجودی «{1}» در تطبیق موجودی برای تغییر مقدار یا نرخ ارزش‌گذاری استفاده کنید. تطبیق موجودی با ابعاد موجودی صرفاً برای انجام ورودی های افتتاحیه در نظر گرفته شده است."
 
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1526
 msgid "Row #{0}: You must select an Asset for Item {1}."
@@ -44965,7 +44965,7 @@ msgstr "ردیف #{idx}: هنگام تامین مواد خام به پیمانک
 
 #: erpnext/controllers/buying_controller.py:406
 msgid "Row #{idx}: Item rate has been updated as per valuation rate since its an internal stock transfer."
-msgstr "ردیف #{idx}: نرخ آیتم براساس نرخ ارزیابی به‌روزرسانی شده است، زیرا یک انتقال داخلی موجودی است."
+msgstr "ردیف #{idx}: نرخ آیتم براساس نرخ ارزش‌گذاری به‌روزرسانی شده است، زیرا یک انتقال داخلی موجودی است."
 
 #: erpnext/controllers/buying_controller.py:870
 msgid "Row #{idx}: Please enter a location for the asset item {item_code}."
@@ -45224,7 +45224,7 @@ msgstr "ردیف {0}: الگوی مالیات آیتم بر اساس اعتبا�
 
 #: erpnext/controllers/selling_controller.py:541
 msgid "Row {0}: Item rate has been updated as per valuation rate since its an internal stock transfer"
-msgstr "ردیف {0}: نرخ اقلام براساس نرخ ارزیابی به‌روزرسانی شده است، زیرا یک انتقال داخلی موجودی است"
+msgstr "ردیف {0}: نرخ اقلام براساس نرخ ارزش‌گذاری به‌روزرسانی شده است، زیرا یک انتقال داخلی موجودی است"
 
 #: erpnext/controllers/subcontracting_controller.py:98
 msgid "Row {0}: Item {1} must be a stock item."
@@ -45705,7 +45705,7 @@ msgstr "فاکتور پیش پرداخت فروش"
 #: erpnext/accounts/doctype/purchase_invoice_item/purchase_invoice_item.json
 #: erpnext/accounts/doctype/sales_invoice_item/sales_invoice_item.json
 msgid "Sales Invoice Item"
-msgstr "مورد فاکتور فروش"
+msgstr "آیتم فاکتور فروش"
 
 #. Label of the sales_invoice_no (Link) field in DocType 'Stock Entry'
 #: erpnext/stock/doctype/stock_entry/stock_entry.json
@@ -46000,7 +46000,7 @@ msgstr "روند سفارش فروش"
 
 #: erpnext/stock/doctype/delivery_note/delivery_note.py:253
 msgid "Sales Order required for Item {0}"
-msgstr "سفارش فروش برای مورد {0} لازم است"
+msgstr "سفارش فروش برای آیتم {0} لازم است"
 
 #: erpnext/selling/doctype/sales_order/sales_order.py:277
 msgid "Sales Order {0} already exists against Customer's Purchase Order {1}. To allow multiple Sales Orders, Enable {2} in {3}"
@@ -46443,7 +46443,7 @@ msgstr "همان کالا و ترکیب انبار قبلا وارد شده اس
 
 #: erpnext/buying/utils.py:61
 msgid "Same item cannot be entered multiple times."
-msgstr "یک مورد را نمی‌توان چندین بار وارد کرد."
+msgstr "یک آیتم را نمی‌توان چندین بار وارد کرد."
 
 #: erpnext/buying/doctype/request_for_quotation/request_for_quotation.py:79
 msgid "Same supplier has been entered multiple times"
@@ -46578,7 +46578,7 @@ msgstr "اسکن شماره سریال"
 
 #: erpnext/public/js/utils/barcode_scanner.js:179
 msgid "Scan barcode for item {0}"
-msgstr "اسکن بارکد برای مورد {0}"
+msgstr "اسکن بارکد برای آیتم {0}"
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.js:106
 msgid "Scan mode enabled, existing quantity will not be fetched."
@@ -48007,12 +48007,12 @@ msgstr "UOM آیتم خدمات"
 
 #: erpnext/subcontracting/doctype/subcontracting_bom/subcontracting_bom.py:64
 msgid "Service Item {0} is disabled."
-msgstr "مورد سرویس {0} غیرفعال است."
+msgstr "آیتم خدمات {0} غیرفعال است."
 
 #: erpnext/subcontracting/doctype/subcontracting_bom/subcontracting_bom.py:67
 #: erpnext/subcontracting/doctype/subcontracting_order/subcontracting_order.py:160
 msgid "Service Item {0} must be a non-stock item."
-msgstr "مورد سرویس {0} باید یک کالای غیر موجودی باشد."
+msgstr "آیتم خدمات {0} باید یک آیتم غیر موجودی باشد."
 
 #. Label of the service_items_section (Section Break) field in DocType
 #. 'Subcontracting Order'
@@ -48192,7 +48192,7 @@ msgstr "تاریخ انتشار جدید را تنظیم کنید"
 #. DocType 'Manufacturing Settings'
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.json
 msgid "Set Operating Cost / Scrap Items From Sub-assemblies"
-msgstr ""
+msgstr "تنظیم هزینه عملیاتی / آیتم‌های ضایعات از زیر مونتاژها"
 
 #. Label of the set_cost_based_on_bom_qty (Check) field in DocType 'BOM
 #. Operation'
@@ -48276,7 +48276,7 @@ msgstr "تنظیم انبار هدف"
 #. Creator'
 #: erpnext/manufacturing/doctype/bom_creator/bom_creator.json
 msgid "Set Valuation Rate Based on Source Warehouse"
-msgstr "نرخ ارزش گذاری را بر اساس انبار منبع تنظیم کنید"
+msgstr "نرخ ارزش‌گذاری را بر اساس انبار منبع تنظیم کنید"
 
 #: erpnext/selling/doctype/sales_order/sales_order.js:216
 msgid "Set Warehouse"
@@ -49301,7 +49301,7 @@ msgstr "نوع سند منبع"
 #. Label of the source_exchange_rate (Float) field in DocType 'Payment Entry'
 #: erpnext/accounts/doctype/payment_entry/payment_entry.json
 msgid "Source Exchange Rate"
-msgstr "نرخ مبادله منبع"
+msgstr "نرخ تبدیل منبع"
 
 #. Label of the source_fieldname (Data) field in DocType 'Inventory Dimension'
 #: erpnext/stock/doctype/inventory_dimension/inventory_dimension.json
@@ -51680,7 +51680,7 @@ msgstr "گروه تامین کننده"
 #. Name of a DocType
 #: erpnext/accounts/doctype/supplier_group_item/supplier_group_item.json
 msgid "Supplier Group Item"
-msgstr "مورد گروه تامین کننده"
+msgstr "آیتم گروه تامین کننده"
 
 #. Label of the supplier_group_name (Data) field in DocType 'Supplier Group'
 #: erpnext/setup/doctype/supplier_group/supplier_group.json
@@ -51726,7 +51726,7 @@ msgstr "فاکتور تامین کننده در فاکتور خرید وجود �
 #. Name of a DocType
 #: erpnext/accounts/doctype/supplier_item/supplier_item.json
 msgid "Supplier Item"
-msgstr "مورد تامین کننده"
+msgstr "آیتم تامین کننده"
 
 #. Label of the supplier_items (Table) field in DocType 'Item'
 #: erpnext/stock/doctype/item/item.json
@@ -53401,7 +53401,7 @@ msgstr "قلمرو"
 #. Name of a DocType
 #: erpnext/accounts/doctype/territory_item/territory_item.json
 msgid "Territory Item"
-msgstr "قلمرو مورد"
+msgstr "آیتم قلمرو"
 
 #. Label of the territory_manager (Link) field in DocType 'Territory'
 #: erpnext/setup/doctype/territory/territory.json
@@ -54861,7 +54861,7 @@ msgstr "گنجاندن آیتم‌های غیر موجودی در برنامه �
 #. (Check) field in DocType 'Manufacturing Settings'
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.json
 msgid "To include sub-assembly costs and scrap items in Finished Goods on a work order without using a job card, when the 'Use Multi-Level BOM' option is enabled."
-msgstr ""
+msgstr "برای گنجاندن هزینه‌های زیر مونتاژ و آیتم‌های ضایعات در کالاهای نهایی در یک دستور کار بدون استفاده از کارت کار، زمانی که گزینه «استفاده از BOM چند سطحی» فعال است."
 
 #: erpnext/accounts/doctype/payment_entry/payment_entry.py:2337
 #: erpnext/controllers/accounts_controller.py:3002
@@ -56580,7 +56580,7 @@ msgstr ""
 
 #: erpnext/setup/utils.py:137
 msgid "Unable to find exchange rate for {0} to {1} for key date {2}. Please create a Currency Exchange record manually"
-msgstr "نرخ مبادله {0} تا {1} برای تاریخ کلیدی {2} یافت نشد. لطفاً یک رکورد تبادل ارز به صورت دستی ایجاد کنید"
+msgstr "نرخ تبدیل {0} تا {1} برای تاریخ کلیدی {2} یافت نشد. لطفاً یک رکورد تبدیل ارز به صورت دستی ایجاد کنید"
 
 #: erpnext/buying/doctype/supplier_scorecard/supplier_scorecard.py:78
 msgid "Unable to find score starting at {0}. You need to have standing scores covering 0 to 100"
@@ -56738,7 +56738,7 @@ msgstr "فاقد صلاحیت"
 #. 'Company'
 #: erpnext/setup/doctype/company/company.json
 msgid "Unrealized Exchange Gain/Loss Account"
-msgstr "حساب سود/زیان ارز تحقق نیافته"
+msgstr "حساب سود/زیان تبدیل تحقق نیافته"
 
 #. Label of the unrealized_profit_loss_account (Link) field in DocType
 #. 'Purchase Invoice'
@@ -56938,7 +56938,7 @@ msgstr "به روز رسانی هزینه BOM به صورت خودکار"
 #. 'Manufacturing Settings'
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.json
 msgid "Update BOM cost automatically via scheduler, based on the latest Valuation Rate/Price List Rate/Last Purchase Rate of raw materials"
-msgstr "به‌روزرسانی هزینه BOM به‌طور خودکار از طریق زمان‌بندی، بر اساس آخرین نرخ ارزیابی/نرخ فهرست قیمت/آخرین نرخ خرید مواد خام"
+msgstr "به‌روزرسانی هزینه BOM به‌طور خودکار از طریق زمان‌بندی، بر اساس آخرین نرخ ارزش‌گذاری/نرخ فهرست قیمت/آخرین نرخ خرید مواد خام"
 
 #. Label of the update_billed_amount_in_delivery_note (Check) field in DocType
 #. 'POS Invoice'
@@ -57256,7 +57256,7 @@ msgstr ""
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.json
 #: erpnext/buying/doctype/buying_settings/buying_settings.json
 msgid "Use Transaction Date Exchange Rate"
-msgstr "از نرخ مبادله تاریخ تراکنش استفاده کنید"
+msgstr "استفاده از نرخ تبدیل تاریخ تراکنش"
 
 #: erpnext/projects/doctype/project/project.py:560
 msgid "Use a name that is different from previous project name"
@@ -57533,7 +57533,7 @@ msgstr "اعتبارسنجی قانون اعمال شده"
 #. 'Manufacturing Settings'
 #: erpnext/manufacturing/doctype/manufacturing_settings/manufacturing_settings.json
 msgid "Validate Components and Quantities Per BOM"
-msgstr ""
+msgstr "اعتبارسنجی مقادیر و اجزاء در هر BOM"
 
 #. Label of the validate_negative_stock (Check) field in DocType 'Inventory
 #. Dimension'
@@ -57551,7 +57551,7 @@ msgstr ""
 #. Settings'
 #: erpnext/selling/doctype/selling_settings/selling_settings.json
 msgid "Validate Selling Price for Item Against Purchase Rate or Valuation Rate"
-msgstr "اعتبارسنجی قیمت فروش کالا در مقایسه با نرخ خرید یا نرخ ارزیابی"
+msgstr "اعتبارسنجی قیمت فروش کالا در مقایسه با نرخ خرید یا نرخ ارزش‌گذاری"
 
 #. Label of the validate_stock_on_save (Check) field in DocType 'POS Profile'
 #: erpnext/accounts/doctype/pos_profile/pos_profile.json
@@ -57648,27 +57648,27 @@ msgstr "روش ارزش گذاری"
 #: erpnext/stock/report/stock_balance/stock_balance.py:489
 #: erpnext/stock/report/stock_ledger/stock_ledger.py:297
 msgid "Valuation Rate"
-msgstr "نرخ ارزش گذاری"
+msgstr "نرخ ارزش‌گذاری"
 
 #: erpnext/stock/report/incorrect_serial_no_valuation/incorrect_serial_no_valuation.py:166
 msgid "Valuation Rate (In / Out)"
-msgstr "نرخ ارزش گذاری (ورودی/خروجی)"
+msgstr "نرخ ارزش‌گذاری (ورودی/خروجی)"
 
 #: erpnext/stock/stock_ledger.py:1875
 msgid "Valuation Rate Missing"
-msgstr "نرخ ارزیابی وجود ندارد"
+msgstr "نرخ ارزش‌گذاری وجود ندارد"
 
 #: erpnext/stock/stock_ledger.py:1853
 msgid "Valuation Rate for the Item {0}, is required to do accounting entries for {1} {2}."
-msgstr "نرخ ارزش گذاری برای آیتم {0}، برای انجام ثبت‌های حسابداری برای {1} {2} لازم است."
+msgstr "نرخ ارزش‌گذاری برای آیتم {0}، برای انجام ثبت‌های حسابداری برای {1} {2} لازم است."
 
 #: erpnext/stock/doctype/item/item.py:266
 msgid "Valuation Rate is mandatory if Opening Stock entered"
-msgstr "در صورت ثبت موجودی افتتاحیه، نرخ ارزش گذاری الزامی است"
+msgstr "در صورت ثبت موجودی افتتاحیه، نرخ ارزش‌گذاری الزامی است"
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:710
 msgid "Valuation Rate required for Item {0} at row {1}"
-msgstr "نرخ ارزش گذاری الزامی است برای آیتم {0} در ردیف {1}"
+msgstr "نرخ ارزش‌گذاری الزامی است برای آیتم {0} در ردیف {1}"
 
 #. Option for the 'Consider Tax or Charge for' (Select) field in DocType
 #. 'Purchase Taxes and Charges'
@@ -57678,7 +57678,7 @@ msgstr "ارزش گذاری و کل"
 
 #: erpnext/stock/doctype/stock_reconciliation/stock_reconciliation.py:929
 msgid "Valuation rate for customer provided items has been set to zero."
-msgstr "نرخ ارزش گذاری برای آیتم‌های ارائه شده توسط مشتری صفر تعیین شده است."
+msgstr "نرخ ارزش‌گذاری برای آیتم‌های ارائه شده توسط مشتری صفر تعیین شده است."
 
 #. Description of the 'Sales Incoming Rate' (Currency) field in DocType
 #. 'Purchase Invoice Item'
@@ -58040,7 +58040,7 @@ msgstr "مشاهده نمودار حساب ها"
 
 #: erpnext/accounts/doctype/payment_entry/payment_entry.js:247
 msgid "View Exchange Gain/Loss Journals"
-msgstr "مشاهده دفترهای روزنامه سود/زیان تبادل"
+msgstr "مشاهده دفترهای روزنامه سود/زیان تبدیل"
 
 #: erpnext/assets/doctype/asset/asset.js:164
 #: erpnext/assets/doctype/asset_repair/asset_repair.js:76
@@ -59120,7 +59120,7 @@ msgstr "هنگام ایجاد حساب برای شرکت فرزند {0}، حسا
 #. DocType 'Buying Settings'
 #: erpnext/buying/doctype/buying_settings/buying_settings.json
 msgid "While making Purchase Invoice from Purchase Order, use Exchange Rate on Invoice's transaction date rather than inheriting it from Purchase Order. Only applies for Purchase Invoice."
-msgstr "هنگام تهیه فاکتور خرید از سفارش خرید، به جای ارث بردن آن از سفارش خرید، از نرخ مبادله در تاریخ تراکنش فاکتور استفاده کنید. فقط برای فاکتور خرید اعمال می‌شود."
+msgstr "هنگام تهیه فاکتور خرید از سفارش خرید، به جای ارث بردن آن از سفارش خرید، از نرخ تبدیل در تاریخ تراکنش فاکتور استفاده کنید. فقط برای فاکتور خرید اعمال می‌شود."
 
 #: erpnext/setup/setup_wizard/operations/install_fixtures.py:269
 msgid "White"
@@ -59257,7 +59257,7 @@ msgstr "مواد مصرفی دستور کار"
 #. Name of a DocType
 #: erpnext/manufacturing/doctype/work_order_item/work_order_item.json
 msgid "Work Order Item"
-msgstr "مورد دستور کار"
+msgstr "آیتم دستور کار"
 
 #. Name of a DocType
 #: erpnext/manufacturing/doctype/work_order_operation/work_order_operation.json
@@ -60498,11 +60498,11 @@ msgstr "{0} برای حساب {1} اجباری است"
 
 #: erpnext/public/js/controllers/taxes_and_totals.js:122
 msgid "{0} is mandatory. Maybe Currency Exchange record is not created for {1} to {2}"
-msgstr "{0} اجباری است. شاید رکورد تبادل ارز برای {1} تا {2} ایجاد نشده باشد"
+msgstr "{0} اجباری است. شاید رکورد تبدیل ارز برای {1} تا {2} ایجاد نشده باشد"
 
 #: erpnext/controllers/accounts_controller.py:2934
 msgid "{0} is mandatory. Maybe Currency Exchange record is not created for {1} to {2}."
-msgstr "{0} اجباری است. شاید رکورد تبادل ارز برای {1} تا {2} ایجاد نشده باشد."
+msgstr "{0} اجباری است. شاید رکورد تبدیل ارز برای {1} تا {2} ایجاد نشده باشد."
 
 #: erpnext/selling/doctype/customer/customer.py:202
 msgid "{0} is not a company bank account"
