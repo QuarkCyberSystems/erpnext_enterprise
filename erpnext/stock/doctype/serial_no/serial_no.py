@@ -150,8 +150,6 @@ def get_serial_nos(serial_no):
 
 
 def get_serial_nos_from_sle_list(bundles):
-	if not bundles:
-		return {}
 	table = frappe.qb.DocType("Serial and Batch Entry")
 	query = frappe.qb.from_(table).select(table.parent, table.serial_no).where(table.parent.isin(bundles))
 	data = query.run(as_dict=True)

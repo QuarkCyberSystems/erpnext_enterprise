@@ -21,7 +21,7 @@ def execute(filters=None):
 	sl_entries = get_stock_ledger_entries(filters, items)
 	item_details = get_item_details(items, sl_entries, False)
 
-	opening_row, actual_qty, stock_value = get_opening_balance_data(filters, columns, sl_entries)
+	opening_row = get_opening_balance_data(filters, columns, sl_entries)
 
 	precision = cint(frappe.db.get_single_value("System Settings", "float_precision"))
 	data = process_stock_ledger_entries(sl_entries, item_details, opening_row, precision)
@@ -31,9 +31,7 @@ def execute(filters=None):
 
 def get_opening_balance_data(filters, columns, sl_entries):
 	opening_row = get_opening_balance(filters, columns, sl_entries)
-	actual_qty = opening_row.get("qty_after_transaction") if opening_row else 0
-	stock_value = opening_row.get("stock_value") if opening_row else 0
-	return opening_row, actual_qty, stock_value
+	return opening_row
 
 
 def process_stock_ledger_entries(sl_entries, item_details, opening_row, precision):
@@ -42,9 +40,9 @@ def process_stock_ledger_entries(sl_entries, item_details, opening_row, precisio
 	if opening_row:
 		data.append(opening_row)
 
-	available_serial_nos = get_serial_nos_from_sle_list(
-		[sle.serial_and_batch_bundle for sle in sl_entries if sle.serial_and_batch_bundle]
-	)
+	available_serial_nos = {}
+	if sabb_list := [sle.serial_and_batch_bundle for sle in sl_entries if sle.serial_and_batch_bundle]:
+		available_serial_nos = get_serial_nos_from_sle_list(sabb_list)
 
 	if not available_serial_nos:
 		return [], []
@@ -221,13 +219,8 @@ def get_columns(filters):
 def get_items(filters):
 	item = frappe.qb.DocType("Item")
 	query = frappe.qb.from_(item).select(item.name).where(item.has_serial_no == 1)
-	conditions = []
 
 	if item_code := filters.get("item_code"):
-		conditions.append(item.name == item_code)
-
-	if conditions:
-		for condition in conditions:
-			query = query.where(condition)
+		query = query.where(item.name == item_code)
 
 	return query.run(pluck=True)
