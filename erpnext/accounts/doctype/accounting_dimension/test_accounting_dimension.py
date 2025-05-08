@@ -121,7 +121,6 @@ def create_dimension():
 				"company": "_Test Company",
 				"reference_document": "Location",
 				"default_dimension": "Block 1",
-				"mandatory_for_bs": 1,
 			},
 		)
 
