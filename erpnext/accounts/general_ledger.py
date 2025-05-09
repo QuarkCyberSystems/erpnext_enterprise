@@ -33,6 +33,10 @@ def make_gl_entries(
 	from_repost=False,
 ):
 	if gl_map:
+		if gl_map[0].voucher_type != "Period Closing Voucher":
+			bud_val = BudgetValidation(gl_map=gl_map)
+			bud_val.validate()
+
 		if not cancel:
 			make_acc_dimensions_offsetting_entry(gl_map)
 			validate_accounting_period(gl_map)
@@ -40,9 +44,6 @@ def make_gl_entries(
 			gl_map = process_gl_map(gl_map, merge_entries, from_repost=from_repost)
 			if gl_map and len(gl_map) > 1:
 				if gl_map[0].voucher_type != "Period Closing Voucher":
-					bud_val = BudgetValidation(gl_map=gl_map)
-					bud_val.validate()
-
 					create_payment_ledger_entry(
 						gl_map,
 						cancel=0,
