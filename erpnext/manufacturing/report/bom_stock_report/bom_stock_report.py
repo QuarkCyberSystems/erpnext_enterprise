@@ -23,6 +23,7 @@ def get_columns():
 	"""return columns"""
 	columns = [
 		_("Item") + ":Link/Item:150",
+		_("Item Name") + "::240",
 		_("Description") + "::300",
 		_("BOM Qty") + ":Float:160",
 		_("BOM UoM") + "::160",
@@ -73,6 +74,7 @@ def get_bom_stock(filters):
 		.on((BOM_ITEM.item_code == BIN.item_code) & (CONDITIONS))
 		.select(
 			BOM_ITEM.item_code,
+			BOM_ITEM.item_name,
 			BOM_ITEM.description,
 			BOM_ITEM.stock_qty,
 			BOM_ITEM.stock_uom,
