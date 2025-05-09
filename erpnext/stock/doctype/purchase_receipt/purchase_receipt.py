@@ -1105,6 +1105,7 @@ def get_billed_amount_against_po(po_items):
 def update_billing_percentage(pr_doc, update_modified=True, adjust_incoming_rate=False):
 	# Update Billing % based on pending accepted qty
 	buying_settings = frappe.get_single("Buying Settings")
+	over_billing_allowance = frappe.db.get_single_value("Accounts Settings", "over_billing_allowance")
 
 	total_amount, total_billed_amount = 0, 0
 	item_wise_returned_qty = get_item_wise_returned_qty(pr_doc)
@@ -1143,6 +1144,14 @@ def update_billing_percentage(pr_doc, update_modified=True, adjust_incoming_rate
 
 			adjusted_amt = flt(adjusted_amt * flt(pr_doc.conversion_rate), item.precision("amount"))
 			item.db_set("amount_difference_with_purchase_invoice", adjusted_amt, update_modified=False)
+		elif item.billed_amt > item.amount:
+			per_over_billed = (flt(item.billed_amt / item.amount, 2) * 100) - 100
+			if per_over_billed > over_billing_allowance:
+				frappe.throw(
+					_("Over Billing Allowance exceeded for Purchase Receipt Item {0} ({1}) by {2}%").format(
+						item.name, frappe.bold(item.item_code), per_over_billed - over_billing_allowance
+					)
+				)
 
 	percent_billed = round(100 * (total_billed_amount / (total_amount or 1)), 6)
 	pr_doc.db_set("per_billed", percent_billed)
