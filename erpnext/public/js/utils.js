@@ -432,8 +432,9 @@ $.extend(erpnext.utils, {
 		if (!frappe.boot.setup_complete) {
 			return;
 		}
+		const today = frappe.datetime.get_today();
 		if (!date) {
-			date = frappe.datetime.get_today();
+			date = today;
 		}
 
 		let fiscal_year = "";
@@ -444,7 +445,7 @@ $.extend(erpnext.utils, {
 		) {
 			if (with_dates) fiscal_year = frappe.boot.current_fiscal_year;
 			else fiscal_year = frappe.boot.current_fiscal_year[0];
-		} else {
+		} else if (today != date) {
 			frappe.call({
 				method: "erpnext.accounts.utils.get_fiscal_year",
 				type: "GET", // make it cacheable
