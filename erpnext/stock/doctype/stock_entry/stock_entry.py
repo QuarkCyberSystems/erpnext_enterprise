@@ -1646,7 +1646,11 @@ class StockEntry(StockController):
 	def make_stock_reserve_for_wip_and_fg(self):
 		if self.is_stock_reserve_for_work_order():
 			pro_doc = frappe.get_doc("Work Order", self.work_order)
-			if self.purpose == "Manufacture" and not pro_doc.sales_order:
+			if (
+				self.purpose == "Manufacture"
+				and not pro_doc.sales_order
+				and not pro_doc.production_plan_sub_assembly_item
+			):
 				return
 
 			pro_doc.set_reserved_qty_for_wip_and_fg(self)
@@ -1654,7 +1658,11 @@ class StockEntry(StockController):
 	def cancel_stock_reserve_for_wip_and_fg(self):
 		if self.is_stock_reserve_for_work_order():
 			pro_doc = frappe.get_doc("Work Order", self.work_order)
-			if self.purpose == "Manufacture" and not pro_doc.sales_order:
+			if (
+				self.purpose == "Manufacture"
+				and not pro_doc.sales_order
+				and not pro_doc.production_plan_sub_assembly_item
+			):
 				return
 
 			pro_doc.cancel_reserved_qty_for_wip_and_fg(self)

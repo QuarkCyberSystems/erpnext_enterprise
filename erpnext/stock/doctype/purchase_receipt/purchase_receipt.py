@@ -17,6 +17,7 @@ from erpnext.buying.utils import check_on_hold_or_closed_status
 from erpnext.controllers.accounts_controller import merge_taxes
 from erpnext.controllers.buying_controller import BuyingController
 from erpnext.stock.doctype.delivery_note.delivery_note import make_inter_company_transaction
+from erpnext.stock.doctype.stock_reservation_entry.stock_reservation_entry import StockReservation
 
 form_grid_templates = {"items": "templates/form_grid/item_grid.html"}
 
@@ -383,7 +384,7 @@ class PurchaseReceipt(BuyingController):
 		self.make_gl_entries()
 		self.repost_future_sle_and_gle()
 		self.set_consumed_qty_in_subcontract_order()
-		self.reserve_stock_for_sales_order()
+		self.reserve_stock()
 		self.update_received_qty_if_from_pp()
 
 	def update_received_qty_if_from_pp(self):
@@ -913,6 +914,10 @@ class PurchaseReceipt(BuyingController):
 			pr_doc = self if (pr == self.name) else frappe.get_doc("Purchase Receipt", pr)
 			update_billing_percentage(pr_doc, update_modified=update_modified)
 
+	def reserve_stock(self):
+		self.reserve_stock_for_sales_order()
+		self.reserve_stock_for_production_plan()
+
 	def reserve_stock_for_sales_order(self):
 		if (
 			self.is_return
@@ -952,6 +957,66 @@ class PurchaseReceipt(BuyingController):
 					from_voucher_type="Purchase Receipt",
 					notify=True,
 				)
+
+	def reserve_stock_for_production_plan(self):
+		if self.is_return or not frappe.db.get_single_value("Stock Settings", "enable_stock_reservation"):
+			return
+
+		production_plan_references = self.get_production_plan_references()
+		production_plan_items = []
+
+		docnames = []
+		for row in self.items:
+			if row.material_request_item and row.material_request_item in production_plan_references:
+				_ref = production_plan_references[row.material_request_item]
+				docnames.append(_ref.production_plan)
+				row.update(
+					{
+						"voucher_type": "Production Plan",
+						"voucher_no": _ref.production_plan,
+						"voucher_detail_no": _ref.material_request_plan_item,
+						"from_voucher_no": self.name,
+						"from_voucher_detail_no": row.name,
+						"from_voucher_type": self.doctype,
+					}
+				)
+
+				production_plan_items.append(row)
+
+		if not production_plan_items:
+			return
+
+		sre = StockReservation(doc=self, items=production_plan_items)
+		sre.make_stock_reservation_entries()
+		if docnames:
+			sre.transfer_reservation_entries_to(
+				docnames, from_doctype="Production Plan", to_doctype="Work Order"
+			)
+
+	def get_production_plan_references(self):
+		production_plan_references = frappe._dict()
+		material_request_items = []
+
+		for row in self.items:
+			if row.material_request_item:
+				material_request_items.append(row.material_request_item)
+
+		if not material_request_items:
+			return frappe._dict()
+
+		items = frappe.get_all(
+			"Material Request Item",
+			fields=["material_request_plan_item", "production_plan", "name"],
+			filters={"name": ["in", material_request_items], "docstatus": 1},
+		)
+
+		for item in items:
+			if not item.production_plan:
+				continue
+
+			production_plan_references.setdefault(item.name, item)
+
+		return production_plan_references
 
 	def enable_recalculate_rate_in_sles(self):
 		rejected_warehouses = frappe.get_all(
