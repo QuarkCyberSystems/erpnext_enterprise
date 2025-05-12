@@ -1635,6 +1635,11 @@ class StockEntry(StockController):
 			_validate_work_order(pro_doc)
 
 			if self.fg_completed_qty:
+				if self.docstatus == 1:
+					pro_doc.add_additional_items(self)
+				else:
+					pro_doc.remove_additional_items(self)
+
 				pro_doc.run_method("update_work_order_qty")
 				if self.purpose == "Manufacture":
 					pro_doc.run_method("update_planned_qty")

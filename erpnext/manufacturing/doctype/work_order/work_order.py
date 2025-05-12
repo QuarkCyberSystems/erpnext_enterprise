@@ -1362,13 +1362,6 @@ class WorkOrder(Document):
 						)
 					)
 
-				if details.reserved_qty < details.transferred_qty:
-					frappe.throw(
-						_("Transferred Qty {0} cannot be greater than Reserved Qty {1} for item {2}").format(
-							details.transferred_qty, details.reserved_qty, item.item_code
-						)
-					)
-
 	@frappe.whitelist()
 	def make_bom(self):
 		data = frappe.db.sql(
@@ -1414,7 +1407,7 @@ class WorkOrder(Document):
 
 	def get_list_of_materials_for_reservation(self, stock_entry):
 		items = frappe._dict()
-		vocher_detail_no = {d.item_code: d.name for d in self.required_items}
+		voucher_detail_no = {d.item_code: d.name for d in self.required_items}
 
 		for row in stock_entry.items:
 			if row.item_code not in items:
@@ -1422,7 +1415,7 @@ class WorkOrder(Document):
 					{
 						"voucher_no": self.name,
 						"voucher_type": self.doctype,
-						"voucher_detail_no": vocher_detail_no.get(row.item_code),
+						"voucher_detail_no": voucher_detail_no.get(row.item_code),
 						"item_code": row.item_code,
 						"warehouse": row.t_warehouse,
 						"stock_qty": row.transfer_qty,
@@ -1589,6 +1582,46 @@ class WorkOrder(Document):
 
 			if sre_list:
 				cancel_stock_reservation_entries(self, sre_list)
+
+	def remove_additional_items(self, stock_entry):
+		for row in stock_entry.items:
+			for item in self.required_items:
+				if row.item_code == item.item_code and row.name == item.voucher_detail_reference:
+					item.delete()
+
+	def add_additional_items(self, stock_entry):
+		if stock_entry.purpose != "Material Transfer for Manufacture":
+			return
+
+		required_items = [d.item_code for d in self.required_items]
+
+		additional_items = frappe._dict()
+		for row in stock_entry.items:
+			if row.item_code not in required_items:
+				additional_items.setdefault(row.item_code, []).append(row)
+
+		for item_code, rows in additional_items.items():
+			for row in rows:
+				child_row = self.append(
+					"required_items",
+					{
+						"item_code": item_code,
+						"source_warehouse": row.s_warehouse,
+						"item_name": row.item_name,
+						"required_qty": row.transfer_qty,
+						"stock_uom": row.stock_uom,
+						"rate": row.basic_rate,
+						"amount": row.amount,
+						"description": row.description,
+						"docstatus": 1,
+						"is_additional_item": 1,
+						"voucher_detail_reference": row.name,
+					},
+				)
+
+				child_row.insert()
+
+			stock_entry.reload()
 
 
 @frappe.whitelist()
