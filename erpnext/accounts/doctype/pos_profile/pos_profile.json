@@ -31,7 +31,7 @@
   "ignore_pricing_rule",
   "allow_rate_change",
   "allow_discount_change",
-  "disable_grand_total_to_default_mop",
+  "set_grand_total_to_default_mop",
   "section_break_23",
   "item_groups",
   "column_break_25",
@@ -403,18 +403,18 @@
    "label": "Print Receipt on Order Complete"
   },
   {
-   "default": "0",
-   "fieldname": "disable_grand_total_to_default_mop",
-   "fieldtype": "Check",
-   "label": "Disable auto setting Grand Total to default Payment Mode"
-  },
-  {
    "fieldname": "project",
    "fieldtype": "Link",
    "label": "Project",
    "oldfieldname": "cost_center",
    "oldfieldtype": "Link",
    "options": "Project"
+  },
+  {
+   "default": "1",
+   "fieldname": "set_grand_total_to_default_mop",
+   "fieldtype": "Check",
+   "label": "Set Grand Total to Default Payment Method"
   }
  ],
  "grid_page_length": 50,
@@ -443,7 +443,7 @@
    "link_fieldname": "pos_profile"
   }
  ],
- "modified": "2025-04-09 11:35:13.779613",
+ "modified": "2025-05-09 11:23:28.632136",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "POS Profile",
