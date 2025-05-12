@@ -117,9 +117,10 @@ erpnext.PointOfSale.PastOrderSummary = class {
 
 		async function get_returned_qty() {
 			const r = await frappe.call({
-				method: "erpnext.controllers.sales_and_purchase_return.get_pos_invoice_item_returned_qty",
+				method: "erpnext.controllers.sales_and_purchase_return.get_invoice_item_returned_qty",
 				args: {
-					pos_invoice: doc.name,
+					doctype: doc.doctype,
+					invoice: doc.name,
 					customer: doc.customer,
 					item_row_name: item_data.name,
 				},
@@ -192,7 +193,7 @@ erpnext.PointOfSale.PastOrderSummary = class {
 
 	bind_events() {
 		this.$summary_container.on("click", ".return-btn", async () => {
-			const r = await this.is_pos_invoice_returnable(this.doc.name);
+			const r = await this.is_invoice_returnable(this.doc.doctype, this.doc.name);
 			if (!r) {
 				frappe.msgprint({
 					title: __("Invalid Return"),
@@ -201,21 +202,21 @@ erpnext.PointOfSale.PastOrderSummary = class {
 				});
 				return;
 			}
-			this.events.process_return(this.doc.name);
+			this.events.process_return(this.doc.doctype, this.doc.name);
 			this.toggle_component(false);
 			this.$component.find(".no-summary-placeholder").css("display", "flex");
 			this.$summary_wrapper.css("display", "none");
 		});
 
 		this.$summary_container.on("click", ".edit-btn", () => {
-			this.events.edit_order(this.doc.name);
+			this.events.edit_order(this.doc.doctype, this.doc.name);
 			this.toggle_component(false);
 			this.$component.find(".no-summary-placeholder").css("display", "flex");
 			this.$summary_wrapper.css("display", "none");
 		});
 
 		this.$summary_container.on("click", ".delete-btn", () => {
-			this.events.delete_order(this.doc.name);
+			this.events.delete_order(this.doc.doctype, this.doc.name);
 			this.show_summary_placeholder();
 		});
 
@@ -461,11 +462,12 @@ erpnext.PointOfSale.PastOrderSummary = class {
 		show ? this.$component.css("display", "flex") : this.$component.css("display", "none");
 	}
 
-	async is_pos_invoice_returnable(invoice) {
+	async is_invoice_returnable(doctype, invoice) {
 		const r = await frappe.call({
-			method: "erpnext.controllers.sales_and_purchase_return.is_pos_invoice_returnable",
+			method: "erpnext.controllers.sales_and_purchase_return.is_invoice_returnable",
 			args: {
-				pos_invoice: invoice,
+				doctype: doctype,
+				invoice: invoice,
 			},
 		});
 		return r.message;

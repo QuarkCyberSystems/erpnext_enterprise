@@ -223,6 +223,7 @@ def get_batch_qty(
 	ignore_voucher_nos=None,
 	for_stock_levels=False,
 	consider_negative_batches=False,
+	do_not_check_future_batches=False,
 ):
 	"""Returns batch actual qty if warehouse is passed,
 	        or returns dict of qty by warehouse if warehouse is None
@@ -249,6 +250,7 @@ def get_batch_qty(
 			"ignore_voucher_nos": ignore_voucher_nos,
 			"for_stock_levels": for_stock_levels,
 			"consider_negative_batches": consider_negative_batches,
+			"do_not_check_future_batches": do_not_check_future_batches,
 		}
 	)
 

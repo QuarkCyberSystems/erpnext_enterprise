@@ -811,7 +811,7 @@ class StockController(AccountsController):
 					)
 
 	def make_package_for_transfer(
-		self, serial_and_batch_bundle, warehouse, type_of_transaction=None, do_not_submit=None
+		self, serial_and_batch_bundle, warehouse, type_of_transaction=None, do_not_submit=None, qty=0
 	):
 		return make_bundle_for_material_transfer(
 			is_new=self.is_new(),
@@ -822,6 +822,7 @@ class StockController(AccountsController):
 			warehouse=warehouse,
 			type_of_transaction=type_of_transaction,
 			do_not_submit=do_not_submit,
+			qty=qty,
 		)
 
 	def get_sl_entries(self, d, args):
@@ -1050,6 +1051,16 @@ class StockController(AccountsController):
 
 	def validate_qi_presence(self, row):
 		"""Check if QI is present on row level. Warn on save and stop on submit if missing."""
+		if self.doctype in [
+			"Purchase Receipt",
+			"Purchase Invoice",
+			"Sales Invoice",
+			"Delivery Note",
+		] and frappe.db.get_single_value(
+			"Stock Settings", "allow_to_make_quality_inspection_after_purchase_or_delivery"
+		):
+			return
+
 		if not row.quality_inspection:
 			msg = _("Row #{0}: Quality Inspection is required for Item {1}").format(
 				row.idx, frappe.bold(row.item_code)
@@ -1808,15 +1819,24 @@ def make_bundle_for_material_transfer(**kwargs):
 		kwargs.type_of_transaction = "Inward"
 
 	bundle_doc = frappe.copy_doc(bundle_doc)
+	bundle_doc.docstatus = 0
 	bundle_doc.warehouse = kwargs.warehouse
 	bundle_doc.type_of_transaction = kwargs.type_of_transaction
 	bundle_doc.voucher_type = kwargs.voucher_type
 	bundle_doc.voucher_no = "" if kwargs.is_new or kwargs.docstatus == 2 else kwargs.voucher_no
 	bundle_doc.is_cancelled = 0
 
+	qty = 0
+	if (
+		len(bundle_doc.entries) == 1
+		and flt(kwargs.qty) < flt(bundle_doc.total_qty)
+		and not bundle_doc.has_serial_no
+	):
+		qty = kwargs.qty
+
 	for row in bundle_doc.entries:
 		row.is_outward = 0
-		row.qty = abs(row.qty)
+		row.qty = abs(qty or row.qty)
 		row.stock_value_difference = abs(row.stock_value_difference)
 		if kwargs.type_of_transaction == "Outward":
 			row.qty *= -1

@@ -8,17 +8,25 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.tests import IntegrationTestCase
 
 from erpnext.controllers import queries
+from erpnext.tests.utils import ERPNextTestSuite
 
 
 def add_default_params(func, doctype):
 	return partial(func, doctype=doctype, txt="", searchfield="name", start=0, page_len=20, filters=None)
 
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Employee", "Lead", "Item", "BOM", "Project", "Account"]
+EXTRA_TEST_RECORD_DEPENDENCIES = ["Item", "BOM", "Account"]
 
 
-class TestQueries(IntegrationTestCase):
+class TestQueries(ERPNextTestSuite):
 	# All tests are based on self.globalTestRecords[doctype]
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.make_employees()
+		cls.make_leads()
+		cls.make_projects()
 
 	def assert_nested_in(self, item, container):
 		self.assertIn(item, [vals for tuples in container for vals in tuples])
@@ -105,7 +113,7 @@ class TestQueries(IntegrationTestCase):
 			{
 				"user": user.name,
 				"doctype": "Employee",
-				"docname": "_T-Employee-00001",
+				"docname": self.employees[0].name,
 				"is_default": 1,
 				"apply_to_all_doctypes": 1,
 				"applicable_doctypes": [],

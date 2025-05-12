@@ -38,9 +38,10 @@ erpnext.PointOfSale.PastOrderList = class {
 		});
 		const me = this;
 		this.$invoices_container.on("click", ".invoice-wrapper", function () {
+			const invoice_doctype = $(this).attr("data-invoice-doctype");
 			const invoice_name = unescape($(this).attr("data-invoice-name"));
 
-			me.events.open_invoice_data(invoice_name);
+			me.events.open_invoice_data(invoice_doctype, invoice_name);
 		});
 	}
 
@@ -99,7 +100,9 @@ erpnext.PointOfSale.PastOrderList = class {
 		const posting_datetime = frappe.datetime.str_to_user(
 			invoice.posting_date + " " + invoice.posting_time
 		);
-		return `<div class="invoice-wrapper" data-invoice-name="${escape(invoice.name)}">
+		return `<div class="invoice-wrapper" data-invoice-doctype="${
+			invoice.doctype
+		}" data-invoice-name="${escape(invoice.name)}">
 				<div class="invoice-name-date">
 					<div class="invoice-name">${invoice.name}</div>
 					<div class="invoice-date">

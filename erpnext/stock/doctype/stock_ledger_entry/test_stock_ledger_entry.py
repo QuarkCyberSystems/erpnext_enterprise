@@ -1314,7 +1314,7 @@ class TestStockLedgerEntry(IntegrationTestCase, StockTestMixin):
 		# To deliver 100 qty we fall short of 11.0073 qty (11.007 with precision 3)
 		# Stock up with 11.007 (balance in db becomes 99.9997, on UI it will show as 100)
 		make_stock_entry(item_code=item_code, target=warehouse, qty=11.007, rate=100)
-		self.assertEqual(get_stock_balance(item_code, warehouse), 99.9997)
+		self.assertEqual(get_stock_balance(item_code, warehouse), 100.0)
 
 		# See if delivery note goes through
 		# Negative qty error should not be raised as 99.9997 is 100 with precision 3 (system precision)

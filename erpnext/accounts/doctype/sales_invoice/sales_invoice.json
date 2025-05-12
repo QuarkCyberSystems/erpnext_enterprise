@@ -29,6 +29,8 @@
   "update_billed_amount_in_delivery_note",
   "is_debit_note",
   "amended_from",
+  "is_created_using_pos",
+  "pos_closing_entry",
   "accounting_dimensions_section",
   "cost_center",
   "dimension_col_break",
@@ -2198,6 +2200,23 @@
    "fieldtype": "Link",
    "label": "Company Contact Person",
    "options": "Contact",
+   "print_hide": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_created_using_pos",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is created using POS",
+   "print_hide": 1
+  },
+  {
+   "depends_on": "is_created_using_pos",
+   "fieldname": "pos_closing_entry",
+   "fieldtype": "Link",
+   "hidden": 1,
+   "label": "POS Closing Entry",
+   "options": "POS Closing Entry",
    "print_hide": 1
   }
  ],

@@ -58,6 +58,8 @@
   "pos_tab",
   "pos_setting_section",
   "post_change_gl_entries",
+  "column_break_xrnd",
+  "use_sales_invoice_in_pos",
   "assets_tab",
   "asset_settings_section",
   "calculate_depr_using_total_days",
@@ -77,9 +79,12 @@
   "reports_tab",
   "remarks_section",
   "general_ledger_remarks_length",
-  "ignore_is_opening_check_for_reporting",
   "column_break_lvjk",
   "receivable_payable_remarks_length",
+  "accounts_receivable_payable_tuning_section",
+  "receivable_payable_fetch_method",
+  "legacy_section",
+  "ignore_is_opening_check_for_reporting",
   "payment_request_settings",
   "create_pr_in_draft_status"
  ],
@@ -532,14 +537,43 @@
    "fieldtype": "Select",
    "label": "Posting Date Inheritance for Exchange Gain / Loss",
    "options": "Invoice\nPayment\nReconciliation Date"
+  },
+  {
+   "fieldname": "column_break_xrnd",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "If enabled, Sales Invoice will be generated instead of POS Invoice in POS Transactions for real-time update of G/L and Stock Ledger.",
+   "fieldname": "use_sales_invoice_in_pos",
+   "fieldtype": "Check",
+   "label": "Use Sales Invoice"
+  },
+  {
+   "default": "Buffered Cursor",
+   "fieldname": "receivable_payable_fetch_method",
+   "fieldtype": "Select",
+   "label": "Data Fetch Method",
+   "options": "Buffered Cursor\nUnBuffered Cursor"
+  },
+  {
+   "fieldname": "accounts_receivable_payable_tuning_section",
+   "fieldtype": "Section Break",
+   "label": "Accounts Receivable / Payable Tuning"
+  },
+  {
+   "fieldname": "legacy_section",
+   "fieldtype": "Section Break",
+   "label": "Legacy Fields"
   }
  ],
+ "grid_page_length": 50,
  "icon": "icon-cog",
  "idx": 1,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-01-23 13:15:44.077853",
+ "modified": "2025-05-05 12:29:38.302027",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Accounts Settings",
@@ -564,6 +598,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "ASC",
  "states": [],

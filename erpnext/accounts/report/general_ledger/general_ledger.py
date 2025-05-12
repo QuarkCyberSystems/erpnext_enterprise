@@ -69,13 +69,17 @@ def validate_filters(filters, account_details):
 			if not account_details.get(account):
 				frappe.throw(_("Account {0} does not exists").format(account))
 
-	if filters.get("account") and filters.get("group_by") == "Group by Account":
+	if not filters.get("categorize_by") and filters.get("group_by"):
+		filters["categorize_by"] = filters["group_by"]
+		filters["categorize_by"] = filters["categorize_by"].replace("Group by", "Categorize by")
+
+	if filters.get("account") and filters.get("categorize_by") == "Categorize by Account":
 		filters.account = frappe.parse_json(filters.get("account"))
 		for account in filters.account:
 			if account_details[account].is_group == 0:
 				frappe.throw(_("Can not filter based on Child Account, if grouped by Account"))
 
-	if filters.get("voucher_no") and filters.get("group_by") in ["Group by Voucher"]:
+	if filters.get("voucher_no") and filters.get("categorize_by") in ["Categorize by Voucher"]:
 		frappe.throw(_("Can not filter based on Voucher No, if grouped by Voucher"))
 
 	if filters.from_date > filters.to_date:
@@ -169,9 +173,9 @@ def get_gl_entries(filters, accounting_dimensions):
 	if filters.get("include_dimensions"):
 		order_by_statement = "order by posting_date, creation"
 
-	if filters.get("group_by") == "Group by Voucher":
+	if filters.get("categorize_by") == "Categorize by Voucher":
 		order_by_statement = "order by posting_date, voucher_type, voucher_no"
-	if filters.get("group_by") == "Group by Account":
+	if filters.get("categorize_by") == "Categorize by Account":
 		order_by_statement = "order by account, posting_date, creation"
 
 	if filters.get("include_default_book_entries"):
@@ -266,7 +270,7 @@ def get_conditions(filters):
 	if filters.get("voucher_no_not_in"):
 		conditions.append("voucher_no not in %(voucher_no_not_in)s")
 
-	if filters.get("group_by") == "Group by Party" and not filters.get("party_type"):
+	if filters.get("categorize_by") == "Categorize by Party" and not filters.get("party_type"):
 		conditions.append("party_type in ('Customer', 'Supplier')")
 
 	if filters.get("party_type"):
@@ -278,7 +282,7 @@ def get_conditions(filters):
 	if not (
 		filters.get("account")
 		or filters.get("party")
-		or filters.get("group_by") in ["Group by Account", "Group by Party"]
+		or filters.get("categorize_by") in ["Categorize by Account", "Categorize by Party"]
 	):
 		if not ignore_is_opening:
 			conditions.append("(posting_date >=%(from_date)s or is_opening = 'Yes')")
@@ -397,11 +401,11 @@ def get_data_with_opening_closing(filters, account_details, accounting_dimension
 	# Opening for filtered account
 	add_total_to_data(totals, "opening")
 
-	if filters.get("group_by") != "Group by Voucher (Consolidated)":
-		set_opening_closing = (not filters.get("group_by") and not filters.get("voucher_no")) or (
-			filters.get("group_by") and filters.get("group_by") != "Group by Voucher"
+	if filters.get("categorize_by") != "Categorize by Voucher (Consolidated)":
+		set_opening_closing = (not filters.get("categorize_by") and not filters.get("voucher_no")) or (
+			filters.get("categorize_by") and filters.get("categorize_by") != "Categorize by Voucher"
 		)
-		set_total = filters.get("group_by") or not filters.voucher_no
+		set_total = filters.get("categorize_by") or not filters.voucher_no
 
 		for acc_dict in gle_map.values():
 			if not acc_dict.entries:
@@ -444,9 +448,9 @@ def get_totals_dict():
 
 
 def get_group_by_field(group_by):
-	if group_by == "Group by Party":
+	if group_by == "Categorize by Party":
 		return "party"
-	elif group_by in ["Group by Voucher (Consolidated)", "Group by Account"]:
+	elif group_by in ["Categorize by Voucher (Consolidated)", "Categorize by Account"]:
 		return "account"
 	else:
 		return "voucher_no"
@@ -454,7 +458,7 @@ def get_group_by_field(group_by):
 
 def initialize_gle_map(gl_entries, filters):
 	gle_map = {}
-	group_by = get_group_by_field(filters.get("group_by"))
+	group_by = get_group_by_field(filters.get("categorize_by"))
 
 	for gle in gl_entries:
 		group_by_value = gle.get(group_by)
@@ -470,8 +474,8 @@ def initialize_gle_map(gl_entries, filters):
 def get_accountwise_gle(filters, accounting_dimensions, gl_entries, gle_map):
 	entries = []
 	consolidated_gle = {}
-	group_by = get_group_by_field(filters.get("group_by"))
-	group_by_voucher_consolidated = filters.get("group_by") == "Group by Voucher (Consolidated)"
+	group_by = get_group_by_field(filters.get("categorize_by"))
+	group_by_voucher_consolidated = filters.get("categorize_by") == "Categorize by Voucher (Consolidated)"
 
 	if filters.get("show_net_values_in_party_account"):
 		account_type_map = get_account_type_map(filters.get("company"))

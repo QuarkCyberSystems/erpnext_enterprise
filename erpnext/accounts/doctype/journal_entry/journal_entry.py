@@ -253,11 +253,20 @@ class JournalEntry(AccountsController):
 
 	def validate_inter_company_accounts(self):
 		if self.voucher_type == "Inter Company Journal Entry" and self.inter_company_journal_entry_reference:
-			doc = frappe.get_doc("Journal Entry", self.inter_company_journal_entry_reference)
+			doc = frappe.db.get_value(
+				"Journal Entry",
+				self.inter_company_journal_entry_reference,
+				["company", "total_debit", "total_credit"],
+				as_dict=True,
+			)
 			account_currency = frappe.get_cached_value("Company", self.company, "default_currency")
 			previous_account_currency = frappe.get_cached_value("Company", doc.company, "default_currency")
 			if account_currency == previous_account_currency:
-				if self.total_credit != doc.total_debit or self.total_debit != doc.total_credit:
+				credit_precision = self.precision("total_credit")
+				debit_precision = self.precision("total_debit")
+				if (flt(self.total_credit, credit_precision) != flt(doc.total_debit, debit_precision)) or (
+					flt(self.total_debit, debit_precision) != flt(doc.total_credit, credit_precision)
+				):
 					frappe.throw(_("Total Credit/ Debit Amount should be same as linked Journal Entry"))
 
 	def validate_depr_entry_voucher_type(self):
@@ -1262,9 +1271,7 @@ class JournalEntry(AccountsController):
 
 
 @frappe.whitelist()
-def get_default_bank_cash_account(
-	company, account_type=None, mode_of_payment=None, account=None, ignore_permissions=False
-):
+def get_default_bank_cash_account(company, account_type=None, mode_of_payment=None, account=None):
 	from erpnext.accounts.doctype.sales_invoice.sales_invoice import get_bank_cash_account
 
 	if mode_of_payment:
@@ -1302,7 +1309,7 @@ def get_default_bank_cash_account(
 		return frappe._dict(
 			{
 				"account": account,
-				"balance": get_balance_on(account, ignore_account_permission=ignore_permissions),
+				"balance": get_balance_on(account),
 				"account_currency": account_details.account_currency,
 				"account_type": account_details.account_type,
 			}

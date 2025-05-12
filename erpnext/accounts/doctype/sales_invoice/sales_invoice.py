@@ -51,6 +51,10 @@ from erpnext.stock.doctype.delivery_note.delivery_note import update_billed_amou
 form_grid_templates = {"items": "templates/form_grid/item_grid.html"}
 
 
+class PartialPaymentValidationError(frappe.ValidationError):
+	pass
+
+
 class SalesInvoice(SellingController):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
@@ -133,6 +137,7 @@ class SalesInvoice(SellingController):
 		inter_company_invoice_reference: DF.Link | None
 		is_cash_or_non_trade_discount: DF.Check
 		is_consolidated: DF.Check
+		is_created_using_pos: DF.Check
 		is_debit_note: DF.Check
 		is_discounted: DF.Check
 		is_internal_customer: DF.Check
@@ -162,6 +167,7 @@ class SalesInvoice(SellingController):
 		plc_conversion_rate: DF.Float
 		po_date: DF.Date | None
 		po_no: DF.Data | None
+		pos_closing_entry: DF.Link | None
 		pos_profile: DF.Link | None
 		posting_date: DF.Date
 		posting_time: DF.Time | None
@@ -305,6 +311,10 @@ class SalesInvoice(SellingController):
 
 		if cint(self.is_pos):
 			self.validate_pos()
+
+		if cint(self.is_created_using_pos):
+			self.validate_created_using_pos()
+			self.validate_full_payment()
 
 		self.validate_dropship_item()
 
@@ -528,7 +538,22 @@ class SalesInvoice(SellingController):
 				)
 				frappe.throw(msg, title=_("Not Allowed"))
 
+	def check_if_created_using_pos_and_pos_closing_entry_generated(self):
+		if self.doctype == "Sales Invoice" and self.is_created_using_pos and self.pos_closing_entry:
+			pos_closing_entry_docstatus = frappe.db.get_value(
+				"POS Closing Entry", self.pos_closing_entry, "docstatus"
+			)
+			if pos_closing_entry_docstatus == 1:
+				frappe.throw(
+					msg=_("To cancel this Sales Invoice you need to cancel the POS Closing Entry {}.").format(
+						get_link_to_form("POS Closing Entry", self.pos_closing_entry)
+					),
+					title=_("Not Allowed"),
+				)
+
 	def before_cancel(self):
+		# check if generated via POS and already included in POS Closing Entry
+		self.check_if_created_using_pos_and_pos_closing_entry_generated()
 		self.check_if_consolidated_invoice()
 
 		super().before_cancel()
@@ -597,6 +622,15 @@ class SalesInvoice(SellingController):
 		)
 
 		self.delete_auto_created_batches()
+
+		if (
+			self.doctype == "Sales Invoice"
+			and self.is_pos
+			and self.is_return
+			and self.is_created_using_pos
+			and not self.pos_closing_entry
+		):
+			self.cancel_pos_invoice_credit_note_generated_during_sales_invoice_mode()
 
 	def update_status_updater_args(self):
 		if not cint(self.update_stock):
@@ -669,6 +703,15 @@ class SalesInvoice(SellingController):
 			timesheet.flags.ignore_validate_update_after_submit = True
 			timesheet.db_update_all()
 
+	def cancel_pos_invoice_credit_note_generated_during_sales_invoice_mode(self):
+		pos_invoices = frappe.get_all(
+			"POS Invoice", filters={"consolidated_invoice": self.name}, pluck="name"
+		)
+		if pos_invoices:
+			for pos_invoice in pos_invoices:
+				pos_invoice_doc = frappe.get_doc("POS Invoice", pos_invoice)
+				pos_invoice_doc.cancel()
+
 	@frappe.whitelist()
 	def set_missing_values(self, for_validate=False):
 		pos = self.set_pos_fields(for_validate)
@@ -703,6 +746,13 @@ class SalesInvoice(SellingController):
 				"utm_medium": pos.get("utm_medium"),
 				"allow_print_before_pay": pos.get("allow_print_before_pay"),
 			}
+
+	@frappe.whitelist()
+	def reset_mode_of_payments(self):
+		if self.pos_profile:
+			pos_profile = frappe.get_cached_doc("POS Profile", self.pos_profile)
+			update_multi_mode_option(self, pos_profile)
+			self.paid_amount = 0
 
 	def update_time_sheet(self, sales_invoice):
 		for d in self.timesheets:
@@ -754,10 +804,10 @@ class SalesInvoice(SellingController):
 		self.paid_amount = paid_amount
 		self.base_paid_amount = base_paid_amount
 
+	@frappe.whitelist()
 	def set_account_for_mode_of_payment(self):
 		for payment in self.payments:
-			if not payment.account:
-				payment.account = get_bank_cash_account(payment.mode_of_payment, self.company).get("account")
+			payment.account = get_bank_cash_account(payment.mode_of_payment, self.company).get("account")
 
 	def validate_time_sheets_are_submitted(self):
 		for data in self.timesheets:
@@ -1024,6 +1074,32 @@ class SalesInvoice(SellingController):
 				flt(invoice_total)
 			) > 1.0 / (10.0 ** (self.precision("grand_total") + 1.0)):
 				frappe.throw(_("Paid amount + Write Off Amount can not be greater than Grand Total"))
+
+	def validate_created_using_pos(self):
+		if self.is_created_using_pos and not self.pos_profile:
+			frappe.throw(_("POS Profile is mandatory to mark this invoice as POS Transaction."))
+
+		self.is_pos_using_sales_invoice = frappe.db.get_single_value(
+			"Accounts Settings", "use_sales_invoice_in_pos"
+		)
+		if not self.is_pos_using_sales_invoice and not self.is_return:
+			frappe.throw(_("Transactions using Sales Invoice in POS are disabled."))
+
+	def validate_full_payment(self):
+		invoice_total = flt(self.rounded_total) or flt(self.grand_total)
+
+		if self.docstatus == 1:
+			if self.is_return and self.paid_amount != invoice_total:
+				frappe.throw(
+					msg=_("Partial Payment in POS Transactions are not allowed."),
+					exc=PartialPaymentValidationError,
+				)
+
+			if self.paid_amount < invoice_total:
+				frappe.throw(
+					msg=_("Partial Payment in POS Transactions are not allowed."),
+					exc=PartialPaymentValidationError,
+				)
 
 	def validate_warehouse(self):
 		super().validate_warehouse()
@@ -1345,7 +1421,7 @@ class SalesInvoice(SellingController):
 		)
 
 		for item in self.get("items"):
-			if flt(item.base_net_amount, item.precision("base_net_amount")):
+			if flt(item.base_net_amount, item.precision("base_net_amount")) or item.is_fixed_asset:
 				# Do not book income for transfer within same company
 				if self.is_internal_transfer():
 					continue
@@ -2295,7 +2371,10 @@ def make_inter_company_transaction(doctype, source_name, target_doc=None):
 			# Invert Addresses
 			update_address(target_doc, "supplier_address", "address_display", source_doc.company_address)
 			update_address(
-				target_doc, "shipping_address", "shipping_address_display", source_doc.customer_address
+				target_doc, "dispatch_address", "dispatch_address_display", source_doc.dispatch_address_name
+			)
+			update_address(
+				target_doc, "shipping_address", "shipping_address_display", source_doc.shipping_address_name
 			)
 			update_address(
 				target_doc, "billing_address", "billing_address_display", source_doc.customer_address

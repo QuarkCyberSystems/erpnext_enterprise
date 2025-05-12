@@ -898,7 +898,7 @@ class update_entries_after:
 		self.wh_data.prev_stock_value = self.wh_data.stock_value
 
 		# update current sle
-		sle.qty_after_transaction = self.wh_data.qty_after_transaction
+		sle.qty_after_transaction = flt(self.wh_data.qty_after_transaction, self.flt_precision)
 		sle.valuation_rate = self.wh_data.valuation_rate
 		sle.stock_value = self.wh_data.stock_value
 		sle.stock_queue = json.dumps(self.wh_data.stock_queue)
@@ -966,7 +966,7 @@ class update_entries_after:
 
 	def reset_actual_qty_for_stock_reco(self, sle):
 		doc = frappe.get_cached_doc("Stock Reconciliation", sle.voucher_no)
-		doc.recalculate_current_qty(sle.voucher_detail_no)
+		doc.recalculate_current_qty(sle.voucher_detail_no, sle.creation, sle.actual_qty > 0)
 
 		if sle.actual_qty < 0:
 			sle.actual_qty = (
@@ -2109,29 +2109,6 @@ def get_future_sle_with_negative_batch_qty(sle_args):
 
 
 def validate_reserved_stock(kwargs):
-	if kwargs.serial_no:
-		serial_nos = kwargs.serial_no.split("\n")
-		validate_reserved_serial_nos(kwargs.item_code, kwargs.warehouse, serial_nos)
-
-	elif kwargs.batch_no:
-		validate_reserved_batch_nos(kwargs.item_code, kwargs.warehouse, [kwargs.batch_no])
-
-	elif kwargs.serial_and_batch_bundle:
-		sbb_entries = frappe.db.get_all(
-			"Serial and Batch Entry",
-			{
-				"parenttype": "Serial and Batch Bundle",
-				"parent": kwargs.serial_and_batch_bundle,
-				"docstatus": 1,
-			},
-			["batch_no", "serial_no"],
-		)
-
-		if serial_nos := [entry.serial_no for entry in sbb_entries if entry.serial_no]:
-			validate_reserved_serial_nos(kwargs.item_code, kwargs.warehouse, serial_nos)
-		elif batch_nos := [entry.batch_no for entry in sbb_entries if entry.batch_no]:
-			validate_reserved_batch_nos(kwargs.item_code, kwargs.warehouse, batch_nos)
-
 	# Qty based validation for non-serial-batch items OR SRE with Reservation Based On Qty.
 	precision = cint(frappe.db.get_default("float_precision")) or 2
 	balance_qty = get_stock_balance(kwargs.item_code, kwargs.warehouse)

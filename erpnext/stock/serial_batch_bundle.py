@@ -743,6 +743,9 @@ class BatchNoValuation(DeprecatedBatchNoValuation):
 		if not self.sle.actual_qty:
 			self.sle.actual_qty = self.get_actual_qty()
 
+		if not self.sle.actual_qty:
+			return 0.0
+
 		return abs(flt(self.stock_value_change) / flt(self.sle.actual_qty))
 
 	def get_actual_qty(self):

@@ -6,6 +6,7 @@ from collections import defaultdict
 import frappe
 from frappe import _
 from frappe.model.meta import get_field_precision
+from frappe.query_builder import DocType
 from frappe.utils import cint, flt, format_datetime, get_datetime
 
 import erpnext
@@ -347,6 +348,16 @@ def make_return_doc(doctype: str, source_name: str, target_doc=None, return_agai
 		"Company", company, "default_warehouse_for_sales_return"
 	)
 
+	if doctype == "Sales Invoice":
+		inv_is_consolidated, inv_is_pos = frappe.db.get_value(
+			"Sales Invoice", source_name, ["is_consolidated", "is_pos"]
+		)
+		if inv_is_consolidated and inv_is_pos:
+			frappe.throw(
+				_("Cannot create return for consolidated invoice {0}.").format(source_name),
+				title=_("Cannot Create Return"),
+			)
+
 	def set_missing_values(source, target):
 		doc = frappe.get_doc(target)
 		doc.is_return = 1
@@ -377,6 +388,8 @@ def make_return_doc(doctype: str, source_name: str, target_doc=None, return_agai
 		if doc.get("is_return"):
 			if doc.doctype == "Sales Invoice" or doc.doctype == "POS Invoice":
 				doc.consolidated_invoice = ""
+				if doc.doctype == "Sales Invoice":
+					doc.pos_closing_entry = ""
 				# no copy enabled for party_account_currency
 				doc.party_account_currency = source.party_account_currency
 				doc.set("payments", [])
@@ -1169,26 +1182,49 @@ def get_payment_data(invoice):
 
 
 @frappe.whitelist()
-def get_pos_invoice_item_returned_qty(pos_invoice, customer, item_row_name):
-	is_return, docstatus = frappe.db.get_value("POS Invoice", pos_invoice, ["is_return", "docstatus"])
+def get_invoice_item_returned_qty(doctype, invoice, customer, item_row_name):
+	is_return, docstatus = frappe.db.get_value(doctype, invoice, ["is_return", "docstatus"])
 	if not is_return and docstatus == 1:
-		return get_returned_qty_map_for_row(pos_invoice, customer, item_row_name, "POS Invoice")
+		return get_returned_qty_map_for_row(invoice, customer, item_row_name, doctype)
 
 
 @frappe.whitelist()
-def is_pos_invoice_returnable(pos_invoice):
+def is_invoice_returnable(doctype, invoice):
 	is_return, docstatus, customer = frappe.db.get_value(
-		"POS Invoice", pos_invoice, ["is_return", "docstatus", "customer"]
+		doctype, invoice, ["is_return", "docstatus", "customer"]
 	)
 	if is_return or docstatus == 0:
 		return False
 
-	invoice_item_qty = frappe.db.get_all("POS Invoice Item", {"parent": pos_invoice}, ["name", "qty"])
+	invoice_item_qty = frappe.db.get_all(f"{doctype} Item", {"parent": invoice}, ["name", "qty"])
 
 	already_full_returned = 0
 	for d in invoice_item_qty:
-		returned_qty = get_returned_qty_map_for_row(pos_invoice, customer, d.name, "POS Invoice")
+		returned_qty = get_returned_qty_map_for_row(invoice, customer, d.name, doctype)
 		if returned_qty.qty == d.qty:
 			already_full_returned += 1
 
 	return len(invoice_item_qty) != already_full_returned
+
+
+def get_sales_invoice_item_from_consolidated_invoice(return_against_pos_invoice, pos_invoice_item):
+	try:
+		SalesInvoice = DocType("Sales Invoice")
+		SalesInvoiceItem = DocType("Sales Invoice Item")
+
+		query = (
+			frappe.qb.from_(SalesInvoice)
+			.from_(SalesInvoiceItem)
+			.select(SalesInvoiceItem.name)
+			.where(
+				(SalesInvoice.name == SalesInvoiceItem.parent)
+				& (SalesInvoice.is_return == 0)
+				& (SalesInvoiceItem.pos_invoice == return_against_pos_invoice)
+				& (SalesInvoiceItem.pos_invoice_item == pos_invoice_item)
+			)
+		)
+
+		result = query.run(as_dict=True)
+		return result[0].name if result else None
+	except Exception:
+		return None

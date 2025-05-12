@@ -114,6 +114,7 @@ class SalesOrder(SellingController):
 		from_date: DF.Date | None
 		grand_total: DF.Currency
 		group_same_items: DF.Check
+		has_unit_price_items: DF.Check
 		ignore_pricing_rule: DF.Check
 		in_words: DF.Data | None
 		incoterm: DF.Link | None
@@ -201,6 +202,10 @@ class SalesOrder(SellingController):
 		if has_reserved_stock(self.doctype, self.name):
 			self.set_onload("has_reserved_stock", True)
 
+	def before_validate(self):
+		self.set_has_unit_price_items()
+		self.flags.allow_zero_qty = self.has_unit_price_items
+
 	def validate(self):
 		super().validate()
 		self.validate_delivery_date()
@@ -243,6 +248,17 @@ class SalesOrder(SellingController):
 	def enable_auto_reserve_stock(self):
 		if self.is_new() and frappe.db.get_single_value("Stock Settings", "auto_reserve_stock"):
 			self.reserve_stock = 1
+
+	def set_has_unit_price_items(self):
+		"""
+		If permitted in settings and any item has 0 qty, the SO has unit price items.
+		"""
+		if not frappe.db.get_single_value("Selling Settings", "allow_zero_qty_in_sales_order"):
+			return
+
+		self.has_unit_price_items = any(
+			not row.qty for row in self.get("items") if (row.item_code and not row.qty)
+		)
 
 	def validate_po(self):
 		# validate p.o date v/s delivery date
@@ -969,6 +985,12 @@ def make_delivery_note(source_name, target_doc=None, kwargs=None):
 		"Sales Team": {"doctype": "Sales Team", "add_if_empty": True},
 	}
 
+	# 0 qty is accepted, as the qty is uncertain for some items
+	has_unit_price_items = frappe.db.get_value("Sales Order", source_name, "has_unit_price_items")
+
+	def is_unit_price_row(source):
+		return has_unit_price_items and source.qty == 0
+
 	def set_missing_values(source, target):
 		if kwargs.get("ignore_pricing_rule"):
 			# Skip pricing rule when the dn is creating from the pick list
@@ -1008,12 +1030,16 @@ def make_delivery_note(source_name, target_doc=None, kwargs=None):
 			if cstr(doc.delivery_date) > frappe.flags.args.until_delivery_date:
 				return False
 
-		return abs(doc.delivered_qty) < abs(doc.qty) and doc.delivered_by_supplier != 1
+		return (
+			(abs(doc.delivered_qty) < abs(doc.qty)) or is_unit_price_row(doc)
+		) and doc.delivered_by_supplier != 1
 
 	def update_item(source, target, source_parent):
 		target.base_amount = (flt(source.qty) - flt(source.delivered_qty)) * flt(source.base_rate)
 		target.amount = (flt(source.qty) - flt(source.delivered_qty)) * flt(source.rate)
-		target.qty = flt(source.qty) - flt(source.delivered_qty)
+		target.qty = (
+			flt(source.qty) if is_unit_price_row(source) else flt(source.qty) - flt(source.delivered_qty)
+		)
 
 		item = get_item_defaults(target.item_code, source_parent.company)
 		item_group = get_item_group_defaults(target.item_code, source_parent.company)
@@ -1096,6 +1122,12 @@ def make_delivery_note(source_name, target_doc=None, kwargs=None):
 
 @frappe.whitelist()
 def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
+	# 0 qty is accepted, as the qty is uncertain for some items
+	has_unit_price_items = frappe.db.get_value("Sales Order", source_name, "has_unit_price_items")
+
+	def is_unit_price_row(source):
+		return has_unit_price_items and source.qty == 0
+
 	def postprocess(source, target):
 		set_missing_values(source, target)
 		# Get the advance paid Journal Entries in Sales Invoice Advance
@@ -1126,12 +1158,18 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 		target.debit_to = get_party_account("Customer", source.customer, source.company)
 
 	def update_item(source, target, source_parent):
-		target.amount = flt(source.amount) - flt(source.billed_amt)
+		if source_parent.has_unit_price_items:
+			# 0 Amount rows (as seen in Unit Price Items) should be mapped as it is
+			pending_amount = flt(source.amount) - flt(source.billed_amt)
+			target.amount = pending_amount if flt(source.amount) else 0
+		else:
+			target.amount = flt(source.amount) - flt(source.billed_amt)
+
 		target.base_amount = target.amount * flt(source_parent.conversion_rate)
 		target.qty = (
 			target.amount / flt(source.rate)
 			if (source.rate and source.billed_amt)
-			else source.qty - source.returned_qty
+			else (source.qty if is_unit_price_row(source) else source.qty - source.returned_qty)
 		)
 
 		if source_parent.project:
@@ -1164,8 +1202,11 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 					"parent": "sales_order",
 				},
 				"postprocess": update_item,
-				"condition": lambda doc: doc.qty
-				and (doc.base_amount == 0 or abs(doc.billed_amt) < abs(doc.amount)),
+				"condition": lambda doc: (
+					True
+					if is_unit_price_row(doc)
+					else (doc.qty and (doc.base_amount == 0 or abs(doc.billed_amt) < abs(doc.amount)))
+				),
 			},
 			"Sales Taxes and Charges": {
 				"doctype": "Sales Taxes and Charges",
