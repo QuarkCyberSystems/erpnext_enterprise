@@ -286,45 +286,6 @@ def get_credit_and_debit_entry(
 	return credit_entry, debit_entry
 
 
-def get_depreciation_accounts(asset_category, company):
-	fixed_asset_account = accumulated_depreciation_account = depreciation_expense_account = None
-
-	accounts = frappe.db.get_value(
-		"Asset Category Account",
-		filters={"parent": asset_category, "company_name": company},
-		fieldname=[
-			"fixed_asset_account",
-			"accumulated_depreciation_account",
-			"depreciation_expense_account",
-		],
-		as_dict=1,
-	)
-
-	if accounts:
-		fixed_asset_account = accounts.fixed_asset_account
-		accumulated_depreciation_account = accounts.accumulated_depreciation_account
-		depreciation_expense_account = accounts.depreciation_expense_account
-
-	if not accumulated_depreciation_account or not depreciation_expense_account:
-		accounts = frappe.get_cached_value(
-			"Company", company, ["accumulated_depreciation_account", "depreciation_expense_account"]
-		)
-
-		if not accumulated_depreciation_account:
-			accumulated_depreciation_account = accounts[0]
-		if not depreciation_expense_account:
-			depreciation_expense_account = accounts[1]
-
-	if not fixed_asset_account or not accumulated_depreciation_account or not depreciation_expense_account:
-		frappe.throw(
-			_("Please set Depreciation related Accounts in Asset Category {0} or Company {1}").format(
-				asset_category, company
-			)
-		)
-
-	return fixed_asset_account, accumulated_depreciation_account, depreciation_expense_account
-
-
 def get_credit_and_debit_accounts(accumulated_depreciation_account, depreciation_expense_account):
 	root_type = frappe.get_value("Account", depreciation_expense_account, "root_type")
 
@@ -722,8 +683,8 @@ def get_asset_details(asset, finance_book=None):
 	value_after_depreciation = asset.get_value_after_depreciation(finance_book)
 	accumulated_depr_amount = flt(asset.gross_purchase_amount) - flt(value_after_depreciation)
 
-	fixed_asset_account, accumulated_depr_account, _ = get_asset_accounts(
-		asset.asset_category, asset.company, accumulated_depr_amount
+	fixed_asset_account, accumulated_depr_account, _ = get_depreciation_accounts(
+		asset.asset_category, asset.company
 	)
 	disposal_account, depreciation_cost_center = get_disposal_account_and_cost_center(asset.company)
 	depreciation_cost_center = asset.cost_center or depreciation_cost_center
@@ -739,8 +700,12 @@ def get_asset_details(asset, finance_book=None):
 	)
 
 
-def get_asset_accounts(asset_category, company, accumulated_depr_amount):
+def get_depreciation_accounts(asset_category, company):
 	fixed_asset_account = accumulated_depreciation_account = depreciation_expense_account = None
+
+	non_depreciable_category = frappe.db.get_value(
+		"Asset Category", asset_category, "non_depreciable_category"
+	)
 
 	accounts = frappe.db.get_value(
 		"Asset Category Account",
@@ -761,7 +726,7 @@ def get_asset_accounts(asset_category, company, accumulated_depr_amount):
 	if not fixed_asset_account:
 		frappe.throw(_("Please set Fixed Asset Account in Asset Category {0}").format(asset_category))
 
-	if accumulated_depr_amount:
+	if not non_depreciable_category:
 		accounts = frappe.get_cached_value(
 			"Company", company, ["accumulated_depreciation_account", "depreciation_expense_account"]
 		)

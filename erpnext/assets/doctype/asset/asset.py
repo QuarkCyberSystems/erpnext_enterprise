@@ -119,6 +119,7 @@ class Asset(AccountsController):
 	# end: auto-generated types
 
 	def validate(self):
+		self.validate_category()
 		self.validate_precision()
 		self.set_purchase_doc_row_item()
 		self.validate_asset_values()
@@ -351,6 +352,17 @@ class Asset(AccountsController):
 					_("Row #{}: Finance Book should not be empty since you're using multiple.").format(d.idx),
 					title=_("Missing Finance Book"),
 				)
+
+	def validate_category(self):
+		non_depreciable_category = frappe.db.get_value(
+			"Asset Category", self.asset_category, "non_depreciable_category"
+		)
+		if self.calculate_depreciation and non_depreciable_category:
+			frappe.throw(
+				_(
+					"This asset category is marked as non-depreciable. Please disable depreciation calculation or choose a different category."
+				)
+			)
 
 	def validate_precision(self):
 		if self.gross_purchase_amount:
