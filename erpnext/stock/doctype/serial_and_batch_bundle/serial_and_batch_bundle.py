@@ -1908,19 +1908,33 @@ def get_reserved_voucher_details(kwargs):
 
 	value = {
 		"Delivery Note": ["Delivery Note Item", "against_sales_order"],
-	}.get(kwargs.get("voucher_type"))
+		"Stock Entry": ["Stock Entry", "work_order"],
+		"Work Order": ["Work Order", "production_plan"],
+	}.get(kwargs.get("sabb_voucher_type"))
 
 	if not value or not kwargs.get("sabb_voucher_no"):
 		return reserved_voucher_details
 
-	reserved_voucher_details = frappe.get_all(
-		value[0],
-		pluck=value[1],
-		filters={
+	voucher_based_filters = {
+		"Delivery Note": {
 			"name": kwargs.get("sabb_voucher_detail_no"),
 			"parent": kwargs.get("sabb_voucher_no"),
 			"docstatus": 1,
 		},
+		"Stock Entry": {
+			"name": kwargs.get("sabb_voucher_no"),
+			"docstatus": 1,
+		},
+		"Work Order": {
+			"name": kwargs.get("sabb_voucher_no"),
+			"docstatus": 1,
+		},
+	}.get(kwargs.get("sabb_voucher_type"))
+
+	reserved_voucher_details = frappe.get_all(
+		value[0],
+		pluck=value[1],
+		filters=voucher_based_filters,
 	)
 
 	return reserved_voucher_details

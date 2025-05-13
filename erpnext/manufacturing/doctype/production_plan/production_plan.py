@@ -1619,18 +1619,20 @@ def get_items_for_material_requests(doc, warehouses=None, get_parent_warehouse_d
 				frappe.throw(_("For row {0}: Enter Planned Qty").format(data.get("idx")))
 
 			if bom_no:
-				if data.get("include_exploded_items") and doc.get("skip_available_sub_assembly_item"):
-					item_details = {}
-					if doc.get("sub_assembly_items"):
-						item_details = get_raw_materials_of_sub_assembly_items(
-							so_item_details[doc.get("sales_order")].keys() if so_item_details else [],
-							item_details,
-							company,
-							bom_no,
-							include_non_stock_items,
-							sub_assembly_items,
-							planned_qty=planned_qty,
-						)
+				if (
+					data.get("include_exploded_items")
+					and doc.get("skip_available_sub_assembly_item")
+					and doc.get("sub_assembly_items")
+				):
+					item_details = get_raw_materials_of_sub_assembly_items(
+						so_item_details[doc.get("sales_order")].keys() if so_item_details else [],
+						item_details,
+						company,
+						bom_no,
+						include_non_stock_items,
+						sub_assembly_items,
+						planned_qty=planned_qty,
+					)
 
 				elif data.get("include_exploded_items") and include_subcontracted_items:
 					# fetch exploded items from BOM
@@ -2089,7 +2091,7 @@ def get_reserved_qty_for_sub_assembly(item_code, warehouse):
 def make_stock_reservation_entries(doc, items=None, table_name=None, notify=False):
 	if isinstance(doc, str):
 		doc = parse_json(doc)
-		doc = frappe.get_doc("Work Order", doc.get("name"))
+		doc = frappe.get_doc("Production Plan", doc.get("name"))
 
 	if items and isinstance(items, str):
 		items = parse_json(items)
@@ -2113,9 +2115,22 @@ def make_stock_reservation_entries(doc, items=None, table_name=None, notify=Fals
 
 		sre = StockReservation(doc, items=items, kwargs=mapper[child_table_name], notify=notify)
 		if doc.docstatus == 1:
-			sre.make_stock_reservation_entries()
-			frappe.msgprint(_("Stock Reservation Entries Created"), alert=True)
+			sre_created = sre.make_stock_reservation_entries()
+			if sre_created:
+				frappe.msgprint(_("Stock Reservation Entries Created"), alert=True)
 		elif doc.docstatus == 2:
 			sre.cancel_stock_reservation_entries()
+
+	doc.reload()
+
+
+@frappe.whitelist()
+def cancel_stock_reservation_entries(doc, sre_list):
+	if isinstance(doc, str):
+		doc = parse_json(doc)
+		doc = frappe.get_doc("Production Plan", doc.get("name"))
+
+	sre = StockReservation(doc)
+	sre.cancel_stock_reservation_entries(sre_list)
 
 	doc.reload()

@@ -207,9 +207,9 @@ frappe.ui.form.on("Production Plan", {
 		set_field_options("projected_qty_formula", projected_qty_formula);
 	},
 
-	has_unreserved_stock(frm, table) {
+	has_unreserved_stock(frm, table, qty_field = "required_qty") {
 		let has_unreserved_stock = frm.doc[table].some(
-			(item) => flt(item.qty) > flt(item.stock_reserved_qty)
+			(item) => flt(item[qty_field]) > flt(item.stock_reserved_qty)
 		);
 
 		return has_unreserved_stock;
@@ -249,7 +249,7 @@ frappe.ui.form.on("Production Plan", {
 
 	setup_stock_reservation_for_raw_materials(frm) {
 		if (frm.doc.docstatus === 1 && frm.doc.reserve_stock) {
-			if (frm.events.has_unreserved_stock(frm, "mr_items")) {
+			if (frm.events.has_unreserved_stock(frm, "mr_items", "required_bom_qty")) {
 				frm.add_custom_button(
 					__("Reserve for Raw Materials"),
 					() => erpnext.stock_reservation.make_entries(frm, "mr_items"),

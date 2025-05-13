@@ -1426,7 +1426,7 @@ class WorkOrder(Document):
 			return
 
 		item_list = list(items.values())
-		make_stock_reservation_entries(self, item_list, notify=True)
+		make_stock_reservation_entries(self, item_list, is_transfer=False, notify=True)
 
 	def get_list_of_materials_for_reservation(self, stock_entry):
 		items = frappe._dict()
@@ -1648,7 +1648,7 @@ class WorkOrder(Document):
 
 
 @frappe.whitelist()
-def make_stock_reservation_entries(doc, items=None, table_name=None, notify=False):
+def make_stock_reservation_entries(doc, items=None, table_name=None, is_transfer=True, notify=False):
 	if isinstance(doc, str):
 		doc = parse_json(doc)
 		doc = frappe.get_doc("Work Order", doc.get("name"))
@@ -1658,14 +1658,15 @@ def make_stock_reservation_entries(doc, items=None, table_name=None, notify=Fals
 
 	sre = StockReservation(doc, items=items, notify=notify)
 	if doc.docstatus == 1:
-		if doc.production_plan:
+		if doc.production_plan and is_transfer:
 			sre.transfer_reservation_entries_to(
 				doc.production_plan, from_doctype="Production Plan", to_doctype="Work Order"
 			)
 		else:
-			sre.make_stock_reservation_entries()
+			sre_created = sre.make_stock_reservation_entries()
+			if sre_created:
+				frappe.msgprint(_("Stock Reservation Entries Created"), alert=True)
 
-		frappe.msgprint(_("Stock Reservation Entries Created"), alert=True)
 	elif doc.docstatus == 2:
 		sre.cancel_stock_reservation_entries()
 

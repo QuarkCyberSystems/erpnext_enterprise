@@ -1044,6 +1044,7 @@ class StockReservation:
 
 		child_doctype = frappe.scrub(self.doc.doctype + " Item")
 
+		is_sre_created = False
 		for item in items:
 			sre = frappe.new_doc("Stock Reservation Entry")
 			if isinstance(item, dict):
@@ -1106,6 +1107,9 @@ class StockReservation:
 				self.set_serial_batch(sre, item.serial_and_batch_bundles)
 
 			sre.submit()
+			is_sre_created = True
+
+		return is_sre_created
 
 	def set_serial_batch(self, sre, serial_batch_bundles):
 		bundle_details = frappe.get_all(

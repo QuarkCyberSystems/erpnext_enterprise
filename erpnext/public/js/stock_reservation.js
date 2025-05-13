@@ -30,15 +30,15 @@ $.extend(erpnext.stock_reservation, {
 		params["qty_field"] = {
 			"Sales Order": "stock_qty",
 			"Work Order": "required_qty",
+			"Production Plan": "required_qty",
 		}[frm.doc.doctype];
 
 		if (frm.doc.doctype === "Production Plan") {
 			if (table_name === "sub_assembly_items") {
-				params["qty_field"] = "qty";
 				params["item_code_field"] = "production_item";
 				params["warehouse_field"] = "fg_warehouse";
 			} else {
-				params["qty_field"] = "quantity";
+				params["qty_field"] = "required_bom_qty";
 			}
 		}
 
@@ -50,6 +50,8 @@ $.extend(erpnext.stock_reservation, {
 
 		params["method"] = {
 			"Sales Order": "delivered_qty",
+			"Production Plan":
+				"erpnext.manufacturing.doctype.production_plan.production_plan.make_stock_reservation_entries",
 			"Work Order":
 				"erpnext.manufacturing.doctype.work_order.work_order.make_stock_reservation_entries",
 		}[frm.doc.doctype];
@@ -141,6 +143,10 @@ $.extend(erpnext.stock_reservation, {
 	},
 
 	render_items(frm, parms) {
+		if (!frm.doc.reserve_stock) {
+			return;
+		}
+
 		let dialog = erpnext.stock_reservation.dialog;
 		let field = frappe.scrub(parms.child_doctype);
 
@@ -155,25 +161,23 @@ $.extend(erpnext.stock_reservation, {
 		let warehouse_field = parms.warehouse_field || "warehouse";
 
 		frm.doc[parms.table_name].forEach((item) => {
-			if (frm.doc.reserve_stock) {
-				let unreserved_qty =
-					(flt(item[qty_field]) -
-						(item.stock_reserved_qty
-							? flt(item.stock_reserved_qty)
-							: flt(item[dispatch_qty_field]) * flt(item.conversion_factor || 1))) /
-					flt(item.conversion_factor || 1);
+			let unreserved_qty =
+				(flt(item[qty_field]) -
+					(item.stock_reserved_qty
+						? flt(item.stock_reserved_qty)
+						: flt(item[dispatch_qty_field]) * flt(item.conversion_factor || 1))) /
+				flt(item.conversion_factor || 1);
 
-				if (unreserved_qty > 0) {
-					let args = {
-						__checked: 1,
-						item_code: item[item_code_field] || item.item_code,
-						warehouse: item[warehouse_field] || item.warehouse || item.source_warehouse,
-					};
+			if (unreserved_qty > 0) {
+				let args = {
+					__checked: 1,
+					item_code: item[item_code_field] || item.item_code,
+					warehouse: item[warehouse_field] || item.warehouse || item.source_warehouse,
+				};
 
-					args[field] = item.name;
-					args[qty_field] = unreserved_qty;
-					dialog.fields_dict.items.df.data.push(args);
-				}
+				args[field] = item.name;
+				args[qty_field] = unreserved_qty;
+				dialog.fields_dict.items.df.data.push(args);
 			}
 		});
 
@@ -257,11 +261,17 @@ $.extend(erpnext.stock_reservation, {
 	},
 
 	cancel_stock_reservation(dialog, frm) {
-		var data = { sr_entries: dialog.fields_dict.sr_entries.grid.get_selected_children() };
+		let data = { sr_entries: dialog.fields_dict.sr_entries.grid.get_selected_children() };
+		let method = "erpnext.manufacturing.doctype.work_order.work_order.cancel_stock_reservation_entries";
+
+		if (frm.doc.doctype === "Production Plan") {
+			method =
+				"erpnext.manufacturing.doctype.production_plan.production_plan.cancel_stock_reservation_entries";
+		}
 
 		if (data.sr_entries?.length > 0) {
 			frappe.call({
-				method: "erpnext.manufacturing.doctype.work_order.work_order.cancel_stock_reservation_entries",
+				method: method,
 				args: {
 					doc: frm.doc,
 					sre_list: data.sr_entries.map((item) => item.sre),

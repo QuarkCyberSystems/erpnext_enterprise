@@ -1415,7 +1415,11 @@ class TestProductionPlan(IntegrationTestCase):
 			do_not_submit=1,
 			skip_available_sub_assembly_item=1,
 			warehouse="_Test Warehouse - _TC",
+			sub_assembly_warehouse="_Test Warehouse - _TC",
 		)
+
+		plan.get_sub_assembly_items()
+		plan.save()
 
 		items = get_items_for_material_requests(
 			plan.as_dict(), warehouses=[{"warehouse": "_Test Warehouse - _TC"}]
