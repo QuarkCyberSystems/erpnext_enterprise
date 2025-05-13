@@ -2230,13 +2230,13 @@ class TestSalesInvoice(ERPNextTestSuite):
 			self.assertEqual(expected_account_values[1], gle.credit)
 
 	def test_rounding_adjustment_3(self):
-		from erpnext.accounts.doctype.accounting_dimension.test_accounting_dimension import (
-			create_dimension,
-			disable_dimension,
-		)
+		from erpnext.accounts.doctype.accounting_dimension.test_accounting_dimension import create_dimension
 
+		# Dimension creates custom field, which does an implicit DB commit as it is a DDL command
+		# Ensure dimension don't have any mandatory fields
 		create_dimension()
 
+		# rollback from tearDown() happens till here
 		si = create_sales_invoice(do_not_save=True)
 		si.items = []
 		for d in [(1122, 2), (1122.01, 1), (1122.01, 1)]:
@@ -2316,8 +2316,6 @@ class TestSalesInvoice(ERPNextTestSuite):
 		if round_off_gle:
 			self.assertEqual(round_off_gle.cost_center, "_Test Cost Center 2 - _TC")
 			self.assertEqual(round_off_gle.location, "Block 1")
-
-		disable_dimension()
 
 	def test_sales_invoice_with_shipping_rule(self):
 		from erpnext.accounts.doctype.shipping_rule.test_shipping_rule import create_shipping_rule

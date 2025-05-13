@@ -14,7 +14,7 @@ $.extend(erpnext.stock_reservation, {
 			fields: erpnext.stock_reservation.get_dialog_fields(frm, parms),
 			primary_action_label: __("Reserve Stock"),
 			primary_action: () => {
-				erpnext.stock_reservation.reserve_stock(frm, parms);
+				erpnext.stock_reservation.reserve_stock(frm, table_name, parms);
 			},
 		});
 
@@ -32,9 +32,20 @@ $.extend(erpnext.stock_reservation, {
 			"Work Order": "required_qty",
 		}[frm.doc.doctype];
 
+		if (frm.doc.doctype === "Production Plan") {
+			if (table_name === "sub_assembly_items") {
+				params["qty_field"] = "qty";
+				params["item_code_field"] = "production_item";
+				params["warehouse_field"] = "fg_warehouse";
+			} else {
+				params["qty_field"] = "quantity";
+			}
+		}
+
 		params["dispatch_qty_field"] = {
 			"Sales Order": "delivered_qty",
 			"Work Order": "transferred_qty",
+			"Production Plan": "delivered_qty",
 		}[frm.doc.doctype];
 
 		params["method"] = {
@@ -140,6 +151,9 @@ $.extend(erpnext.stock_reservation, {
 			dispatch_qty_field = "consumed_qty";
 		}
 
+		let item_code_field = parms.item_code_field || "item_code";
+		let warehouse_field = parms.warehouse_field || "warehouse";
+
 		frm.doc[parms.table_name].forEach((item) => {
 			if (frm.doc.reserve_stock) {
 				let unreserved_qty =
@@ -152,8 +166,8 @@ $.extend(erpnext.stock_reservation, {
 				if (unreserved_qty > 0) {
 					let args = {
 						__checked: 1,
-						item_code: item.item_code,
-						warehouse: item.warehouse || item.source_warehouse,
+						item_code: item[item_code_field] || item.item_code,
+						warehouse: item[warehouse_field] || item.warehouse || item.source_warehouse,
 					};
 
 					args[field] = item.name;
@@ -167,7 +181,7 @@ $.extend(erpnext.stock_reservation, {
 		dialog.show();
 	},
 
-	reserve_stock(frm, parms) {
+	reserve_stock(frm, table_name, parms) {
 		let dialog = erpnext.stock_reservation.dialog;
 		var data = { items: dialog.fields_dict.items.grid.get_selected_children() };
 
@@ -177,6 +191,7 @@ $.extend(erpnext.stock_reservation, {
 				args: {
 					doc: frm.doc,
 					items: data.items,
+					table_name: table_name,
 					notify: true,
 				},
 				freeze: true,

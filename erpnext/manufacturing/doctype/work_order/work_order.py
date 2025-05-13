@@ -10,7 +10,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.model.mapper import get_mapped_doc
 from frappe.query_builder import Case
-from frappe.query_builder.functions import Sum
+from frappe.query_builder.functions import IfNull, Sum
 from frappe.utils import (
 	cint,
 	date_diff,
@@ -1362,13 +1362,6 @@ class WorkOrder(Document):
 						)
 					)
 
-				if details.reserved_qty < details.transferred_qty:
-					frappe.throw(
-						_("Transferred Qty {0} cannot be greater than Reserved Qty {1} for item {2}").format(
-							details.transferred_qty, details.reserved_qty, item.item_code
-						)
-					)
-
 	@frappe.whitelist()
 	def make_bom(self):
 		data = frappe.db.sql(
@@ -1399,7 +1392,9 @@ class WorkOrder(Document):
 		items = frappe._dict()
 
 		stock_entry.reload()
-		if stock_entry.purpose == "Manufacture" and self.sales_order:
+		if stock_entry.purpose == "Manufacture" and (
+			self.sales_order or self.production_plan_sub_assembly_item
+		):
 			items = self.get_finished_goods_for_reservation(stock_entry)
 		elif stock_entry.purpose == "Material Transfer for Manufacture":
 			items = self.get_list_of_materials_for_reservation(stock_entry)
@@ -1412,7 +1407,7 @@ class WorkOrder(Document):
 
 	def get_list_of_materials_for_reservation(self, stock_entry):
 		items = frappe._dict()
-		vocher_detail_no = {d.item_code: d.name for d in self.required_items}
+		voucher_detail_no = {d.item_code: d.name for d in self.required_items}
 
 		for row in stock_entry.items:
 			if row.item_code not in items:
@@ -1420,7 +1415,7 @@ class WorkOrder(Document):
 					{
 						"voucher_no": self.name,
 						"voucher_type": self.doctype,
-						"voucher_detail_no": vocher_detail_no.get(row.item_code),
+						"voucher_detail_no": voucher_detail_no.get(row.item_code),
 						"item_code": row.item_code,
 						"warehouse": row.t_warehouse,
 						"stock_qty": row.transfer_qty,
@@ -1440,40 +1435,96 @@ class WorkOrder(Document):
 	def get_finished_goods_for_reservation(self, stock_entry):
 		items = frappe._dict()
 
-		so_details = self.get_so_details()
-		if not so_details:
-			return items
+		if self.production_plan_sub_assembly_item:
+			# Reserve the sub-assembly item for the final product for the work order.
+			item_details = self.get_wo_details()
+		else:
+			# Reserve the final product for the sales order.
+			item_details = self.get_so_details()
 
-		qty = so_details.stock_qty - (so_details.stock_reserved_qty + so_details.delivered_qty)
-		if not qty:
-			return items
-
-		for row in stock_entry.items:
-			if not row.t_warehouse or not row.is_finished_item:
+		for item in item_details:
+			qty_to_reserve = flt(item.stock_qty) - flt(item.stock_reserved_qty + item.delivered_qty)
+			if qty_to_reserve <= 0:
 				continue
 
-			if qty > row.transfer_qty:
-				qty = row.transfer_qty
+			warehouse = item.warehouse
+			if (
+				item.get("parenttype") == "Work Order"
+				and item.get("skip_transfer")
+				and item.get("from_wip_warehouse")
+			):
+				warehouse = item.wip_warehouse
 
-			if row.item_code not in items:
-				items[row.item_code] = frappe._dict(
-					{
-						"voucher_no": self.sales_order,
-						"voucher_type": "Sales Order",
-						"voucher_detail_no": so_details.name,
-						"item_code": row.item_code,
-						"warehouse": row.t_warehouse,
-						"stock_qty": qty,
-						"from_voucher_no": stock_entry.name,
-						"from_voucher_type": stock_entry.doctype,
-						"from_voucher_detail_no": row.name,
-						"serial_and_batch_bundles": [row.serial_and_batch_bundle],
-					}
-				)
-			else:
-				items[row.item_code]["stock_qty"] += qty
+			for row in stock_entry.items:
+				if (
+					not row.t_warehouse
+					or not row.is_finished_item
+					or row.t_warehouse != warehouse
+					or row.item_code != item.item_code
+				):
+					continue
+
+				reserved_qty = qty_to_reserve
+				if qty_to_reserve > row.transfer_qty:
+					reserved_qty = row.transfer_qty
+					qty_to_reserve -= row.transfer_qty
+				else:
+					qty_to_reserve = 0
+
+				if row.item_code not in items:
+					items[row.item_code] = frappe._dict(
+						{
+							"voucher_no": item.voucher_no,
+							"voucher_type": item.voucher_type,
+							"voucher_detail_no": item.name,
+							"item_code": row.item_code,
+							"warehouse": row.t_warehouse,
+							"stock_qty": reserved_qty,
+							"from_voucher_no": stock_entry.name,
+							"from_voucher_type": stock_entry.doctype,
+							"from_voucher_detail_no": row.name,
+							"serial_and_batch_bundles": [row.serial_and_batch_bundle],
+						}
+					)
+				else:
+					items[row.item_code]["stock_qty"] += reserved_qty
 
 		return items
+
+	def get_wo_details(self):
+		doctype = frappe.qb.DocType("Work Order")
+		child_doctype = frappe.qb.DocType("Work Order Item")
+
+		query = (
+			frappe.qb.from_(doctype)
+			.inner_join(child_doctype)
+			.on(doctype.name == child_doctype.parent)
+			.select(
+				child_doctype.name,
+				child_doctype.required_qty.as_("stock_qty"),
+				child_doctype.transferred_qty.as_("delivered_qty"),
+				child_doctype.stock_reserved_qty,
+				child_doctype.source_warehouse.as_("warehouse"),
+				doctype.wip_warehouse,
+				doctype.skip_transfer,
+				doctype.from_wip_warehouse,
+				child_doctype.parenttype,
+				child_doctype.item_code,
+				child_doctype.parent.as_("voucher_no"),
+				child_doctype.parenttype.as_("voucher_type"),
+			)
+			.where(
+				(child_doctype.item_code == self.production_item)
+				& (doctype.docstatus == 1)
+				& (doctype.production_plan == self.production_plan)
+				& (
+					IfNull(doctype.production_plan_sub_assembly_item, "")
+					!= self.production_plan_sub_assembly_item
+				)
+			)
+		)
+
+		return query.run(as_dict=1)
 
 	def get_so_details(self):
 		return frappe.db.get_value(
@@ -1483,7 +1534,15 @@ class WorkOrder(Document):
 				"item_code": self.production_item,
 				"docstatus": 1,
 			},
-			["name", "stock_qty", "stock_reserved_qty", "delivered_qty"],
+			[
+				"name",
+				"stock_qty",
+				"stock_reserved_qty",
+				"warehouse",
+				"parent as voucher_no",
+				"parenttype as voucher_type",
+				"delivered_qty",
+			],
 			as_dict=1,
 		)
 
@@ -1524,9 +1583,49 @@ class WorkOrder(Document):
 			if sre_list:
 				cancel_stock_reservation_entries(self, sre_list)
 
+	def remove_additional_items(self, stock_entry):
+		for row in stock_entry.items:
+			for item in self.required_items:
+				if row.item_code == item.item_code and row.name == item.voucher_detail_reference:
+					item.delete()
+
+	def add_additional_items(self, stock_entry):
+		if stock_entry.purpose != "Material Transfer for Manufacture":
+			return
+
+		required_items = [d.item_code for d in self.required_items]
+
+		additional_items = frappe._dict()
+		for row in stock_entry.items:
+			if row.item_code not in required_items:
+				additional_items.setdefault(row.item_code, []).append(row)
+
+		for item_code, rows in additional_items.items():
+			for row in rows:
+				child_row = self.append(
+					"required_items",
+					{
+						"item_code": item_code,
+						"source_warehouse": row.s_warehouse,
+						"item_name": row.item_name,
+						"required_qty": row.transfer_qty,
+						"stock_uom": row.stock_uom,
+						"rate": row.basic_rate,
+						"amount": row.amount,
+						"description": row.description,
+						"docstatus": 1,
+						"is_additional_item": 1,
+						"voucher_detail_reference": row.name,
+					},
+				)
+
+				child_row.insert()
+
+			stock_entry.reload()
+
 
 @frappe.whitelist()
-def make_stock_reservation_entries(doc, items=None, notify=False):
+def make_stock_reservation_entries(doc, items=None, table_name=None, notify=False):
 	if isinstance(doc, str):
 		doc = parse_json(doc)
 		doc = frappe.get_doc("Work Order", doc.get("name"))
@@ -1536,7 +1635,13 @@ def make_stock_reservation_entries(doc, items=None, notify=False):
 
 	sre = StockReservation(doc, items=items, notify=notify)
 	if doc.docstatus == 1:
-		sre.make_stock_reservation_entries()
+		if doc.production_plan:
+			sre.transfer_reservation_entries_to(
+				doc.production_plan, from_doctype="Production Plan", to_doctype="Work Order"
+			)
+		else:
+			sre.make_stock_reservation_entries()
+
 		frappe.msgprint(_("Stock Reservation Entries Created"), alert=True)
 	elif doc.docstatus == 2:
 		sre.cancel_stock_reservation_entries()

@@ -159,6 +159,10 @@ class TestPOSClosingEntry(IntegrationTestCase):
 		"""
 
 		create_dimension()
+		location = frappe.get_doc("Accounting Dimension", "Location")
+		location.dimension_defaults[0].mandatory_for_bs = True
+		location.save()
+
 		pos_profile = make_pos_profile(do_not_insert=1, do_not_set_accounting_dimension=1)
 
 		self.assertRaises(frappe.ValidationError, pos_profile.insert)

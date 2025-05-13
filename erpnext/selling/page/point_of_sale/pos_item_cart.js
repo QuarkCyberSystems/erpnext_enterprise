@@ -171,6 +171,9 @@ erpnext.PointOfSale.ItemCart = class {
 
 			me.toggle_item_highlight(this);
 
+			const scrollTop = $cart_item.offset().top - me.$cart_items_wrapper.offset().top;
+			me.$cart_items_wrapper.animate({ scrollTop });
+
 			const payment_section_hidden = !me.$totals_section.find(".edit-cart-btn").is(":visible");
 			if (!payment_section_hidden) {
 				// payment section is visible

@@ -156,6 +156,28 @@ erpnext.PointOfSale.Controller = class {
 			},
 		});
 
+		this.fetch_invoice_fields();
+		this.setup_listener_for_pos_closing();
+	}
+
+	fetch_invoice_fields() {
+		const me = this;
+		frappe.db.get_doc("POS Settings", undefined).then((doc) => {
+			me.settings.invoice_fields = doc.invoice_fields.map((field) => {
+				return {
+					fieldname: field.fieldname,
+					label: field.label,
+					fieldtype: field.fieldtype,
+					reqd: field.reqd,
+					options: field.options,
+					default_value: field.default_value,
+					read_only: field.read_only,
+				};
+			});
+		});
+	}
+
+	setup_listener_for_pos_closing() {
 		frappe.realtime.on(`poe_${this.pos_opening}_closed`, (data) => {
 			const route = frappe.get_route_str();
 			if (data && route == "point-of-sale") {
@@ -426,6 +448,7 @@ erpnext.PointOfSale.Controller = class {
 	init_payments() {
 		this.payment = new erpnext.PointOfSale.Payment({
 			wrapper: this.$components_wrapper,
+			settings: this.settings,
 			events: {
 				get_frm: () => this.frm || {},
 
