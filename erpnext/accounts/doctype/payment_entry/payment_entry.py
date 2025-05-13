@@ -2448,7 +2448,7 @@ def get_outstanding_reference_documents(args, validate=False):
 		accounts = get_party_account(
 			args.get("party_type"), args.get("party"), args.get("company"), include_advance=True
 		)
-		advance_account = accounts[1] if len(accounts) >= 1 else None
+		advance_account = accounts[1] if len(accounts) > 1 else None
 
 		if party_account == advance_account:
 			party_account = accounts[0]
