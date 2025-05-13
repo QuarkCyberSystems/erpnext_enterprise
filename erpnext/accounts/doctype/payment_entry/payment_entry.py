@@ -80,9 +80,6 @@ class PaymentEntry(AccountsController):
 			PaymentEntryReference,
 		)
 
-		advance_reconciliation_takes_effect_on: DF.Literal[
-			"Advance Payment Date", "Oldest Of Invoice Or Advance", "Reconciliation Date"
-		]
 		amended_from: DF.Link | None
 		apply_tax_withholding_amount: DF.Check
 		auto_repeat: DF.Link | None
@@ -1574,9 +1571,12 @@ class PaymentEntry(AccountsController):
 		else:
 			# For backwards compatibility
 			# Supporting reposting on payment entries reconciled before select field introduction
-			if self.advance_reconciliation_takes_effect_on == "Advance Payment Date":
+			reconciliation_takes_effect_on = frappe.get_cached_value(
+				"Company", self.company, "reconciliation_takes_effect_on"
+			)
+			if reconciliation_takes_effect_on == "Advance Payment Date":
 				posting_date = self.posting_date
-			elif self.advance_reconciliation_takes_effect_on == "Oldest Of Invoice Or Advance":
+			elif reconciliation_takes_effect_on == "Oldest Of Invoice Or Advance":
 				date_field = "posting_date"
 				if invoice.reference_doctype in ["Sales Order", "Purchase Order"]:
 					date_field = "transaction_date"
@@ -1586,7 +1586,7 @@ class PaymentEntry(AccountsController):
 
 				if getdate(posting_date) < getdate(self.posting_date):
 					posting_date = self.posting_date
-			elif self.advance_reconciliation_takes_effect_on == "Reconciliation Date":
+			elif reconciliation_takes_effect_on == "Reconciliation Date":
 				posting_date = nowdate()
 			frappe.db.set_value("Payment Entry Reference", invoice.name, "reconcile_effect_on", posting_date)
 
