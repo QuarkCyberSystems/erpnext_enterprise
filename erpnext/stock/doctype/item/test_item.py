@@ -29,7 +29,6 @@ from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
 from erpnext.stock.get_item_details import ItemDetailsCtx, get_item_details
 
 IGNORE_TEST_RECORD_DEPENDENCIES = ["BOM"]
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Warehouse", "Item Group", "Item Tax Template", "Brand", "Item Attribute"]
 
 
 def make_item(item_code=None, properties=None, uoms=None, barcode=None):

@@ -6,8 +6,6 @@ from frappe.tests import IntegrationTestCase
 
 from erpnext.controllers.queries import item_query
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Item", "Customer", "Supplier"]
-
 
 def create_party_specific_item(**args):
 	psi = frappe.new_doc("Party Specific Item")

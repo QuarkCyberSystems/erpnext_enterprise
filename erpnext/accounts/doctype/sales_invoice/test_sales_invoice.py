@@ -5016,9 +5016,6 @@ def create_sales_invoice_against_cost_center(**args):
 	return si
 
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Journal Entry", "Contact", "Address"]
-
-
 def get_outstanding_amount(against_voucher_type, against_voucher, account, party, party_type):
 	bal = flt(
 		frappe.db.sql(

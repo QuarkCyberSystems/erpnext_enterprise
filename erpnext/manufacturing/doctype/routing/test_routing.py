@@ -7,8 +7,6 @@ from erpnext.manufacturing.doctype.job_card.job_card import OperationSequenceErr
 from erpnext.manufacturing.doctype.work_order.test_work_order import make_wo_order_test_record
 from erpnext.stock.doctype.item.test_item import make_item
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["UOM"]
-
 
 class TestRouting(IntegrationTestCase):
 	@classmethod

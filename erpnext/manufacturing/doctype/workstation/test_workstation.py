@@ -12,8 +12,6 @@ from erpnext.manufacturing.doctype.workstation.workstation import (
 	check_if_within_operating_hours,
 )
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Warehouse"]
-
 
 class TestWorkstation(IntegrationTestCase):
 	def test_validate_timings(self):

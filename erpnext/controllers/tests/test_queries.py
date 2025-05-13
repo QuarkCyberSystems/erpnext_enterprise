@@ -14,9 +14,6 @@ def add_default_params(func, doctype):
 	return partial(func, doctype=doctype, txt="", searchfield="name", start=0, page_len=20, filters=None)
 
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Item", "BOM", "Account"]
-
-
 class TestQueries(ERPNextTestSuite):
 	# All tests are based on self.globalTestRecords[doctype]
 

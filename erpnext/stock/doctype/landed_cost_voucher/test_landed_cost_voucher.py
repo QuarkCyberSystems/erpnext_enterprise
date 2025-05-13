@@ -22,7 +22,6 @@ from erpnext.stock.doctype.serial_and_batch_bundle.test_serial_and_batch_bundle 
 )
 from erpnext.stock.serial_batch_bundle import SerialNoValuation
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Currency Exchange"]
 
 
 class TestLandedCostVoucher(IntegrationTestCase):

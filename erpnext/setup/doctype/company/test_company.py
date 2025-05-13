@@ -19,7 +19,6 @@ IGNORE_TEST_RECORD_DEPENDENCIES = [
 	"Salary Component",
 	"Warehouse",
 ]
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Fiscal Year"]
 
 
 class TestCompany(IntegrationTestCase):

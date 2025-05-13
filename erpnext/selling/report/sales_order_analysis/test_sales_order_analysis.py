@@ -7,8 +7,6 @@ from erpnext.selling.doctype.sales_order.test_sales_order import make_sales_orde
 from erpnext.selling.report.sales_order_analysis.sales_order_analysis import execute
 from erpnext.stock.doctype.item.test_item import create_item
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Sales Order", "Item", "Sales Invoice", "Delivery Note"]
-
 
 class TestSalesOrderAnalysis(IntegrationTestCase):
 	def create_sales_order(self, transaction_date, do_not_save=False, do_not_submit=False):

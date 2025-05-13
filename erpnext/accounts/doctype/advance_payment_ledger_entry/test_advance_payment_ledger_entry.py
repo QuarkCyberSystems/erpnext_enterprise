@@ -13,7 +13,7 @@ from erpnext.selling.doctype.sales_order.test_sales_order import make_sales_orde
 # On IntegrationTestCase, the doctype test records and all
 # link-field test record depdendencies are recursively loaded
 # Use these module variables to add/remove to/from that list
-EXTRA_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
+
 IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
 
 

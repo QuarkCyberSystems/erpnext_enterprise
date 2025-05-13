@@ -3,15 +3,12 @@
 
 
 import frappe
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 from erpnext.accounts.party import get_due_date
 from erpnext.controllers.website_list_for_contact import get_customers_suppliers
 from erpnext.exceptions import PartyDisabled
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Payment Term", "Payment Terms Template"]
-
-
-from frappe.tests import IntegrationTestCase
 
 
 class TestSupplier(IntegrationTestCase):

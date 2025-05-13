@@ -11,8 +11,6 @@ from erpnext.controllers.accounts_controller import InvalidQtyError, update_chil
 from erpnext.selling.doctype.quotation.quotation import make_sales_order
 from erpnext.setup.utils import get_exchange_rate
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Product Bundle"]
-
 
 class TestQuotation(IntegrationTestCase):
 	def test_update_child_quotation_add_item(self):

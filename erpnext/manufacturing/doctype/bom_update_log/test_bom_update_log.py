@@ -13,7 +13,6 @@ from erpnext.manufacturing.doctype.bom_update_tool.bom_update_tool import (
 	enqueue_update_cost,
 )
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["BOM"]
 
 
 class TestBOMUpdateLog(IntegrationTestCase):

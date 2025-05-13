@@ -7,8 +7,6 @@ from frappe.model import mapper
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_months, nowdate
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Item"]
-
 
 class TestMapper(IntegrationTestCase):
 	def test_map_docs(self):

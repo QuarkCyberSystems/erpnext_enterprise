@@ -13,8 +13,6 @@ from erpnext.accounts.doctype.account.account import (
 )
 from erpnext.stock import get_company_default_inventory_account, get_warehouse_account
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Company"]
-
 
 class TestAccount(IntegrationTestCase):
 	def test_rename_account(self):

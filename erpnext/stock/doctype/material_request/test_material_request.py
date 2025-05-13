@@ -1191,6 +1191,3 @@ def make_material_request(**args):
 	if not args.do_not_submit:
 		mr.submit()
 	return mr
-
-
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Currency Exchange", "BOM"]

@@ -21,8 +21,6 @@ from erpnext.stock.doctype.stock_reconciliation.test_stock_reconciliation import
 	create_stock_reconciliation,
 )
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Item", "Quality Inspection Template"]
-
 
 class TestBOM(IntegrationTestCase):
 	@timeout

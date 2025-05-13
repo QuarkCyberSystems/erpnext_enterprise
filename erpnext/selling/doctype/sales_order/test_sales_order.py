@@ -2834,9 +2834,6 @@ def get_reserved_qty(item_code="_Test Item", warehouse="_Test Warehouse - _TC"):
 	return flt(frappe.db.get_value("Bin", {"item_code": item_code, "warehouse": warehouse}, "reserved_qty"))
 
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Currency Exchange"]
-
-
 def make_sales_order_workflow():
 	if frappe.db.exists("Workflow", "SO Test Workflow"):
 		doc = frappe.get_doc("Workflow", "SO Test Workflow")

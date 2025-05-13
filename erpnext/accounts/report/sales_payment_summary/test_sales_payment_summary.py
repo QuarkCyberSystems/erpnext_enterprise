@@ -12,8 +12,6 @@ from erpnext.accounts.report.sales_payment_summary.sales_payment_summary import 
 	get_mode_of_payments,
 )
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Sales Invoice"]
-
 
 class TestSalesPaymentSummary(IntegrationTestCase):
 	@classmethod

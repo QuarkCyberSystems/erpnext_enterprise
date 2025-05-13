@@ -20,8 +20,6 @@ from frappe.utils.data import (
 from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
 from erpnext.accounts.doctype.subscription.subscription import get_prorata_factor
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ("UOM", "Item Group", "Item")
-
 
 class TestSubscription(IntegrationTestCase):
 	def setUp(self):

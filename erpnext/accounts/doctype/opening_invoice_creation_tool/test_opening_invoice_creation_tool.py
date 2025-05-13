@@ -12,8 +12,6 @@ from erpnext.accounts.doctype.opening_invoice_creation_tool.opening_invoice_crea
 	get_temporary_opening_account,
 )
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Customer", "Supplier", "Accounting Dimension"]
-
 
 class TestOpeningInvoiceCreationTool(IntegrationTestCase):
 	@classmethod

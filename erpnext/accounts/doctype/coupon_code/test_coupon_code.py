@@ -7,8 +7,6 @@ from frappe.tests import IntegrationTestCase
 
 from erpnext.selling.doctype.sales_order.test_sales_order import make_sales_order
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Item"]
-
 
 def test_create_test_data():
 	frappe.set_user("Administrator")

@@ -22,8 +22,6 @@ from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import (
 	EmptyStockReconciliationItemsError,
 )
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Item", "Sales Invoice", "Stock Entry", "Batch"]
-
 
 class TestPickList(IntegrationTestCase):
 	def test_pick_list_picks_warehouse_for_each_item(self):

@@ -21,8 +21,6 @@ from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
 from erpnext.stock.doctype.stock_entry.test_stock_entry import make_serialized_item
 from erpnext.stock.doctype.warehouse.test_warehouse import create_warehouse
 
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Item"]
-
 
 class TestSerialNo(IntegrationTestCase):
 	def tearDown(self):

@@ -1976,6 +1976,3 @@ def set_valuation_method(item_code, valuation_method):
 			update_entries_after(
 				{"item_code": item_code, "warehouse": warehouse.name}, allow_negative_stock=1
 			)
-
-
-EXTRA_TEST_RECORD_DEPENDENCIES = ["Item", "Warehouse"]
