@@ -16,7 +16,7 @@ from erpnext.assets.doctype.asset.depreciation import (
 	get_gl_entries_on_asset_disposal,
 	get_value_after_depreciation_on_disposal_date,
 	reset_depreciation_schedule,
-	reverse_depreciation_entry_made_after_disposal,
+	reverse_depreciation_entry_made_on_disposal,
 )
 from erpnext.assets.doctype.asset_activity.asset_activity import add_asset_activity
 from erpnext.assets.doctype.asset_category.asset_category import get_asset_category_account
@@ -140,6 +140,7 @@ class AssetCapitalization(StockController):
 		self.make_gl_entries()
 		self.repost_future_sle_and_gle()
 		self.restore_consumed_asset_items()
+		self.update_target_asset()
 
 	def set_title(self):
 		self.title = self.target_asset_name or self.target_item_name or self.target_item_code
@@ -602,13 +603,18 @@ class AssetCapitalization(StockController):
 			return
 
 		total_target_asset_value = flt(self.total_value, self.precision("total_value"))
-
 		asset_doc = frappe.get_doc("Asset", self.target_asset)
-		asset_doc.gross_purchase_amount += total_target_asset_value
-		asset_doc.purchase_amount += total_target_asset_value
-		asset_doc.set_status("Work In Progress")
-		asset_doc.flags.ignore_validate = True
-		asset_doc.save()
+
+		if self.docstatus == 2:
+			gross_purchase_amount = asset_doc.gross_purchase_amount - total_target_asset_value
+			purchase_amount = asset_doc.purchase_amount - total_target_asset_value
+			asset_doc.db_set("total_asset_cost", asset_doc.total_asset_cost - total_target_asset_value)
+		else:
+			gross_purchase_amount = asset_doc.gross_purchase_amount + total_target_asset_value
+			purchase_amount = asset_doc.purchase_amount + total_target_asset_value
+
+		asset_doc.db_set("gross_purchase_amount", gross_purchase_amount)
+		asset_doc.db_set("purchase_amount", purchase_amount)
 
 		frappe.msgprint(
 			_("Asset {0} has been updated. Please set the depreciation details if any and submit it.").format(
@@ -619,17 +625,17 @@ class AssetCapitalization(StockController):
 	def restore_consumed_asset_items(self):
 		for item in self.asset_items:
 			asset = frappe.get_doc("Asset", item.asset)
-			asset.db_set("disposal_date", None)
 			self.set_consumed_asset_status(asset)
 
 			if asset.calculate_depreciation:
-				reverse_depreciation_entry_made_after_disposal(asset, self.posting_date)
+				reverse_depreciation_entry_made_on_disposal(asset)
 				notes = _(
 					"This schedule was created when Asset {0} was restored on Asset Capitalization {1}'s cancellation."
 				).format(
 					get_link_to_form(asset.doctype, asset.name), get_link_to_form(self.doctype, self.name)
 				)
-				reset_depreciation_schedule(asset, self.posting_date, notes)
+				reset_depreciation_schedule(asset, notes)
+			asset.db_set("disposal_date", None)
 
 	def set_consumed_asset_status(self, asset):
 		if self.docstatus == 1:
