@@ -4,16 +4,16 @@ import json
 
 import frappe
 from frappe import _
-from frappe.tests import IntegrationTestCase
 from frappe.utils import random_string
 
 from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts import (
 	get_charts_for_country,
 )
 from erpnext.setup.doctype.company.company import get_default_company_address
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestCompany(IntegrationTestCase):
+class TestCompany(ERPNextTestSuite):
 	def test_coa_based_on_existing_company(self):
 		company = frappe.new_doc("Company")
 		company.company_name = "COA from Existing Company"
@@ -55,6 +55,9 @@ class TestCompany(IntegrationTestCase):
 				templates.remove("Standard")
 
 			self.assertTrue(templates)
+
+			for company in frappe.db.get_all("Company", {"company_name": ["in", templates]}):
+				frappe.delete_doc("Company", company.name)
 
 			for template in templates:
 				try:

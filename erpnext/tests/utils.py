@@ -122,6 +122,12 @@ class ERPNextTestSuite(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		cls.make_persistant_master_data()
+
+	@classmethod
+	def make_persistant_master_data(cls):
+		cls.make_company()
+		frappe.db.commit()
 
 	@classmethod
 	def make_monthly_distribution(cls):
@@ -301,3 +307,145 @@ class ERPNextTestSuite(unittest.TestCase):
 				cls.leads.append(frappe.get_doc(x).insert())
 			else:
 				cls.leads.append(frappe.get_doc("Lead", {"email_id": x.get("email_id")}))
+
+	@classmethod
+	def make_holiday_list(cls):
+		records = [
+			{
+				"doctype": "Holiday List",
+				"from_date": "2013-01-01",
+				"to_date": "2013-12-31",
+				"holidays": [
+					{"description": "New Year", "holiday_date": "2013-01-01"},
+					{"description": "Republic Day", "holiday_date": "2013-01-26"},
+					{"description": "Test Holiday", "holiday_date": "2013-02-01"},
+				],
+				"holiday_list_name": "_Test Holiday List",
+			}
+		]
+		cls.holiday_list = []
+		for x in records:
+			if not frappe.db.exists("Holiday List", {"holiday_list_name": x.get("holiday_list_name")}):
+				cls.holiday_list.append(frappe.get_doc(x).insert())
+			else:
+				cls.holiday_list.append(
+					frappe.get_doc("Holiday List", {"holiday_list_name": x.get("holiday_list_name")})
+				)
+
+	@classmethod
+	def make_company(cls):
+		records = [
+			{
+				"abbr": "_TC",
+				"company_name": "_Test Company",
+				"country": "India",
+				"default_currency": "INR",
+				"doctype": "Company",
+				"domain": "Manufacturing",
+				"chart_of_accounts": "Standard",
+				# "default_holiday_list": cls.holiday_list[0].name,
+				"enable_perpetual_inventory": 0,
+				"allow_account_creation_against_child_company": 1,
+			},
+			{
+				"abbr": "_TC1",
+				"company_name": "_Test Company 1",
+				"country": "United States",
+				"default_currency": "USD",
+				"doctype": "Company",
+				"domain": "Retail",
+				"chart_of_accounts": "Standard",
+				# "default_holiday_list": cls.holiday_list[0].name,
+				"enable_perpetual_inventory": 0,
+			},
+			{
+				"abbr": "_TC2",
+				"company_name": "_Test Company 2",
+				"default_currency": "EUR",
+				"country": "Germany",
+				"doctype": "Company",
+				"domain": "Retail",
+				"chart_of_accounts": "Standard",
+				# "default_holiday_list": cls.holiday_list[0].name,
+				"enable_perpetual_inventory": 0,
+			},
+			{
+				"abbr": "_TC3",
+				"company_name": "_Test Company 3",
+				"is_group": 1,
+				"country": "Pakistan",
+				"default_currency": "INR",
+				"doctype": "Company",
+				"domain": "Manufacturing",
+				"chart_of_accounts": "Standard",
+				# "default_holiday_list": cls.holiday_list[0].name,
+				"enable_perpetual_inventory": 0,
+			},
+			{
+				"abbr": "_TC4",
+				"company_name": "_Test Company 4",
+				"parent_company": "_Test Company 3",
+				"is_group": 1,
+				"country": "Pakistan",
+				"default_currency": "INR",
+				"doctype": "Company",
+				"domain": "Manufacturing",
+				"chart_of_accounts": "Standard",
+				# "default_holiday_list": cls.holiday_list[0].name,
+				"enable_perpetual_inventory": 0,
+			},
+			{
+				"abbr": "_TC5",
+				"company_name": "_Test Company 5",
+				"parent_company": "_Test Company 4",
+				"country": "Pakistan",
+				"default_currency": "INR",
+				"doctype": "Company",
+				"domain": "Manufacturing",
+				"chart_of_accounts": "Standard",
+				# "default_holiday_list": cls.holiday_list[0].name,
+				"enable_perpetual_inventory": 0,
+			},
+			{
+				"abbr": "TCP1",
+				"company_name": "_Test Company with perpetual inventory",
+				"country": "India",
+				"default_currency": "INR",
+				"doctype": "Company",
+				"domain": "Manufacturing",
+				"chart_of_accounts": "Standard",
+				"enable_perpetual_inventory": 1,
+				# "default_holiday_list": cls.holiday_list[0].name,
+			},
+			{
+				"abbr": "_TC6",
+				"company_name": "_Test Company 6",
+				"is_group": 1,
+				"country": "India",
+				"default_currency": "INR",
+				"doctype": "Company",
+				"domain": "Manufacturing",
+				"chart_of_accounts": "Standard",
+				# "default_holiday_list": cls.holiday_list[0].name,
+				"enable_perpetual_inventory": 0,
+			},
+			{
+				"abbr": "_TC7",
+				"company_name": "_Test Company 7",
+				"parent_company": "_Test Company 6",
+				"is_group": 1,
+				"country": "United States",
+				"default_currency": "USD",
+				"doctype": "Company",
+				"domain": "Manufacturing",
+				"chart_of_accounts": "Standard",
+				# "default_holiday_list": cls.holiday_list[0].name,
+				"enable_perpetual_inventory": 0,
+			},
+		]
+		cls.companies = []
+		for x in records:
+			if not frappe.db.exists("Company", {"company_name": x.get("company_name")}):
+				cls.companies.append(frappe.get_doc(x).insert())
+			else:
+				cls.companies.append(frappe.get_doc("Company", {"company_name": x.get("company_name")}))
