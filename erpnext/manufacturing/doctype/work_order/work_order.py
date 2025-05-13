@@ -704,19 +704,30 @@ class WorkOrder(Document):
 		enable_capacity_planning = not cint(manufacturing_settings_doc.disable_capacity_planning)
 		plan_days = cint(manufacturing_settings_doc.capacity_planning_for_days) or 30
 
-		for index, row in enumerate(self.operations):
+		if all([op.sequence_id for op in self.operations]):
+			self.operations = sorted(self.operations, key=lambda op: op.sequence_id)
+			for idx, op in enumerate(self.operations):
+				op.idx = idx + 1
+		elif any([op.sequence_id for op in self.operations]):
+			frappe.throw(
+				_(
+					"Row #{0}: Incorrect Sequence ID. If any single operation has a Sequence ID then all other operations must have one too."
+				).format(next((op.idx for op in self.operations if not op.sequence_id), None))
+			)
+
+		for idx, row in enumerate(self.operations):
 			qty = self.qty
 			while qty > 0:
 				qty = split_qty_based_on_batch_size(self, row, qty)
 				if row.job_card_qty > 0:
-					self.prepare_data_for_job_card(row, index, plan_days, enable_capacity_planning)
+					self.prepare_data_for_job_card(row, idx, plan_days, enable_capacity_planning)
 
 		planned_end_date = self.operations and self.operations[-1].planned_end_time
 		if planned_end_date:
 			self.db_set("planned_end_date", planned_end_date)
 
-	def prepare_data_for_job_card(self, row, index, plan_days, enable_capacity_planning):
-		self.set_operation_start_end_time(index, row)
+	def prepare_data_for_job_card(self, row, idx, plan_days, enable_capacity_planning):
+		self.set_operation_start_end_time(row, idx)
 
 		job_card_doc = create_job_card(
 			self, row, auto_create=True, enable_capacity_planning=enable_capacity_planning
@@ -741,12 +752,24 @@ class WorkOrder(Document):
 
 			row.db_update()
 
-	def set_operation_start_end_time(self, idx, row):
+	def set_operation_start_end_time(self, row, idx):
 		"""Set start and end time for given operation. If first operation, set start as
 		`planned_start_date`, else add time diff to end time of earlier operation."""
 		if idx == 0:
 			# first operation at planned_start date
 			row.planned_start_time = self.planned_start_date
+		elif self.operations[idx - 1].sequence_id:
+			if self.operations[idx - 1].sequence_id == row.sequence_id:
+				row.planned_start_time = self.operations[idx - 1].planned_start_time
+			else:
+				last_ops_with_same_sequence_ids = sorted(
+					[op for op in self.operations if op.sequence_id == self.operations[idx - 1].sequence_id],
+					key=lambda op: get_datetime(op.planned_end_time),
+				)
+				row.planned_start_time = (
+					get_datetime(last_ops_with_same_sequence_ids[-1].planned_end_time)
+					+ get_mins_between_operations()
+				)
 		else:
 			row.planned_start_time = (
 				get_datetime(self.operations[idx - 1].planned_end_time) + get_mins_between_operations()

@@ -2851,6 +2851,81 @@ class TestWorkOrder(IntegrationTestCase):
 		)
 		frappe.db.set_single_value("Stock Settings", "pick_serial_and_batch_based_on", original_based_on)
 
+	def test_operations_time_planning_calculation(self):
+		from erpnext.manufacturing.doctype.routing.test_routing import create_routing, setup_operations
+
+		operations = [
+			{"operation": "Test Operation A", "workstation": "Test Workstation A", "time_in_mins": 1},
+			{"operation": "Test Operation B", "workstation": "Test Workstation A", "time_in_mins": 4},
+			{"operation": "Test Operation C", "workstation": "Test Workstation A", "time_in_mins": 3},
+			{"operation": "Test Operation D", "workstation": "Test Workstation A", "time_in_mins": 2},
+		]
+		setup_operations(operations)
+		routing_doc = create_routing(routing_name="Testing Route", operations=operations)
+		bom = make_bom(
+			item="_Test FG Item", raw_materials=["_Test Item"], with_operations=1, routing=routing_doc.name
+		)
+
+		wo = make_wo_order_test_record(
+			item="_Test FG Item",
+			bom_no=bom.name,
+			qty=5,
+			source_warehouse="_Test Warehouse 1 - _TC",
+			skip_transfer=1,
+			fg_warehouse="_Test Warehouse 2 - _TC",
+		)
+
+		# Initial check
+		self.assertEqual(wo.operations[0].operation, "Test Operation A")
+		self.assertEqual(wo.operations[1].operation, "Test Operation B")
+		self.assertEqual(wo.operations[2].operation, "Test Operation C")
+		self.assertEqual(wo.operations[3].operation, "Test Operation D")
+
+		wo = frappe.copy_doc(wo)
+		wo.operations[3].sequence_id = 2
+		wo.submit()
+
+		# Test 2 : Sort line items in child table based on sequence ID
+		self.assertEqual(wo.operations[0].operation, "Test Operation A")
+		self.assertEqual(wo.operations[1].operation, "Test Operation B")
+		self.assertEqual(wo.operations[2].operation, "Test Operation D")
+		self.assertEqual(wo.operations[3].operation, "Test Operation C")
+
+		wo = frappe.copy_doc(wo)
+		wo.operations[3].sequence_id = 1
+		wo.submit()
+
+		self.assertEqual(wo.operations[0].operation, "Test Operation A")
+		self.assertEqual(wo.operations[1].operation, "Test Operation C")
+		self.assertEqual(wo.operations[2].operation, "Test Operation B")
+		self.assertEqual(wo.operations[3].operation, "Test Operation D")
+
+		wo = frappe.copy_doc(wo)
+		wo.operations[0].sequence_id = 3
+		wo.submit()
+
+		self.assertEqual(wo.operations[0].operation, "Test Operation C")
+		self.assertEqual(wo.operations[1].operation, "Test Operation B")
+		self.assertEqual(wo.operations[2].operation, "Test Operation D")
+		self.assertEqual(wo.operations[3].operation, "Test Operation A")
+
+		wo = frappe.copy_doc(wo)
+		wo.operations[1].sequence_id = 0
+
+		# Test 3 - Error should be thrown if any one operation does not have sequence id but others do
+		self.assertRaises(frappe.ValidationError, wo.submit)
+
+		workstation = frappe.get_doc("Workstation", "Test Workstation A")
+		workstation.production_capacity = 4
+		workstation.save()
+
+		wo = frappe.copy_doc(wo)
+		wo.operations[1].sequence_id = 2
+		wo.submit()
+
+		# Test 4 - If Sequence ID is same then planned start time for both operations should be same
+		self.assertEqual(wo.operations[1].planned_start_time, wo.operations[2].planned_start_time)
+
 
 def make_stock_in_entries_and_get_batches(rm_item, source_warehouse, wip_warehouse):
 	from erpnext.stock.doctype.stock_entry.test_stock_entry import (
