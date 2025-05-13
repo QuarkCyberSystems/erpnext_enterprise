@@ -587,16 +587,19 @@ def get_account_type_map(company):
 
 
 def get_result_as_list(data, filters):
-	balance, _balance_in_account_currency = 0, 0
+	balance = 0
 
 	for d in data:
 		if not d.get("posting_date"):
-			balance, _balance_in_account_currency = 0, 0
+			balance = 0
 
 		balance = get_balance(d, balance, "debit", "credit")
+
 		d["balance"] = balance
 
 		d["account_currency"] = filters.account_currency
+
+		d["presentation_currency"] = filters.presentation_currency
 
 	return data
 
@@ -623,11 +626,8 @@ def get_columns(filters):
 	if filters.get("presentation_currency"):
 		currency = filters["presentation_currency"]
 	else:
-		if filters.get("company"):
-			currency = get_company_currency(filters["company"])
-		else:
-			company = get_default_company()
-			currency = get_company_currency(company)
+		company = filters.get("company") or get_default_company()
+		filters["presentation_currency"] = currency = get_company_currency(company)
 
 	columns = [
 		{
@@ -648,19 +648,22 @@ def get_columns(filters):
 		{
 			"label": _("Debit ({0})").format(currency),
 			"fieldname": "debit",
-			"fieldtype": "Float",
+			"fieldtype": "Currency",
+			"options": "presentation_currency",
 			"width": 130,
 		},
 		{
 			"label": _("Credit ({0})").format(currency),
 			"fieldname": "credit",
-			"fieldtype": "Float",
+			"fieldtype": "Currency",
+			"options": "presentation_currency",
 			"width": 130,
 		},
 		{
 			"label": _("Balance ({0})").format(currency),
 			"fieldname": "balance",
-			"fieldtype": "Float",
+			"fieldtype": "Currency",
+			"options": "presentation_currency",
 			"width": 130,
 		},
 	]
