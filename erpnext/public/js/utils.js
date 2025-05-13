@@ -1027,11 +1027,7 @@ erpnext.utils.map_current_doc = function (opts) {
 					return;
 				}
 
-				if (values.constructor === Array) {
-					opts.source_name = [...new Set(values)];
-				} else {
-					opts.source_name = values;
-				}
+				opts.source_name = Array.isArray(values) ? [...new Set(values)] : values;
 
 				if (
 					opts.allow_child_item_selection ||
