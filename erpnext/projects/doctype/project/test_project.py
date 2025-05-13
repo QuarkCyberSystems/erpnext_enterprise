@@ -11,8 +11,6 @@ from erpnext.selling.doctype.sales_order.sales_order import make_project as make
 from erpnext.selling.doctype.sales_order.test_sales_order import make_sales_order
 from erpnext.tests.utils import ERPNextTestSuite
 
-IGNORE_TEST_RECORD_DEPENDENCIES = ["Sales Order"]
-
 
 class TestProject(ERPNextTestSuite):
 	@classmethod

@@ -38,8 +38,6 @@ from erpnext.stock.doctype.serial_and_batch_bundle.test_serial_and_batch_bundle 
 from erpnext.stock.doctype.stock_entry.test_stock_entry import get_qty_after_transaction
 from erpnext.stock.tests.test_utils import StockTestMixin
 
-IGNORE_TEST_RECORD_DEPENDENCIES = ["Serial No"]
-
 
 class TestPurchaseInvoice(IntegrationTestCase, StockTestMixin):
 	@classmethod

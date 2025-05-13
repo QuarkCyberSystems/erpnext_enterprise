@@ -6,8 +6,6 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import now_datetime
 
-IGNORE_TEST_RECORD_DEPENDENCIES = ["Company"]
-
 
 class TestFiscalYear(IntegrationTestCase):
 	def test_extra_year(self):

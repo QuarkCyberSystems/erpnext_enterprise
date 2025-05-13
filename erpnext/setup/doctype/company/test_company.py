@@ -12,14 +12,6 @@ from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts import
 )
 from erpnext.setup.doctype.company.company import get_default_company_address
 
-IGNORE_TEST_RECORD_DEPENDENCIES = [
-	"Account",
-	"Cost Center",
-	"Payment Terms Template",
-	"Salary Component",
-	"Warehouse",
-]
-
 
 class TestCompany(IntegrationTestCase):
 	def test_coa_based_on_existing_company(self):

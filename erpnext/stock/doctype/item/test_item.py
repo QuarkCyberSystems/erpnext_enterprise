@@ -28,8 +28,6 @@ from erpnext.stock.doctype.item.item import (
 from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
 from erpnext.stock.get_item_details import ItemDetailsCtx, get_item_details
 
-IGNORE_TEST_RECORD_DEPENDENCIES = ["BOM"]
-
 
 def make_item(item_code=None, properties=None, uoms=None, barcode=None):
 	if not item_code:

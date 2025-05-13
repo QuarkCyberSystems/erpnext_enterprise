@@ -17,8 +17,6 @@ from erpnext.selling.doctype.customer.customer import (
 )
 from erpnext.tests.utils import create_test_contact_and_address
 
-IGNORE_TEST_RECORD_DEPENDENCIES = ["Price List"]
-
 
 class TestCustomer(IntegrationTestCase):
 	def tearDown(self):

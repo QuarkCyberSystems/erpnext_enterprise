@@ -8,8 +8,6 @@ from frappe.tests import IntegrationTestCase
 # link-field test record depdendencies are recursively loaded
 # Use these module variables to add/remove to/from that list
 
-IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
-
 
 class IntegrationTestStockClosingBalance(IntegrationTestCase):
 	"""
