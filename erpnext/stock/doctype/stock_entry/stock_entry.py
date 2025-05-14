@@ -540,17 +540,19 @@ class StockEntry(StockController):
 			if acc_details.account_type == "Stock":
 				frappe.throw(
 					_(
-						"At row {0}: the Difference Account must not be a Stock type account, please change the Account Type for the account {1} or select a different account"
+						"At row #{0}: the Difference Account must not be a Stock type account, please change the Account Type for the account {1} or select a different account"
 					).format(d.idx, get_link_to_form("Account", d.expense_account)),
-					OpeningEntryAccountError,
+					title=_("Difference Account in Items Table"),
 				)
 
 			if self.purpose != "Material Issue" and acc_details.account_type == "Cost of Goods Sold":
 				frappe.msgprint(
 					_(
-						"At row {0}: You have selected the Difference Account {1}, which is a Cost of Goods Sold type account. Please select a different account"
+						"At row #{0}: you have selected the Difference Account {1}, which is a Cost of Goods Sold type account. Please select a different account"
 					).format(d.idx, bold(get_link_to_form("Account", d.expense_account))),
-					title=_("Warning : Cost of Goods Sold Account"),
+					title=_("Cost of Goods Sold Account in Items Table"),
+					indicator="orange",
+					alert=1,
 				)
 
 	def validate_warehouse(self):
