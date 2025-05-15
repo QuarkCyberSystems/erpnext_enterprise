@@ -1550,14 +1550,14 @@ class WorkOrder(Document):
 		return query.run(as_dict=1)
 
 	def get_so_details(self):
-		return frappe.db.get_value(
+		return frappe.get_all(
 			"Sales Order Item",
-			{
+			filters={
 				"parent": self.sales_order,
 				"item_code": self.production_item,
 				"docstatus": 1,
 			},
-			[
+			fields=[
 				"name",
 				"stock_qty",
 				"stock_reserved_qty",
@@ -1566,7 +1566,6 @@ class WorkOrder(Document):
 				"parenttype as voucher_type",
 				"delivered_qty",
 			],
-			as_dict=1,
 		)
 
 	def get_voucher_details(self, stock_entry):
