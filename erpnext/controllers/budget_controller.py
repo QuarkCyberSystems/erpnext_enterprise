@@ -159,6 +159,7 @@ class BudgetValidation:
 				bud.name,
 				bud.budget_against,
 				bud.company,
+				bud.monthly_distribution,
 				bud.applicable_on_material_request,
 				bud.action_if_annual_budget_exceeded_on_mr,
 				bud.action_if_accumulated_monthly_budget_exceeded_on_mr,
