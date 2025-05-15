@@ -510,7 +510,7 @@ def get_accumulated_monthly_budget(monthly_distribution, posting_date, fiscal_ye
 	accumulated_percentage = 0.0
 
 	while dt <= getdate(posting_date):
-		if monthly_distribution:
+		if monthly_distribution and distribution:
 			accumulated_percentage += distribution.get(getdate(dt).strftime("%B"), 0)
 		else:
 			accumulated_percentage += 100.0 / 12
