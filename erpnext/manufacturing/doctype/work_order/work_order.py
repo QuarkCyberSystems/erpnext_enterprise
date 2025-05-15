@@ -1613,6 +1613,9 @@ class WorkOrder(Document):
 					item.delete()
 
 	def add_additional_items(self, stock_entry):
+		if frappe.db.get_single_value("Manufacturing Settings", "validate_components_quantities_per_bom"):
+			return
+
 		if stock_entry.purpose != "Material Transfer for Manufacture":
 			return
 
