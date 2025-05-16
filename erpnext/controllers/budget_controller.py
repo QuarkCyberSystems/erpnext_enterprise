@@ -30,6 +30,9 @@ class BudgetValidation:
 		self.fy_start_date = fy[1]
 		self.fy_end_date = fy[2]
 		self.get_dimensions()
+		self.exception_approver_role = frappe.get_cached_value(
+			"Company", self.company, "exception_budget_approver_role"
+		)
 
 	def validate(self):
 		self.build_validation_map()
@@ -276,6 +279,19 @@ class BudgetValidation:
 	def warn(self, msg):
 		frappe.msgprint(msg, _("Budget Exceeded"))
 
+	def execute_action(self, action, msg):
+		if self.exception_approver_role and self.exception_approver_role in frappe.get_roles(
+			frappe.session.user
+		):
+			self.warn(msg)
+			return
+
+		if action == "Warn":
+			self.warn(msg)
+
+		if action == "Stop":
+			self.stop(msg)
+
 	def handle_individual_doctype_action(
 		self, key, config, budget, budget_amt, existing_amt, current_amt, acc_monthly_budget
 	):
@@ -292,12 +308,7 @@ class BudgetValidation:
 					frappe.bold(fmt_money(annual_diff, currency=currency)),
 					frappe.bold(fmt_money(budget_amt, currency=currency)),
 				)
-
-				if config.action_for_annual == "Warn":
-					self.warn(_msg)
-
-				if config.action_for_annual == "Stop":
-					self.stop(_msg)
+				self.execute_action(config.action_for_annual, _msg)
 
 			monthly_diff = (existing_amt + current_amt) - acc_monthly_budget
 			if monthly_diff > 0:
@@ -310,12 +321,7 @@ class BudgetValidation:
 					frappe.bold(fmt_money(acc_monthly_budget, currency=currency)),
 					frappe.bold(fmt_money(monthly_diff, currency=currency)),
 				)
-
-				if config.action_for_monthly == "Warn":
-					self.warn(_msg)
-
-				if config.action_for_monthly == "Stop":
-					self.stop(_msg)
+				self.execute_action(config.action_for_monthly, _msg)
 
 	def handle_action(self, key, v_map):
 		budget = v_map.get("budget_doc")
