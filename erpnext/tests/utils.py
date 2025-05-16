@@ -1,6 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
+import unittest
 from typing import Any, NewType
 
 import frappe
@@ -117,7 +118,7 @@ def if_lending_app_not_installed(function):
 	return wrapper
 
 
-class ERPNextTestSuite(IntegrationTestCase):
+class ERPNextTestSuite(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
