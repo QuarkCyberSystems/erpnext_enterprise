@@ -740,7 +740,7 @@ class JobCard(Document):
 					bold("Job Card"), get_link_to_form("Job Card", self.name)
 				)
 			)
-		else:
+		elif frappe.db.get_single_value("Manufacturing Settings", "enforce_time_logs"):
 			for row in self.time_logs:
 				if not row.from_time or not row.to_time:
 					frappe.throw(
