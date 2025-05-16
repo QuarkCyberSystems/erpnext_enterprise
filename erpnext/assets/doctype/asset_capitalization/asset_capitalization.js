@@ -281,7 +281,6 @@ erpnext.assets.AssetCapitalization = class AssetCapitalization extends erpnext.s
 		if (me.frm.doc.target_item_code) {
 			return me.frm.call({
 				method: "erpnext.assets.doctype.asset_capitalization.asset_capitalization.get_target_item_details",
-				child: me.frm.doc,
 				args: {
 					item_code: me.frm.doc.target_item_code,
 					company: me.frm.doc.company,
@@ -301,7 +300,6 @@ erpnext.assets.AssetCapitalization = class AssetCapitalization extends erpnext.s
 		if (me.frm.doc.target_asset) {
 			return me.frm.call({
 				method: "erpnext.assets.doctype.asset_capitalization.asset_capitalization.get_target_asset_details",
-				child: me.frm.doc,
 				args: {
 					asset: me.frm.doc.target_asset,
 					company: me.frm.doc.company,
