@@ -39,16 +39,13 @@ class BudgetValidation:
 		self.validate_for_overbooking()
 
 	def build_validation_map(self):
-		self.build_budget_keys_and_map()
-		self.build_doc_or_item_keys_and_map()
-		self.find_overlap()
+		self.build_budget_keys()
+		self.build_item_keys()
+		self.build_to_validate_map()
 
-	def find_overlap(self):
-		self.overlap = self.budget_keys & self.doc_or_item_keys
-		self.to_validate = OrderedDict()
-
-		for key in self.overlap:
-			_obj = {
+	def initialize_dict(self, key):
+		_obj = frappe._dict(
+			{
 				"budget_amount": self.budget_map[key].budget_amount,
 				"budget_doc": self.budget_map[key],
 				"requested_amount": 0,
@@ -58,23 +55,32 @@ class BudgetValidation:
 				"current_ordered_amount": 0,
 				"current_actual_exp_amount": 0,
 			}
-			_obj.update(
-				{
-					"accumulated_monthly_budget": get_accumulated_monthly_budget(
-						self.budget_map[key].monthly_distribution,
-						self.doc_date,
-						self.fiscal_year,
-						self.budget_map[key].budget_amount,
-					)
-				}
-			)
+		)
+		_obj.update(
+			{
+				"accumulated_monthly_budget": get_accumulated_monthly_budget(
+					self.budget_map[key].monthly_distribution,
+					self.doc_date,
+					self.fiscal_year,
+					self.budget_map[key].budget_amount,
+				)
+			}
+		)
 
-			if self.document_type in ["Purchase Order", "Material Request"]:
-				_obj.update({"items_to_process": self.doc_or_item_map[key]})
-			elif self.document_type == "GL Map":
-				_obj.update({"gl_to_process": self.doc_or_item_map[key]})
+		if self.document_type in ["Purchase Order", "Material Request"]:
+			_obj.update({"items_to_process": self.item_map[key]})
+		elif self.document_type == "GL Map":
+			_obj.update({"gl_to_process": self.item_map[key]})
+		return _obj
 
-			self.to_validate[key] = OrderedDict(_obj)
+	@property
+	def overlap(self):
+		return self.budget_keys & self.item_keys
+
+	def build_to_validate_map(self):
+		self.to_validate = frappe._dict()
+		for key in self.overlap:
+			self.to_validate[key] = self.initialize_dict(key)
 
 	def validate_for_overbooking(self):
 		for key, v in self.to_validate.items():
@@ -87,7 +93,7 @@ class BudgetValidation:
 			# Material Request and so will be included in the query
 			# result. so no need to set current document amount
 			if self.document_type == "GL Map":
-				v["current_actual_exp_amount"] = sum([x.debit - x.credit for x in v.get("gl_to_process", [])])
+				v.current_actual_exp_amount = sum([x.debit - x.credit for x in v.get("gl_to_process", [])])
 
 			self.get_actual_expense(key)
 			self.handle_action(key, v)
@@ -98,17 +104,20 @@ class BudgetValidation:
 		)[0]
 		return frappe.db.get_all(budget_against, filters={"lft": [">=", lft], "rgt": ["<=", rgt]}, as_list=1)
 
-	def build_budget_keys_and_map(self):
+	@property
+	def budget_keys(self):
+		return self.budget_map.keys()
+
+	def build_budget_keys(self):
 		"""
 		key structure - (dimension_type, dimension, GL account)
 		"""
-		_budgets = self.get_budget_records()
 		self.budget_map = OrderedDict()
-		for _bud in _budgets:
+		for _bud in self.get_budget_records():
 			budget_against = frappe.scrub(_bud.budget_against)
 			dimension = _bud.get(budget_against)
 
-			if _bud.is_tree and frappe.db.get_value(_bud.budget_against, dimension, "is_group"):
+			if _bud.is_tree and frappe.get_cached_value(_bud.budget_against, dimension, "is_group"):
 				child_nodes = self.get_child_nodes(_bud.budget_against, dimension)
 				for child in child_nodes:
 					key = (budget_against, child[0], _bud.account)
@@ -117,28 +126,29 @@ class BudgetValidation:
 				key = (budget_against, dimension, _bud.account)
 				# TODO: ensure duplicate keys are not possible
 				self.budget_map[key] = _bud
-		self.budget_keys = self.budget_map.keys()
 
-	def build_doc_or_item_keys_and_map(self):
+	@property
+	def item_keys(self):
+		return self.item_map.keys()
+
+	def build_item_keys(self):
 		"""
 		key structure - (dimension_type, dimension, GL account)
 		"""
-		self.doc_or_item_map = OrderedDict()
+		self.item_map = OrderedDict()
 		if self.document_type in ["Purchase Order", "Material Request"]:
 			for itm in self.doc.items:
 				for dim in self.dimensions:
 					if itm.get(dim.get("fieldname")):
 						key = (dim.get("fieldname"), itm.get(dim.get("fieldname")), itm.expense_account)
 						# TODO: How to handle duplicate items - same item with same dimension with same account
-						self.doc_or_item_map.setdefault(key, []).append(itm)
+						self.item_map.setdefault(key, []).append(itm)
 		elif self.document_type == "GL Map":
 			for gl in self.gl_map:
 				for dim in self.dimensions:
 					if gl.get(dim.get("fieldname")):
 						key = (dim.get("fieldname"), gl.get(dim.get("fieldname")), gl.get("account"))
-						self.doc_or_item_map.setdefault(key, []).append(gl)
-
-		self.doc_or_item_keys = self.doc_or_item_map.keys()
+						self.item_map.setdefault(key, []).append(gl)
 
 	def get_dimensions(self):
 		self.dimensions = []
@@ -209,17 +219,15 @@ class BudgetValidation:
 			# key structure - (dimension_type, dimension, GL account)
 			conditions.append(poi[key[0]].eq(key[1]))
 
-			ordered_amount = (
+			if ordered_amount := (
 				qb.from_(po)
 				.inner_join(poi)
 				.on(po.name == poi.parent)
 				.select(Sum(IfNull(poi.amount, 0) - IfNull(poi.billed_amt, 0)).as_("amount"))
 				.where(Criterion.all(conditions))
 				.run(as_dict=True)
-			)
-
-			if ordered_amount:
-				self.to_validate[key]["ordered_amount"] = ordered_amount[0].amount or 0
+			):
+				self.to_validate[key].ordered_amount = ordered_amount[0].amount or 0
 
 	def get_requested_amount(self, key: tuple | None = None):
 		if key:
@@ -241,17 +249,15 @@ class BudgetValidation:
 			# key structure - (dimension_type, dimension, GL account)
 			conditions.append(mri[key[0]].eq(key[1]))
 
-			requested_amount = (
+			if requested_amount := (
 				qb.from_(mr)
 				.inner_join(mri)
 				.on(mr.name == mri.parent)
 				.select((Sum(IfNull(mri.stock_qty, 0) - IfNull(mri.ordered_qty, 0)) * mri.rate).as_("amount"))
 				.where(Criterion.all(conditions))
 				.run(as_dict=True)
-			)
-
-			if requested_amount:
-				self.to_validate[key]["requested_amount"] = requested_amount[0].amount or 0
+			):
+				self.to_validate[key].requested_amount = requested_amount[0].amount or 0
 
 	def get_actual_expense(self, key: tuple | None = None):
 		if key:
@@ -269,9 +275,8 @@ class BudgetValidation:
 					& gl.posting_date[self.fy_start_date : self.fy_end_date]
 				)
 			)
-			actual_expense = query.run(as_dict=True)
-			if actual_expense:
-				self.to_validate[key]["actual_expense"] = actual_expense[0].balance or 0
+			if actual_expense := query.run(as_dict=True):
+				self.to_validate[key].actual_expense = actual_expense[0].balance or 0
 
 	def stop(self, msg):
 		frappe.throw(msg, BudgetError, title=_("Budget Exceeded"))
