@@ -21,6 +21,7 @@ class TestCompany(ERPNextTestSuite):
 		company.default_currency = "INR"
 		company.create_chart_of_accounts_based_on = "Existing Company"
 		company.existing_company = "_Test Company"
+		company.country = "India"
 		company.save()
 
 		expected_results = {
@@ -67,6 +68,7 @@ class TestCompany(ERPNextTestSuite):
 					company.default_currency = "USD"
 					company.create_chart_of_accounts_based_on = "Standard Template"
 					company.chart_of_accounts = template
+					company.country = country
 					company.save()
 
 					account_types = [
@@ -108,11 +110,11 @@ class TestCompany(ERPNextTestSuite):
 		max_rgt = frappe.db.sql("select max(rgt) from `tabCompany`")[0][0]
 
 		if not records:
-			records = self.globalTestRecords["Company"][2:]
+			records = self.companies[2:]
 
 		for company in records:
 			lft, rgt, parent_company = frappe.db.get_value(
-				"Company", company["company_name"], ["lft", "rgt", "parent_company"]
+				"Company", company.get("company_name"), ["lft", "rgt", "parent_company"]
 			)
 
 			if parent_company:

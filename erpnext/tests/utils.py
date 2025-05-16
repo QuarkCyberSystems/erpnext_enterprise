@@ -5,8 +5,10 @@ import unittest
 from typing import Any, NewType
 
 import frappe
+from frappe import _
 from frappe.core.doctype.report.report import get_report_module_dotted_path
 from frappe.tests import IntegrationTestCase
+from frappe.utils import now_datetime
 
 ReportFilters = dict[str, Any]
 ReportName = NewType("ReportName", str)
@@ -126,8 +128,124 @@ class ERPNextTestSuite(unittest.TestCase):
 
 	@classmethod
 	def make_persistant_master_data(cls):
+		# presets and default are mandatory for company
+		cls.make_warehouse_type()
+		cls.make_uom()
+		cls.make_address_template()
+		cls.make_fiscal_year()
 		cls.make_company()
+		cls.update_stock_settings()
+
 		frappe.db.commit()
+
+	@classmethod
+	def update_stock_settings(cls):
+		stock_settings = frappe.get_doc("Stock Settings")
+		stock_settings.item_naming_by = "Item Code"
+		stock_settings.valuation_method = "FIFO"
+		stock_settings.default_warehouse = frappe.db.get_value("Warehouse", {"warehouse_name": _("Stores")})
+		stock_settings.stock_uom = "Nos"
+		stock_settings.auto_indent = 1
+		stock_settings.auto_insert_price_list_rate_if_missing = 1
+		stock_settings.update_price_list_based_on = "Rate"
+		stock_settings.set_qty_in_transactions_based_on_serial_no_input = 1
+		stock_settings.enable_serial_and_batch_no_for_item = 1
+		stock_settings.save()
+
+	@classmethod
+	def make_price_list(cls):
+		records = [
+			{
+				"doctype": "Price List",
+				"price_list_name": _("Standard Buying"),
+				"enabled": 1,
+				"buying": 1,
+				"selling": 0,
+				"currency": "INR",
+			},
+			{
+				"doctype": "Price List",
+				"price_list_name": _("Standard Selling"),
+				"enabled": 1,
+				"buying": 0,
+				"selling": 1,
+				"currency": "INR",
+			},
+		]
+		cls.price_list = []
+		for x in records:
+			if not frappe.db.exists(
+				"Price List",
+				{
+					"price_list_name": x.get("price_list_name"),
+					"enabled": x.get("enabled"),
+					"selling": x.get("selling"),
+					"buying": x.get("buying"),
+					"currency": x.get("currency"),
+				},
+			):
+				cls.price_list.append(frappe.get_doc(x).insert())
+			else:
+				cls.price_list.append(
+					frappe.get_doc(
+						"Price List",
+						{
+							"price_list_name": x.get("price_list_name"),
+							"enabled": x.get("enabled"),
+							"selling": x.get("selling"),
+							"buying": x.get("buying"),
+							"currency": x.get("currency"),
+						},
+					)
+				)
+
+	@classmethod
+	def make_address_template(cls):
+		records = [
+			{
+				"doctype": "Address Template",
+				"country": "India",
+				"is_default": True,
+				"template": """
+				{{ address_line1 }}<br>
+				{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
+				{{ city }}<br>
+				{% if state %}{{ state }}<br>{% endif -%}
+				{% if pincode %}{{ pincode }}<br>{% endif -%}
+				{{ country }}<br>
+				<br>
+				{% if phone %}{{ _("Phone") }}: {{ phone }}<br>{% endif -%}
+				{% if fax %}{{ _("Fax") }}: {{ fax }}<br>{% endif -%}
+				{% if email_id %}{{ _("Email") }}: {{ email_id }}<br>{% endif -%}
+				""",
+			}
+		]
+		cls.address_template = []
+		for x in records:
+			if not frappe.db.exists("Address Template", {"country": x.get("country")}):
+				cls.address_template.append(frappe.get_doc(x).insert())
+			else:
+				cls.address_template.append(frappe.get_doc("Address Template", {"country": x.get("country")}))
+
+	@classmethod
+	def make_uom(cls):
+		records = [{"doctype": "UOM", "uom_name": "Nos", "must_be_whole_number": 1, "common_code": "C62"}]
+		cls.uom = []
+		for x in records:
+			if not frappe.db.exists("UOM", {"uom_name": x.get("uom_name")}):
+				cls.warehouse_type.append(frappe.get_doc(x).insert())
+			else:
+				cls.warehouse_type.append(frappe.get_doc("UOM", {"uom_name": x.get("uom_name")}))
+
+	@classmethod
+	def make_warehouse_type(cls):
+		records = [{"doctype": "Warehouse Type", "name": "Transit"}]
+		cls.warehouse_type = []
+		for x in records:
+			if not frappe.db.exists("Warehouse Type", {"name": x.get("name")}):
+				cls.warehouse_type.append(frappe.get_doc(x).insert())
+			else:
+				cls.warehouse_type.append(frappe.get_doc("Warehouse Type", {"name": x.get("name")}))
 
 	@classmethod
 	def make_monthly_distribution(cls):
@@ -449,3 +567,58 @@ class ERPNextTestSuite(unittest.TestCase):
 				cls.companies.append(frappe.get_doc(x).insert())
 			else:
 				cls.companies.append(frappe.get_doc("Company", {"company_name": x.get("company_name")}))
+
+	@classmethod
+	def make_fiscal_year(cls):
+		records = [
+			{
+				"doctype": "Fiscal Year",
+				"year": "_Test Short Fiscal Year 2011",
+				"is_short_year": 1,
+				"year_start_date": "2011-04-01",
+				"year_end_date": "2011-12-31",
+			}
+		]
+
+		start = 2012
+		this_year = now_datetime().year
+		end = now_datetime().year + 25
+		# The current year fails to load with the following error:
+		# Year start date or end date is overlapping with 2024. To avoid please set company
+		# This is a quick-fix: if current FY is needed, please refactor test data properly
+		for year in range(start, this_year):
+			records.append(
+				{
+					"doctype": "Fiscal Year",
+					"year": f"_Test Fiscal Year {year}",
+					"year_start_date": f"{year}-01-01",
+					"year_end_date": f"{year}-12-31",
+				}
+			)
+		for year in range(this_year + 1, end):
+			records.append(
+				{
+					"doctype": "Fiscal Year",
+					"year": f"_Test Fiscal Year {year}",
+					"year_start_date": f"{year}-01-01",
+					"year_end_date": f"{year}-12-31",
+				}
+			)
+
+		cls.fiscal_year = []
+		for x in records:
+			if not frappe.db.exists(
+				"Fiscal Year",
+				{"year_start_date": x.get("year_start_date"), "year_end_date": x.get("year_end_date")},
+			):
+				cls.fiscal_year.append(frappe.get_doc(x).insert())
+			else:
+				cls.fiscal_year.append(
+					frappe.get_doc(
+						"Fiscal Year",
+						{
+							"year_start_date": x.get("year_start_date"),
+							"year_end_date": x.get("year_end_date"),
+						},
+					)
+				)
