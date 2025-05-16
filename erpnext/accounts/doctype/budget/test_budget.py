@@ -137,6 +137,7 @@ class TestBudget(ERPNextTestSuite):
 
 		budget.load_from_db()
 		budget.cancel()
+		mr.cancel()
 
 	def test_monthly_budget_crossed_for_po(self):
 		budget = make_budget(
