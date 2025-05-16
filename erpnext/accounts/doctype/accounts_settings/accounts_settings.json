@@ -86,7 +86,9 @@
   "legacy_section",
   "ignore_is_opening_check_for_reporting",
   "payment_request_settings",
-  "create_pr_in_draft_status"
+  "create_pr_in_draft_status",
+  "budget_settings",
+  "use_new_budget_controller"
  ],
  "fields": [
   {
@@ -565,6 +567,17 @@
    "fieldname": "legacy_section",
    "fieldtype": "Section Break",
    "label": "Legacy Fields"
+  },
+  {
+   "fieldname": "budget_settings",
+   "fieldtype": "Tab Break",
+   "label": "Budget"
+  },
+  {
+   "default": "1",
+   "fieldname": "use_new_budget_controller",
+   "fieldtype": "Check",
+   "label": "Use New Budget Controller"
   }
  ],
  "grid_page_length": 50,
@@ -573,7 +586,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-05-05 12:29:38.302027",
+ "modified": "2025-05-16 11:08:00.796886",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Accounts Settings",

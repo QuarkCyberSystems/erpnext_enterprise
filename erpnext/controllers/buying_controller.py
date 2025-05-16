@@ -775,28 +775,28 @@ class BuyingController(SubcontractingController):
 			self.update_fixed_asset(field, delete_asset=True)
 
 	def validate_budget(self):
-		from erpnext.controllers.budget_controller import BudgetValidation
+		if frappe.db.get_single_value("Accounts Settings", "use_new_budget_controller"):
+			from erpnext.controllers.budget_controller import BudgetValidation
 
-		val = BudgetValidation(doc=self)
-		val.validate()
-		return
+			val = BudgetValidation(doc=self)
+			val.validate()
+		else:
+			if self.docstatus == 1:
+				for data in self.get("items"):
+					args = data.as_dict()
+					args.update(
+						{
+							"doctype": self.doctype,
+							"company": self.company,
+							"posting_date": (
+								self.schedule_date
+								if self.doctype == "Material Request"
+								else self.transaction_date
+							),
+						}
+					)
 
-		if self.docstatus == 1:
-			for data in self.get("items"):
-				args = data.as_dict()
-				args.update(
-					{
-						"doctype": self.doctype,
-						"company": self.company,
-						"posting_date": (
-							self.schedule_date
-							if self.doctype == "Material Request"
-							else self.transaction_date
-						),
-					}
-				)
-
-				validate_expense_against_budget(args)
+					validate_expense_against_budget(args)
 
 	def process_fixed_asset(self):
 		if self.doctype == "Purchase Invoice" and not self.update_stock:

@@ -33,7 +33,10 @@ def make_gl_entries(
 	from_repost=False,
 ):
 	if gl_map:
-		if gl_map[0].voucher_type != "Period Closing Voucher":
+		if (
+			frappe.db.get_single_value("Accounts Settings", "use_new_budget_controller")
+			and gl_map[0].voucher_type != "Period Closing Voucher"
+		):
 			bud_val = BudgetValidation(gl_map=gl_map)
 			bud_val.validate()
 
@@ -196,12 +199,11 @@ def distribute_gl_based_on_cost_center_allocation(gl_map, precision=None, from_r
 	for d in gl_map:
 		cost_center = d.get("cost_center")
 
-		# TODO: is a separate validation on cost center allocation required?
 		# Validate budget against main cost center
-		# if not from_repost:
-		# 	validate_expense_against_budget(
-		# 		d, expense_amount=flt(d.debit, precision) - flt(d.credit, precision)
-		# 	)
+		if not from_repost:
+			validate_expense_against_budget(
+				d, expense_amount=flt(d.debit, precision) - flt(d.credit, precision)
+			)
 
 		cost_center_allocation = get_cost_center_allocation_data(
 			gl_map[0]["company"], gl_map[0]["posting_date"], cost_center
@@ -403,8 +405,8 @@ def make_entry(args, adv_adj, update_outstanding, from_repost=False):
 	gle.flags.notify_update = False
 	gle.submit()
 
-	# if not from_repost and gle.voucher_type != "Period Closing Voucher":
-	# 	validate_expense_against_budget(args)
+	if not from_repost and gle.voucher_type != "Period Closing Voucher":
+		validate_expense_against_budget(args)
 
 
 def validate_cwip_accounts(gl_map):
