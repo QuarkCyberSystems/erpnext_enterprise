@@ -329,64 +329,58 @@ class BudgetValidation:
 				self.execute_action(config.action_for_monthly, _msg)
 
 	def handle_action(self, key, v_map):
-		budget = v_map.get("budget_doc")
-		actual_exp = v_map.get("actual_expense")
-		cur_actual_exp = v_map.get("current_actual_exp_amount")
-		ordered_amt = v_map.get("ordered_amount")
-		cur_ordered_amt = v_map.get("current_ordered_amount")
-		requested_amt = v_map.get("requested_amount")
-		cur_requested_amt = v_map.get("current_requested_amount")
-		budget_amt = v_map.get("budget_amount")
-		acc_monthly_budget = v_map.get("accumulated_monthly_budget")
-
 		self.handle_individual_doctype_action(
 			key,
 			frappe._dict(
 				{
-					"applies": budget.applicable_on_purchase_order,
-					"action_for_annual": budget.action_if_annual_budget_exceeded_on_po,
-					"action_for_monthly": budget.action_if_accumulated_monthly_budget_exceeded_on_po,
+					"applies": v_map.budget_doc.applicable_on_purchase_order,
+					"action_for_annual": v_map.budget_doc.action_if_annual_budget_exceeded_on_po,
+					"action_for_monthly": v_map.budget_doc.action_if_accumulated_monthly_budget_exceeded_on_po,
 				}
 			),
-			budget.name,
-			budget_amt,
-			ordered_amt,
-			cur_ordered_amt,
-			acc_monthly_budget,
+			v_map.budget_doc.name,
+			v_map.budget_amount,
+			v_map.ordered_amount,
+			v_map.current_ordered_amount,
+			v_map.accumulated_monthly_budget,
 		)
 		self.handle_individual_doctype_action(
 			key,
 			frappe._dict(
 				{
-					"applies": budget.applicable_on_material_request,
-					"action_for_annual": budget.action_if_annual_budget_exceeded_on_mr,
-					"action_for_monthly": budget.action_if_accumulated_monthly_budget_exceeded_on_mr,
+					"applies": v_map.budget_doc.applicable_on_material_request,
+					"action_for_annual": v_map.budget_doc.action_if_annual_budget_exceeded_on_mr,
+					"action_for_monthly": v_map.budget_doc.action_if_accumulated_monthly_budget_exceeded_on_mr,
 				}
 			),
-			budget.name,
-			budget_amt,
-			requested_amt,
-			cur_requested_amt,
-			acc_monthly_budget,
+			v_map.budget_doc.name,
+			v_map.budget_amount,
+			v_map.requested_amount,
+			v_map.current_requested_amount,
+			v_map.accumulated_monthly_budget,
 		)
 		self.handle_individual_doctype_action(
 			key,
 			frappe._dict(
 				{
-					"applies": budget.applicable_on_booking_actual_expenses,
-					"action_for_annual": budget.action_if_annual_budget_exceeded,
-					"action_for_monthly": budget.action_if_accumulated_monthly_budget_exceeded,
+					"applies": v_map.budget_doc.applicable_on_booking_actual_expenses,
+					"action_for_annual": v_map.budget_doc.action_if_annual_budget_exceeded,
+					"action_for_monthly": v_map.budget_doc.action_if_accumulated_monthly_budget_exceeded,
 				}
 			),
-			budget.name,
-			budget_amt,
-			actual_exp,
-			cur_actual_exp,
-			acc_monthly_budget,
+			v_map.budget_doc.name,
+			v_map.budget_amount,
+			v_map.actual_expense,
+			v_map.current_actual_exp_amount,
+			v_map.accumulated_monthly_budget,
 		)
 
-		current_amt = cur_ordered_amt + cur_requested_amt + cur_actual_exp
-		total_diff = (ordered_amt + requested_amt + actual_exp + current_amt) - budget_amt
+		current_amt = (
+			v_map.current_ordered_amount + v_map.current_requested_amount + v_map.current_actual_exp_amount
+		)
+		total_diff = (
+			v_map.ordered_amount + v_map.requested_amount + v_map.actual_expense + current_amt
+		) - v_map.budget_amount
 		if total_diff > 0:
 			currency = frappe.get_cached_value("Company", self.company, "default_currency")
 			_msg = _(
@@ -395,7 +389,7 @@ class BudgetValidation:
 				frappe.bold(key[2]),
 				frappe.bold(frappe.unscrub(key[0])),
 				frappe.bold(key[1]),
-				frappe.bold(fmt_money(budget_amt, currency=currency)),
+				frappe.bold(fmt_money(v_map.budget_amount, currency=currency)),
 				frappe.bold(fmt_money(total_diff, currency=currency)),
 			)
 			self.stop(_msg)
