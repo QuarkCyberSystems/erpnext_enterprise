@@ -20,6 +20,7 @@ from erpnext.accounts.doctype.accounting_dimension_filter.accounting_dimension_f
 from erpnext.accounts.doctype.accounting_period.accounting_period import ClosedAccountingPeriod
 from erpnext.accounts.doctype.budget.budget import validate_expense_against_budget
 from erpnext.accounts.utils import create_payment_ledger_entry
+from erpnext.controllers.budget_controller import BudgetValidation
 from erpnext.exceptions import InvalidAccountDimensionError, MandatoryAccountDimensionError
 
 
@@ -32,6 +33,13 @@ def make_gl_entries(
 	from_repost=False,
 ):
 	if gl_map:
+		if (
+			frappe.db.get_single_value("Accounts Settings", "use_new_budget_controller")
+			and gl_map[0].voucher_type != "Period Closing Voucher"
+		):
+			bud_val = BudgetValidation(gl_map=gl_map)
+			bud_val.validate()
+
 		if not cancel:
 			make_acc_dimensions_offsetting_entry(gl_map)
 			validate_accounting_period(gl_map)

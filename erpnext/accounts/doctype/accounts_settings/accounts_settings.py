@@ -67,6 +67,7 @@ class AccountsSettings(Document):
 		submit_journal_entries: DF.Check
 		unlink_advance_payment_on_cancelation_of_order: DF.Check
 		unlink_payment_on_cancellation_of_invoice: DF.Check
+		use_new_budget_controller: DF.Check
 		use_sales_invoice_in_pos: DF.Check
 	# end: auto-generated types
 
