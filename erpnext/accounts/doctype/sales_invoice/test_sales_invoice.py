@@ -2576,6 +2576,62 @@ class TestSalesInvoice(ERPNextTestSuite):
 		acc_settings.book_deferred_entries_based_on = "Days"
 		acc_settings.save()
 
+	def test_validate_inter_company_transaction_address_links(self):
+		def _validate_address_link(address, link_doctype, link_name):
+			return frappe.db.get_value(
+				"Dynamic Link",
+				{
+					"parent": address,
+					"parenttype": "Address",
+					"link_doctype": link_doctype,
+					"link_name": link_name,
+				},
+				"parent",
+			)
+
+		si = create_sales_invoice(
+			company="Wind Power LLC",
+			customer="_Test Internal Customer",
+			debit_to="Debtors - WP",
+			warehouse="Stores - WP",
+			income_account="Sales - WP",
+			expense_account="Cost of Goods Sold - WP",
+			cost_center="Main - WP",
+			currency="USD",
+			do_not_save=1,
+		)
+
+		si.selling_price_list = "_Test Price List Rest of the World"
+		si.submit()
+
+		target_doc = make_inter_company_transaction("Sales Invoice", si.name)
+		target_doc.items[0].update(
+			{
+				"expense_account": "Cost of Goods Sold - _TC1",
+				"cost_center": "Main - _TC1",
+				"warehouse": "Stores - _TC1",
+			}
+		)
+		target_doc.save()
+
+		if target_doc.doctype in ["Purchase Invoice", "Purchase Order"]:
+			for details in [
+				("supplier_address", "Supplier", target_doc.supplier),
+				("dispatch_address", "Company", target_doc.company),
+				("shipping_address", "Company", target_doc.company),
+				("billing_address", "Company", target_doc.company),
+			]:
+				if address := target_doc.get(details[0]):
+					self.assertEqual(address, _validate_address_link(address, details[1], details[2]))
+		else:
+			for details in [
+				("company_address", "Company", target_doc.company),
+				("shipping_address_name", "Customer", target_doc.customer),
+				("customer_address", "Customer", target_doc.customer),
+			]:
+				if address := target_doc.get(details[0]):
+					self.assertEqual(address, _validate_address_link(address, details[1], details[2]))
+
 	def test_inter_company_transaction(self):
 		si = create_sales_invoice(
 			company="Wind Power LLC",
