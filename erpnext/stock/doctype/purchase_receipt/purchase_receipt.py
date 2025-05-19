@@ -534,9 +534,7 @@ class PurchaseReceipt(BuyingController):
 			if item.get("rejected_qty") and frappe.db.get_single_value(
 				"Buying Settings", "set_valuation_rate_for_rejected_materials"
 			):
-				outgoing_amount += abs(
-					get_stock_value_difference(self.name, item.name, item.rejected_warehouse)
-				)
+				outgoing_amount += get_stock_value_difference(self.name, item.name, item.rejected_warehouse)
 				credit_amount = outgoing_amount
 
 			if credit_amount:
@@ -675,9 +673,7 @@ class PurchaseReceipt(BuyingController):
 			if item.get("rejected_qty") and frappe.db.get_single_value(
 				"Buying Settings", "set_valuation_rate_for_rejected_materials"
 			):
-				rejected_item_cost = abs(
-					get_stock_value_difference(self.name, item.name, item.rejected_warehouse)
-				)
+				rejected_item_cost = get_stock_value_difference(self.name, item.name, item.rejected_warehouse)
 				divisional_loss -= rejected_item_cost
 
 			if divisional_loss:

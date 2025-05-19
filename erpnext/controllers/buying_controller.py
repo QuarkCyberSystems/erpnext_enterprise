@@ -693,7 +693,8 @@ class BuyingController(SubcontractingController):
 							"actual_qty": flt(
 								flt(d.rejected_qty) * flt(d.conversion_factor), d.precision("stock_qty")
 							),
-							"incoming_rate": valuation_rate_for_rejected_item,
+							"incoming_rate": valuation_rate_for_rejected_item if not self.is_return else 0.0,
+							"outgoing_rate": valuation_rate_for_rejected_item if self.is_return else 0.0,
 							"serial_and_batch_bundle": d.rejected_serial_and_batch_bundle,
 						},
 					)
