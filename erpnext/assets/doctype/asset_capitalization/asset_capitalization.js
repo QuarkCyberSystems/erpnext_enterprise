@@ -134,10 +134,7 @@ erpnext.assets.AssetCapitalization = class AssetCapitalization extends erpnext.s
 	}
 
 	target_asset() {
-		if (
-			this.frm.doc.target_asset &&
-			this.frm.doc.capitalization_method === "Choose a WIP composite asset"
-		) {
+		if (this.frm.doc.target_asset) {
 			this.set_consumed_stock_items_tagged_to_wip_composite_asset(this.frm.doc.target_asset);
 			this.get_target_asset_details();
 		}
