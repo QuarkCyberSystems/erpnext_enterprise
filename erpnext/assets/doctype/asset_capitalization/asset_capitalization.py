@@ -70,7 +70,6 @@ class AssetCapitalization(StockController):
 		amended_from: DF.Link | None
 		asset_items: DF.Table[AssetCapitalizationAssetItem]
 		asset_items_total: DF.Currency
-		capitalization_method: DF.Literal["", "Create new composite asset", "Use existing composite asset"]
 		company: DF.Link
 		cost_center: DF.Link | None
 		finance_book: DF.Link | None
@@ -92,7 +91,6 @@ class AssetCapitalization(StockController):
 		target_incoming_rate: DF.Currency
 		target_is_fixed_asset: DF.Check
 		target_item_code: DF.Link | None
-		target_item_name: DF.Data | None
 		target_qty: DF.Float
 		target_serial_no: DF.SmallText | None
 		title: DF.Data | None
