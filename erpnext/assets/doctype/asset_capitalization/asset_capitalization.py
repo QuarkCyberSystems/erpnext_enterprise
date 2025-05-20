@@ -70,7 +70,7 @@ class AssetCapitalization(StockController):
 		amended_from: DF.Link | None
 		asset_items: DF.Table[AssetCapitalizationAssetItem]
 		asset_items_total: DF.Currency
-		capitalization_method: DF.Literal["", "Create a new composite asset", "Choose a WIP composite asset"]
+		capitalization_method: DF.Literal["", "Create new composite asset", "Use existing composite asset"]
 		company: DF.Link
 		cost_center: DF.Link | None
 		finance_book: DF.Link | None

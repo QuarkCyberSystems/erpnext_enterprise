@@ -785,13 +785,13 @@ def get_disposal_account_and_cost_center(company):
 def get_value_after_depreciation_on_disposal_date(asset, disposal_date, finance_book=None):
 	asset_doc = frappe.get_doc("Asset", asset)
 
-	if asset_doc.available_for_use_date > getdate(disposal_date):
-		frappe.throw(
-			"Disposal date {} cannot be before available for use date {} of the asset.".format(
-				disposal_date, asset_doc.available_for_use_date
-			)
-		)
-	elif asset_doc.available_for_use_date == getdate(disposal_date):
+	if asset_doc.is_composite_component:
+		validate_disposal_date(asset_doc.purchase_date, getdate(disposal_date), "purchase")
+		return flt(asset_doc.value_after_depreciation)
+
+	validate_disposal_date(asset_doc.available_for_use_date, getdate(disposal_date), "available for use")
+
+	if asset_doc.available_for_use_date == getdate(disposal_date):
 		return flt(asset_doc.gross_purchase_amount - asset_doc.opening_accumulated_depreciation)
 
 	if not asset_doc.calculate_depreciation:
@@ -816,3 +816,12 @@ def get_value_after_depreciation_on_disposal_date(asset, disposal_date, finance_
 		flt(asset_doc.gross_purchase_amount) - accumulated_depr_amount,
 		asset_doc.precision("gross_purchase_amount"),
 	)
+
+
+def validate_disposal_date(reference_date, disposal_date, label):
+	if reference_date > disposal_date:
+		frappe.throw(
+			_("Disposal date {0} cannot be before {1} date {2} of the asset.").format(
+				disposal_date, label, reference_date
+			)
+		)
