@@ -47,7 +47,9 @@ class ReceivablePayableReport:
 		self.ple = qb.DocType("Payment Ledger Entry")
 		self.filters.report_date = getdate(self.filters.report_date or nowdate())
 		self.age_as_on = (
-			getdate(nowdate()) if self.filters.report_date > getdate(nowdate()) else self.filters.report_date
+			getdate(nowdate())
+			if self.filters.calculate_ageing_with == "Today Date"
+			else self.filters.report_date
 		)
 
 		if not self.filters.range:
@@ -784,7 +786,7 @@ class ReceivablePayableReport:
 		self.get_ageing_data(entry_date, row)
 
 		# ageing buckets should not have amounts if due date is not reached
-		if getdate(entry_date) > getdate(self.filters.report_date):
+		if getdate(entry_date) > getdate(self.age_as_on):
 			[setattr(row, f"range{i}", 0.0) for i in self.range_numbers]
 
 		row.total_due = sum(row[f"range{i}"] for i in self.range_numbers)
