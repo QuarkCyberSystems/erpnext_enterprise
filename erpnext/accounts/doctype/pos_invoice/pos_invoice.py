@@ -276,6 +276,8 @@ class POSInvoice(SalesInvoice):
 			against_psi_doc.delete_loyalty_point_entry()
 			against_psi_doc.make_loyalty_point_entry()
 
+		self.db_set("status", "Cancelled")
+
 		if self.coupon_code:
 			from erpnext.accounts.doctype.pricing_rule.utils import update_coupon_code_count
 
