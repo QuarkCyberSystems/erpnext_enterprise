@@ -359,7 +359,7 @@ erpnext.PointOfSale.PastOrderSummary = class {
 			return [
 					{
 						condition: true,
-						visible_btns: [__("Print Receipt"), __("Email Receipt"), __("New Order")] 
+						visible_btns: [__("Print Receipt"), __("Email Receipt"), __("New Order")], 
 					},
 			];
 
