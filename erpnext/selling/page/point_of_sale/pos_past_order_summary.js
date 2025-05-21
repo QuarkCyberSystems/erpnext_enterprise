@@ -364,7 +364,10 @@ erpnext.PointOfSale.PastOrderSummary = class {
 			];
 
 		return [
-			{ condition: this.doc.docstatus === 0, visible_btns: [__("Edit Order"), __("Delete Order")] },
+			{
+				condition: this.doc.docstatus === 0,
+				visible_btns: [__("Edit Order"), __("Delete Order")],
+			},
 			{
 				condition: !this.doc.is_return && this.doc.docstatus === 1,
 				visible_btns: [__("Print Receipt"), __("Email Receipt"), __("Return")],
