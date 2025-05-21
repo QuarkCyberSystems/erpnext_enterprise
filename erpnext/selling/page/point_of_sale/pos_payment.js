@@ -71,9 +71,9 @@ erpnext.PointOfSale.Payment = class {
 
 	set_values_to_frm(values) {
 		const frm = this.events.get_frm();
-		for (const value in values) {
-			frm.set_value(value, values[value]);
-		}
+		this.addl_dlg.fields.forEach((df) => {
+			frm.set_value(df.fieldname, values[df.fieldname]);
+		});
 		frappe.show_alert({
 			message: __("Additional Information updated successfully."),
 			indicator: "green",
