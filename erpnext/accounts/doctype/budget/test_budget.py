@@ -479,6 +479,15 @@ def make_budget(**args):
 			args.action_if_accumulated_monthly_budget_exceeded_on_po or "Warn"
 		)
 
+	if args.applicable_on_cumulative_expense:
+		budget.applicable_on_cumulative_expense = 1
+		budget.action_if_annual_exceeded_on_cumulative_expense = (
+			args.action_if_annual_exceeded_on_cumulative_expense or "Warn"
+		)
+		budget.action_if_accumulated_monthly_exceeded_on_cumulative_expense = (
+			args.action_if_accumulated_monthly_exceeded_on_cumulative_expense or "Warn"
+		)
+
 	budget.insert()
 	budget.submit()
 
