@@ -15,7 +15,7 @@ from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 )
 
 TREE_DOCTYPES = frozenset(
-	["Customer Group", "Terrirtory", "Supplier Group", "Sales Partner", "Sales Person", "Cost Center"]
+	["Customer Group", "Territory", "Supplier Group", "Sales Partner", "Sales Person", "Cost Center"]
 )
 
 
