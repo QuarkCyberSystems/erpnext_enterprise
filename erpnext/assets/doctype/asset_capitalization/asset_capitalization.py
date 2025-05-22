@@ -140,7 +140,7 @@ class AssetCapitalization(StockController):
 		self.update_target_asset()
 
 	def set_title(self):
-		self.title = self.target_asset_name or self.target_item_name or self.target_item_code
+		self.title = self.target_asset_name or self.target_item_code
 
 	def set_missing_values(self, for_validate=False):
 		target_item_details = get_target_item_details(self.target_item_code, self.company)
