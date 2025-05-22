@@ -183,6 +183,9 @@ class BudgetValidation:
 				bud.applicable_on_booking_actual_expenses,
 				bud.action_if_annual_budget_exceeded,
 				bud.action_if_accumulated_monthly_budget_exceeded,
+				bud.applicable_on_cumulative_expense,
+				bud.action_if_annual_exceeded_on_cumulative_expense,
+				bud.action_if_accumulated_monthly_exceeded_on_cumulative_expense,
 				bud_acc.account,
 				bud_acc.budget_amount,
 			)
@@ -388,8 +391,9 @@ class BudgetValidation:
 		self.handle_cumulative_overlimit(key, v_map)
 
 	def handle_cumulative_overlimit(self, key, v_map):
-		self.handle_cumulative_overlimit_for_monthly(key, v_map)
-		self.handle_cumulative_overlimit_for_annual(key, v_map)
+		if v_map.budget_doc.applicable_on_cumulative_expense:
+			self.handle_cumulative_overlimit_for_monthly(key, v_map)
+			self.handle_cumulative_overlimit_for_annual(key, v_map)
 
 	def budget_applicable_for(self, budget_doc) -> str:
 		doctypes = []
@@ -420,7 +424,10 @@ class BudgetValidation:
 				self.budget_applicable_for(v_map.budget_doc),
 				frappe.bold(fmt_money(monthly_diff, currency=currency)),
 			)
-			self.stop(_msg)
+
+			self.execute_action(
+				v_map.budget_doc.action_if_accumulated_monthly_exceeded_on_cumulative_expense, _msg
+			)
 
 	def handle_cumulative_overlimit_for_annual(self, key, v_map):
 		current_amt = (
@@ -441,4 +448,4 @@ class BudgetValidation:
 				self.budget_applicable_for(v_map.budget_doc),
 				frappe.bold(fmt_money(total_diff, currency=currency)),
 			)
-			self.stop(_msg)
+			self.execute_action(v_map.budget_doc.action_if_annual_exceeded_on_cumulative_expense, _msg)
