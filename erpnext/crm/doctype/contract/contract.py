@@ -34,6 +34,7 @@ class Contract(Document):
 		fulfilment_terms: DF.Table[ContractFulfilmentChecklist]
 		ip_address: DF.Data | None
 		is_signed: DF.Check
+		party_full_name: DF.Data | None
 		party_name: DF.DynamicLink
 		party_type: DF.Literal["Customer", "Supplier", "Employee"]
 		party_user: DF.Link | None
