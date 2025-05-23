@@ -459,6 +459,7 @@ erpnext.PointOfSale.PastOrderSummary = class {
 	}
 
 	toggle_component(show) {
+		this.$component.css("grid-column", "span 6 / span 6");
 		show ? this.$component.css("display", "flex") : this.$component.css("display", "none");
 	}
 

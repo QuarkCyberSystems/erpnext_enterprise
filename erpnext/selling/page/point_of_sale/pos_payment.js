@@ -61,8 +61,14 @@ erpnext.PointOfSale.Payment = class {
 			primary_action_label: __("Save"),
 			primary_action(values) {
 				me.set_values_to_frm(values);
+				if (this.complete_order) {
+					me.events.submit_invoice();
+				}
 				this.hide();
 			},
+		});
+		me.addl_dlg.$wrapper.on("hide.bs.modal", function () {
+			me.addl_dlg.complete_order = false;
 		});
 		me.add_btn_field_click_listener();
 		me.set_value_on_dialog_fields();
@@ -218,16 +224,16 @@ erpnext.PointOfSale.Payment = class {
 			const paid_amount = doc.paid_amount;
 			const items = doc.items;
 
-			if (!this.validate_reqd_invoice_fields()) {
-				return;
-			}
-
 			if (!items.length || (paid_amount == 0 && doc.additional_discount_percentage != 100)) {
 				const message = items.length
 					? __("You cannot submit the order without payment.")
 					: __("You cannot submit empty order.");
 				frappe.show_alert({ message, indicator: "orange" });
 				frappe.utils.play_sound("error");
+				return;
+			}
+
+			if (!this.validate_reqd_invoice_fields()) {
 				return;
 			}
 
@@ -683,16 +689,12 @@ erpnext.PointOfSale.Payment = class {
 	}
 
 	validate_reqd_invoice_fields() {
+		if (this.invoice_fields.length === 0) return true;
 		const doc = this.events.get_frm().doc;
 		for (const df of this.addl_dlg.fields) {
 			if (df.reqd && !doc[df.fieldname]) {
-				frappe.show_alert({
-					message: __(
-						"Invoice cannot be submitted without filling the mandatory Additional Information fields."
-					),
-					indicator: "red",
-				});
-				frappe.utils.play_sound("error");
+				this.addl_dlg.primary_action_label = "Submit";
+				this.addl_dlg.complete_order = true;
 				this.addl_dlg.show();
 				this.addl_dlg.fields_dict[df.fieldname].$input.focus();
 				return false;

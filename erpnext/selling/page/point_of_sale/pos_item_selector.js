@@ -188,7 +188,7 @@ erpnext.PointOfSale.ItemSelector = class {
 
 	attach_clear_btn() {
 		this.search_field.$wrapper.find(".control-input").append(
-			`<span class="link-btn" style="top: 2px;">
+			`<span class="link-btn">
 				<a class="btn-open no-decoration" title="${__("Clear")}">
 					${frappe.utils.icon("close", "sm")}
 				</a>

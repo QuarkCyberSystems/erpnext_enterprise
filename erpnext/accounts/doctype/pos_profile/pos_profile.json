@@ -32,6 +32,7 @@
   "allow_rate_change",
   "allow_discount_change",
   "set_grand_total_to_default_mop",
+  "action_on_new_invoice",
   "section_break_23",
   "item_groups",
   "column_break_25",
@@ -415,6 +416,13 @@
    "fieldname": "set_grand_total_to_default_mop",
    "fieldtype": "Check",
    "label": "Set Grand Total to Default Payment Method"
+  },
+  {
+   "default": "Always Ask",
+   "fieldname": "action_on_new_invoice",
+   "fieldtype": "Select",
+   "label": "Action on New Invoice",
+   "options": "Always Ask\nSave Changes and Load New Invoice\nDiscard Changes and Load New Invoice"
   }
  ],
  "grid_page_length": 50,
@@ -443,7 +451,7 @@
    "link_fieldname": "pos_profile"
   }
  ],
- "modified": "2025-05-09 11:23:28.632136",
+ "modified": "2025-05-23 12:12:32.247652",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "POS Profile",
