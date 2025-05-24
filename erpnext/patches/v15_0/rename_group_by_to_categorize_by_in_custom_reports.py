@@ -1,21 +1,24 @@
+import json
+
 import frappe
 
 
 def execute():
-	frappe.db.sql(
-		"""
-		UPDATE `tabReport`
-		SET `json` = JSON_SET(
-			JSON_REMOVE(json, '$.filters.group_by'),
-			'$.filters.categorize_by',
-			REPLACE(JSON_UNQUOTE(JSON_EXTRACT(json, '$.filters.group_by')), 'Group', 'Categorize')
-		)
-		WHERE
-			JSON_CONTAINS_PATH(json, 'one', '$.filters.group_by')
-			AND `reference_report` = CASE
-				WHEN `reference_report` = 'Supplier Quotation Comparison' THEN 'Supplier Quotation Comparison'
-				ELSE 'General Ledger'
-			END
-			AND `report_type` = 'Custom Report'
-		"""
+	custom_reports = frappe.get_all(
+		"Report",
+		filters={
+			"report_type": "Custom Report",
+			"reference_report": ["in", ["General Ledger", "Supplier Quotation Comparison"]],
+		},
+		fields=["name", "json"],
 	)
+
+	for report in custom_reports:
+		report_json = json.loads(report.json)
+
+		if "filters" in report_json and "group_by" in report_json["filters"]:
+			report_json["filters"]["categorize_by"] = (
+				report_json["filters"].pop("group_by").replace("Group", "Categorize")
+			)
+
+			frappe.db.set_value("Report", report.name, "json", json.dumps(report_json))
