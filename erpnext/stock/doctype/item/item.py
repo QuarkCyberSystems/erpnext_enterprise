@@ -526,6 +526,9 @@ class Item(Document):
 		return self._stock_ledger_created
 
 	def update_item_price(self):
+		if self.is_new():
+			return
+
 		frappe.db.sql(
 			"""
 				UPDATE `tabItem Price`
