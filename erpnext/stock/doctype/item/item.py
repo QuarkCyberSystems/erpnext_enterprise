@@ -793,7 +793,10 @@ class Item(Document):
 					)
 
 	def validate_has_variants(self):
-		if not self.has_variants and frappe.db.get_value("Item", self.name, "has_variants"):
+		if self.is_new():
+			return
+
+		if not self.has_variants and self.has_value_changed("has_variants"):
 			if frappe.db.exists("Item", {"variant_of": self.name}):
 				frappe.throw(_("Item has variants."))
 
