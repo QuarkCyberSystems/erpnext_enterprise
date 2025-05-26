@@ -226,7 +226,10 @@ class Item(Document):
 
 	def validate_description(self):
 		"""Clean HTML description if set"""
-		if cint(frappe.db.get_single_value("Stock Settings", "clean_description_html")):
+		if (
+			cint(frappe.db.get_single_value("Stock Settings", "clean_description_html"))
+			and self.description != self.item_name  # perf: Avoid cleaning up a fallback
+		):
 			self.description = clean_html(self.description)
 
 	def validate_customer_provided_part(self):
