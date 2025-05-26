@@ -226,7 +226,10 @@ class Item(Document):
 
 	def validate_description(self):
 		"""Clean HTML description if set"""
-		if cint(frappe.db.get_single_value("Stock Settings", "clean_description_html")):
+		if (
+			cint(frappe.db.get_single_value("Stock Settings", "clean_description_html"))
+			and self.description != self.item_name  # perf: Avoid cleaning up a fallback
+		):
 			self.description = clean_html(self.description)
 
 	def validate_customer_provided_part(self):
@@ -306,7 +309,7 @@ class Item(Document):
 			if self.stock_ledger_created():
 				frappe.throw(_("Cannot be a fixed asset item as Stock Ledger is created."))
 
-		if not self.is_fixed_asset:
+		if not self.is_fixed_asset and not self.is_new():
 			asset = frappe.db.get_all("Asset", filters={"item_code": self.name, "docstatus": 1}, limit=1)
 			if asset:
 				frappe.throw(
@@ -526,6 +529,9 @@ class Item(Document):
 		return self._stock_ledger_created
 
 	def update_item_price(self):
+		if self.is_new():
+			return
+
 		frappe.db.sql(
 			"""
 				UPDATE `tabItem Price`
@@ -722,23 +728,9 @@ class Item(Document):
 		if self.item_defaults or not self.item_group:
 			return
 
-		item_defaults = frappe.db.get_values(
-			"Item Default",
-			{"parent": self.item_group},
-			[
-				"company",
-				"default_warehouse",
-				"default_price_list",
-				"buying_cost_center",
-				"default_supplier",
-				"expense_account",
-				"selling_cost_center",
-				"income_account",
-			],
-			as_dict=1,
-		)
-		if item_defaults:
-			for item in item_defaults:
+		item_group = frappe.get_cached_doc("Item Group", self.item_group)
+		if item_group.item_group_defaults:
+			for item in item_group.item_group_defaults:
 				self.append(
 					"item_defaults",
 					{
@@ -759,9 +751,8 @@ class Item(Document):
 			if (
 				defaults.get("default_warehouse")
 				and defaults.company
-				and frappe.db.exists(
-					"Warehouse", {"name": defaults.default_warehouse, "company": defaults.company}
-				)
+				and defaults.company
+				== frappe.get_cached_value("Warehouse", defaults.default_warehouse, "company")
 			):
 				self.append(
 					"item_defaults",
@@ -790,7 +781,10 @@ class Item(Document):
 					)
 
 	def validate_has_variants(self):
-		if not self.has_variants and frappe.db.get_value("Item", self.name, "has_variants"):
+		if self.is_new():
+			return
+
+		if not self.has_variants and self.has_value_changed("has_variants"):
 			if frappe.db.exists("Item", {"variant_of": self.name}):
 				frappe.throw(_("Item has variants."))
 
