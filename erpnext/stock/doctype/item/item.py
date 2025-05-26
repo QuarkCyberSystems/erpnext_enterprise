@@ -725,23 +725,9 @@ class Item(Document):
 		if self.item_defaults or not self.item_group:
 			return
 
-		item_defaults = frappe.db.get_values(
-			"Item Default",
-			{"parent": self.item_group},
-			[
-				"company",
-				"default_warehouse",
-				"default_price_list",
-				"buying_cost_center",
-				"default_supplier",
-				"expense_account",
-				"selling_cost_center",
-				"income_account",
-			],
-			as_dict=1,
-		)
-		if item_defaults:
-			for item in item_defaults:
+		item_group = frappe.get_cached_doc("Item Group", self.item_group)
+		if item_group.item_group_defaults:
+			for item in item_group.item_group_defaults:
 				self.append(
 					"item_defaults",
 					{
@@ -762,9 +748,8 @@ class Item(Document):
 			if (
 				defaults.get("default_warehouse")
 				and defaults.company
-				and frappe.db.exists(
-					"Warehouse", {"name": defaults.default_warehouse, "company": defaults.company}
-				)
+				and defaults.company
+				== frappe.get_cached_value("Warehouse", defaults.default_warehouse, "company")
 			):
 				self.append(
 					"item_defaults",
