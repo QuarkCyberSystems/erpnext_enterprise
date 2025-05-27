@@ -650,6 +650,9 @@ class AccountsController(TransactionBase):
 				self.base_paid_amount = flt(
 					self.paid_amount * self.conversion_rate, self.precision("base_paid_amount")
 				)
+			else:
+				self.paid_amount = 0
+				self.base_paid_amount = 0
 
 	def set_missing_values(self, for_validate=False):
 		if frappe.flags.in_test:
