@@ -42,6 +42,29 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 			}
 			item.base_rate_with_margin = item.rate_with_margin * flt(frm.doc.conversion_rate);
 
+			if (item.item_code && item.rate) {
+				frappe.call({
+					method: "frappe.client.get_value",
+					args: {
+						doctype: "Item Tax",
+						parent: "Item",
+						filters: {
+							parent: item.item_code,
+							minimum_net_rate: ["<=", item.rate],
+							maximum_net_rate: [">=", item.rate]
+						},
+						fieldname: "item_tax_template"
+					},
+					callback: function(r) {
+						const tax_rule = r.message;
+
+						let matched_template = tax_rule ? tax_rule.item_tax_template : null;
+
+						frappe.model.set_value(cdt, cdn, 'item_tax_template', matched_template);
+					}
+				});
+			}
+
 			cur_frm.cscript.set_gross_profit(item);
 			cur_frm.cscript.calculate_taxes_and_totals();
 			cur_frm.cscript.calculate_stock_uom_rate(frm, cdt, cdn);
