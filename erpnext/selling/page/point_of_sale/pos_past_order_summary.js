@@ -356,25 +356,17 @@ erpnext.PointOfSale.PastOrderSummary = class {
 
 	get_condition_btn_map(after_submission) {
 		if (after_submission)
-			return [
-				{
-					condition: true,
-					visible_btns: [__("Print Receipt"), __("Email Receipt"), __("New Order")],
-				},
-			];
+			return [{ condition: true, visible_btns: ["Print Receipt", "Email Receipt", "New Order"] }];
 
 		return [
-			{
-				condition: this.doc.docstatus === 0,
-				visible_btns: [__("Edit Order"), __("Delete Order")],
-			},
+			{ condition: this.doc.docstatus === 0, visible_btns: ["Edit Order", "Delete Order"] },
 			{
 				condition: !this.doc.is_return && this.doc.docstatus === 1,
-				visible_btns: [__("Print Receipt"), __("Email Receipt"), __("Return")],
+				visible_btns: ["Print Receipt", "Email Receipt", "Return"],
 			},
 			{
 				condition: this.doc.is_return && this.doc.docstatus === 1,
-				visible_btns: [__("Print Receipt"), __("Email Receipt")],
+				visible_btns: ["Print Receipt", "Email Receipt"],
 			},
 		];
 	}
