@@ -145,6 +145,9 @@ class SubcontractingReceipt(SubcontractingController):
 		self.reset_default_field_value("rejected_warehouse", "items", "rejected_warehouse")
 		self.get_current_stock()
 
+		self.set_supplied_items_expense_account()
+		self.set_supplied_items_cost_center()
+
 	def on_submit(self):
 		self.validate_closed_subcontracting_order()
 		self.validate_available_qty_for_consumption()
@@ -248,15 +251,16 @@ class SubcontractingReceipt(SubcontractingController):
 				if not item.cost_center:
 					item.cost_center = cost_center
 
-			for item in self.supplied_items:
-				if not item.cost_center:
-					item.cost_center = get_default_cost_center(
-						{"project": self.project},
-						get_item_defaults(item.rm_item_code, self.company),
-						get_item_group_defaults(item.rm_item_code, self.company),
-						get_brand_defaults(item.rm_item_code, self.company),
-						self.company,
-					)
+	def set_supplied_items_cost_center(self):
+		for item in self.supplied_items:
+			if not item.cost_center:
+				item.cost_center = get_default_cost_center(
+					{"project": self.project},
+					get_item_defaults(item.rm_item_code, self.company),
+					get_item_group_defaults(item.rm_item_code, self.company),
+					get_brand_defaults(item.rm_item_code, self.company),
+					self.company,
+				)
 
 	def set_items_expense_account(self):
 		if self.company:
@@ -266,14 +270,21 @@ class SubcontractingReceipt(SubcontractingController):
 				if not item.expense_account:
 					item.expense_account = expense_account
 
-			for item in self.supplied_items:
-				if not item.expense_account:
-					item.expense_account = get_default_expense_account(
-						frappe._dict({"expense_account": expense_account}),
-						get_item_defaults(item.rm_item_code, self.company),
-						get_item_group_defaults(item.rm_item_code, self.company),
-						get_brand_defaults(item.rm_item_code, self.company),
-					)
+	def set_supplied_items_expense_account(self):
+		for item in self.supplied_items:
+			if not item.expense_account:
+				item.expense_account = get_default_expense_account(
+					frappe._dict(
+						{
+							"expense_account": self.get_company_default(
+								"default_expense_account", ignore_validation=True
+							)
+						}
+					),
+					get_item_defaults(item.rm_item_code, self.company),
+					get_item_group_defaults(item.rm_item_code, self.company),
+					get_brand_defaults(item.rm_item_code, self.company),
+				)
 
 	def reset_supplied_items(self):
 		if (
