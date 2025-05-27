@@ -562,6 +562,18 @@ class SubcontractingReceipt(SubcontractingController):
 	def make_item_gl_entries(self, gl_entries, warehouse_account=None):
 		warehouse_with_no_account = []
 
+		supplied_items_details = frappe._dict()
+		for item in self.supplied_items:
+			supplied_items_details.setdefault(item.reference_name, []).append(
+				frappe._dict(
+					{
+						"amount": item.amount,
+						"expense_account": item.expense_account,
+						"cost_center": item.cost_center,
+					}
+				)
+			)
+
 		for item in self.items:
 			if flt(item.rate) and flt(item.qty):
 				if warehouse_account.get(item.warehouse):
@@ -611,32 +623,33 @@ class SubcontractingReceipt(SubcontractingController):
 					)
 
 					if flt(item.rm_supp_cost) and supplier_warehouse_account:
-						# Supplier Warehouse Account (Credit)
-						self.add_gl_entry(
-							gl_entries=gl_entries,
-							account=supplier_warehouse_account,
-							cost_center=item.cost_center,
-							debit=0.0,
-							credit=flt(item.rm_supp_cost),
-							remarks=remarks,
-							against_account=item.expense_account,
-							account_currency=get_account_currency(supplier_warehouse_account),
-							project=item.project,
-							item=item,
-						)
-						# Expense Account (Debit)
-						self.add_gl_entry(
-							gl_entries=gl_entries,
-							account=item.expense_account,
-							cost_center=item.cost_center,
-							debit=flt(item.rm_supp_cost),
-							credit=0.0,
-							remarks=remarks,
-							against_account=supplier_warehouse_account,
-							account_currency=get_account_currency(item.expense_account),
-							project=item.project,
-							item=item,
-						)
+						for rm_item in supplied_items_details.get(item.name):
+							# Supplier Warehouse Account (Credit)
+							self.add_gl_entry(
+								gl_entries=gl_entries,
+								account=supplier_warehouse_account,
+								cost_center=rm_item.cost_center,
+								debit=0.0,
+								credit=flt(rm_item.amount),
+								remarks=remarks,
+								against_account=rm_item.expense_account,
+								account_currency=get_account_currency(supplier_warehouse_account),
+								project=item.project,
+								item=item,
+							)
+							# Expense Account (Debit)
+							self.add_gl_entry(
+								gl_entries=gl_entries,
+								account=rm_item.expense_account,
+								cost_center=rm_item.cost_center,
+								debit=flt(rm_item.amount),
+								credit=0.0,
+								remarks=remarks,
+								against_account=supplier_warehouse_account,
+								account_currency=get_account_currency(item.expense_account),
+								project=item.project,
+								item=item,
+							)
 
 					# Expense Account (Debit)
 					if item.additional_cost_per_qty:
