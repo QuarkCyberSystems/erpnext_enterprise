@@ -11,6 +11,10 @@ import erpnext
 from erpnext.accounts.utils import get_account_currency
 from erpnext.buying.utils import check_on_hold_or_closed_status
 from erpnext.controllers.subcontracting_controller import SubcontractingController
+from erpnext.setup.doctype.brand.brand import get_brand_defaults
+from erpnext.setup.doctype.item_group.item_group import get_item_group_defaults
+from erpnext.stock.doctype.item.item import get_item_defaults
+from erpnext.stock.get_item_details import get_default_cost_center, get_default_expense_account
 from erpnext.stock.stock_ledger import get_valuation_rate
 
 
@@ -244,6 +248,16 @@ class SubcontractingReceipt(SubcontractingController):
 				if not item.cost_center:
 					item.cost_center = cost_center
 
+			for item in self.supplied_items:
+				if not item.cost_center:
+					item.cost_center = get_default_cost_center(
+						{"project": self.project},
+						get_item_defaults(item.rm_item_code, self.company),
+						get_item_group_defaults(item.rm_item_code, self.company),
+						get_brand_defaults(item.rm_item_code, self.company),
+						self.company,
+					)
+
 	def set_items_expense_account(self):
 		if self.company:
 			expense_account = self.get_company_default("default_expense_account", ignore_validation=True)
@@ -251,6 +265,15 @@ class SubcontractingReceipt(SubcontractingController):
 			for item in self.items:
 				if not item.expense_account:
 					item.expense_account = expense_account
+
+			for item in self.supplied_items:
+				if not item.expense_account:
+					item.expense_account = get_default_expense_account(
+						frappe._dict({"expense_account": expense_account}),
+						get_item_defaults(item.rm_item_code, self.company),
+						get_item_group_defaults(item.rm_item_code, self.company),
+						get_brand_defaults(item.rm_item_code, self.company),
+					)
 
 	def reset_supplied_items(self):
 		if (
