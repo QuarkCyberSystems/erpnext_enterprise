@@ -458,9 +458,16 @@ class PartyLedgerSummaryReport:
 
 
 def get_children(doctype, value):
-	children = get_descendants_of(doctype, value)
+	if not isinstance(value, list):
+		value = [d.strip() for d in value.strip().split(",") if d]
 
-	return [value, *children]
+	all_children = []
+
+	for d in value:
+		all_children += get_descendants_of(doctype, value)
+		all_children.append(d)
+
+	return list(set(all_children))
 
 
 def execute(filters=None):
