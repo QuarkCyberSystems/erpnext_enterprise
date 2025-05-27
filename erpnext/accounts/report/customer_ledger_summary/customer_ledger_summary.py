@@ -8,6 +8,7 @@ from frappe.query_builder import Criterion, Tuple
 from frappe.query_builder.functions import IfNull
 from frappe.utils import getdate, nowdate
 from frappe.utils.nestedset import get_descendants_of
+from pypika.terms import LiteralValue
 
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_accounting_dimensions,
@@ -77,13 +78,12 @@ class PartyLedgerSummaryReport:
 
 		from frappe.desk.reportview import build_match_conditions
 
-		query, params = query.walk()
 		match_conditions = build_match_conditions(party_type)
 
 		if match_conditions:
-			query += "and" + match_conditions
+			query = query.where(LiteralValue(match_conditions))
 
-		party_details = frappe.db.sql(query, params, as_dict=True)
+		party_details = query.run(as_dict=True)
 
 		for row in party_details:
 			self.parties.append(row.party)
