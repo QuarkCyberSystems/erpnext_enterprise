@@ -70,6 +70,14 @@ class BuyingController(SubcontractingController):
 			frappe.db.get_single_value("Buying Settings", "backflush_raw_materials_of_subcontract_based_on"),
 		)
 
+		if self.docstatus == 1 and self.doctype in ["Purchase Receipt", "Purchase Invoice"]:
+			self.set_onload(
+				"allow_to_make_qc_after_submission",
+				frappe.db.get_single_value(
+					"Stock Settings", "allow_to_make_quality_inspection_after_purchase_or_delivery"
+				),
+			)
+
 	def create_package_for_transfer(self) -> None:
 		"""Create serial and batch package for Sourece Warehouse in case of inter transfer."""
 
