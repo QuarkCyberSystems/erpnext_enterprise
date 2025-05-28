@@ -448,7 +448,7 @@ class TestInventoryDimension(IntegrationTestCase):
 				self.assertEqual(d.store, "Inter Transfer Store 2")
 
 	def test_validate_negative_stock_for_inventory_dimension(self):
-		get_inventory_dimensions.clear_cache()
+		frappe.clear_cache(doctype="Inventory Dimension")
 		item_code = "Test Negative Inventory Dimension Item"
 		frappe.db.set_single_value("Stock Settings", "allow_negative_stock", 1)
 		create_item(item_code)
@@ -497,7 +497,7 @@ class TestInventoryDimension(IntegrationTestCase):
 		# disable validate_negative_stock for inventory dimension
 		inv_dimension.reload()
 		inv_dimension.db_set("validate_negative_stock", 0)
-		get_inventory_dimensions.clear_cache()
+		frappe.clear_cache(doctype="Inventory Dimension")
 
 		# Try issuing 100 qty, more than available stock against inventory dimension
 		doc = make_stock_entry(item_code=item_code, source=warehouse, qty=100, do_not_submit=True)
