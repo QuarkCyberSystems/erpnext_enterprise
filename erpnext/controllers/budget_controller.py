@@ -4,7 +4,7 @@ import frappe
 from frappe import _, qb
 from frappe.query_builder import Criterion
 from frappe.query_builder.functions import IfNull, Sum
-from frappe.utils import comma_and, flt, fmt_money, get_link_to_form
+from frappe.utils import flt, fmt_money, get_link_to_form
 
 from erpnext.accounts.doctype.budget.budget import BudgetError, get_accumulated_monthly_budget
 from erpnext.accounts.utils import get_fiscal_year
@@ -395,15 +395,20 @@ class BudgetValidation:
 			self.handle_cumulative_overlimit_for_monthly(key, v_map)
 			self.handle_cumulative_overlimit_for_annual(key, v_map)
 
-	def budget_applicable_for(self, budget_doc) -> str:
+	def budget_applicable_for(self, v_map, current_amt) -> str:
+		budget_doc = v_map.budget_doc
 		doctypes = []
-		if budget_doc.applicable_on_purchase_order:
+		if budget_doc.applicable_on_purchase_order and v_map.ordered_amount:
 			doctypes.append("Purchase Order")
-		if budget_doc.applicable_on_material_request:
+		if budget_doc.applicable_on_material_request and v_map.requested_amount:
 			doctypes.append("Material Request")
-		if budget_doc.applicable_on_booking_actual_expenses:
+		if budget_doc.applicable_on_booking_actual_expenses and v_map.actual_expense:
 			doctypes.append("Actual Expense")
-		return comma_and(doctypes)
+		if current_amt:
+			doctypes.append("This Document")
+
+		doctypes = [f"'{x}'" for x in doctypes]
+		return "+".join(doctypes)
 
 	def handle_cumulative_overlimit_for_monthly(self, key, v_map):
 		current_amt = (
@@ -421,7 +426,7 @@ class BudgetValidation:
 				frappe.bold(frappe.unscrub(key[0])),
 				frappe.bold(key[1]),
 				frappe.bold(fmt_money(v_map.accumulated_montly_budget, currency=currency)),
-				self.budget_applicable_for(v_map.budget_doc),
+				self.budget_applicable_for(v_map, current_amt),
 				frappe.bold(fmt_money(monthly_diff, currency=currency)),
 			)
 
@@ -445,7 +450,7 @@ class BudgetValidation:
 				frappe.bold(frappe.unscrub(key[0])),
 				frappe.bold(key[1]),
 				frappe.bold(fmt_money(v_map.budget_amount, currency=currency)),
-				self.budget_applicable_for(v_map.budget_doc),
+				self.budget_applicable_for(v_map, current_amt),
 				frappe.bold(fmt_money(total_diff, currency=currency)),
 			)
 			self.execute_action(v_map.budget_doc.action_if_annual_exceeded_on_cumulative_expense, _msg)
