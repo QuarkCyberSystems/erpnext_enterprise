@@ -654,7 +654,7 @@ class StockReconciliation(StockController):
 		# using try except to catch all validation msgs and display together
 
 		try:
-			item = frappe.get_doc("Item", item_code)
+			item = frappe.get_cached_doc("Item", item_code)
 
 			# end of life and stock item
 			validate_end_of_life(item_code, item.end_of_life, item.disabled)
@@ -961,7 +961,7 @@ class StockReconciliation(StockController):
 		changed_any_values = False
 
 		for d in self.get("items"):
-			is_customer_item = frappe.db.get_value("Item", d.item_code, "is_customer_provided_item")
+			is_customer_item = frappe.get_cached_value("Item", d.item_code, "is_customer_provided_item")
 			if is_customer_item and d.valuation_rate:
 				d.valuation_rate = 0.0
 				changed_any_values = True
