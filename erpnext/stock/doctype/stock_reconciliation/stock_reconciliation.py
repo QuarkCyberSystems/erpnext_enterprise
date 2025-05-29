@@ -163,8 +163,8 @@ class StockReconciliation(StockController):
 	def set_current_serial_and_batch_bundle(self, voucher_detail_no=None, save=False) -> None:
 		"""Set Serial and Batch Bundle for each item"""
 		for item in self.items:
-			if not frappe.db.exists("Item", item.item_code):
-				frappe.throw(_("Item {0} does not exist").format(item.item_code))
+			if not item.item_code:
+				continue
 
 			item_details = frappe.get_cached_value(
 				"Item", item.item_code, ["has_serial_no", "has_batch_no"], as_dict=1
@@ -595,10 +595,6 @@ class StockReconciliation(StockController):
 					)
 				)
 
-			# validate warehouse
-			if not frappe.db.get_value("Warehouse", row.warehouse):
-				self.validation_messages.append(_get_msg(row_num, _("Warehouse not found in the system")))
-
 			# if both not specified
 			if row.qty in ["", None] and row.valuation_rate in ["", None]:
 				self.validation_messages.append(
@@ -654,7 +650,7 @@ class StockReconciliation(StockController):
 		# using try except to catch all validation msgs and display together
 
 		try:
-			item = frappe.get_doc("Item", item_code)
+			item = frappe.get_cached_doc("Item", item_code)
 
 			# end of life and stock item
 			validate_end_of_life(item_code, item.end_of_life, item.disabled)
@@ -961,7 +957,7 @@ class StockReconciliation(StockController):
 		changed_any_values = False
 
 		for d in self.get("items"):
-			is_customer_item = frappe.db.get_value("Item", d.item_code, "is_customer_provided_item")
+			is_customer_item = frappe.get_cached_value("Item", d.item_code, "is_customer_provided_item")
 			if is_customer_item and d.valuation_rate:
 				d.valuation_rate = 0.0
 				changed_any_values = True
@@ -1011,8 +1007,6 @@ class StockReconciliation(StockController):
 			self._cancel()
 
 	def recalculate_current_qty(self, voucher_detail_no, sle_creation, add_new_sle=False):
-		from erpnext.stock.stock_ledger import get_valuation_rate
-
 		for row in self.items:
 			if voucher_detail_no != row.name:
 				continue
