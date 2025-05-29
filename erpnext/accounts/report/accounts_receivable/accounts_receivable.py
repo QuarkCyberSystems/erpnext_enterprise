@@ -125,7 +125,8 @@ class ReceivablePayableReport:
 		self.build_data()
 
 	def fetch_ple_in_buffered_cursor(self):
-		self.ple_entries = frappe.db.sql(self.ple_query.get_sql(), as_dict=True)
+		query, param = self.ple_query.walk()
+		self.ple_entries = frappe.db.sql(query, param, as_dict=True)
 
 		for ple in self.ple_entries:
 			self.init_voucher_balance(ple)  # invoiced, paid, credit_note, outstanding
@@ -138,8 +139,9 @@ class ReceivablePayableReport:
 
 	def fetch_ple_in_unbuffered_cursor(self):
 		self.ple_entries = []
+		query, param = self.ple_query.walk()
 		with frappe.db.unbuffered_cursor():
-			for ple in frappe.db.sql(self.ple_query.get_sql(), as_dict=True, as_iterator=True):
+			for ple in frappe.db.sql(query, param, as_dict=True, as_iterator=True):
 				self.init_voucher_balance(ple)  # invoiced, paid, credit_note, outstanding
 				self.ple_entries.append(ple)
 
