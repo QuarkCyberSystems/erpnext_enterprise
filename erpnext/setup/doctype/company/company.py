@@ -31,6 +31,7 @@ class Company(NestedSet):
 		from frappe.types import DF
 
 		abbr: DF.Data
+		accounts_frozen_till_date: DF.Date | None
 		accumulated_depreciation_account: DF.Link | None
 		allow_account_creation_against_child_company: DF.Check
 		asset_received_but_not_billed: DF.Link | None
@@ -103,6 +104,7 @@ class Company(NestedSet):
 		registration_details: DF.Code | None
 		reporting_currency: DF.Link | None
 		rgt: DF.Int
+		role_allowed_for_frozen_entries: DF.Link | None
 		round_off_account: DF.Link | None
 		round_off_cost_center: DF.Link | None
 		round_off_for_opening: DF.Link | None
