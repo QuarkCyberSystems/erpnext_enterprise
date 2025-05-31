@@ -65,6 +65,7 @@ class SerialandBatchBundle(Document):
 		has_batch_no: DF.Check
 		has_serial_no: DF.Check
 		is_cancelled: DF.Check
+		is_packed: DF.Check
 		is_rejected: DF.Check
 		item_code: DF.Link
 		item_group: DF.Link | None
