@@ -826,6 +826,52 @@ class TestQuotation(IntegrationTestCase):
 		quotation.reload()
 		self.assertEqual(quotation.status, "Ordered")
 
+	def test_duplicate_items_in_quotation(self):
+		from erpnext.selling.doctype.quotation.quotation import make_sales_order
+		from erpnext.stock.doctype.item.test_item import make_item
+
+		# item code same but description different
+		make_item("_Test Item 2", {"is_stock_item": 1})
+
+		quotation = make_quotation(qty=1, rate=100, do_not_submit=1)
+
+		# duplicate items
+		for qty in [1, 1, 2, 3]:
+			quotation.append("items", {"item_code": "_Test Item", "qty": qty, "rate": 100})
+
+		quotation.append("items", {"item_code": "_Test Item 2", "qty": 5, "rate": 100})
+
+		quotation.submit()
+
+		sales_order = make_sales_order(quotation.name)
+		sales_order.delivery_date = nowdate()
+
+		self.assertEqual(len(sales_order.items), 6)
+		self.assertEqual(sales_order.items[0].qty, 1)
+		self.assertEqual(sales_order.items[-1].qty, 5)
+
+		# Row 1: 10, Row 4: 1, Row 5: 1
+		sales_order.items[0].qty = 10
+		sales_order.items[3].qty = 1
+		sales_order.items[4].qty = 1
+		sales_order.submit()
+
+		quotation.reload()
+		self.assertEqual(quotation.status, "Partially Ordered")
+
+		sales_order_2 = make_sales_order(quotation.name)
+		sales_order_2.delivery_date = nowdate()
+		self.assertEqual(len(sales_order_2.items), 2)
+		self.assertEqual(sales_order_2.items[0].qty, 1)
+		self.assertEqual(sales_order_2.items[1].qty, 2)
+
+		self.assertEqual(sales_order_2.items[0].quotation_item, quotation.items[3].name)
+		self.assertEqual(sales_order_2.items[1].quotation_item, quotation.items[4].name)
+
+		sales_order_2.submit()
+		quotation.reload()
+		self.assertEqual(quotation.status, "Ordered")
+
 
 def enable_calculate_bundle_price(enable=1):
 	selling_settings = frappe.get_doc("Selling Settings")
