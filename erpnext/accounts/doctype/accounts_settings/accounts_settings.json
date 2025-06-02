@@ -38,6 +38,11 @@
   "show_taxes_as_table_in_print",
   "column_break_12",
   "show_payment_schedule_in_print",
+  "item_price_settings_section",
+  "maintain_same_internal_transaction_rate",
+  "column_break_feyo",
+  "maintain_same_rate_action",
+  "role_to_override_stop_action",
   "currency_exchange_section",
   "allow_stale",
   "column_break_yuug",
@@ -569,6 +574,28 @@
    "label": "Legacy Fields"
   },
   {
+   "default": "0",
+   "fieldname": "maintain_same_internal_transaction_rate",
+   "fieldtype": "Check",
+   "label": "Maintain Same Rate Throughout Internal Transaction"
+  },
+  {
+   "default": "Stop",
+   "depends_on": "maintain_same_internal_transaction_rate",
+   "fieldname": "maintain_same_rate_action",
+   "fieldtype": "Select",
+   "label": "Action if Same Rate is Not Maintained Throughout  Internal Transaction",
+   "mandatory_depends_on": "maintain_same_internal_transaction_rate",
+   "options": "Stop\nWarn"
+  },
+  {
+   "depends_on": "eval: doc.maintain_same_internal_transaction_rate && doc.maintain_same_rate_action == 'Stop'",
+   "fieldname": "role_to_override_stop_action",
+   "fieldtype": "Link",
+   "label": "Role Allowed to Override Stop Action",
+   "options": "Role"
+  },
+  {
    "fieldname": "budget_settings",
    "fieldtype": "Tab Break",
    "label": "Budget"
@@ -578,6 +605,15 @@
    "fieldname": "use_new_budget_controller",
    "fieldtype": "Check",
    "label": "Use New Budget Controller"
+  },
+  {
+   "fieldname": "item_price_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Item Price Settings"
+  },
+  {
+   "fieldname": "column_break_feyo",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
@@ -586,7 +622,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-05-16 11:08:00.796886",
+ "modified": "2025-05-27 17:52:03.460522",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Accounts Settings",
