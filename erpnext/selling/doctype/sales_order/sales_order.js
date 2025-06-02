@@ -1021,7 +1021,7 @@ erpnext.selling.SalesOrderController = class SalesOrderController extends erpnex
 						items: data,
 						company: me.frm.doc.company,
 						sales_order: me.frm.docname,
-						project: me.frm.project,
+						project: me.frm.doc.project,
 					},
 					freeze: true,
 					callback: function (r) {
