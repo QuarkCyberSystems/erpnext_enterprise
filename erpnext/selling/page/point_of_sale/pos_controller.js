@@ -541,7 +541,7 @@ erpnext.PointOfSale.Controller = class {
 					frappe.run_serially([
 						() => frappe.dom.freeze(),
 						() => this.make_new_invoice(),
-						() => this.item_selector.toggle_component(true),
+						() => this.toggle_components(true),
 						() => frappe.dom.unfreeze(),
 					]);
 				},
