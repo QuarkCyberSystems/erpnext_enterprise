@@ -210,6 +210,7 @@ class PartyLedgerSummaryReport:
 				"fieldtype": "Link",
 				"options": "Currency",
 				"width": 50,
+				"hidden": 1,
 			},
 		]
 
