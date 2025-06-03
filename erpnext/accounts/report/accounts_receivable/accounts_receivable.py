@@ -377,6 +377,8 @@ class ReceivablePayableReport:
 				self.data.append(self.total_row_map.get("Total", {}))
 
 	def append_row(self, row):
+		if row.voucher_no not in self.invoice_details.keys():
+			return
 		self.allocate_future_payments(row)
 		self.set_invoice_details(row)
 		self.set_party_details(row)
@@ -449,16 +451,14 @@ class ReceivablePayableReport:
 		self.invoice_details = frappe._dict()
 		if self.account_type == "Receivable":
 			# nosemgrep
-			si_list = frappe.db.sql(
-				"""
-				select name, due_date, po_no
-				from `tabSales Invoice`
-				where posting_date <= %s
-					and company = %s
-					and docstatus = 1
-			""",
-				(self.filters.report_date, self.filters.company),
-				as_dict=1,
+			si_list = frappe.get_list(
+				"Sales Invoice",
+				filters={
+					"posting_date": ("<=", self.filters.report_date),
+					"company": self.filters.company,
+					"docstatus": 1,
+				},
+				fields=["name", "due_date", "po_no"],
 			)
 			for d in si_list:
 				self.invoice_details.setdefault(d.name, d)
@@ -481,33 +481,29 @@ class ReceivablePayableReport:
 
 		if self.account_type == "Payable":
 			# nosemgrep
-			for pi in frappe.db.sql(
-				"""
-				select name, due_date, bill_no, bill_date
-				from `tabPurchase Invoice`
-				where
-					posting_date <= %s
-					and company = %s
-					and docstatus = 1
-			""",
-				(self.filters.report_date, self.filters.company),
-				as_dict=1,
-			):
+			invoices = frappe.get_list(
+				"Purchase Invoice",
+				filters={
+					"posting_date": ("<=", self.filters.report_date),
+					"company": self.filters.company,
+					"docstatus": 1,
+				},
+				fields=["name", "due_date", "bill_no", "bill_date"],
+			)
+
+			for pi in invoices:
 				self.invoice_details.setdefault(pi.name, pi)
 
 		# Invoices booked via Journal Entries
 		# nosemgrep
-		journal_entries = frappe.db.sql(
-			"""
-			select name, due_date, bill_no, bill_date
-			from `tabJournal Entry`
-			where
-				posting_date <= %s
-				and company = %s
-				and docstatus = 1
-		""",
-			(self.filters.report_date, self.filters.company),
-			as_dict=1,
+		journal_entries = frappe.get_list(
+			"Journal Entry",
+			filters={
+				"posting_date": ("<=", self.filters.report_date),
+				"company": self.filters.company,
+				"docstatus": 1,
+			},
+			fields=["name", "due_date", "bill_no", "bill_date"],
 		)
 
 		for je in journal_entries:
