@@ -242,6 +242,8 @@ class PartyLedgerSummaryReport:
 				}
 			]
 
+		if self.filters.show_dr_cr:
+			columns.append({"label": "Dr/Cr", "fieldname": "dr_or_cr", "fieldtype": "Data", "width": 100})
 		return columns
 
 	def get_data(self):
@@ -299,6 +301,14 @@ class PartyLedgerSummaryReport:
 				adjustments = self.party_adjustment_details.get(party, {})
 				for account in self.party_adjustment_accounts:
 					row["adj_" + scrub(account)] = adjustments.get(account, 0)
+
+				if self.filters.show_dr_cr:
+					if self.filters.party_type == "Customer":
+						balance = row.get("closing_balance", 0)
+						row["dr_or_cr"] = "Dr" if balance > 0 else "Cr" if balance < 0 else ""
+					else:
+						balance = row.get("closing_balance", 0)
+						row["dr_or_cr"] = "Cr" if balance > 0 else "Dr" if balance < 0 else ""
 
 				out.append(row)
 
