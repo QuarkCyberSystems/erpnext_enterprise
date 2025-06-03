@@ -96,12 +96,6 @@ frappe.query_reports["Supplier Ledger Summary"] = {
 				});
 			},
 		},
-		{
-			fieldname: "show_dr_cr",
-			label: __("Closing Balance in Dr/Cr"),
-			fieldtype: "Check",
-			default: 0,
-		},
 	],
 };
 
