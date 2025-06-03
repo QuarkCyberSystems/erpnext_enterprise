@@ -6,6 +6,7 @@ from collections import OrderedDict
 
 import frappe
 from frappe import _, qb, query_builder, scrub
+from frappe.desk.reportview import build_match_conditions
 from frappe.query_builder import Criterion
 from frappe.query_builder.functions import Date, Substring, Sum
 from frappe.utils import cint, cstr, flt, getdate, nowdate
@@ -126,7 +127,7 @@ class ReceivablePayableReport:
 		self.build_data()
 
 	def fetch_ple_in_buffered_cursor(self):
-		query, param = self.ple_query.walk()
+		query, param = self.ple_query
 		self.ple_entries = frappe.db.sql(query, param, as_dict=True)
 
 		for ple in self.ple_entries:
@@ -140,7 +141,7 @@ class ReceivablePayableReport:
 
 	def fetch_ple_in_unbuffered_cursor(self):
 		self.ple_entries = []
-		query, param = self.ple_query.walk()
+		query, param = self.ple_query
 		with frappe.db.unbuffered_cursor():
 			for ple in frappe.db.sql(query, param, as_dict=True, as_iterator=True):
 				self.init_voucher_balance(ple)  # invoiced, paid, credit_note, outstanding
@@ -377,8 +378,6 @@ class ReceivablePayableReport:
 				self.data.append(self.total_row_map.get("Total", {}))
 
 	def append_row(self, row):
-		if row.voucher_no not in self.invoice_details.keys():
-			return
 		self.allocate_future_payments(row)
 		self.set_invoice_details(row)
 		self.set_party_details(row)
@@ -852,12 +851,18 @@ class ReceivablePayableReport:
 			else:
 				query = query.select(ple.remarks)
 
-		if self.filters.get("group_by_party"):
-			query = query.orderby(self.ple.party, self.ple.posting_date)
-		else:
-			query = query.orderby(self.ple.posting_date, self.ple.party)
+		query, param = query.walk()
 
-		self.ple_query = query
+		match_conditions = build_match_conditions("Payment Ledger Entry")
+		if match_conditions:
+			query += " AND " + match_conditions
+
+		if self.filters.get("group_by_party"):
+			query += f" ORDER BY `{self.ple.party.name}`, `{self.ple.posting_date.name}`"
+		else:
+			query += f" ORDER BY `{self.ple.posting_date.name}`, `{self.ple.party.name}`"
+
+		self.ple_query = (query, param)
 
 	def get_sales_invoices_or_customers_based_on_sales_person(self):
 		if self.filters.get("sales_person"):
