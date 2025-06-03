@@ -412,6 +412,9 @@ class TestSubcontractingReceipt(IntegrationTestCase):
 		scr.save()
 		scr.submit()
 
+		for item in scr.supplied_items:
+			self.assertTrue(item.expense_account)
+
 		gl_entries = get_gl_entries("Subcontracting Receipt", scr.name)
 		self.assertTrue(gl_entries)
 
