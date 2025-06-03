@@ -244,7 +244,9 @@ class PartyLedgerSummaryReport:
 			]
 
 		if self.filters.show_dr_cr:
-			columns.append({"label": "Dr or Cr", "fieldname": "dr_or_cr", "fieldtype": "Data", "width": 100})
+			columns.append(
+				{"label": _("Dr or Cr"), "fieldname": "dr_or_cr", "fieldtype": "Data", "width": 100}
+			)
 		return columns
 
 	def get_data(self):
