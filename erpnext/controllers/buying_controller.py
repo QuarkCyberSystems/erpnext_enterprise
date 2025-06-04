@@ -2,6 +2,8 @@
 # License: GNU General Public License v3. See license.txt
 
 
+import json
+
 import frappe
 from frappe import ValidationError, _, msgprint
 from frappe.contacts.doctype.address.address import render_address
@@ -318,32 +320,40 @@ class BuyingController(SubcontractingController):
 			if d.item_code and d.item_code in stock_and_asset_items:
 				stock_and_asset_items_qty += flt(d.qty)
 				stock_and_asset_items_amount += flt(d.base_net_amount)
-				last_item_idx = d.idx
 
-		total_valuation_amount = sum(
-			flt(d.base_tax_amount_after_discount_amount)
-			for d in self.get("taxes")
-			if d.category in ["Valuation", "Valuation and Total"]
-		)
+			last_item_idx = d.idx
 
-		valuation_amount_adjustment = total_valuation_amount
+		tax_accounts, total_valuation_amount, total_actual_tax_amount = self.get_tax_details()
+
 		for i, item in enumerate(self.get("items")):
-			if item.item_code and item.qty and item.item_code in stock_and_asset_items:
-				item_proportion = (
-					flt(item.base_net_amount) / stock_and_asset_items_amount
-					if stock_and_asset_items_amount
-					else flt(item.qty) / stock_and_asset_items_qty
-				)
-
+			if item.item_code and item.qty:
+				item_tax_amount, actual_tax_amount = 0.0, 0.0
 				if i == (last_item_idx - 1):
-					item.item_tax_amount = flt(
-						valuation_amount_adjustment, self.precision("item_tax_amount", item)
-					)
+					item_tax_amount = total_valuation_amount
+					actual_tax_amount = total_actual_tax_amount
 				else:
-					item.item_tax_amount = flt(
-						item_proportion * total_valuation_amount, self.precision("item_tax_amount", item)
-					)
-					valuation_amount_adjustment -= item.item_tax_amount
+					# calculate item tax amount
+					item_tax_amount = self.get_item_tax_amount(item, tax_accounts)
+					total_valuation_amount -= item_tax_amount
+
+					if total_actual_tax_amount:
+						actual_tax_amount = self.get_item_actual_tax_amount(
+							item,
+							total_actual_tax_amount,
+							stock_and_asset_items_amount,
+							stock_and_asset_items_qty,
+						)
+						total_actual_tax_amount -= actual_tax_amount
+
+				# This code is required here to calculate the correct valuation for stock items
+				if item.item_code not in stock_and_asset_items:
+					item.valuation_rate = 0.0
+					continue
+
+				# Item tax amount is the total tax amount applied on that item and actual tax type amount
+				item.item_tax_amount = flt(
+					item_tax_amount + actual_tax_amount, self.precision("item_tax_amount", item)
+				)
 
 				self.round_floats_in(item)
 				if flt(item.conversion_factor) == 0.0:
@@ -375,6 +385,50 @@ class BuyingController(SubcontractingController):
 				item.valuation_rate = 0.0
 
 		update_regional_item_valuation_rate(self)
+
+	def get_tax_details(self):
+		tax_accounts = []
+		total_valuation_amount = 0.0
+		total_actual_tax_amount = 0.0
+
+		for d in self.get("taxes"):
+			if d.category not in ["Valuation", "Valuation and Total"]:
+				continue
+
+			if d.charge_type == "On Net Total":
+				total_valuation_amount += flt(d.base_tax_amount_after_discount_amount)
+				tax_accounts.append(d.account_head)
+			else:
+				total_actual_tax_amount += flt(d.base_tax_amount_after_discount_amount)
+
+		return tax_accounts, total_valuation_amount, total_actual_tax_amount
+
+	def get_item_tax_amount(self, item, tax_accounts):
+		item_tax_amount = 0.0
+		if item.item_tax_rate:
+			tax_details = json.loads(item.item_tax_rate)
+			for account, rate in tax_details.items():
+				if account not in tax_accounts:
+					continue
+
+				net_rate = item.base_net_amount
+				if item.sales_incoming_rate:
+					net_rate = item.qty * item.sales_incoming_rate
+
+				item_tax_amount += flt(net_rate) * flt(rate) / 100
+
+		return item_tax_amount
+
+	def get_item_actual_tax_amount(
+		self, item, actual_tax_amount, stock_and_asset_items_amount, stock_and_asset_items_qty
+	):
+		item_proportion = (
+			flt(item.base_net_amount) / stock_and_asset_items_amount
+			if stock_and_asset_items_amount
+			else flt(item.qty) / stock_and_asset_items_qty
+		)
+
+		return flt(item_proportion * actual_tax_amount, self.precision("item_tax_amount", item))
 
 	def set_incoming_rate(self):
 		"""
