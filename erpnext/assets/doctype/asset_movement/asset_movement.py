@@ -24,7 +24,7 @@ class AssetMovement(Document):
 		amended_from: DF.Link | None
 		assets: DF.Table[AssetMovementItem]
 		company: DF.Link
-		purpose: DF.Literal["", "Issue", "Receipt", "Transfer"]
+		purpose: DF.Literal["", "Issue", "Receipt", "Transfer", "Transfer and Issue"]
 		reference_doctype: DF.Link | None
 		reference_name: DF.DynamicLink | None
 		transaction_date: DF.Datetime
