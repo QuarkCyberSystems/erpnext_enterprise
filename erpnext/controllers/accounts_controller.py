@@ -1248,6 +1248,8 @@ class AccountsController(TransactionBase):
 		with temporary_flag("company", self.company):
 			update_gl_dict_with_regional_fields(self, gl_dict)
 
+		update_gl_dict_with_app_based_fields(self, gl_dict)
+
 		accounting_dimensions = get_accounting_dimensions()
 		dimension_dict = frappe._dict()
 
@@ -4051,3 +4053,8 @@ def validate_einvoice_fields(doc):
 @erpnext.allow_regional
 def update_gl_dict_with_regional_fields(doc, gl_dict):
 	pass
+
+
+def update_gl_dict_with_app_based_fields(doc, gl_dict):
+	for method in frappe.get_hooks("update_gl_dict_with_app_based_fields", default=[]):
+		frappe.get_attr(method)(doc, gl_dict)
