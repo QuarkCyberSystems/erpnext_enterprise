@@ -4054,6 +4054,7 @@ def validate_einvoice_fields(doc):
 def update_gl_dict_with_regional_fields(doc, gl_dict):
 	pass
 
+
 def update_gl_dict_with_app_based_fields(doc, gl_dict):
 	for method in frappe.get_hooks("update_gl_dict_with_app_based_fields", default=[]):
 		frappe.get_attr(method)(doc, gl_dict)
