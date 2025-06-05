@@ -87,7 +87,7 @@ class TestInventoryDimension(IntegrationTestCase):
 		self.assertFalse(custom_field)
 
 	def test_inventory_dimension(self):
-		frappe.local.document_wise_inventory_dimensions = {}
+		frappe.clear_cache(doctype="Inventory Dimension")
 
 		warehouse = "Shelf Warehouse - _TC"
 		item_code = "_Test Item"
@@ -159,7 +159,7 @@ class TestInventoryDimension(IntegrationTestCase):
 		self.assertRaises(DoNotChangeError, inv_dim1.save)
 
 	def test_inventory_dimension_for_purchase_receipt_and_delivery_note(self):
-		frappe.local.document_wise_inventory_dimensions = {}
+		frappe.clear_cache(doctype="Inventory Dimension")
 
 		inv_dimension = create_inventory_dimension(
 			reference_document="Rack", dimension_name="Rack", apply_to_all_doctypes=1

@@ -8,6 +8,7 @@ import frappe
 from frappe import _
 from frappe.model.meta import get_field_precision
 from frappe.utils import cint, flt, formatdate, get_link_to_form, getdate, now
+from frappe.utils.caching import request_cache
 from frappe.utils.dashboard import cache_source
 
 import erpnext
@@ -222,6 +223,7 @@ def distribute_gl_based_on_cost_center_allocation(gl_map, precision=None, from_r
 	return new_gl_map
 
 
+@request_cache
 def get_cost_center_allocation_data(company, posting_date, cost_center):
 	cost_center_allocation = frappe.db.get_value(
 		"Cost Center Allocation",
@@ -231,7 +233,7 @@ def get_cost_center_allocation_data(company, posting_date, cost_center):
 			"valid_from": ("<=", posting_date),
 			"main_cost_center": cost_center,
 		},
-		pluck="name",
+		pluck=True,
 		order_by="valid_from desc",
 	)
 
