@@ -84,9 +84,7 @@ class SerialandBatchBundle(Document):
 	# end: auto-generated types
 
 	def autoname(self):
-		if frappe.db.get_single_value(
-			"Stock Settings", "set_serial_and_batch_bundle_naming_based_on_naming_series"
-		):
+		if frappe.get_settings("Stock Settings", "set_serial_and_batch_bundle_naming_based_on_naming_series"):
 			if not self.naming_series:
 				frappe.throw(_("Naming Series is mandatory"))
 
@@ -161,7 +159,7 @@ class SerialandBatchBundle(Document):
 		if self.type_of_transaction == "Outward" or not self.has_serial_no:
 			return
 
-		if frappe.db.get_single_value("Stock Settings", "allow_existing_serial_no"):
+		if frappe.get_settings("Stock Settings", "allow_existing_serial_no"):
 			return
 
 		if self.voucher_type not in ["Purchase Receipt", "Purchase Invoice", "Stock Entry"]:

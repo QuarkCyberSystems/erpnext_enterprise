@@ -952,10 +952,8 @@ class PurchaseReceipt(BuyingController):
 	def reserve_stock_for_sales_order(self):
 		if (
 			self.is_return
-			or not frappe.db.get_single_value("Stock Settings", "enable_stock_reservation")
-			or not frappe.db.get_single_value(
-				"Stock Settings", "auto_reserve_stock_for_sales_order_on_purchase"
-			)
+			or not frappe.get_settings("Stock Settings", "enable_stock_reservation")
+			or not frappe.get_settings("Stock Settings", "auto_reserve_stock_for_sales_order_on_purchase")
 		):
 			return
 
@@ -990,7 +988,7 @@ class PurchaseReceipt(BuyingController):
 				)
 
 	def reserve_stock_for_production_plan(self):
-		if self.is_return or not frappe.db.get_single_value("Stock Settings", "enable_stock_reservation"):
+		if self.is_return or not frappe.get_settings("Stock Settings", "enable_stock_reservation"):
 			return
 
 		production_plan_references = self.get_production_plan_references()

@@ -252,7 +252,7 @@ def get_incoming_rate(args, raise_error_if_no_rate=True):
 		"Item", args.get("item_code"), ["has_serial_no", "has_batch_no"], as_dict=1
 	)
 
-	use_moving_avg_for_batch = frappe.db.get_single_value("Stock Settings", "do_not_use_batchwise_valuation")
+	use_moving_avg_for_batch = frappe.get_settings("Stock Settings", "do_not_use_batchwise_valuation")
 
 	if isinstance(args, dict):
 		args = frappe._dict(args)

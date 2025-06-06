@@ -336,7 +336,7 @@ class StatusUpdater(Document):
 			qty_or_amount,
 		)
 
-		role_allowed_to_over_deliver_receive = frappe.db.get_single_value(
+		role_allowed_to_over_deliver_receive = frappe.get_settings(
 			"Stock Settings", "role_allowed_to_over_deliver_receive"
 		)
 		role_allowed_to_over_bill = frappe.db.get_single_value(

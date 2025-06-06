@@ -38,7 +38,7 @@ class SellingController(StockController):
 		if self.docstatus == 1 and self.doctype in ["Delivery Note", "Sales Invoice"]:
 			self.set_onload(
 				"allow_to_make_qc_after_submission",
-				frappe.db.get_single_value(
+				frappe.get_settings(
 					"Stock Settings", "allow_to_make_quality_inspection_after_purchase_or_delivery"
 				),
 			)
@@ -224,7 +224,7 @@ class SellingController(StockController):
 					frappe.throw(_("Maximum discount for Item {0} is {1}%").format(d.item_code, discount))
 
 	def set_qty_as_per_stock_uom(self):
-		allow_to_edit_stock_qty = frappe.db.get_single_value(
+		allow_to_edit_stock_qty = frappe.get_settings(
 			"Stock Settings", "allow_to_edit_stock_uom_qty_for_sales"
 		)
 
@@ -960,7 +960,7 @@ def get_serial_and_batch_bundle(child, parent, delivery_note_child=None):
 	if child.get("use_serial_batch_fields"):
 		return
 
-	if not frappe.db.get_single_value("Stock Settings", "auto_create_serial_and_batch_bundle_for_outward"):
+	if not frappe.get_settings("Stock Settings", "auto_create_serial_and_batch_bundle_for_outward"):
 		return
 
 	item_details = frappe.db.get_value("Item", child.item_code, ["has_serial_no", "has_batch_no"], as_dict=1)

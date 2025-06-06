@@ -518,7 +518,7 @@ class StockController(AccountsController):
 			)
 
 	def set_use_serial_batch_fields(self):
-		if frappe.db.get_single_value("Stock Settings", "use_serial_batch_fields"):
+		if frappe.get_settings("Stock Settings", "use_serial_batch_fields"):
 			for row in self.items:
 				row.use_serial_batch_fields = 1
 
@@ -1076,7 +1076,7 @@ class StockController(AccountsController):
 			"Purchase Invoice",
 			"Sales Invoice",
 			"Delivery Note",
-		] and frappe.db.get_single_value(
+		] and frappe.get_settings(
 			"Stock Settings", "allow_to_make_quality_inspection_after_purchase_or_delivery"
 		):
 			return
@@ -1092,7 +1092,7 @@ class StockController(AccountsController):
 
 	def validate_qi_submission(self, row):
 		"""Check if QI is submitted on row level, during submission"""
-		action = frappe.db.get_single_value("Stock Settings", "action_if_quality_inspection_is_not_submitted")
+		action = frappe.get_settings("Stock Settings", "action_if_quality_inspection_is_not_submitted")
 		qa_docstatus = frappe.db.get_value("Quality Inspection", row.quality_inspection, "docstatus")
 
 		if qa_docstatus != 1:
@@ -1107,7 +1107,7 @@ class StockController(AccountsController):
 
 	def validate_qi_rejection(self, row):
 		"""Check if QI is rejected on row level, during submission"""
-		action = frappe.db.get_single_value("Stock Settings", "action_if_quality_inspection_is_rejected")
+		action = frappe.get_settings("Stock Settings", "action_if_quality_inspection_is_rejected")
 		qa_status = frappe.db.get_value("Quality Inspection", row.quality_inspection, "status")
 
 		if qa_status == "Rejected":
@@ -1206,9 +1206,7 @@ class StockController(AccountsController):
 		item_wise_received_qty = self.get_item_wise_inter_received_qty()
 		precision = frappe.get_precision(self.doctype + " Item", "qty")
 
-		over_receipt_allowance = frappe.db.get_single_value(
-			"Stock Settings", "over_delivery_receipt_allowance"
-		)
+		over_receipt_allowance = frappe.get_settings("Stock Settings", "over_delivery_receipt_allowance")
 
 		parent_doctype = {
 			"Purchase Receipt": "Delivery Note",

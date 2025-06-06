@@ -75,7 +75,7 @@ class BuyingController(SubcontractingController):
 		if self.docstatus == 1 and self.doctype in ["Purchase Receipt", "Purchase Invoice"]:
 			self.set_onload(
 				"allow_to_make_qc_after_submission",
-				frappe.db.get_single_value(
+				frappe.get_settings(
 					"Stock Settings", "allow_to_make_quality_inspection_after_purchase_or_delivery"
 				),
 			)
@@ -545,7 +545,7 @@ class BuyingController(SubcontractingController):
 					item.bom = None
 
 	def set_qty_as_per_stock_uom(self):
-		allow_to_edit_stock_qty = frappe.db.get_single_value(
+		allow_to_edit_stock_qty = frappe.get_settings(
 			"Stock Settings", "allow_to_edit_stock_uom_qty_for_purchase"
 		)
 

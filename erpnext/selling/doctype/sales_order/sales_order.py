@@ -195,7 +195,7 @@ class SalesOrder(SellingController):
 	def onload(self) -> None:
 		super().onload()
 
-		if frappe.db.get_single_value("Stock Settings", "enable_stock_reservation"):
+		if frappe.get_settings("Stock Settings", "enable_stock_reservation"):
 			if self.has_unreserved_stock():
 				self.set_onload("has_unreserved_stock", True)
 
@@ -246,7 +246,7 @@ class SalesOrder(SellingController):
 		self.enable_auto_reserve_stock()
 
 	def enable_auto_reserve_stock(self):
-		if self.is_new() and frappe.db.get_single_value("Stock Settings", "auto_reserve_stock"):
+		if self.is_new() and frappe.get_settings("Stock Settings", "auto_reserve_stock"):
 			self.reserve_stock = 1
 
 	def set_has_unit_price_items(self):
@@ -633,7 +633,7 @@ class SalesOrder(SellingController):
 		if total_picked_qty and total_qty:
 			per_picked = total_picked_qty / total_qty * 100
 
-			pick_percentage = frappe.db.get_single_value("Stock Settings", "over_picking_allowance")
+			pick_percentage = frappe.get_settings("Stock Settings", "over_picking_allowance")
 			if pick_percentage:
 				total_qty += flt(total_qty) * (pick_percentage / 100)
 
@@ -729,7 +729,7 @@ class SalesOrder(SellingController):
 	def validate_reserved_stock(self):
 		"""Clean reserved stock flag for non-stock Item"""
 
-		enable_stock_reservation = frappe.db.get_single_value("Stock Settings", "enable_stock_reservation")
+		enable_stock_reservation = frappe.get_settings("Stock Settings", "enable_stock_reservation")
 
 		for item in self.items:
 			if item.reserve_stock and (not enable_stock_reservation or not cint(item.is_stock_item)):
@@ -1861,4 +1861,4 @@ def get_work_order_items(sales_order, for_raw_material_request=0):
 
 @frappe.whitelist()
 def get_stock_reservation_status():
-	return frappe.db.get_single_value("Stock Settings", "enable_stock_reservation")
+	return frappe.get_settings("Stock Settings", "enable_stock_reservation")
