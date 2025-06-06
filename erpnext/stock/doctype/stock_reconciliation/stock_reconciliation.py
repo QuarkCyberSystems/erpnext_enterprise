@@ -163,6 +163,9 @@ class StockReconciliation(StockController):
 	def set_current_serial_and_batch_bundle(self, voucher_detail_no=None, save=False) -> None:
 		"""Set Serial and Batch Bundle for each item"""
 		for item in self.items:
+			if voucher_detail_no and voucher_detail_no != item.name:
+				continue
+
 			if not item.item_code:
 				continue
 
@@ -230,9 +233,6 @@ class StockReconciliation(StockController):
 				continue
 
 			if not save and item.use_serial_batch_fields:
-				continue
-
-			if voucher_detail_no and voucher_detail_no != item.name:
 				continue
 
 			if not item.current_serial_and_batch_bundle:
