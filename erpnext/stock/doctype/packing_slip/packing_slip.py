@@ -174,7 +174,7 @@ class PackingSlip(StatusUpdater):
 		return (
 			cint(
 				frappe.db.get_value(
-					"Packing Slip", {"delivery_note": self.delivery_note, "docstatus": 1}, {"MAX": "to_case_no"}
+					"Packing Slip", {"delivery_note": self.delivery_note, "docstatus": 1}, [{"MAX": "to_case_no"}]
 				)
 			)
 			+ 1
