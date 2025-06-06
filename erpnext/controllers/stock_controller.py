@@ -1053,7 +1053,7 @@ class StockController(AccountsController):
 
 		for row in self.get("items"):
 			qi_required = False
-			if inspection_required_fieldname and frappe.db.get_value(
+			if inspection_required_fieldname and frappe.get_cached_value(
 				"Item", row.item_code, inspection_required_fieldname
 			):
 				qi_required = True
@@ -1769,7 +1769,7 @@ def get_conditions_to_validate_future_sle(sl_entries):
 	for warehouse, items in warehouse_items_map.items():
 		or_conditions.append(
 			f"""warehouse = {frappe.db.escape(warehouse)}
-				and item_code in ({', '.join(frappe.db.escape(item) for item in items)})"""
+				and item_code in ({", ".join(frappe.db.escape(item) for item in items)})"""
 		)
 
 	return or_conditions
