@@ -2232,6 +2232,8 @@ class AccountsController(TransactionBase):
 	def set_advance_payment_status(self):
 		new_status = None
 
+
+		PaymentRequest = frappe.qb.DocType("Payment Request")
 		paid_amount = frappe.get_value(
 			doctype="Payment Request",
 			filters={
@@ -2239,7 +2241,7 @@ class AccountsController(TransactionBase):
 				"reference_name": self.name,
 				"docstatus": 1,
 			},
-			fieldname="sum(grand_total - outstanding_amount)",
+			fieldname=Sum(PaymentRequest.grand_total - PaymentRequest.outstanding_amount),
 		)
 
 		if not paid_amount:
