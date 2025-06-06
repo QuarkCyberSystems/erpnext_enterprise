@@ -253,7 +253,7 @@ class SalesOrder(SellingController):
 		"""
 		If permitted in settings and any item has 0 qty, the SO has unit price items.
 		"""
-		if not frappe.db.get_single_value("Selling Settings", "allow_zero_qty_in_sales_order"):
+		if not frappe.get_settings("Selling Settings", "allow_zero_qty_in_sales_order"):
 			return
 
 		self.has_unit_price_items = any(
@@ -279,9 +279,7 @@ class SalesOrder(SellingController):
 				(self.po_no, self.name, self.customer),
 			)
 			if so and so[0][0]:
-				if cint(
-					frappe.db.get_single_value("Selling Settings", "allow_against_multiple_purchase_orders")
-				):
+				if cint(frappe.get_settings("Selling Settings", "allow_against_multiple_purchase_orders")):
 					frappe.msgprint(
 						_(
 							"Warning: Sales Order {0} already exists against Customer's Purchase Order {1}"
@@ -405,7 +403,7 @@ class SalesOrder(SellingController):
 			}
 		)
 
-		if cint(frappe.db.get_single_value("Selling Settings", "maintain_same_sales_rate")):
+		if cint(frappe.get_settings("Selling Settings", "maintain_same_sales_rate")):
 			self.validate_rate_with_reference_doc([["Quotation", "prevdoc_docname", "quotation_item"]])
 
 	def update_enquiry_status(self, prevdoc, flag):
@@ -483,7 +481,7 @@ class SalesOrder(SellingController):
 			update_coupon_code_count(self.coupon_code, "cancelled")
 
 	def update_project(self):
-		if frappe.db.get_single_value("Selling Settings", "sales_update_frequency") != "Each Transaction":
+		if frappe.get_settings("Selling Settings", "sales_update_frequency") != "Each Transaction":
 			return
 
 		if self.project:
@@ -815,7 +813,7 @@ def get_list_context(context=None):
 
 @frappe.whitelist()
 def is_enable_cutoff_date_on_bulk_delivery_note_creation():
-	return frappe.db.get_single_value("Selling Settings", "enable_cutoff_date_on_bulk_delivery_note_creation")
+	return frappe.get_settings("Selling Settings", "enable_cutoff_date_on_bulk_delivery_note_creation")
 
 
 @frappe.whitelist()

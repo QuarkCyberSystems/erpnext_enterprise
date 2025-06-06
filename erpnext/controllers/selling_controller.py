@@ -255,9 +255,7 @@ class SellingController(StockController):
 				title=_("Invalid Selling Price"),
 			)
 
-		if self.get("is_return") or not frappe.db.get_single_value(
-			"Selling Settings", "validate_selling_price"
-		):
+		if self.get("is_return") or not frappe.get_settings("Selling Settings", "validate_selling_price"):
 			return
 
 		is_internal_customer = self.get("is_internal_customer")
@@ -717,7 +715,7 @@ class SellingController(StockController):
 
 	def validate_for_duplicate_items(self):
 		check_list, chk_dupl_itm = [], []
-		if cint(frappe.db.get_single_value("Selling Settings", "allow_multiple_items")):
+		if cint(frappe.get_settings("Selling Settings", "allow_multiple_items")):
 			return
 		if self.doctype == "Sales Invoice" and self.is_consolidated:
 			return

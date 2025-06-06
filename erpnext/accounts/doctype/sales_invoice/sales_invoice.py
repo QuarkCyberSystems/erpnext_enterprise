@@ -495,7 +495,7 @@ class SalesInvoice(SellingController):
 
 		self.update_time_sheet(self.name)
 
-		if frappe.db.get_single_value("Selling Settings", "sales_update_frequency") == "Each Transaction":
+		if frappe.get_settings("Selling Settings", "sales_update_frequency") == "Each Transaction":
 			update_company_current_month_sales(self.company)
 			self.update_project()
 		update_linked_doc(self.doctype, self.name, self.inter_company_invoice_reference)
@@ -611,7 +611,7 @@ class SalesInvoice(SellingController):
 		if self.coupon_code:
 			update_coupon_code_count(self.coupon_code, "cancelled")
 
-		if frappe.db.get_single_value("Selling Settings", "sales_update_frequency") == "Each Transaction":
+		if frappe.get_settings("Selling Settings", "sales_update_frequency") == "Each Transaction":
 			update_company_current_month_sales(self.company)
 			self.update_project()
 		if not self.is_return and not self.is_consolidated and self.loyalty_program:
@@ -1016,7 +1016,7 @@ class SalesInvoice(SellingController):
 		)
 
 		if (
-			cint(frappe.db.get_single_value("Selling Settings", "maintain_same_sales_rate"))
+			cint(frappe.get_settings("Selling Settings", "maintain_same_sales_rate"))
 			and not self.is_return
 			and not self.is_internal_customer
 		):
@@ -1063,7 +1063,7 @@ class SalesInvoice(SellingController):
 			"Delivery Note": ["dn_required", "update_stock"],
 		}
 		for key, value in prev_doc_field_map.items():
-			if frappe.db.get_single_value("Selling Settings", value[0]) == "Yes":
+			if frappe.get_settings("Selling Settings", value[0]) == "Yes":
 				if frappe.get_value("Customer", self.customer, value[0]):
 					continue
 
@@ -1466,7 +1466,7 @@ class SalesInvoice(SellingController):
 
 	def make_tax_gl_entries(self, gl_entries):
 		enable_discount_accounting = cint(
-			frappe.db.get_single_value("Selling Settings", "enable_discount_accounting")
+			frappe.get_settings("Selling Settings", "enable_discount_accounting")
 		)
 
 		for tax in self.get("taxes"):
@@ -1516,7 +1516,7 @@ class SalesInvoice(SellingController):
 	def make_item_gl_entries(self, gl_entries):
 		# income account gl entries
 		enable_discount_accounting = cint(
-			frappe.db.get_single_value("Selling Settings", "enable_discount_accounting")
+			frappe.get_settings("Selling Settings", "enable_discount_accounting")
 		)
 
 		for item in self.get("items"):
@@ -1591,7 +1591,7 @@ class SalesInvoice(SellingController):
 	def enable_discount_accounting(self):
 		if not hasattr(self, "_enable_discount_accounting"):
 			self._enable_discount_accounting = cint(
-				frappe.db.get_single_value("Selling Settings", "enable_discount_accounting")
+				frappe.get_settings("Selling Settings", "enable_discount_accounting")
 			)
 
 		return self._enable_discount_accounting

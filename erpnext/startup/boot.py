@@ -15,9 +15,9 @@ def boot_session(bootinfo):
 	if frappe.session["user"] != "Guest":
 		update_page_info(bootinfo)
 
-		bootinfo.sysdefaults.territory = frappe.db.get_single_value("Selling Settings", "territory")
-		bootinfo.sysdefaults.customer_group = frappe.db.get_single_value("Selling Settings", "customer_group")
-		bootinfo.sysdefaults.use_server_side_reactivity = frappe.db.get_single_value(
+		bootinfo.sysdefaults.territory = frappe.get_settings("Selling Settings", "territory")
+		bootinfo.sysdefaults.customer_group = frappe.get_settings("Selling Settings", "customer_group")
+		bootinfo.sysdefaults.use_server_side_reactivity = frappe.get_settings(
 			"Selling Settings", "use_server_side_reactivity"
 		)
 		bootinfo.sysdefaults.allow_stale = cint(frappe.get_settings("Accounts Settings", "allow_stale"))
@@ -30,7 +30,7 @@ def boot_session(bootinfo):
 		)
 
 		bootinfo.sysdefaults.allow_sales_order_creation_for_expired_quotation = cint(
-			frappe.db.get_single_value("Selling Settings", "allow_sales_order_creation_for_expired_quotation")
+			frappe.get_settings("Selling Settings", "allow_sales_order_creation_for_expired_quotation")
 		)
 
 		# if no company, show a dialog box to create a new company

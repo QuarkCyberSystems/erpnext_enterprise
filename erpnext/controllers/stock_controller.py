@@ -1379,9 +1379,7 @@ class StockController(AccountsController):
 			force = True
 
 		if force or future_sle_exists(args) or repost_required_for_queue(self):
-			item_based_reposting = cint(
-				frappe.db.get_single_value("Stock Reposting Settings", "item_based_reposting")
-			)
+			item_based_reposting = frappe.get_settings("Stock Reposting Settings", "item_based_reposting")
 			if item_based_reposting:
 				create_item_wise_repost_entries(
 					voucher_type=self.doctype,
@@ -1673,7 +1671,7 @@ def is_reposting_pending():
 def future_sle_exists(args, sl_entries=None, allow_force_reposting=True):
 	from erpnext.stock.utils import get_combine_datetime
 
-	if allow_force_reposting and frappe.db.get_single_value(
+	if allow_force_reposting and frappe.get_settings(
 		"Stock Reposting Settings", "do_reposting_for_each_stock_transaction"
 	):
 		return True

@@ -680,7 +680,7 @@ def send_project_status_email_to_users():
 
 
 def update_project_sales_billing():
-	sales_update_frequency = frappe.db.get_single_value("Selling Settings", "sales_update_frequency")
+	sales_update_frequency = frappe.get_settings("Selling Settings", "sales_update_frequency")
 	if sales_update_frequency == "Each Transaction":
 		return
 	elif sales_update_frequency == "Monthly" and frappe.utils.now_datetime().day != 1:

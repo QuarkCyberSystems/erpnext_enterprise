@@ -69,7 +69,7 @@ def make_packing_list(doc):
 		return
 
 	parent_items_price, reset = {}, False
-	set_price_from_children = frappe.db.get_single_value("Selling Settings", "editable_bundle_item_rates")
+	set_price_from_children = frappe.get_settings("Selling Settings", "editable_bundle_item_rates")
 
 	stale_packed_items_table = get_indexed_packed_items_table(doc)
 

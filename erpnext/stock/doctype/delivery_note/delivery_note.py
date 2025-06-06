@@ -247,7 +247,7 @@ class DeliveryNote(SellingController):
 
 	def so_required(self):
 		"""check in manage account if sales order required or not"""
-		if frappe.db.get_single_value("Selling Settings", "so_required") == "Yes":
+		if frappe.get_settings("Selling Settings", "so_required") == "Yes":
 			for d in self.get("items"):
 				if not d.against_sales_order:
 					frappe.throw(_("Sales Order required for Item {0}").format(d.item_code))
@@ -314,7 +314,7 @@ class DeliveryNote(SellingController):
 		)
 
 		if (
-			cint(frappe.db.get_single_value("Selling Settings", "maintain_same_sales_rate"))
+			cint(frappe.get_settings("Selling Settings", "maintain_same_sales_rate"))
 			and not self.is_return
 			and not self.is_internal_customer
 		):
