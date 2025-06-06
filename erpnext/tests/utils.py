@@ -2,6 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 
 import unittest
+from contextlib import contextmanager
 from typing import Any, NewType
 
 import frappe
@@ -120,6 +121,14 @@ def if_lending_app_not_installed(function):
 
 
 class ERPNextTestSuite(unittest.TestCase):
+	@classmethod
+	def registerAs(cls, _as):
+		def decorator(cm_func):
+			setattr(cls, cm_func.__name__, _as(cm_func))
+			return cm_func
+
+		return decorator
+
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -621,3 +630,29 @@ class ERPNextTestSuite(unittest.TestCase):
 						},
 					)
 				)
+
+
+@ERPNextTestSuite.registerAs(staticmethod)
+@contextmanager
+def change_settings(doctype, settings_dict=None, /, **settings) -> None:
+	"""Temporarily: change settings in a settings doctype."""
+	import copy
+
+	if settings_dict is None:
+		settings_dict = settings
+
+	settings = frappe.get_doc(doctype)
+	previous_settings = copy.deepcopy(settings_dict)
+	for key in previous_settings:
+		previous_settings[key] = getattr(settings, key)
+
+	for key, value in settings_dict.items():
+		setattr(settings, key, value)
+	settings.save(ignore_permissions=True)
+
+	yield
+
+	settings = frappe.get_doc(doctype)
+	for key, value in previous_settings.items():
+		setattr(settings, key, value)
+	settings.save(ignore_permissions=True)
