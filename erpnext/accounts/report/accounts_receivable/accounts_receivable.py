@@ -57,8 +57,7 @@ class ReceivablePayableReport:
 		self.ranges = [num.strip() for num in self.filters.range.split(",") if num.strip().isdigit()]
 		self.range_numbers = [num for num in range(1, len(self.ranges) + 2)]
 		self.ple_fetch_method = (
-			frappe.db.get_single_value("Accounts Settings", "receivable_payable_fetch_method")
-			or "Buffered Cursor"
+			frappe.get_settings("Accounts Settings", "receivable_payable_fetch_method") or "Buffered Cursor"
 		)  # Fail Safe
 
 	def run(self, args):
@@ -849,7 +848,7 @@ class ReceivablePayableReport:
 		)
 
 		if self.filters.get("show_remarks"):
-			if remarks_length := frappe.db.get_single_value(
+			if remarks_length := frappe.get_settings(
 				"Accounts Settings", "receivable_payable_remarks_length"
 			):
 				query = query.select(Substring(ple.remarks, 1, remarks_length).as_("remarks"))

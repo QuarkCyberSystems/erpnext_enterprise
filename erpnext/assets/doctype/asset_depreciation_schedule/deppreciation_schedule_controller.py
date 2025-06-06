@@ -251,7 +251,7 @@ class DepreciationScheduleController(StraightLineMethod, WDVMethod):
 		return depr_booked_for_months
 
 	def get_total_pending_days_or_years(self):
-		if cint(frappe.db.get_single_value("Accounts Settings", "calculate_depr_using_total_days")):
+		if cint(frappe.get_settings("Accounts Settings", "calculate_depr_using_total_days")):
 			last_depr_date = self.get_last_booked_depreciation_date()
 			if last_depr_date:
 				self.total_pending_days = date_diff(self.final_schedule_date, last_depr_date) - 1

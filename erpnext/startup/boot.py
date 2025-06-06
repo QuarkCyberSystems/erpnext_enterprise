@@ -20,10 +20,8 @@ def boot_session(bootinfo):
 		bootinfo.sysdefaults.use_server_side_reactivity = frappe.db.get_single_value(
 			"Selling Settings", "use_server_side_reactivity"
 		)
-		bootinfo.sysdefaults.allow_stale = cint(
-			frappe.db.get_single_value("Accounts Settings", "allow_stale")
-		)
-		bootinfo.sysdefaults.over_billing_allowance = frappe.db.get_single_value(
+		bootinfo.sysdefaults.allow_stale = cint(frappe.get_settings("Accounts Settings", "allow_stale"))
+		bootinfo.sysdefaults.over_billing_allowance = frappe.get_settings(
 			"Accounts Settings", "over_billing_allowance"
 		)
 

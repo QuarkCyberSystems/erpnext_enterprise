@@ -842,7 +842,7 @@ class BuyingController(SubcontractingController):
 			self.update_fixed_asset(field, delete_asset=True)
 
 	def validate_budget(self):
-		if frappe.db.get_single_value("Accounts Settings", "use_new_budget_controller"):
+		if frappe.get_settings("Accounts Settings", "use_new_budget_controller"):
 			from erpnext.controllers.budget_controller import BudgetValidation
 
 			val = BudgetValidation(doc=self)

@@ -1096,9 +1096,7 @@ class SalesInvoice(SellingController):
 		if self.is_created_using_pos and not self.pos_profile:
 			frappe.throw(_("POS Profile is mandatory to mark this invoice as POS Transaction."))
 
-		self.is_pos_using_sales_invoice = frappe.db.get_single_value(
-			"Accounts Settings", "use_sales_invoice_in_pos"
-		)
+		self.is_pos_using_sales_invoice = frappe.get_settings("Accounts Settings", "use_sales_invoice_in_pos")
 		if not self.is_pos_using_sales_invoice and not self.is_return:
 			frappe.throw(_("Transactions using Sales Invoice in POS are disabled."))
 
@@ -1635,7 +1633,7 @@ class SalesInvoice(SellingController):
 	def make_pos_gl_entries(self, gl_entries):
 		if cint(self.is_pos):
 			skip_change_gl_entries = not cint(
-				frappe.db.get_single_value("Accounts Settings", "post_change_gl_entries")
+				frappe.get_settings("Accounts Settings", "post_change_gl_entries")
 			)
 
 			for payment_mode in self.payments:
@@ -2920,7 +2918,7 @@ def check_if_return_invoice_linked_with_payment_entry(self):
 	# If a Return invoice is linked with payment entry along with other invoices,
 	# the cancellation of the Return causes allocated amount to be greater than paid
 
-	if not frappe.db.get_single_value("Accounts Settings", "unlink_payment_on_cancellation_of_invoice"):
+	if not frappe.get_settings("Accounts Settings", "unlink_payment_on_cancellation_of_invoice"):
 		return
 
 	payment_entries = []

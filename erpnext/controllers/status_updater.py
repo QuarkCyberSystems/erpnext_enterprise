@@ -339,9 +339,7 @@ class StatusUpdater(Document):
 		role_allowed_to_over_deliver_receive = frappe.get_settings(
 			"Stock Settings", "role_allowed_to_over_deliver_receive"
 		)
-		role_allowed_to_over_bill = frappe.db.get_single_value(
-			"Accounts Settings", "role_allowed_to_over_bill"
-		)
+		role_allowed_to_over_bill = frappe.get_settings("Accounts Settings", "role_allowed_to_over_bill")
 		role = role_allowed_to_over_deliver_receive if qty_or_amount == "qty" else role_allowed_to_over_bill
 
 		overflow_percent = (

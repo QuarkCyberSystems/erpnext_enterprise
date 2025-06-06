@@ -163,7 +163,7 @@ def get_gl_entries(filters, accounting_dimensions):
 		credit_in_account_currency """
 
 	if filters.get("show_remarks"):
-		if remarks_length := frappe.db.get_single_value("Accounts Settings", "general_ledger_remarks_length"):
+		if remarks_length := frappe.get_settings("Accounts Settings", "general_ledger_remarks_length"):
 			select_fields += f",substr(remarks, 1, {remarks_length}) as 'remarks'"
 		else:
 			select_fields += """,remarks"""
@@ -218,9 +218,7 @@ def get_gl_entries(filters, accounting_dimensions):
 def get_conditions(filters):
 	conditions = []
 
-	ignore_is_opening = frappe.db.get_single_value(
-		"Accounts Settings", "ignore_is_opening_check_for_reporting"
-	)
+	ignore_is_opening = frappe.get_settings("Accounts Settings", "ignore_is_opening_check_for_reporting")
 
 	if filters.get("account"):
 		filters.account = get_accounts_with_children(filters.account)
@@ -480,7 +478,7 @@ def get_accountwise_gle(filters, accounting_dimensions, gl_entries, gle_map):
 	if filters.get("show_net_values_in_party_account"):
 		account_type_map = get_account_type_map(filters.get("company"))
 
-	immutable_ledger = frappe.db.get_single_value("Accounts Settings", "enable_immutable_ledger")
+	immutable_ledger = frappe.get_settings("Accounts Settings", "enable_immutable_ledger")
 
 	def update_value_in_dict(data, key, gle):
 		data[key].debit += gle.debit
