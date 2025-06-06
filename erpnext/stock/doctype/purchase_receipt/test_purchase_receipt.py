@@ -1799,7 +1799,7 @@ class TestPurchaseReceipt(IntegrationTestCase):
 				"voucher_no": pr.name,
 				"is_cancelled": 0,
 			},
-			fieldname=["sum(stock_value_difference)"],
+			fieldname=[{"SUM": "stock_value_difference"}],
 		)
 
 		# Value of Stock Account should be equal to the sum of Stock Value Difference
