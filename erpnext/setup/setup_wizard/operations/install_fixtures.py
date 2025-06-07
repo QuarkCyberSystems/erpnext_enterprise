@@ -23,7 +23,7 @@ def read_lines(filename: str) -> list[str]:
 	return (Path(__file__).parent.parent / "data" / filename).read_text().splitlines()
 
 
-def install(country=None):
+def get_preset_records(country=None):
 	records = [
 		# ensure at least an empty Address Template exists for this Country
 		{"doctype": "Address Template", "country": country},
@@ -316,6 +316,11 @@ def install(country=None):
 		{"doctype": "Workstation Operating Component", "component_name": _("Rent")},
 		{"doctype": "Workstation Operating Component", "component_name": _("Wages")},
 	]
+	return records
+
+
+def install(country=None):
+	records = get_preset_records(country)
 
 	for doctype, title_field, filename in (
 		("Designation", "designation_name", "designation.txt"),

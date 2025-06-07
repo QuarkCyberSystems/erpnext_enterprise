@@ -131,17 +131,57 @@ class ERPNextTestSuite(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
-		super().setUpClass()
+		cls.make_presets()
 		cls.make_persistant_master_data()
 
 	@classmethod
+	def make_presets(cls):
+		from frappe.desk.page.setup_wizard.install_fixtures import update_genders, update_salutations
+
+		from erpnext.setup.setup_wizard.operations.install_fixtures import add_uom_data, get_preset_records
+
+		update_genders()
+		update_salutations()
+
+		records = get_preset_records("India")
+		presets_primary_key_map = {
+			"Address Template": "country",
+			"Item Group": "item_group_name",
+			"Territory": "territory_name",
+			"Customer Group": "customer_group_name",
+			"Supplier Group": "supplier_group_name",
+			"Sales Person": "sales_person_name",
+			"Mode of Payment": "mode_of_payment",
+			"Activity Type": "activity_type",
+			"Item Attribute": "attribute_name",
+			"Party Type": "party_type",
+			"Project Type": "project_type",
+			"Print Heading": "print_heading",
+			"Share Type": "title",
+			"Market Segment": "market_segment",
+		}
+		for x in records:
+			dt = x.get("doctype")
+			dn = x.get("name") or x.get(presets_primary_key_map.get(dt))
+
+			if not frappe.db.exists(dt, dn):
+				doc = frappe.get_doc(x)
+				doc.insert()
+
+		add_uom_data()
+
+		frappe.db.commit()
+
+	@classmethod
 	def make_persistant_master_data(cls):
-		# presets and default are mandatory for company
-		cls.make_warehouse_type()
-		cls.make_uom()
-		cls.make_address_template()
 		cls.make_fiscal_year()
 		cls.make_company()
+		cls.make_supplier_group()
+		cls.make_payment_term()
+		cls.make_payment_terms_template()
+		cls.make_tax_category()
+		cls.make_account()
+		cls.make_supplier()
 		cls.update_stock_settings()
 
 		frappe.db.commit()
@@ -206,54 +246,6 @@ class ERPNextTestSuite(unittest.TestCase):
 						},
 					)
 				)
-
-	@classmethod
-	def make_address_template(cls):
-		records = [
-			{
-				"doctype": "Address Template",
-				"country": "India",
-				"is_default": True,
-				"template": """
-				{{ address_line1 }}<br>
-				{% if address_line2 %}{{ address_line2 }}<br>{% endif -%}
-				{{ city }}<br>
-				{% if state %}{{ state }}<br>{% endif -%}
-				{% if pincode %}{{ pincode }}<br>{% endif -%}
-				{{ country }}<br>
-				<br>
-				{% if phone %}{{ _("Phone") }}: {{ phone }}<br>{% endif -%}
-				{% if fax %}{{ _("Fax") }}: {{ fax }}<br>{% endif -%}
-				{% if email_id %}{{ _("Email") }}: {{ email_id }}<br>{% endif -%}
-				""",
-			}
-		]
-		cls.address_template = []
-		for x in records:
-			if not frappe.db.exists("Address Template", {"country": x.get("country")}):
-				cls.address_template.append(frappe.get_doc(x).insert())
-			else:
-				cls.address_template.append(frappe.get_doc("Address Template", {"country": x.get("country")}))
-
-	@classmethod
-	def make_uom(cls):
-		records = [{"doctype": "UOM", "uom_name": "Nos", "must_be_whole_number": 1, "common_code": "C62"}]
-		cls.uom = []
-		for x in records:
-			if not frappe.db.exists("UOM", {"uom_name": x.get("uom_name")}):
-				cls.warehouse_type.append(frappe.get_doc(x).insert())
-			else:
-				cls.warehouse_type.append(frappe.get_doc("UOM", {"uom_name": x.get("uom_name")}))
-
-	@classmethod
-	def make_warehouse_type(cls):
-		records = [{"doctype": "Warehouse Type", "name": "Transit"}]
-		cls.warehouse_type = []
-		for x in records:
-			if not frappe.db.exists("Warehouse Type", {"name": x.get("name")}):
-				cls.warehouse_type.append(frappe.get_doc(x).insert())
-			else:
-				cls.warehouse_type.append(frappe.get_doc("Warehouse Type", {"name": x.get("name")}))
 
 	@classmethod
 	def make_monthly_distribution(cls):
@@ -629,6 +621,228 @@ class ERPNextTestSuite(unittest.TestCase):
 							"year_end_date": x.get("year_end_date"),
 						},
 					)
+				)
+
+	@classmethod
+	def make_payment_term(cls):
+		records = [
+			{
+				"doctype": "Payment Term",
+				"due_date_based_on": "Day(s) after invoice date",
+				"payment_term_name": "_Test N30",
+				"description": "_Test Net 30 Days",
+				"invoice_portion": 50,
+				"credit_days": 30,
+			},
+			{
+				"doctype": "Payment Term",
+				"due_date_based_on": "Day(s) after invoice date",
+				"payment_term_name": "_Test COD",
+				"description": "_Test Cash on Delivery",
+				"invoice_portion": 50,
+				"credit_days": 0,
+			},
+			{
+				"doctype": "Payment Term",
+				"due_date_based_on": "Month(s) after the end of the invoice month",
+				"payment_term_name": "_Test EONM",
+				"description": "_Test End of Next Month",
+				"invoice_portion": 100,
+				"credit_months": 1,
+			},
+			{
+				"doctype": "Payment Term",
+				"due_date_based_on": "Day(s) after invoice date",
+				"payment_term_name": "_Test N30 1",
+				"description": "_Test Net 30 Days",
+				"invoice_portion": 100,
+				"credit_days": 30,
+			},
+		]
+		cls.payment_terms = []
+		for x in records:
+			if not frappe.db.exists("Payment Term", {"payment_term_name": x.get("payment_term_name")}):
+				cls.payment_terms.append(frappe.get_doc(x).insert())
+			else:
+				cls.payment_terms.append(
+					frappe.get_doc("Payment Term", {"payment_term_name": x.get("payment_term_name")})
+				)
+
+	@classmethod
+	def make_payment_terms_template(cls):
+		records = [
+			{
+				"doctype": "Payment Terms Template",
+				"terms": [
+					{
+						"doctype": "Payment Terms Template Detail",
+						"due_date_based_on": "Day(s) after invoice date",
+						"idx": 1,
+						"description": "Cash on Delivery",
+						"invoice_portion": 50,
+						"credit_days": 0,
+						"credit_months": 0,
+						"payment_term": "_Test COD",
+					},
+					{
+						"doctype": "Payment Terms Template Detail",
+						"due_date_based_on": "Day(s) after invoice date",
+						"idx": 2,
+						"description": "Net 30 Days ",
+						"invoice_portion": 50,
+						"credit_days": 30,
+						"credit_months": 0,
+						"payment_term": "_Test N30",
+					},
+				],
+				"template_name": "_Test Payment Term Template",
+			},
+			{
+				"doctype": "Payment Terms Template",
+				"terms": [
+					{
+						"doctype": "Payment Terms Template Detail",
+						"due_date_based_on": "Month(s) after the end of the invoice month",
+						"idx": 1,
+						"description": "_Test End of Next Months",
+						"invoice_portion": 100,
+						"credit_days": 0,
+						"credit_months": 1,
+						"payment_term": "_Test EONM",
+					}
+				],
+				"template_name": "_Test Payment Term Template 1",
+			},
+			{
+				"doctype": "Payment Terms Template",
+				"terms": [
+					{
+						"doctype": "Payment Terms Template Detail",
+						"due_date_based_on": "Day(s) after invoice date",
+						"idx": 1,
+						"description": "_Test Net Within 30 days",
+						"invoice_portion": 100,
+						"credit_days": 30,
+						"credit_months": 0,
+						"payment_term": "_Test N30 1",
+					}
+				],
+				"template_name": "_Test Payment Term Template 3",
+			},
+		]
+		cls.payment_terms_template = []
+		for x in records:
+			if not frappe.db.exists("Payment Terms Template", {"template_name": x.get("template_name")}):
+				cls.payment_terms_template.append(frappe.get_doc(x).insert())
+			else:
+				cls.payment_terms_template.append(
+					frappe.get_doc("Payment Terms Template", {"template_name": x.get("template_name")})
+				)
+
+	@classmethod
+	def make_tax_category(cls):
+		records = [
+			{"doctype": "Tax Category", "title": "_Test Tax Category 1"},
+			{"doctype": "Tax Category", "title": "_Test Tax Category 2"},
+			{"doctype": "Tax Category", "title": "_Test Tax Category 3"},
+		]
+		cls.tax_category = []
+		for x in records:
+			if not frappe.db.exists("Tax Category", {"name": x.get("title")}):
+				cls.tax_category.append(frappe.get_doc(x).insert())
+			else:
+				cls.tax_category.append(frappe.get_doc("Tax Category", {"name": x.get("title")}))
+
+	@classmethod
+	def make_account(cls):
+		records = [
+			{
+				"doctype": "Account",
+				"account_name": "_Test Payable USD",
+				"parent_account": "Accounts Receivable - _TC",
+				"company": "_Test Company",
+				"account_currency": "USD",
+			},
+		]
+		cls.accounts = []
+		for x in records:
+			if not frappe.db.exists("Account", {"account_name": x.get("account_name")}):
+				cls.accounts.append(frappe.get_doc(x).insert())
+			else:
+				cls.accounts.append(frappe.get_doc("Account", {"account_name": x.get("account_name")}))
+
+	@classmethod
+	def make_supplier(cls):
+		records = [
+			{
+				"doctype": "Supplier",
+				"supplier_name": "_Test Supplier With Template 1",
+				"supplier_group": "_Test Supplier Group",
+				"payment_terms": "_Test Payment Term Template 3",
+			},
+			{
+				"doctype": "Supplier",
+				"supplier_name": "_Test Supplier P",
+				"supplier_group": "_Test Supplier Group",
+			},
+			{
+				"doctype": "Supplier",
+				"supplier_name": "_Test Supplier with Country",
+				"supplier_group": "_Test Supplier Group",
+				"country": "Greece",
+			},
+			{
+				"doctype": "Supplier",
+				"supplier_name": "_Test Supplier",
+				"supplier_group": "_Test Supplier Group",
+			},
+			{
+				"doctype": "Supplier",
+				"supplier_name": "_Test Supplier 1",
+				"supplier_group": "_Test Supplier Group",
+			},
+			{
+				"doctype": "Supplier",
+				"supplier_name": "_Test Supplier 2",
+				"supplier_group": "_Test Supplier Group",
+			},
+			{
+				"doctype": "Supplier",
+				"supplier_name": "_Test Supplier USD",
+				"supplier_group": "_Test Supplier Group",
+				"default_currency": "USD",
+				"accounts": [{"company": "_Test Company", "account": "_Test Payable USD - _TC"}],
+			},
+			{
+				"doctype": "Supplier",
+				"supplier_name": "_Test Supplier With Tax Category",
+				"supplier_group": "_Test Supplier Group",
+				"tax_category": "_Test Tax Category 1",
+			},
+		]
+		cls.suppliers = []
+		for x in records:
+			if not frappe.db.exists("Supplier", {"supplier_name": x.get("supplier_name")}):
+				cls.suppliers.append(frappe.get_doc(x).insert())
+			else:
+				cls.suppliers.append(frappe.get_doc("Supplier", {"supplier_name": x.get("supplier_name")}))
+
+	@classmethod
+	def make_supplier_group(cls):
+		records = [
+			{
+				"doctype": "Supplier Group",
+				"supplier_group_name": "_Test Supplier Group",
+				"parent_supplier_group": "All Supplier Groups",
+			}
+		]
+		cls.supplier_groups = []
+		for x in records:
+			if not frappe.db.exists("Supplier Group", {"supplier_group_name": x.get("supplier_group_name")}):
+				cls.supplier_groups.append(frappe.get_doc(x).insert())
+			else:
+				cls.supplier_groups.append(
+					frappe.get_doc("Supplier Group", {"supplier_group_name": x.get("supplier_group_name")})
 				)
 
 
