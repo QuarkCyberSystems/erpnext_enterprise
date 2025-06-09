@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 from frappe.query_builder import Order, Tuple
 from frappe.utils import flt
+from frappe.utils.formatters import format_value
 
 AFFECTED_DOCTYPES = frozenset(
 	(
@@ -62,22 +63,13 @@ def get_columns():
 		{
 			"fieldname": "actual_discount_amount",
 			"label": _("Discount Amount in Transaction"),
-			"fieldtype": "Currency",
-			"options": "currency",
+			"fieldtype": "Data",
 			"width": 180,
 		},
 		{
 			"fieldname": "suspected_discount_amount",
 			"label": _("Suspected Discount Amount"),
-			"fieldtype": "Currency",
-			"options": "currency",
-			"width": 180,
-		},
-		{
-			"fieldname": "difference",
-			"label": _("Difference"),
-			"fieldtype": "Currency",
-			"options": "currency",
+			"fieldtype": "Data",
 			"width": 180,
 		},
 	]
@@ -122,6 +114,9 @@ def get_data():
 		version_map[key].append(version.data)
 
 	data = []
+	discount_amount_field_map = {
+		doctype: frappe.get_meta(doctype).get_field("discount_amount") for doctype in AFFECTED_DOCTYPES
+	}
 	for doc, versions in version_map.items():
 		for version_data in versions:
 			if '"additional_discount_percentage"' in version_data:
@@ -137,22 +132,28 @@ def get_data():
 			if not discount_values:
 				continue
 
-			old = flt(discount_values[1][2:])
-			new = flt(discount_values[2][2:])
+			old = discount_values[1]
+			new = discount_values[2]
+			doctype = doc[0]
 			doc_values = transactions_with_discount_percentage.get(doc)
-			if new != doc_values.discount_amount:
+			formatted_discount_amount = format_value(
+				doc_values.discount_amount,
+				df=discount_amount_field_map[doctype],
+				currency=doc_values.currency,
+			)
+
+			if new != formatted_discount_amount:
 				# if the discount amount in the version is not equal to the current value, skip
 				break
 
 			data.append(
 				{
-					"doctype": doc[0],
-					"docname": doc[1],
+					"doctype": doctype,
+					"docname": doc_values.name,
 					"currency": doc_values.currency,
 					"actual_discount_percentage": doc_values.additional_discount_percentage,
 					"actual_discount_amount": new,
 					"suspected_discount_amount": old,
-					"difference": flt(old - new, 9),
 				}
 			)
 			break
