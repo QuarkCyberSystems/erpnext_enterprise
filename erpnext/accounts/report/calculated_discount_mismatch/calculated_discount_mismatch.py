@@ -49,12 +49,6 @@ def get_columns():
 			"width": 150,
 		},
 		{
-			"fieldname": "currency",
-			"label": _("Currency"),
-			"fieldtype": "Link",
-			"options": "Currency",
-		},
-		{
 			"fieldname": "actual_discount_percentage",
 			"label": _("Discount Percentage in Transaction"),
 			"fieldtype": "Percent",
@@ -150,7 +144,6 @@ def get_data():
 				{
 					"doctype": doctype,
 					"docname": doc_values.name,
-					"currency": doc_values.currency,
 					"actual_discount_percentage": doc_values.additional_discount_percentage,
 					"actual_discount_amount": new,
 					"suspected_discount_amount": old,
