@@ -845,22 +845,34 @@ class WorkOrder(Document):
 		)
 
 	def update_ordered_qty(self):
-		if self.production_plan and self.production_plan_item and not self.production_plan_sub_assembly_item:
+		if self.production_plan and (self.production_plan_item or self.production_plan_sub_assembly_item):
 			table = frappe.qb.DocType("Work Order")
 
 			query = (
 				frappe.qb.from_(table)
 				.select(Sum(table.qty))
-				.where(
-					(table.production_plan == self.production_plan)
-					& (table.production_plan_item == self.production_plan_item)
-					& (table.docstatus == 1)
-				)
-			).run()
+				.where((table.production_plan == self.production_plan) & (table.docstatus == 1))
+			)
 
+			if self.production_plan_item:
+				query = query.where(table.production_plan_item == self.production_plan_item)
+			elif self.production_plan_sub_assembly_item:
+				query = query.where(
+					table.production_plan_sub_assembly_item == self.production_plan_sub_assembly_item
+				)
+
+			query = query.run()
 			qty = flt(query[0][0]) if query else 0
 
-			frappe.db.set_value("Production Plan Item", self.production_plan_item, "ordered_qty", qty)
+			if self.production_plan_item:
+				frappe.db.set_value("Production Plan Item", self.production_plan_item, "ordered_qty", qty)
+			elif self.production_plan_sub_assembly_item:
+				frappe.db.set_value(
+					"Production Plan Sub Assembly Item",
+					self.production_plan_sub_assembly_item,
+					"ordered_qty",
+					qty,
+				)
 
 			doc = frappe.get_doc("Production Plan", self.production_plan)
 			doc.set_status()
