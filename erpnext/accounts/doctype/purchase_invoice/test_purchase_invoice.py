@@ -2813,6 +2813,17 @@ class TestPurchaseInvoice(IntegrationTestCase, StockTestMixin):
 		# Test 4 - Since this PI is overbilled by 130% and only 120% is allowed, it will fail
 		self.assertRaises(frappe.ValidationError, pi.submit)
 
+	def test_discount_percentage_not_set_when_amount_is_manually_set(self):
+		pi = make_purchase_invoice(do_not_save=True)
+		discount_amount = 7
+		pi.discount_amount = discount_amount
+		pi.save()
+		self.assertEqual(pi.additional_discount_percentage, None)
+		pi.set_posting_time = 1
+		pi.posting_date = add_days(today(), -1)
+		pi.save()
+		self.assertEqual(pi.discount_amount, discount_amount)
+
 
 def set_advance_flag(company, flag, default_account):
 	frappe.db.set_value(
