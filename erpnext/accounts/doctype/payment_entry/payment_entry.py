@@ -3305,11 +3305,16 @@ def get_bank_cash_account(doc, bank_account):
 		"Bank",
 		mode_of_payment=doc.get("mode_of_payment"),
 		account=bank_account,
+		fetch_balance=False,
 	)
 
 	if not bank:
 		bank = get_default_bank_cash_account(
-			doc.company, "Cash", mode_of_payment=doc.get("mode_of_payment"), account=bank_account
+			doc.company,
+			"Cash",
+			mode_of_payment=doc.get("mode_of_payment"),
+			account=bank_account,
+			fetch_balance=False,
 		)
 
 	return bank
