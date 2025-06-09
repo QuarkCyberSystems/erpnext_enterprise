@@ -1,10 +1,14 @@
 # Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+import json
+
 import frappe
 from frappe import _
+from frappe.query_builder import Order, Tuple
+from frappe.utils import flt
 
-DISCOUNT_DOCTYPES = frozenset(
+AFFECTED_DOCTYPES = frozenset(
 	(
 		"POS Invoice",
 		"Purchase Invoice",
@@ -20,67 +24,157 @@ DISCOUNT_DOCTYPES = frozenset(
 LAST_MODIFIED_DATE_THRESHOLD = "2025-05-30"
 
 
-def execute(filters: dict | None = None):
-	"""Return columns and data for the report.
-
-	This is the main entry point for the report. It accepts the filters as a
-	dictionary and should return columns and data. It is called by the framework
-	every time the report is refreshed or a filter is updated.
-	"""
+def execute():
 	columns = get_columns()
 	data = get_data()
 
 	return columns, data
 
 
-def get_columns() -> list[dict]:
-	"""Return columns for the report.
-
-	One field definition per column, just like a DocType field definition.
-	"""
+def get_columns():
 	return [
 		{
-			"label": _("Doctype"),
 			"fieldname": "doctype",
-			"fieldtype": "Data",
+			"label": _("Transaction Type"),
+			"fieldtype": "Link",
+			"options": "DocType",
+			"width": 120,
+		},
+		{
+			"fieldname": "docname",
+			"label": _("Transaction Name"),
+			"fieldtype": "Dynamic Link",
+			"options": "doctype",
 			"width": 150,
 		},
 		{
-			"label": _("Document Name"),
-			"fieldname": "document_name",
-			"fieldtype": "Dynamic Link",
-			"options": "doctype",
-			"width": 200,
+			"fieldname": "currency",
+			"label": _("Currency"),
+			"fieldtype": "Link",
+			"options": "Currency",
+		},
+		{
+			"fieldname": "actual_discount_percentage",
+			"label": _("Discount Percentage in Transaction"),
+			"fieldtype": "Percent",
+			"width": 180,
+		},
+		{
+			"fieldname": "actual_discount_amount",
+			"label": _("Discount Amount in Transaction"),
+			"fieldtype": "Currency",
+			"options": "currency",
+			"width": 180,
+		},
+		{
+			"fieldname": "suspected_discount_amount",
+			"label": _("Suspected Discount Amount"),
+			"fieldtype": "Currency",
+			"options": "currency",
+			"width": 180,
+		},
+		{
+			"fieldname": "difference",
+			"label": _("Difference"),
+			"fieldtype": "Currency",
+			"options": "currency",
+			"width": 180,
 		},
 	]
 
 
-def get_data() -> list[list]:
-	"""Return data for the report.
+def get_data():
+	transactions_with_discount_percentage = {}
 
-	The report data is a list of rows, with each row being a list of cell values.
-	"""
-	data = []
+	for doctype in AFFECTED_DOCTYPES:
+		transactions = get_transactions_with_discount_percentage(doctype)
+
+		for transaction in transactions:
+			transactions_with_discount_percentage[(doctype, transaction.name)] = transaction
+
+	if not transactions_with_discount_percentage:
+		return []
+
 	VERSION = frappe.qb.DocType("Version")
 
-	result = (
+	versions = (
 		frappe.qb.from_(VERSION)
-		.select(VERSION.ref_doctype, VERSION.docname, VERSION.data, VERSION.name)
-		.where(VERSION.modified > LAST_MODIFIED_DATE_THRESHOLD)
-		.where(VERSION.ref_doctype.isin(list(DISCOUNT_DOCTYPES)))
+		.select(VERSION.ref_doctype, VERSION.docname, VERSION.data)
+		.where(VERSION.creation > LAST_MODIFIED_DATE_THRESHOLD)
+		.where(Tuple(VERSION.ref_doctype, VERSION.docname).isin(list(transactions_with_discount_percentage)))
+		.where(
+			VERSION.data.like('%"discount\\_amount"%')
+			| VERSION.data.like('%"additional\\_discount\\_percentage"%')
+		)
+		.orderby(VERSION.creation, order=Order.desc)
 		.run(as_dict=True)
 	)
 
-	for row in result:
-		changed_data = {entry[0]: entry for entry in frappe.parse_json(row.data).get("changed", [])}
+	if not versions:
+		return []
 
-		docstatus = changed_data.get("docstatus")
-		if not docstatus or docstatus[2] != 1:
-			continue
+	version_map = {}
+	for version in versions:
+		key = (version.ref_doctype, version.docname)
+		if key not in version_map:
+			version_map[key] = []
 
-		if "discount_amount" not in changed_data:
-			continue
+		version_map[key].append(version.data)
 
-		data.append({"doctype": row.ref_doctype, "document_name": row.docname})
+	data = []
+	for doc, versions in version_map.items():
+		for version_data in versions:
+			if '"additional_discount_percentage"' in version_data:
+				# don't consider doc if additional_discount_percentage is changed in newest version
+				break
+
+			version_data = json.loads(version_data)
+			changed_values = version_data.get("changed")
+			if not changed_values:
+				continue
+
+			discount_values = next((row for row in changed_values if row[0] == "discount_amount"), None)
+			if not discount_values:
+				continue
+
+			old = discount_values[1]
+			new = discount_values[2]
+			doc_values = transactions_with_discount_percentage.get(doc)
+			if new != doc_values.discount_amount:
+				# if the discount amount in the version is not equal to the current value, skip
+				break
+
+			data.append(
+				{
+					"doctype": doc[0],
+					"docname": doc[1],
+					"currency": doc_values.currency,
+					"actual_discount_percentage": doc_values.additional_discount_percentage,
+					"actual_discount_amount": new,
+					"suspected_discount_amount": old,
+					"difference": flt(old - new, 9),
+				}
+			)
+			break
 
 	return data
+
+
+def get_transactions_with_discount_percentage(doctype):
+	transactions = frappe.get_all(
+		doctype,
+		fields=[
+			"name",
+			"currency",
+			"additional_discount_percentage",
+			"discount_amount",
+		],
+		filters={
+			"docstatus": 1,
+			"additional_discount_percentage": [">", 0],
+			"discount_amount": ["!=", 0],
+			"modified": [">", LAST_MODIFIED_DATE_THRESHOLD],
+		},
+	)
+
+	return transactions
