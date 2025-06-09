@@ -23,6 +23,7 @@ from frappe.utils import (
 
 import erpnext
 from erpnext.accounts.general_ledger import process_gl_map
+from erpnext.accounts.utils import get_account_currency
 from erpnext.buying.utils import check_on_hold_or_closed_status
 from erpnext.controllers.taxes_and_totals import init_landed_taxes_and_totals
 from erpnext.manufacturing.doctype.bom.bom import (
@@ -1014,12 +1015,20 @@ class StockEntry(StockController):
 				continue
 			d.additional_cost = (flt(d.basic_amount) / incoming_items_cost) * self.total_additional_costs
 
-	def update_valuation_rate(self):
+	def update_valuation_rate(self, reset_outgoing_rate=True):
 		for d in self.get("items"):
+			if not reset_outgoing_rate and d.s_warehouse:
+				continue
+
 			if d.transfer_qty:
-				d.amount = flt(flt(d.basic_amount) + flt(d.additional_cost), d.precision("amount"))
+				d.amount = flt(
+					flt(d.basic_amount) + flt(d.additional_cost) + flt(d.landed_cost_voucher_amount),
+					d.precision("amount"),
+				)
 				# Do not round off valuation rate to avoid precision loss
-				d.valuation_rate = flt(d.basic_rate) + (flt(d.additional_cost) / flt(d.transfer_qty))
+				d.valuation_rate = flt(d.basic_rate) + (
+					flt(d.additional_cost) + flt(d.landed_cost_voucher_amount) / flt(d.transfer_qty)
+				)
 
 	def set_total_incoming_outgoing_value(self):
 		self.total_incoming_value = self.total_outgoing_value = 0.0
@@ -1390,7 +1399,7 @@ class StockEntry(StockController):
 					)
 				)
 
-	def update_stock_ledger(self, allow_negative_stock=False):
+	def update_stock_ledger(self, allow_negative_stock=False, via_landed_cost_voucher=False):
 		sl_entries = []
 		finished_item_row = self.get_finished_item_row()
 
@@ -1404,7 +1413,11 @@ class StockEntry(StockController):
 		if self.docstatus == 2:
 			sl_entries.reverse()
 
-		self.make_sl_entries(sl_entries, allow_negative_stock=allow_negative_stock)
+		self.make_sl_entries(
+			sl_entries,
+			allow_negative_stock=allow_negative_stock,
+			via_landed_cost_voucher=via_landed_cost_voucher,
+		)
 
 	def get_finished_item_row(self):
 		finished_item_row = None
@@ -1607,7 +1620,62 @@ class StockEntry(StockController):
 						)
 					)
 
+		self.set_gl_entries_for_landed_cost_voucher(gl_entries, warehouse_account)
+
 		return process_gl_map(gl_entries)
+
+	def set_gl_entries_for_landed_cost_voucher(self, gl_entries, warehouse_account):
+		landed_cost_entries = self.get_item_account_wise_lcv_entries()
+		if not landed_cost_entries:
+			return
+
+		for item in self.get("items"):
+			if item.s_warehouse:
+				continue
+
+			if (item.item_code, item.name) in landed_cost_entries:
+				for account, amount in landed_cost_entries[(item.item_code, item.name)].items():
+					account_currency = get_account_currency(account)
+					credit_amount = (
+						flt(amount["base_amount"])
+						if (amount["base_amount"] or account_currency != self.company_currency)
+						else flt(amount["amount"])
+					)
+
+					gl_entries.append(
+						self.get_gl_dict(
+							{
+								"account": account,
+								"against": warehouse_account.get(item.t_warehouse)["account"],
+								"cost_center": item.cost_center,
+								"debit": 0.0,
+								"credit": credit_amount,
+								"remarks": _("Accounting Entry for LCV in Stock Entry {0}").format(self.name),
+								"credit_in_account_currency": flt(amount["amount"]),
+								"account_currency": account_currency,
+								"project": item.project,
+							},
+							item=item,
+						)
+					)
+
+					account_currency = get_account_currency(item.expense_account)
+					gl_entries.append(
+						self.get_gl_dict(
+							{
+								"account": item.expense_account,
+								"against": account,
+								"cost_center": item.cost_center,
+								"debit": credit_amount,
+								"credit": 0.0,
+								"remarks": _("Accounting Entry for LCV in Stock Entry {0}").format(self.name),
+								"debit_in_account_currency": flt(amount["amount"]),
+								"account_currency": account_currency,
+								"project": item.project,
+							},
+							item=item,
+						)
+					)
 
 	def update_work_order(self):
 		def _validate_work_order(pro_doc):
