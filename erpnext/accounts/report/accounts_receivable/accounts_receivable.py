@@ -6,6 +6,7 @@ from collections import OrderedDict
 
 import frappe
 from frappe import _, qb, query_builder, scrub
+from frappe.desk.reportview import build_match_conditions
 from frappe.query_builder import Criterion
 from frappe.query_builder.functions import Date, Substring, Sum
 from frappe.utils import cint, cstr, flt, getdate, nowdate
@@ -126,7 +127,7 @@ class ReceivablePayableReport:
 		self.build_data()
 
 	def fetch_ple_in_buffered_cursor(self):
-		query, param = self.ple_query.walk()
+		query, param = self.ple_query
 		self.ple_entries = frappe.db.sql(query, param, as_dict=True)
 
 		for ple in self.ple_entries:
@@ -140,7 +141,7 @@ class ReceivablePayableReport:
 
 	def fetch_ple_in_unbuffered_cursor(self):
 		self.ple_entries = []
-		query, param = self.ple_query.walk()
+		query, param = self.ple_query
 		with frappe.db.unbuffered_cursor():
 			for ple in frappe.db.sql(query, param, as_dict=True, as_iterator=True):
 				self.init_voucher_balance(ple)  # invoiced, paid, credit_note, outstanding
@@ -449,16 +450,14 @@ class ReceivablePayableReport:
 		self.invoice_details = frappe._dict()
 		if self.account_type == "Receivable":
 			# nosemgrep
-			si_list = frappe.db.sql(
-				"""
-				select name, due_date, po_no
-				from `tabSales Invoice`
-				where posting_date <= %s
-					and company = %s
-					and docstatus = 1
-			""",
-				(self.filters.report_date, self.filters.company),
-				as_dict=1,
+			si_list = frappe.get_list(
+				"Sales Invoice",
+				filters={
+					"posting_date": ("<=", self.filters.report_date),
+					"company": self.filters.company,
+					"docstatus": 1,
+				},
+				fields=["name", "due_date", "po_no"],
 			)
 			for d in si_list:
 				self.invoice_details.setdefault(d.name, d)
@@ -481,33 +480,29 @@ class ReceivablePayableReport:
 
 		if self.account_type == "Payable":
 			# nosemgrep
-			for pi in frappe.db.sql(
-				"""
-				select name, due_date, bill_no, bill_date
-				from `tabPurchase Invoice`
-				where
-					posting_date <= %s
-					and company = %s
-					and docstatus = 1
-			""",
-				(self.filters.report_date, self.filters.company),
-				as_dict=1,
-			):
+			invoices = frappe.get_list(
+				"Purchase Invoice",
+				filters={
+					"posting_date": ("<=", self.filters.report_date),
+					"company": self.filters.company,
+					"docstatus": 1,
+				},
+				fields=["name", "due_date", "bill_no", "bill_date"],
+			)
+
+			for pi in invoices:
 				self.invoice_details.setdefault(pi.name, pi)
 
 		# Invoices booked via Journal Entries
 		# nosemgrep
-		journal_entries = frappe.db.sql(
-			"""
-			select name, due_date, bill_no, bill_date
-			from `tabJournal Entry`
-			where
-				posting_date <= %s
-				and company = %s
-				and docstatus = 1
-		""",
-			(self.filters.report_date, self.filters.company),
-			as_dict=1,
+		journal_entries = frappe.get_list(
+			"Journal Entry",
+			filters={
+				"posting_date": ("<=", self.filters.report_date),
+				"company": self.filters.company,
+				"docstatus": 1,
+			},
+			fields=["name", "due_date", "bill_no", "bill_date"],
 		)
 
 		for je in journal_entries:
@@ -856,12 +851,18 @@ class ReceivablePayableReport:
 			else:
 				query = query.select(ple.remarks)
 
-		if self.filters.get("group_by_party"):
-			query = query.orderby(self.ple.party, self.ple.posting_date)
-		else:
-			query = query.orderby(self.ple.posting_date, self.ple.party)
+		query, param = query.walk()
 
-		self.ple_query = query
+		match_conditions = build_match_conditions("Payment Ledger Entry")
+		if match_conditions:
+			query += " AND " + match_conditions
+
+		if self.filters.get("group_by_party"):
+			query += f" ORDER BY `{self.ple.party.name}`, `{self.ple.posting_date.name}`"
+		else:
+			query += f" ORDER BY `{self.ple.posting_date.name}`, `{self.ple.party.name}`"
+
+		self.ple_query = (query, param)
 
 	def get_sales_invoices_or_customers_based_on_sales_person(self):
 		if self.filters.get("sales_person"):
