@@ -23,6 +23,7 @@ from erpnext.manufacturing.doctype.work_order.test_work_order import make_wo_ord
 from erpnext.manufacturing.doctype.work_order.work_order import WorkOrder
 from erpnext.manufacturing.doctype.workstation.test_workstation import make_workstation
 from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
+from erpnext.tests.utils import ERPNextTestSuite
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["UOM"]
 
@@ -36,7 +37,13 @@ class UnitTestJobCard(UnitTestCase):
 	pass
 
 
-class TestJobCard(IntegrationTestCase):
+class TestJobCard(ERPNextTestSuite):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		# used in job card time log
+		cls.make_employees()
+
 	def setUp(self):
 		self.make_bom_for_jc_tests()
 		self.transfer_material_against: Literal["Work Order", "Job Card"] = "Work Order"
