@@ -252,7 +252,7 @@ def get_incoming_rate(args, raise_error_if_no_rate=True):
 		"Item", args.get("item_code"), ["has_serial_no", "has_batch_no"], as_dict=1
 	)
 
-	use_moving_avg_for_batch = frappe.db.get_single_value("Stock Settings", "do_not_use_batchwise_valuation")
+	use_moving_avg_for_batch = frappe.get_single_value("Stock Settings", "do_not_use_batchwise_valuation")
 
 	if isinstance(args, dict):
 		args = frappe._dict(args)
@@ -374,9 +374,9 @@ def get_avg_purchase_rate(serial_nos):
 
 def get_valuation_method(item_code):
 	"""get valuation method from item or default"""
-	val_method = frappe.db.get_value("Item", item_code, "valuation_method", cache=True)
+	val_method = frappe.get_cached_value("Item", item_code, "valuation_method")
 	if not val_method:
-		val_method = frappe.db.get_single_value("Stock Settings", "valuation_method", cache=True) or "FIFO"
+		val_method = frappe.get_cached_doc("Stock Settings").valuation_method or "FIFO"
 	return val_method
 
 

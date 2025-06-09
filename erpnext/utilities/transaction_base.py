@@ -354,7 +354,7 @@ class TransactionBase(StatusUpdater):
 			self.set_rate_based_on_price_list(item_obj, item_details)
 
 	def add_taxes_from_item_template(self, item_obj: object, item_details: dict) -> None:
-		if item_details.item_tax_rate and frappe.db.get_single_value(
+		if item_details.item_tax_rate and frappe.get_single_value(
 			"Accounts Settings", "add_taxes_from_item_tax_template"
 		):
 			item_tax_template = frappe.json.loads(item_details.item_tax_rate)

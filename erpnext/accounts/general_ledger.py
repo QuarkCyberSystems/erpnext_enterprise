@@ -35,7 +35,7 @@ def make_gl_entries(
 ):
 	if gl_map:
 		if (
-			frappe.db.get_single_value("Accounts Settings", "use_new_budget_controller")
+			frappe.get_single_value("Accounts Settings", "use_new_budget_controller")
 			and gl_map[0].voucher_type != "Period Closing Voucher"
 		):
 			bud_val = BudgetValidation(gl_map=gl_map)
@@ -743,9 +743,9 @@ def check_freezing_date(posting_date, adv_adj=False):
 	Hence stop admin to bypass if accounts are freezed
 	"""
 	if not adv_adj:
-		acc_frozen_upto = frappe.db.get_single_value("Accounts Settings", "acc_frozen_upto")
+		acc_frozen_upto = frappe.get_single_value("Accounts Settings", "acc_frozen_upto")
 		if acc_frozen_upto:
-			frozen_accounts_modifier = frappe.db.get_single_value(
+			frozen_accounts_modifier = frappe.get_single_value(
 				"Accounts Settings", "frozen_accounts_modifier"
 			)
 			if getdate(posting_date) <= getdate(acc_frozen_upto) and (
@@ -825,4 +825,4 @@ def validate_allowed_dimensions(gl_entry, dimension_filter_map):
 
 
 def is_immutable_ledger_enabled():
-	return frappe.db.get_single_value("Accounts Settings", "enable_immutable_ledger")
+	return frappe.get_single_value("Accounts Settings", "enable_immutable_ledger")

@@ -247,7 +247,7 @@ class DeliveryNote(SellingController):
 
 	def so_required(self):
 		"""check in manage account if sales order required or not"""
-		if frappe.db.get_single_value("Selling Settings", "so_required") == "Yes":
+		if frappe.get_single_value("Selling Settings", "so_required") == "Yes":
 			for d in self.get("items"):
 				if not d.against_sales_order:
 					frappe.throw(_("Sales Order required for Item {0}").format(d.item_code))
@@ -314,7 +314,7 @@ class DeliveryNote(SellingController):
 		)
 
 		if (
-			cint(frappe.db.get_single_value("Selling Settings", "maintain_same_sales_rate"))
+			cint(frappe.get_single_value("Selling Settings", "maintain_same_sales_rate"))
 			and not self.is_return
 			and not self.is_internal_customer
 		):
@@ -436,7 +436,7 @@ class DeliveryNote(SellingController):
 		self.update_pick_list_status()
 
 		# Check for Approving Authority
-		frappe.get_doc("Authorization Control").validate_approving_authority(
+		frappe.get_cached_doc("Authorization Control").validate_approving_authority(
 			self.doctype, self.company, self.base_grand_total, self
 		)
 
@@ -901,7 +901,7 @@ def make_sales_invoice(source_name, target_doc=None, args=None):
 	)
 
 	automatically_fetch_payment_terms = cint(
-		frappe.db.get_single_value("Accounts Settings", "automatically_fetch_payment_terms")
+		frappe.get_single_value("Accounts Settings", "automatically_fetch_payment_terms")
 	)
 	if automatically_fetch_payment_terms and not doc.is_return:
 		doc.set_payment_schedule()

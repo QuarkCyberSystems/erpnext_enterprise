@@ -195,7 +195,7 @@ class SalesOrder(SellingController):
 	def onload(self) -> None:
 		super().onload()
 
-		if frappe.db.get_single_value("Stock Settings", "enable_stock_reservation"):
+		if frappe.get_single_value("Stock Settings", "enable_stock_reservation"):
 			if self.has_unreserved_stock():
 				self.set_onload("has_unreserved_stock", True)
 
@@ -246,14 +246,14 @@ class SalesOrder(SellingController):
 		self.enable_auto_reserve_stock()
 
 	def enable_auto_reserve_stock(self):
-		if self.is_new() and frappe.db.get_single_value("Stock Settings", "auto_reserve_stock"):
+		if self.is_new() and frappe.get_single_value("Stock Settings", "auto_reserve_stock"):
 			self.reserve_stock = 1
 
 	def set_has_unit_price_items(self):
 		"""
 		If permitted in settings and any item has 0 qty, the SO has unit price items.
 		"""
-		if not frappe.db.get_single_value("Selling Settings", "allow_zero_qty_in_sales_order"):
+		if not frappe.get_single_value("Selling Settings", "allow_zero_qty_in_sales_order"):
 			return
 
 		self.has_unit_price_items = any(
@@ -280,7 +280,7 @@ class SalesOrder(SellingController):
 			)
 			if so and so[0][0]:
 				if cint(
-					frappe.db.get_single_value("Selling Settings", "allow_against_multiple_purchase_orders")
+					frappe.get_single_value("Selling Settings", "allow_against_multiple_purchase_orders")
 				):
 					frappe.msgprint(
 						_(
@@ -405,7 +405,7 @@ class SalesOrder(SellingController):
 			}
 		)
 
-		if cint(frappe.db.get_single_value("Selling Settings", "maintain_same_sales_rate")):
+		if cint(frappe.get_single_value("Selling Settings", "maintain_same_sales_rate")):
 			self.validate_rate_with_reference_doc([["Quotation", "prevdoc_docname", "quotation_item"]])
 
 	def update_enquiry_status(self, prevdoc, flag):
@@ -483,7 +483,7 @@ class SalesOrder(SellingController):
 			update_coupon_code_count(self.coupon_code, "cancelled")
 
 	def update_project(self):
-		if frappe.db.get_single_value("Selling Settings", "sales_update_frequency") != "Each Transaction":
+		if frappe.get_single_value("Selling Settings", "sales_update_frequency") != "Each Transaction":
 			return
 
 		if self.project:
@@ -633,7 +633,7 @@ class SalesOrder(SellingController):
 		if total_picked_qty and total_qty:
 			per_picked = total_picked_qty / total_qty * 100
 
-			pick_percentage = frappe.db.get_single_value("Stock Settings", "over_picking_allowance")
+			pick_percentage = frappe.get_single_value("Stock Settings", "over_picking_allowance")
 			if pick_percentage:
 				total_qty += flt(total_qty) * (pick_percentage / 100)
 
@@ -729,7 +729,7 @@ class SalesOrder(SellingController):
 	def validate_reserved_stock(self):
 		"""Clean reserved stock flag for non-stock Item"""
 
-		enable_stock_reservation = frappe.db.get_single_value("Stock Settings", "enable_stock_reservation")
+		enable_stock_reservation = frappe.get_single_value("Stock Settings", "enable_stock_reservation")
 
 		for item in self.items:
 			if item.reserve_stock and (not enable_stock_reservation or not cint(item.is_stock_item)):
@@ -815,7 +815,7 @@ def get_list_context(context=None):
 
 @frappe.whitelist()
 def is_enable_cutoff_date_on_bulk_delivery_note_creation():
-	return frappe.db.get_single_value("Selling Settings", "enable_cutoff_date_on_bulk_delivery_note_creation")
+	return frappe.get_single_value("Selling Settings", "enable_cutoff_date_on_bulk_delivery_note_creation")
 
 
 @frappe.whitelist()
@@ -1220,7 +1220,7 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False):
 	)
 
 	automatically_fetch_payment_terms = cint(
-		frappe.db.get_single_value("Accounts Settings", "automatically_fetch_payment_terms")
+		frappe.get_single_value("Accounts Settings", "automatically_fetch_payment_terms")
 	)
 	if automatically_fetch_payment_terms:
 		doclist.set_payment_schedule()
@@ -1861,4 +1861,4 @@ def get_work_order_items(sales_order, for_raw_material_request=0):
 
 @frappe.whitelist()
 def get_stock_reservation_status():
-	return frappe.db.get_single_value("Stock Settings", "enable_stock_reservation")
+	return frappe.get_single_value("Stock Settings", "enable_stock_reservation")

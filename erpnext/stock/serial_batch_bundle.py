@@ -151,12 +151,12 @@ class SerialBatchBundle:
 			if (
 				self.item_details.has_batch_no
 				and not self.item_details.batch_number_series
-				and not frappe.db.get_single_value("Stock Settings", "naming_series_prefix")
+				and not frappe.get_single_value("Stock Settings", "naming_series_prefix")
 			):
 				msg += f". If you want auto pick batch bundle, then kindly set Batch Number Series in Item {self.item_code}"
 
 		elif self.sle.actual_qty < 0:
-			if not frappe.db.get_single_value(
+			if not frappe.get_single_value(
 				"Stock Settings", "auto_create_serial_and_batch_bundle_for_outward"
 			):
 				msg += ". If you want auto pick serial/batch bundle, then kindly enable 'Auto Create Serial and Batch Bundle' in Stock Settings."
@@ -187,7 +187,7 @@ class SerialBatchBundle:
 			if self.sle.actual_qty < 0 and self.is_material_transfer():
 				values_to_update["valuation_rate"] = flt(sn_doc.avg_rate)
 
-			if not frappe.db.get_single_value(
+			if not frappe.get_single_value(
 				"Stock Settings", "do_not_update_serial_batch_on_creation_of_auto_bundle"
 			):
 				if sn_doc.has_serial_no:
@@ -253,7 +253,7 @@ class SerialBatchBundle:
 			and (
 				self.item_details.create_new_batch
 				or (
-					frappe.db.get_single_value(
+					frappe.get_single_value(
 						"Stock Settings", "auto_create_serial_and_batch_bundle_for_outward"
 					)
 					and self.sle.actual_qty < 0
@@ -724,7 +724,7 @@ class BatchNoValuation(DeprecatedBatchNoValuation):
 		self.batchwise_valuation_batches = []
 		self.non_batchwise_valuation_batches = []
 
-		if get_valuation_method(self.sle.item_code) == "Moving Average" and frappe.db.get_single_value(
+		if get_valuation_method(self.sle.item_code) == "Moving Average" and frappe.get_single_value(
 			"Stock Settings", "do_not_use_batchwise_valuation"
 		):
 			self.non_batchwise_valuation_batches = self.batches
@@ -1029,7 +1029,7 @@ class SerialBatchCreation:
 				"item_code": self.item_code,
 				"warehouse": self.warehouse,
 				"qty": abs(self.actual_qty) if self.actual_qty else 0,
-				"based_on": frappe.db.get_single_value("Stock Settings", "pick_serial_and_batch_based_on"),
+				"based_on": frappe.get_single_value("Stock Settings", "pick_serial_and_batch_based_on"),
 			}
 		)
 

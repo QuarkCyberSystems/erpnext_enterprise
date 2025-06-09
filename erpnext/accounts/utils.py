@@ -886,7 +886,7 @@ def cancel_common_party_journal(self):
 	if self.doctype not in ["Sales Invoice", "Purchase Invoice"]:
 		return
 
-	if not frappe.db.get_single_value("Accounts Settings", "enable_common_party_accounting"):
+	if not frappe.get_single_value("Accounts Settings", "enable_common_party_accounting"):
 		return
 
 	party_link = self.get_common_party_link()
@@ -2312,7 +2312,7 @@ def run_ledger_health_checks():
 
 
 def sync_auto_reconcile_config(auto_reconciliation_job_trigger: int = 15):
-	auto_reconciliation_job_trigger = auto_reconciliation_job_trigger or frappe.db.get_single_value(
+	auto_reconciliation_job_trigger = auto_reconciliation_job_trigger or frappe.get_single_value(
 		"Accounts Settings", "auto_reconciliation_job_trigger"
 	)
 	method = "erpnext.accounts.doctype.process_payment_reconciliation.process_payment_reconciliation.trigger_reconciliation_for_queued_docs"
