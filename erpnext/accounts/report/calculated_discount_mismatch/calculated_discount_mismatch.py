@@ -57,13 +57,13 @@ def get_columns():
 		{
 			"fieldname": "actual_discount_amount",
 			"label": _("Discount Amount in Transaction"),
-			"fieldtype": "Data",
+			"fieldtype": "Currency",
 			"width": 180,
 		},
 		{
 			"fieldname": "suspected_discount_amount",
 			"label": _("Suspected Discount Amount"),
-			"fieldtype": "Data",
+			"fieldtype": "Currency",
 			"width": 180,
 		},
 	]
