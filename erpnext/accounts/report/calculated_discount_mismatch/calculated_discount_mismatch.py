@@ -24,7 +24,7 @@ AFFECTED_DOCTYPES = frozenset(
 LAST_MODIFIED_DATE_THRESHOLD = "2025-05-30"
 
 
-def execute():
+def execute(filters=None):
 	columns = get_columns()
 	data = get_data()
 
@@ -137,8 +137,8 @@ def get_data():
 			if not discount_values:
 				continue
 
-			old = discount_values[1]
-			new = discount_values[2]
+			old = flt(discount_values[1][2:])
+			new = flt(discount_values[2][2:])
 			doc_values = transactions_with_discount_percentage.get(doc)
 			if new != doc_values.discount_amount:
 				# if the discount amount in the version is not equal to the current value, skip
