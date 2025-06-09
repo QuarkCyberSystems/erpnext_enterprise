@@ -689,7 +689,7 @@ def validate_due_date_with_template(posting_date, due_date, bill_date, template_
 		return
 
 	if default_due_date != posting_date and getdate(due_date) > getdate(default_due_date):
-		if frappe.get_settings("Accounts Settings", "credit_controller") in frappe.get_roles():
+		if frappe.get_single_value("Accounts Settings", "credit_controller") in frappe.get_roles():
 			party_type = "supplier" if doctype == "Purchase Invoice" else "customer"
 
 			msgprint(
@@ -703,7 +703,9 @@ def validate_due_date_with_template(posting_date, due_date, bill_date, template_
 
 @frappe.whitelist()
 def get_address_tax_category(tax_category=None, billing_address=None, shipping_address=None):
-	addr_tax_category_from = frappe.get_settings("Accounts Settings", "determine_address_tax_category_from")
+	addr_tax_category_from = frappe.get_single_value(
+		"Accounts Settings", "determine_address_tax_category_from"
+	)
 	if addr_tax_category_from == "Shipping Address":
 		if shipping_address:
 			tax_category = frappe.db.get_value("Address", shipping_address, "tax_category") or tax_category
@@ -801,7 +803,7 @@ def validate_party_frozen_disabled(party_type, party_name):
 			if party.disabled:
 				frappe.throw(_("{0} {1} is disabled").format(party_type, party_name), PartyDisabled)
 			elif party.get("is_frozen"):
-				frozen_accounts_modifier = frappe.get_settings(
+				frozen_accounts_modifier = frappe.get_single_value(
 					"Accounts Settings", "frozen_accounts_modifier"
 				)
 				if frozen_accounts_modifier not in frappe.get_roles():

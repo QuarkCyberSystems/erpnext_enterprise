@@ -554,7 +554,7 @@ def check_credit_limit(customer, company, ignore_outstanding_sales_order=False, 
 		message += "<br><br>"
 
 		# If not authorized person raise exception
-		credit_controller_role = frappe.get_settings("Accounts Settings", "credit_controller")
+		credit_controller_role = frappe.get_single_value("Accounts Settings", "credit_controller")
 		if not credit_controller_role or credit_controller_role not in frappe.get_roles():
 			# form a list of emails for the credit controller users
 			credit_controller_users = get_users_with_role(credit_controller_role or "Sales Master Manager")

@@ -227,7 +227,7 @@ class Item(Document):
 	def validate_description(self):
 		"""Clean HTML description if set"""
 		if (
-			cint(frappe.get_settings("Stock Settings", "clean_description_html"))
+			cint(frappe.get_single_value("Stock Settings", "clean_description_html"))
 			and self.description != self.item_name  # perf: Avoid cleaning up a fallback
 		):
 			self.description = clean_html(self.description)
@@ -243,9 +243,9 @@ class Item(Document):
 	def add_price(self, price_list=None):
 		"""Add a new price"""
 		if not price_list:
-			price_list = frappe.get_settings("Selling Settings", "selling_price_list") or frappe.db.get_value(
-				"Price List", _("Standard Selling")
-			)
+			price_list = frappe.get_single_value(
+				"Selling Settings", "selling_price_list"
+			) or frappe.db.get_value("Price List", _("Standard Selling"))
 		if price_list:
 			item_price = frappe.get_doc(
 				{
@@ -274,7 +274,7 @@ class Item(Document):
 		for default in self.item_defaults or [
 			frappe._dict({"company": frappe.defaults.get_defaults().company})
 		]:
-			default_warehouse = default.default_warehouse or frappe.get_settings(
+			default_warehouse = default.default_warehouse or frappe.get_single_value(
 				"Stock Settings", "default_warehouse"
 			)
 			if default_warehouse:
@@ -317,7 +317,7 @@ class Item(Document):
 				)
 
 	def validate_retain_sample(self):
-		if self.retain_sample and not frappe.get_settings("Stock Settings", "sample_retention_warehouse"):
+		if self.retain_sample and not frappe.get_single_value("Stock Settings", "sample_retention_warehouse"):
 			frappe.throw(_("Please select Sample Retention Warehouse in Stock Settings first"))
 		if self.retain_sample and not self.has_batch_no:
 			frappe.throw(
@@ -662,7 +662,7 @@ class Item(Document):
 	def recalculate_bin_qty(self, new_name):
 		from erpnext.stock.stock_balance import repost_stock
 
-		existing_allow_negative_stock = frappe.get_settings("Stock Settings", "allow_negative_stock")
+		existing_allow_negative_stock = frappe.get_single_value("Stock Settings", "allow_negative_stock")
 		frappe.db.set_single_value("Stock Settings", "allow_negative_stock", 1)
 
 		repost_stock_for_warehouses = frappe.get_all(
@@ -961,7 +961,9 @@ class Item(Document):
 			return
 
 		if not values.get("valuation_method") and self.get("valuation_method"):
-			values["valuation_method"] = frappe.get_settings("Stock Settings", "valuation_method") or "FIFO"
+			values["valuation_method"] = (
+				frappe.get_single_value("Stock Settings", "valuation_method") or "FIFO"
+			)
 
 		changed_fields = [
 			field for field in restricted_fields if cstr(self.get(field)) != cstr(values.get(field))
@@ -1047,7 +1049,7 @@ class Item(Document):
 
 	def validate_auto_reorder_enabled_in_stock_settings(self):
 		if self.reorder_levels:
-			enabled = frappe.get_settings("Stock Settings", "auto_indent")
+			enabled = frappe.get_single_value("Stock Settings", "auto_indent")
 			if not enabled:
 				frappe.msgprint(
 					msg=_("You have to enable auto re-order in Stock Settings to maintain re-order levels."),

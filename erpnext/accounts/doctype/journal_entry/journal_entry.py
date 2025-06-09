@@ -1171,7 +1171,7 @@ class JournalEntry(AccountsController):
 	def make_gl_entries(self, cancel=0, adv_adj=0):
 		from erpnext.accounts.general_ledger import make_gl_entries
 
-		merge_entries = frappe.get_settings("Accounts Settings", "merge_similar_account_heads")
+		merge_entries = frappe.get_single_value("Accounts Settings", "merge_similar_account_heads")
 
 		gl_map = self.build_gl_map()
 		if self.voucher_type in ("Deferred Revenue", "Deferred Expense"):

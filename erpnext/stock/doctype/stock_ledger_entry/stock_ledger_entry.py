@@ -299,7 +299,7 @@ class StockLedgerEntry(Document):
 		is_group_warehouse(self.warehouse)
 
 	def validate_with_last_transaction_posting_time(self):
-		authorized_role = frappe.get_settings(
+		authorized_role = frappe.get_single_value(
 			"Stock Settings", "role_allowed_to_create_edit_back_dated_transactions"
 		)
 		if authorized_role:

@@ -495,7 +495,7 @@ class SalesInvoice(SellingController):
 
 		self.update_time_sheet(self.name)
 
-		if frappe.get_settings("Selling Settings", "sales_update_frequency") == "Each Transaction":
+		if frappe.get_single_value("Selling Settings", "sales_update_frequency") == "Each Transaction":
 			update_company_current_month_sales(self.company)
 			self.update_project()
 		update_linked_doc(self.doctype, self.name, self.inter_company_invoice_reference)
@@ -611,7 +611,7 @@ class SalesInvoice(SellingController):
 		if self.coupon_code:
 			update_coupon_code_count(self.coupon_code, "cancelled")
 
-		if frappe.get_settings("Selling Settings", "sales_update_frequency") == "Each Transaction":
+		if frappe.get_single_value("Selling Settings", "sales_update_frequency") == "Each Transaction":
 			update_company_current_month_sales(self.company)
 			self.update_project()
 		if not self.is_return and not self.is_consolidated and self.loyalty_program:
@@ -1016,7 +1016,7 @@ class SalesInvoice(SellingController):
 		)
 
 		if (
-			cint(frappe.get_settings("Selling Settings", "maintain_same_sales_rate"))
+			cint(frappe.get_single_value("Selling Settings", "maintain_same_sales_rate"))
 			and not self.is_return
 			and not self.is_internal_customer
 		):
@@ -1063,7 +1063,7 @@ class SalesInvoice(SellingController):
 			"Delivery Note": ["dn_required", "update_stock"],
 		}
 		for key, value in prev_doc_field_map.items():
-			if frappe.get_settings("Selling Settings", value[0]) == "Yes":
+			if frappe.get_single_value("Selling Settings", value[0]) == "Yes":
 				if frappe.get_value("Customer", self.customer, value[0]):
 					continue
 
@@ -1096,7 +1096,9 @@ class SalesInvoice(SellingController):
 		if self.is_created_using_pos and not self.pos_profile:
 			frappe.throw(_("POS Profile is mandatory to mark this invoice as POS Transaction."))
 
-		self.is_pos_using_sales_invoice = frappe.get_settings("Accounts Settings", "use_sales_invoice_in_pos")
+		self.is_pos_using_sales_invoice = frappe.get_single_value(
+			"Accounts Settings", "use_sales_invoice_in_pos"
+		)
 		if not self.is_pos_using_sales_invoice and not self.is_return:
 			frappe.throw(_("Transactions using Sales Invoice in POS are disabled."))
 
@@ -1466,7 +1468,7 @@ class SalesInvoice(SellingController):
 
 	def make_tax_gl_entries(self, gl_entries):
 		enable_discount_accounting = cint(
-			frappe.get_settings("Selling Settings", "enable_discount_accounting")
+			frappe.get_single_value("Selling Settings", "enable_discount_accounting")
 		)
 
 		for tax in self.get("taxes"):
@@ -1516,7 +1518,7 @@ class SalesInvoice(SellingController):
 	def make_item_gl_entries(self, gl_entries):
 		# income account gl entries
 		enable_discount_accounting = cint(
-			frappe.get_settings("Selling Settings", "enable_discount_accounting")
+			frappe.get_single_value("Selling Settings", "enable_discount_accounting")
 		)
 
 		for item in self.get("items"):
@@ -1591,7 +1593,7 @@ class SalesInvoice(SellingController):
 	def enable_discount_accounting(self):
 		if not hasattr(self, "_enable_discount_accounting"):
 			self._enable_discount_accounting = cint(
-				frappe.get_settings("Selling Settings", "enable_discount_accounting")
+				frappe.get_single_value("Selling Settings", "enable_discount_accounting")
 			)
 
 		return self._enable_discount_accounting
@@ -1633,7 +1635,7 @@ class SalesInvoice(SellingController):
 	def make_pos_gl_entries(self, gl_entries):
 		if cint(self.is_pos):
 			skip_change_gl_entries = not cint(
-				frappe.get_settings("Accounts Settings", "post_change_gl_entries")
+				frappe.get_single_value("Accounts Settings", "post_change_gl_entries")
 			)
 
 			for payment_mode in self.payments:
@@ -2918,7 +2920,7 @@ def check_if_return_invoice_linked_with_payment_entry(self):
 	# If a Return invoice is linked with payment entry along with other invoices,
 	# the cancellation of the Return causes allocated amount to be greater than paid
 
-	if not frappe.get_settings("Accounts Settings", "unlink_payment_on_cancellation_of_invoice"):
+	if not frappe.get_single_value("Accounts Settings", "unlink_payment_on_cancellation_of_invoice"):
 		return
 
 	payment_entries = []

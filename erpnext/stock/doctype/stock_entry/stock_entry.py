@@ -2457,7 +2457,7 @@ class StockEntry(StockController):
 		if not qty:
 			return
 
-		use_serial_batch_fields = frappe.get_settings("Stock Settings", "use_serial_batch_fields")
+		use_serial_batch_fields = frappe.get_single_value("Stock Settings", "use_serial_batch_fields")
 
 		ste_item_details = {
 			"from_warehouse": item.warehouse,
@@ -2935,7 +2935,7 @@ def move_sample_to_retention_warehouse(company, items):
 
 	if isinstance(items, str):
 		items = json.loads(items)
-	retention_warehouse = frappe.get_settings("Stock Settings", "sample_retention_warehouse")
+	retention_warehouse = frappe.get_single_value("Stock Settings", "sample_retention_warehouse")
 	stock_entry = frappe.new_doc("Stock Entry")
 	stock_entry.company = company
 	stock_entry.purpose = "Material Transfer"
@@ -2986,7 +2986,7 @@ def make_stock_in_entry(source_name, target_doc=None):
 		target.stock_entry_type = "Material Transfer"
 		target.set_missing_values()
 
-		if not frappe.get_settings("Stock Settings", "use_serial_batch_fields"):
+		if not frappe.get_single_value("Stock Settings", "use_serial_batch_fields"):
 			target.make_serial_and_batch_bundle_for_transfer()
 
 	def update_item(source_doc, target_doc, source_parent):
@@ -3215,7 +3215,7 @@ def validate_sample_quantity(item_code, sample_quantity, qty, batch_no=None):
 		frappe.throw(
 			_("Sample quantity {0} cannot be more than received quantity {1}").format(sample_quantity, qty)
 		)
-	retention_warehouse = frappe.get_settings("Stock Settings", "sample_retention_warehouse")
+	retention_warehouse = frappe.get_single_value("Stock Settings", "sample_retention_warehouse")
 	retainted_qty = 0
 	if batch_no:
 		retainted_qty = get_batch_qty(batch_no, retention_warehouse, item_code)

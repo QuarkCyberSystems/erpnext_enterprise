@@ -75,7 +75,7 @@ class BuyingController(SubcontractingController):
 		if self.docstatus == 1 and self.doctype in ["Purchase Receipt", "Purchase Invoice"]:
 			self.set_onload(
 				"allow_to_make_qc_after_submission",
-				frappe.get_settings(
+				frappe.get_single_value(
 					"Stock Settings", "allow_to_make_quality_inspection_after_purchase_or_delivery"
 				),
 			)
@@ -545,7 +545,7 @@ class BuyingController(SubcontractingController):
 					item.bom = None
 
 	def set_qty_as_per_stock_uom(self):
-		allow_to_edit_stock_qty = frappe.get_settings(
+		allow_to_edit_stock_qty = frappe.get_single_value(
 			"Stock Settings", "allow_to_edit_stock_uom_qty_for_purchase"
 		)
 
@@ -842,7 +842,7 @@ class BuyingController(SubcontractingController):
 			self.update_fixed_asset(field, delete_asset=True)
 
 	def validate_budget(self):
-		if frappe.get_settings("Accounts Settings", "use_new_budget_controller"):
+		if frappe.get_single_value("Accounts Settings", "use_new_budget_controller"):
 			from erpnext.controllers.budget_controller import BudgetValidation
 
 			val = BudgetValidation(doc=self)

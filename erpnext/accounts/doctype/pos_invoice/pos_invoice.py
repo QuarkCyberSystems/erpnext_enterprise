@@ -424,7 +424,9 @@ class POSInvoice(SalesInvoice):
 					)
 
 	def validate_is_pos_using_sales_invoice(self):
-		self.is_pos_using_sales_invoice = frappe.get_settings("Accounts Settings", "use_sales_invoice_in_pos")
+		self.is_pos_using_sales_invoice = frappe.get_single_value(
+			"Accounts Settings", "use_sales_invoice_in_pos"
+		)
 		if self.is_pos_using_sales_invoice and not self.is_return:
 			frappe.throw(_("Sales Invoice mode is activated in POS. Please create Sales Invoice instead."))
 

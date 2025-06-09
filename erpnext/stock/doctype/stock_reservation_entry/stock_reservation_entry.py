@@ -162,7 +162,7 @@ class StockReservationEntry(Document):
 			not self.from_voucher_type
 			and (self.get("_action") == "submit")
 			and (self.has_serial_no or self.has_batch_no)
-			and cint(frappe.get_settings("Stock Settings", "auto_reserve_serial_and_batch"))
+			and cint(frappe.get_single_value("Stock Settings", "auto_reserve_serial_and_batch"))
 		):
 			from erpnext.stock.doctype.batch.batch import get_available_batches
 			from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos_for_outward
@@ -176,7 +176,7 @@ class StockReservationEntry(Document):
 					"warehouse": self.warehouse,
 					"qty": abs(self.reserved_qty) or 0,
 					"based_on": based_on
-					or frappe.get_settings("Stock Settings", "pick_serial_and_batch_based_on"),
+					or frappe.get_single_value("Stock Settings", "pick_serial_and_batch_based_on"),
 				}
 			)
 
@@ -219,7 +219,7 @@ class StockReservationEntry(Document):
 			return
 
 		if self.reservation_based_on == "Serial and Batch":
-			allow_partial_reservation = frappe.get_settings("Stock Settings", "allow_partial_reservation")
+			allow_partial_reservation = frappe.get_single_value("Stock Settings", "allow_partial_reservation")
 
 			available_serial_nos = []
 			if self.has_serial_no:
@@ -568,7 +568,7 @@ class StockReservationEntry(Document):
 def validate_stock_reservation_settings(voucher: object) -> None:
 	"""Raises an exception if `Stock Reservation` is not enabled or `Voucher Type` is not allowed."""
 
-	if not frappe.get_settings("Stock Settings", "enable_stock_reservation"):
+	if not frappe.get_single_value("Stock Settings", "enable_stock_reservation"):
 		msg = _("Please enable {0} in the {1}.").format(
 			frappe.bold(_("Stock Reservation")),
 			frappe.bold(_("Stock Settings")),
@@ -1345,7 +1345,7 @@ def create_stock_reservation_entries_for_so_items(
 
 	validate_stock_reservation_settings(sales_order)
 
-	allow_partial_reservation = frappe.get_settings("Stock Settings", "allow_partial_reservation")
+	allow_partial_reservation = frappe.get_single_value("Stock Settings", "allow_partial_reservation")
 
 	items = []
 	if items_details:

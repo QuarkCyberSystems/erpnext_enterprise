@@ -136,7 +136,7 @@ def get_item_details(
 	out.update(data)
 
 	if (
-		frappe.get_settings("Stock Settings", "auto_create_serial_and_batch_bundle_for_outward")
+		frappe.get_single_value("Stock Settings", "auto_create_serial_and_batch_bundle_for_outward")
 		and not ctx.get("serial_and_batch_bundle")
 		and (ctx.get("use_serial_batch_fields") or ctx.get("doctype") == "POS Invoice")
 	):
@@ -201,7 +201,7 @@ def update_stock(ctx, out, doc=None):
 			{
 				"item_code": ctx.item_code,
 				"warehouse": ctx.warehouse,
-				"based_on": frappe.get_settings("Stock Settings", "pick_serial_and_batch_based_on"),
+				"based_on": frappe.get_single_value("Stock Settings", "pick_serial_and_batch_based_on"),
 			}
 		)
 
@@ -591,7 +591,7 @@ def get_item_warehouse_(ctx: ItemDetailsCtx, item, overwrite_warehouse, defaults
 		warehouse = ctx.warehouse
 
 	if not warehouse:
-		default_warehouse = frappe.get_settings("Stock Settings", "default_warehouse")
+		default_warehouse = frappe.get_single_value("Stock Settings", "default_warehouse")
 		if frappe.db.get_value("Warehouse", default_warehouse, "company") == ctx.company:
 			return default_warehouse
 

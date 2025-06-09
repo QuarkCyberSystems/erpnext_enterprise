@@ -266,7 +266,7 @@ class StatusUpdater(Document):
 				if hasattr(d, "qty") and d.qty > 0 and self.get("is_return"):
 					frappe.throw(_("For an item {0}, quantity must be negative number").format(d.item_code))
 
-				if not frappe.get_settings("Selling Settings", "allow_negative_rates_for_items"):
+				if not frappe.get_single_value("Selling Settings", "allow_negative_rates_for_items"):
 					if hasattr(d, "item_code") and hasattr(d, "rate") and flt(d.rate) < 0:
 						frappe.throw(
 							_(
@@ -336,10 +336,10 @@ class StatusUpdater(Document):
 			qty_or_amount,
 		)
 
-		role_allowed_to_over_deliver_receive = frappe.get_settings(
+		role_allowed_to_over_deliver_receive = frappe.get_single_value(
 			"Stock Settings", "role_allowed_to_over_deliver_receive"
 		)
-		role_allowed_to_over_bill = frappe.get_settings("Accounts Settings", "role_allowed_to_over_bill")
+		role_allowed_to_over_bill = frappe.get_single_value("Accounts Settings", "role_allowed_to_over_bill")
 		role = role_allowed_to_over_deliver_receive if qty_or_amount == "qty" else role_allowed_to_over_bill
 
 		overflow_percent = (

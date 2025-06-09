@@ -92,7 +92,7 @@ class Account(NestedSet):
 			super().on_update()
 
 	def onload(self):
-		frozen_accounts_modifier = frappe.get_settings("Accounts Settings", "frozen_accounts_modifier")
+		frozen_accounts_modifier = frappe.get_single_value("Accounts Settings", "frozen_accounts_modifier")
 		if not frozen_accounts_modifier or frozen_accounts_modifier in frappe.get_roles():
 			self.set_onload("can_freeze_account", True)
 

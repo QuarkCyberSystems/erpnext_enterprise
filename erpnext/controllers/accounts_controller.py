@@ -403,7 +403,7 @@ class AccountsController(TransactionBase):
 		self.remove_serial_and_batch_bundle()
 
 		# delete sl and gl entries on deletion of transaction
-		if frappe.get_settings("Accounts Settings", "delete_linked_ledger_entries"):
+		if frappe.get_single_value("Accounts Settings", "delete_linked_ledger_entries"):
 			# delete linked exchange gain/loss journal
 			delete_exchange_gain_loss_journal(self)
 
@@ -744,7 +744,7 @@ class AccountsController(TransactionBase):
 					frappe.throw(_(msg), title=_("Internal Transfer Reference Missing"))
 
 	def validate_internal_transaction(self):
-		if not cint(frappe.get_settings("Accounts Settings", "maintain_same_internal_transaction_rate")):
+		if not cint(frappe.get_single_value("Accounts Settings", "maintain_same_internal_transaction_rate")):
 			return
 
 		doctypes_list = ["Sales Order", "Sales Invoice", "Purchase Order", "Purchase Invoice"]
@@ -1141,7 +1141,7 @@ class AccountsController(TransactionBase):
 			return True
 
 	def set_taxes_and_charges(self):
-		if frappe.get_settings("Accounts Settings", "add_taxes_from_item_tax_template"):
+		if frappe.get_single_value("Accounts Settings", "add_taxes_from_item_tax_template"):
 			if hasattr(self, "taxes_and_charges") and not self.get("taxes") and not self.get("is_pos"):
 				if tax_master_doctype := self.meta.get_field("taxes_and_charges").options:
 					self.append_taxes_from_master(tax_master_doctype)
@@ -1154,7 +1154,7 @@ class AccountsController(TransactionBase):
 			self.extend("taxes", get_taxes_and_charges(tax_master_doctype, self.get("taxes_and_charges")))
 
 	def append_taxes_from_item_tax_template(self):
-		if not frappe.get_settings("Accounts Settings", "add_taxes_from_item_tax_template"):
+		if not frappe.get_single_value("Accounts Settings", "add_taxes_from_item_tax_template"):
 			return
 
 		for row in self.items:
@@ -1495,7 +1495,7 @@ class AccountsController(TransactionBase):
 		return res
 
 	def is_inclusive_tax(self):
-		is_inclusive = cint(frappe.get_settings("Accounts Settings", "show_inclusive_tax_in_print"))
+		is_inclusive = cint(frappe.get_single_value("Accounts Settings", "show_inclusive_tax_in_print"))
 
 		if is_inclusive:
 			is_inclusive = 0
@@ -1505,7 +1505,7 @@ class AccountsController(TransactionBase):
 		return is_inclusive
 
 	def should_show_taxes_as_table_in_print(self):
-		return cint(frappe.get_settings("Accounts Settings", "show_taxes_as_table_in_print"))
+		return cint(frappe.get_single_value("Accounts Settings", "show_taxes_as_table_in_print"))
 
 	def validate_advance_entries(self):
 		order_field = "sales_order" if self.doctype == "Sales Invoice" else "purchase_order"
@@ -1882,11 +1882,11 @@ class AccountsController(TransactionBase):
 			cancel_exchange_gain_loss_journal(self)
 			cancel_common_party_journal(self)
 
-			if frappe.get_settings("Accounts Settings", "unlink_payment_on_cancellation_of_invoice"):
+			if frappe.get_single_value("Accounts Settings", "unlink_payment_on_cancellation_of_invoice"):
 				unlink_ref_doc_from_payment_entries(self)
 
 		elif self.doctype in ["Sales Order", "Purchase Order"]:
-			if frappe.get_settings("Accounts Settings", "unlink_advance_payment_on_cancelation_of_order"):
+			if frappe.get_single_value("Accounts Settings", "unlink_advance_payment_on_cancelation_of_order"):
 				unlink_ref_doc_from_payment_entries(self)
 
 			if self.doctype == "Sales Order":
@@ -1962,7 +1962,7 @@ class AccountsController(TransactionBase):
 
 	def make_discount_gl_entries(self, gl_entries):
 		enable_discount_accounting = cint(
-			frappe.get_settings("Selling Settings", "enable_discount_accounting")
+			frappe.get_single_value("Selling Settings", "enable_discount_accounting")
 		)
 
 		if enable_discount_accounting:
@@ -2444,7 +2444,7 @@ class AccountsController(TransactionBase):
 			grand_total = grand_total - flt(self.write_off_amount)
 			po_or_so, doctype, fieldname = self.get_order_details()
 			automatically_fetch_payment_terms = cint(
-				frappe.get_settings("Accounts Settings", "automatically_fetch_payment_terms")
+				frappe.get_single_value("Accounts Settings", "automatically_fetch_payment_terms")
 			)
 
 		if self.get("total_advance"):
@@ -2727,7 +2727,7 @@ class AccountsController(TransactionBase):
 		if not is_invoice:
 			return
 
-		if frappe.get_settings("Accounts Settings", "enable_common_party_accounting"):
+		if frappe.get_single_value("Accounts Settings", "enable_common_party_accounting"):
 			party_link = self.get_common_party_link()
 			if party_link and self.outstanding_amount:
 				self.create_advance_and_reconcile(party_link)
@@ -3513,7 +3513,7 @@ def set_child_tax_template_and_map(item, child_item, parent_doc):
 
 
 def add_taxes_from_tax_template(child_item, parent_doc, db_insert=True):
-	add_taxes_from_item_tax_template = frappe.get_settings(
+	add_taxes_from_item_tax_template = frappe.get_single_value(
 		"Accounts Settings", "add_taxes_from_item_tax_template"
 	)
 
