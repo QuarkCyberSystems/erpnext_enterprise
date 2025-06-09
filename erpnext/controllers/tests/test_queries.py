@@ -106,9 +106,9 @@ class TestQueries(ERPNextTestSuite):
 			value=1,
 			property_type="Check",
 		)
-		ps.save()
+		frappe.clear_cache(doctype="Payment Entry")
 
-		user = create_user("test_employee_query@example.com", ("Accounts User", "HR User"))
+		user = create_user("test_employee_query@example.com", "Accounts User", "HR User")
 		add_user_permissions(
 			{
 				"user": user.name,
@@ -121,29 +121,24 @@ class TestQueries(ERPNextTestSuite):
 			}
 		)
 
-		frappe.reload_doc("accounts", "doctype", "payment entry")
+		with IntegrationTestCase.set_user(user.name):
+			params = {
+				"doctype": "Employee",
+				"txt": "",
+				"searchfield": "name",
+				"start": 0,
+				"page_len": 20,
+				"filters": None,
+				"reference_doctype": "Payment Entry",
+				"ignore_user_permissions": 1,
+			}
 
-		frappe.set_user(user.name)
-		params = {
-			"doctype": "Employee",
-			"txt": "",
-			"searchfield": "name",
-			"start": 0,
-			"page_len": 20,
-			"filters": None,
-			"reference_doctype": "Payment Entry",
-			"ignore_user_permissions": 1,
-		}
+			result = queries.employee_query(**params)
+			self.assertGreater(len(result), 1)
 
-		result = queries.employee_query(**params)
-		self.assertGreater(len(result), 1)
+			ps.delete(ignore_permissions=1, force=1, delete_permanently=1)
+			frappe.clear_cache(doctype="Payment Entry")
 
-		ps.delete(ignore_permissions=1, force=1, delete_permanently=1)
-		frappe.reload_doc("accounts", "doctype", "payment entry")
-		frappe.clear_cache()
-
-		# only one employee should be returned even though ignore_user_permissions is passed as 1
-		result = queries.employee_query(**params)
-		self.assertEqual(len(result), 1)
-
-		frappe.set_user("Administrator")
+			# only one employee should be returned even though ignore_user_permissions is passed as 1
+			result = queries.employee_query(**params)
+			self.assertEqual(len(result), 1)
