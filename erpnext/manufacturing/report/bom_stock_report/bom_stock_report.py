@@ -79,7 +79,7 @@ def get_bom_stock(filters):
 			BOM_ITEM.stock_qty,
 			BOM_ITEM.stock_uom,
 			BOM_ITEM.stock_qty * qty_to_produce / BOM.quantity,
-			Sum(BIN.actual_qty).as_("actual_qty"),
+			BIN.actual_qty.as_("actual_qty"),
 			Sum(Floor(BIN.actual_qty / (BOM_ITEM.stock_qty * qty_to_produce / BOM.quantity))),
 		)
 		.where((BOM_ITEM.parent == filters.get("bom")) & (BOM_ITEM.parenttype == "BOM"))
