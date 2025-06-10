@@ -1312,6 +1312,7 @@ def get_subitems(
 			item_default.default_warehouse,
 			item.purchase_uom,
 			item_uom.conversion_factor,
+			bom.item.as_("main_bom_item"),
 		)
 		.where(
 			(bom.name == bom_no)
@@ -1424,6 +1425,7 @@ def get_material_request_items(
 		"sales_order": sales_order,
 		"description": row.get("description"),
 		"uom": row.get("purchase_uom") or row.get("stock_uom"),
+		"main_bom_item": row.get("main_bom_item"),
 	}
 
 
