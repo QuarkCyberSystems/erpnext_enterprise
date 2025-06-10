@@ -20,14 +20,14 @@ def get_columns(filters, trans):
 	columns = (
 		based_on_details["based_on_cols"]
 		+ period_cols
-		+ [_("Total(Qty)") + ":Float:120", _("Total(Amt)") + ":Currency:120"]
+		+ [_("Total(Qty)") + ":Float:120", _("Total(Amt)") + ":Currency/currency:120"]
 	)
 	if group_by_cols:
 		columns = (
 			based_on_details["based_on_cols"]
 			+ group_by_cols
 			+ period_cols
-			+ [_("Total(Qty)") + ":Float:120", _("Total(Amt)") + ":Currency:120"]
+			+ [_("Total(Qty)") + ":Float:120", _("Total(Amt)") + ":Currency/currency:120"]
 		)
 
 	conditions = {
@@ -157,7 +157,7 @@ def get_data(filters, conditions):
 
 				# get data for group_by filter
 				row1 = frappe.db.sql(
-					""" select {} , {} from `tab{}` t1, `tab{} Item` t2 {}
+					""" select t1.currency , {} , {} from `tab{}` t1, `tab{} Item` t2 {}
 							where t2.parent = t1.name and t1.company = {} and {} between {} and {}
 							and t1.docstatus = 1 and {} = {} and {} = {} {} {}
 						""".format(
@@ -182,6 +182,7 @@ def get_data(filters, conditions):
 				)
 
 				des[ind] = row[i][0]
+				des[ind - 1] = row1[0][0]
 
 				for j in range(1, len(conditions["columns"]) - inc):
 					des[j + inc] = row1[0][j]
@@ -236,7 +237,7 @@ def period_wise_columns_query(filters, trans):
 	else:
 		pwc = [
 			_(filters.get("fiscal_year")) + " (" + _("Qty") + "):Float:120",
-			_(filters.get("fiscal_year")) + " (" + _("Amt") + "):Currency:120",
+			_(filters.get("fiscal_year")) + " (" + _("Amt") + "):Currency/currency:120",
 		]
 		query_details = " SUM(t2.stock_qty), SUM(t2.base_net_amount),"
 
@@ -248,12 +249,17 @@ def get_period_wise_columns(bet_dates, period, pwc):
 	if period == "Monthly":
 		pwc += [
 			_(get_mon(bet_dates[0])) + " (" + _("Qty") + "):Float:120",
-			_(get_mon(bet_dates[0])) + " (" + _("Amt") + "):Currency:120",
+			_(get_mon(bet_dates[0])) + " (" + _("Amt") + "):Currency/currency:120",
 		]
 	else:
 		pwc += [
 			_(get_mon(bet_dates[0])) + "-" + _(get_mon(bet_dates[1])) + " (" + _("Qty") + "):Float:120",
-			_(get_mon(bet_dates[0])) + "-" + _(get_mon(bet_dates[1])) + " (" + _("Amt") + "):Currency:120",
+			_(get_mon(bet_dates[0]))
+			+ "-"
+			+ _(get_mon(bet_dates[1]))
+			+ " ("
+			+ _("Amt")
+			+ "):Currency/currency:120",
 		]
 
 
@@ -374,6 +380,9 @@ def based_wise_columns_query(based_on, trans):
 			based_on_details["addl_tables"] = ""
 		else:
 			frappe.throw(_("Project-wise data is not available for Quotation"))
+
+	based_on_details["based_on_select"] += "t1.currency,"
+	based_on_details["based_on_cols"].append("Currency:Link/Currency:120")
 
 	return based_on_details
 
