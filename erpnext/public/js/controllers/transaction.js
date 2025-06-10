@@ -875,6 +875,33 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 
 	async validate() {
 		await this.calculate_taxes_and_totals(false);
+		await this.confirm_posting_date_change()
+	}
+
+	async confirm_posting_date_change() {
+		if (!frappe.meta.has_field(this.frm.doc.doctype, "set_posting_time")) return;
+		if (this.frm.doc.set_posting_time) return;
+		if (frappe.datetime.get_today() == this.frm.doc.posting_date) return;
+
+		let is_confirmation_reqd = await frappe.db.get_single_value(
+			'Accounts Settings', 'confirm_before_resetting_posting_date'
+		)
+
+		if (!is_confirmation_reqd) return;
+
+		return new Promise((resolve, reject) => {
+			frappe.confirm(
+				__(
+					"Posting Date will change to today's date as Edit Posting Date and Time is unchecked. Are you sure want to proceed?"
+				),
+				() => {
+					this.frm.doc.posting_date = frappe.datetime.get_today();
+					this.frm.refresh_field("posting_date");
+					resolve();
+				},
+				() => reject()
+			);
+		});
 	}
 
 	update_stock() {

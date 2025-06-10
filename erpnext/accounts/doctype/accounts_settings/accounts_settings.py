@@ -37,6 +37,7 @@ class AccountsSettings(Document):
 		book_tax_discount_loss: DF.Check
 		calculate_depr_using_total_days: DF.Check
 		check_supplier_invoice_uniqueness: DF.Check
+		confirm_before_resetting_posting_date: DF.Check
 		create_pr_in_draft_status: DF.Check
 		credit_controller: DF.Link | None
 		delete_linked_ledger_entries: DF.Check
