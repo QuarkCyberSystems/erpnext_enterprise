@@ -243,7 +243,7 @@ class POSInvoice(SalesInvoice):
 			update_coupon_code_count(self.coupon_code, "used")
 		self.clear_unallocated_mode_of_payments()
 
-		if self.is_return and self.is_pos_using_sales_invoice:
+		if self.is_return and self.invoice_type_in_pos == "Sales Invoice":
 			self.create_and_add_consolidated_sales_invoice()
 
 	def before_cancel(self):
@@ -424,10 +424,8 @@ class POSInvoice(SalesInvoice):
 					)
 
 	def validate_is_pos_using_sales_invoice(self):
-		self.is_pos_using_sales_invoice = frappe.get_single_value(
-			"Accounts Settings", "use_sales_invoice_in_pos"
-		)
-		if self.is_pos_using_sales_invoice and not self.is_return:
+		self.invoice_type_in_pos = frappe.db.get_single_value("POS Settings", "invoice_type")
+		if self.invoice_type_in_pos == "Sales Invoice" and not self.is_return:
 			frappe.throw(_("Sales Invoice mode is activated in POS. Please create Sales Invoice instead."))
 
 	def validate_serialised_or_batched_item(self):

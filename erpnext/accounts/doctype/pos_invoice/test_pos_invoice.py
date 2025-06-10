@@ -29,6 +29,7 @@ class TestPOSInvoice(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.enterClassContext(cls.change_settings("Selling Settings", validate_selling_price=0))
+		cls.enterClassContext(cls.change_settings("POS Settings", invoice_type="POS Invoice"))
 		make_stock_entry(target="_Test Warehouse - _TC", item_code="_Test Item", qty=800, basic_rate=100)
 		frappe.db.sql("delete from `tabTax Rule`")
 
@@ -36,9 +37,15 @@ class TestPOSInvoice(IntegrationTestCase):
 		from erpnext.accounts.doctype.pos_opening_entry.test_pos_opening_entry import create_opening_entry
 
 		cls.test_user, cls.pos_profile = init_user_and_profile()
-		create_opening_entry(cls.pos_profile, cls.test_user.name)
+		cls.opening_entry = create_opening_entry(cls.pos_profile, cls.test_user.name)
 		mode_of_payment = frappe.get_doc("Mode of Payment", "Bank Draft")
 		set_default_account_for_mode_of_payment(mode_of_payment, "_Test Company", "_Test Bank - _TC")
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.sql("delete from `tabPOS Invoice`")
+		opening_entry_doc = frappe.get_doc("POS Opening Entry", cls.opening_entry.name)
+		opening_entry_doc.cancel()
 
 	def tearDown(self):
 		if frappe.session.user != "Administrator":

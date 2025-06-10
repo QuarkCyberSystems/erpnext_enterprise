@@ -491,7 +491,7 @@ def split_invoices_by_accounting_dimension(pos_invoices):
 
 
 def consolidate_pos_invoices(pos_invoices=None, closing_entry=None):
-	invoices = pos_invoices or (closing_entry and closing_entry.get("pos_transactions"))
+	invoices = pos_invoices or (closing_entry and closing_entry.get("pos_invoices"))
 	if frappe.flags.in_test and not invoices:
 		invoices = get_all_unconsolidated_invoices()
 
@@ -509,7 +509,7 @@ def unconsolidate_pos_invoices(closing_entry):
 		"POS Invoice Merge Log", filters={"pos_closing_entry": closing_entry.name}, pluck="name"
 	)
 
-	if len(closing_entry.pos_transactions) >= 10:
+	if len(closing_entry.pos_invoices) >= 10:
 		closing_entry.set_status(update=True, status="Queued")
 		enqueue_job(cancel_merge_logs, merge_logs=merge_logs, closing_entry=closing_entry)
 	else:
