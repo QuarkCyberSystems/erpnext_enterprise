@@ -778,7 +778,14 @@ class ProductionPlan(Document):
 				"company": self.get("company"),
 			}
 
+			if flt(row.qty) <= flt(row.ordered_qty):
+				continue
+
 			self.prepare_data_for_sub_assembly_items(row, work_order_data)
+
+			if work_order_data.get("qty") <= 0:
+				continue
+
 			work_order = self.create_work_order(work_order_data)
 			if work_order:
 				wo_list.append(work_order)
@@ -797,6 +804,8 @@ class ProductionPlan(Document):
 		]:
 			if row.get(field):
 				wo_data[field] = row.get(field)
+
+		wo_data["qty"] = flt(row.get("qty")) - flt(row.get("ordered_qty"))
 
 		wo_data.update(
 			{
