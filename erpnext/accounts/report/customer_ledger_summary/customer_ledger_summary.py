@@ -336,6 +336,28 @@ class PartyLedgerSummaryReport:
 			)
 		)
 
+		if self.filters.get("ignore_cr_dr_notes"):
+			system_generated_cr_dr_journals = frappe.db.get_all(
+				"Journal Entry",
+				filters={
+					"company": self.filters.get("company"),
+					"docstatus": 1,
+					"voucher_type": ("in", ["Credit Note", "Debit Note"]),
+					"is_system_generated": 1,
+					"posting_date": ["between", [self.filters.get("from_date"), self.filters.get("to_date")]],
+				},
+				as_list=True,
+			)
+			if system_generated_cr_dr_journals:
+				vouchers_to_ignore = (self.filters.get("voucher_no_not_in") or []) + [
+					x[0] for x in system_generated_cr_dr_journals
+				]
+				self.filters.update({"voucher_no_not_in": vouchers_to_ignore})
+
+		voucher_no_not_in = self.filters.get("voucher_no_not_in", [])
+		if voucher_no_not_in:
+			query = query.where(gle.voucher_no.notin(voucher_no_not_in))
+
 		query = self.prepare_conditions(query)
 
 		self.gl_entries = query.run(as_dict=True)
