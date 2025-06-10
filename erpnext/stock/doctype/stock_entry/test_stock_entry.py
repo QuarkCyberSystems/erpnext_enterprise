@@ -3,7 +3,7 @@
 
 
 from frappe.permissions import add_user_permission, remove_user_permission
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, cstr, flt, get_time, getdate, nowtime, today
 
 from erpnext.accounts.doctype.account.test_account import get_inventory_account
@@ -47,15 +47,6 @@ def get_sle(**args):
 		values,
 		as_dict=1,
 	)
-
-
-class UnitTestStockEntry(UnitTestCase):
-	"""
-	Unit tests for StockEntry.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestStockEntry(IntegrationTestCase):
@@ -122,7 +113,7 @@ class TestStockEntry(IntegrationTestCase):
 	def test_barcode_item_stock_entry(self):
 		item_code = make_item("_Test Item Stock Entry For Barcode", barcode="BDD-1234567890")
 
-		se = make_stock_entry(item_code=item_code, target="_Test Warehouse - _TC", qty=1, basic_rate=100)
+		se = make_stock_entry(item_code=item_code.name, target="_Test Warehouse - _TC", qty=1, basic_rate=100)
 		self.assertEqual(se.items[0].barcode, "BDD-1234567890")
 
 	def test_auto_material_request_for_variant(self):

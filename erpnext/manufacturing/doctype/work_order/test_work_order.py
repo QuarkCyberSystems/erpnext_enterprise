@@ -3,7 +3,7 @@
 
 
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase, timeout
+from frappe.tests import IntegrationTestCase, timeout
 from frappe.utils import add_days, add_months, add_to_date, cint, flt, now, today
 
 from erpnext.manufacturing.doctype.job_card.job_card import JobCardCancelError
@@ -33,15 +33,6 @@ from erpnext.stock.doctype.warehouse.test_warehouse import create_warehouse
 from erpnext.stock.utils import get_bin
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["BOM"]
-
-
-class UnitTestWorkOrder(UnitTestCase):
-	"""
-	Unit tests for WorkOrder.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestWorkOrder(IntegrationTestCase):

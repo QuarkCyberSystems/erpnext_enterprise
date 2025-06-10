@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 
 from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
 from erpnext.accounts.doctype.payment_entry.test_payment_entry import create_payment_terms_template
@@ -56,15 +56,6 @@ payment_method = [
 		"currency": "USD",
 	},
 ]
-
-
-class UnitTestPaymentRequest(UnitTestCase):
-	"""
-	Unit tests for PaymentRequest.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestPaymentRequest(IntegrationTestCase):

@@ -6,7 +6,7 @@ import json
 from collections import defaultdict
 
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, cstr, flt, getdate, nowdate, nowtime, today
 
 from erpnext.accounts.doctype.account.test_account import get_inventory_account
@@ -43,15 +43,6 @@ from erpnext.stock.doctype.stock_reconciliation.test_stock_reconciliation import
 )
 from erpnext.stock.doctype.warehouse.test_warehouse import get_warehouse
 from erpnext.stock.stock_ledger import get_previous_sle
-
-
-class UnitTestDeliveryNote(UnitTestCase):
-	"""
-	Unit tests for DeliveryNote.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestDeliveryNote(IntegrationTestCase):
@@ -1140,7 +1131,7 @@ class TestDeliveryNote(IntegrationTestCase):
 		dn = create_delivery_note(do_not_submit=True)
 		dt = make_delivery_trip(dn.name)
 		self.assertEqual(dn.name, dt.delivery_stops[0].delivery_note)
-		dt.driver = create_driver()
+		dt.driver = create_driver().name
 		self.assertRaisesRegex(
 			frappe.exceptions.ValidationError,
 			r"^Delivery Notes should not be in draft state when submitting a Delivery Trip.*",
@@ -2477,7 +2468,7 @@ class TestDeliveryNote(IntegrationTestCase):
 			make_stock_entry(item_code=item.name, target="_Test Warehouse - _TC", qty=5, basic_rate=100)
 
 		dn = create_delivery_note(
-			item_code=batch_item,
+			item_code=batch_item.name,
 			qty=5,
 			rate=500,
 			use_serial_batch_fields=1,

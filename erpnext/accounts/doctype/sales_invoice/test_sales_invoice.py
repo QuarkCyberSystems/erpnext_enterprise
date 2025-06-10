@@ -7,7 +7,7 @@ import json
 import frappe
 from frappe import qb
 from frappe.model.dynamic_links import get_dynamic_link_map
-from frappe.tests import IntegrationTestCase, UnitTestCase, change_settings
+from frappe.tests import IntegrationTestCase, change_settings
 from frappe.utils import add_days, flt, format_date, getdate, nowdate, today
 
 import erpnext
@@ -51,15 +51,6 @@ from erpnext.stock.utils import get_incoming_rate, get_stock_balance
 from erpnext.tests.utils import ERPNextTestSuite
 
 
-class UnitTestSalesInvoice(UnitTestCase):
-	"""
-	Unit tests for SalesInvoice.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
-
-
 class TestSalesInvoice(ERPNextTestSuite):
 	def setUp(self):
 		from erpnext.stock.doctype.stock_ledger_entry.test_stock_ledger_entry import create_items
@@ -86,7 +77,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		si = create_sales_invoice(
 			customer="_Test Internal Customer 3", company="_Test Company", is_internal_customer=1, rate=100
 		)
-		pi = make_inter_company_purchase_invoice(si)
+		pi = make_inter_company_purchase_invoice(si.name)
 		pi.items[0].rate = 120
 
 		with self.assertRaises(ValidationError) as e:

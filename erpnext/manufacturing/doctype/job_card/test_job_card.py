@@ -5,7 +5,7 @@
 from typing import Literal
 
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import random_string
 from frappe.utils.data import add_to_date, now, today
 
@@ -26,15 +26,6 @@ from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
 from erpnext.tests.utils import ERPNextTestSuite
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["UOM"]
-
-
-class UnitTestJobCard(UnitTestCase):
-	"""
-	Unit tests for JobCard.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestJobCard(ERPNextTestSuite):

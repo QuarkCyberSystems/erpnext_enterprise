@@ -3054,7 +3054,7 @@ def get_operating_cost_per_unit(work_order=None, bom_no=None):
 			and frappe.db.get_single_value(
 				"Manufacturing Settings", "set_op_cost_and_scrap_from_sub_assemblies"
 			)
-			and frappe.get_cached_value("Work Order", work_order, "use_multi_level_bom")
+			and frappe.get_cached_value("Work Order", work_order.name, "use_multi_level_bom")
 		):
 			return get_op_cost_from_sub_assemblies(bom_no)
 

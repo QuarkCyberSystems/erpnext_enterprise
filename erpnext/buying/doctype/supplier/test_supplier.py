@@ -11,16 +11,7 @@ from erpnext.exceptions import PartyDisabled
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Payment Term", "Payment Terms Template"]
 
 
-from frappe.tests import IntegrationTestCase, UnitTestCase
-
-
-class UnitTestSupplier(UnitTestCase):
-	"""
-	Unit tests for Supplier.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
+from frappe.tests import IntegrationTestCase
 
 
 class TestSupplier(IntegrationTestCase):

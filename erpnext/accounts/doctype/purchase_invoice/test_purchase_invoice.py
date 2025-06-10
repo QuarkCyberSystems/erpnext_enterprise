@@ -2051,7 +2051,7 @@ class TestPurchaseInvoice(IntegrationTestCase, StockTestMixin):
 	def test_gl_entries_for_standalone_debit_note(self):
 		from erpnext.stock.doctype.item.test_item import make_item
 
-		item_code = make_item(properties={"is_stock_item": 1})
+		item_code = make_item(properties={"is_stock_item": 1}).name
 		make_purchase_invoice(item_code=item_code, qty=5, rate=500, update_stock=True)
 
 		returned_inv = make_purchase_invoice(

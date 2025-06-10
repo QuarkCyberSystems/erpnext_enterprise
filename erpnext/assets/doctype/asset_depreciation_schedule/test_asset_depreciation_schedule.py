@@ -2,7 +2,7 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import cstr, date_diff, flt, getdate
 
 from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
@@ -18,15 +18,6 @@ from erpnext.assets.doctype.asset_repair.test_asset_repair import create_asset_r
 from erpnext.assets.doctype.asset_value_adjustment.test_asset_value_adjustment import (
 	make_asset_value_adjustment,
 )
-
-
-class UnitTestAssetDepreciationSchedule(UnitTestCase):
-	"""
-	Unit tests for AssetDepreciationSchedule.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestAssetDepreciationSchedule(IntegrationTestCase):
@@ -783,7 +774,7 @@ class TestAssetDepreciationSchedule(IntegrationTestCase):
 
 		current_asset_value = asset.finance_books[0].value_after_depreciation
 		asset_value_adjustment = make_asset_value_adjustment(
-			asset=asset,
+			asset=asset.name,
 			date="2023-04-01",
 			current_asset_value=current_asset_value,
 			new_asset_value=1200,
@@ -888,7 +879,7 @@ class TestAssetDepreciationSchedule(IntegrationTestCase):
 
 		current_asset_value = asset.finance_books[0].value_after_depreciation
 		asset_value_adjustment = make_asset_value_adjustment(
-			asset=asset,
+			asset=asset.name,
 			date="2023-04-01",
 			current_asset_value=current_asset_value,
 			new_asset_value=600,
@@ -954,7 +945,7 @@ class TestAssetDepreciationSchedule(IntegrationTestCase):
 
 		current_asset_value = asset.finance_books[0].value_after_depreciation
 		asset_value_adjustment = make_asset_value_adjustment(
-			asset=asset,
+			asset=asset.name,
 			date="2022-01-15",
 			current_asset_value=current_asset_value,
 			new_asset_value=500,
@@ -1043,7 +1034,7 @@ class TestAssetDepreciationSchedule(IntegrationTestCase):
 
 		current_asset_value = asset.finance_books[0].value_after_depreciation
 		asset_value_adjustment = make_asset_value_adjustment(
-			asset=asset,
+			asset=asset.name,
 			date="2022-01-15",
 			current_asset_value=current_asset_value,
 			new_asset_value=500,
