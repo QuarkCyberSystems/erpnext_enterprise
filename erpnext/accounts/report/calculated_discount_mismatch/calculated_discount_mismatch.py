@@ -6,7 +6,6 @@ import json
 import frappe
 from frappe import _
 from frappe.query_builder import Order, Tuple
-from frappe.utils import flt
 from frappe.utils.formatters import format_value
 
 AFFECTED_DOCTYPES = frozenset(
@@ -164,7 +163,7 @@ def get_transactions_with_discount_percentage(doctype):
 			"discount_amount",
 		],
 		filters={
-			"docstatus": 1,
+			"docstatus": ["<", 2],
 			"additional_discount_percentage": [">", 0],
 			"discount_amount": ["!=", 0],
 			"modified": [">", LAST_MODIFIED_DATE_THRESHOLD],
