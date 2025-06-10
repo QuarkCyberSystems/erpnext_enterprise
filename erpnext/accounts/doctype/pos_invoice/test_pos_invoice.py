@@ -36,7 +36,7 @@ class TestPOSInvoice(IntegrationTestCase):
 		from erpnext.accounts.doctype.pos_opening_entry.test_pos_opening_entry import create_opening_entry
 
 		cls.test_user, cls.pos_profile = init_user_and_profile()
-		create_opening_entry(cls.pos_profile, cls.test_user)
+		create_opening_entry(cls.pos_profile, cls.test_user.name)
 		mode_of_payment = frappe.get_doc("Mode of Payment", "Bank Draft")
 		set_default_account_for_mode_of_payment(mode_of_payment, "_Test Company", "_Test Bank - _TC")
 

@@ -774,7 +774,7 @@ class TestAssetDepreciationSchedule(IntegrationTestCase):
 
 		current_asset_value = asset.finance_books[0].value_after_depreciation
 		asset_value_adjustment = make_asset_value_adjustment(
-			asset=asset,
+			asset=asset.name,
 			date="2023-04-01",
 			current_asset_value=current_asset_value,
 			new_asset_value=1200,
@@ -879,7 +879,7 @@ class TestAssetDepreciationSchedule(IntegrationTestCase):
 
 		current_asset_value = asset.finance_books[0].value_after_depreciation
 		asset_value_adjustment = make_asset_value_adjustment(
-			asset=asset,
+			asset=asset.name,
 			date="2023-04-01",
 			current_asset_value=current_asset_value,
 			new_asset_value=600,
@@ -945,7 +945,7 @@ class TestAssetDepreciationSchedule(IntegrationTestCase):
 
 		current_asset_value = asset.finance_books[0].value_after_depreciation
 		asset_value_adjustment = make_asset_value_adjustment(
-			asset=asset,
+			asset=asset.name,
 			date="2022-01-15",
 			current_asset_value=current_asset_value,
 			new_asset_value=500,
@@ -1034,7 +1034,7 @@ class TestAssetDepreciationSchedule(IntegrationTestCase):
 
 		current_asset_value = asset.finance_books[0].value_after_depreciation
 		asset_value_adjustment = make_asset_value_adjustment(
-			asset=asset,
+			asset=asset.name,
 			date="2022-01-15",
 			current_asset_value=current_asset_value,
 			new_asset_value=500,
