@@ -46,7 +46,6 @@ from erpnext.accounts.party import (
 from erpnext.accounts.utils import (
 	cancel_exchange_gain_loss_journal,
 	get_account_currency,
-	get_balance_on,
 	get_outstanding_invoices,
 )
 from erpnext.controllers.accounts_controller import (
@@ -2786,7 +2785,6 @@ def get_party_details(company, party_type, party, date, cost_center=None):
 
 	party_account = get_party_account(party_type, party, company)
 	account_currency = get_account_currency(party_account)
-	account_balance = get_balance_on(party_account, date, cost_center=cost_center)
 	_party_name = "title" if party_type == "Shareholder" else party_type.lower() + "_name"
 	party_name = frappe.db.get_value(party_type, party, _party_name)
 
@@ -2798,7 +2796,6 @@ def get_party_details(company, party_type, party, date, cost_center=None):
 		"party_account": party_account,
 		"party_name": party_name,
 		"party_account_currency": account_currency,
-		"account_balance": account_balance,
 		"party_bank_account": party_bank_account,
 		"bank_account": bank_account,
 	}
@@ -2816,12 +2813,9 @@ def get_account_details(account, date, cost_center=None):
 	if not account_list:
 		frappe.throw(_("Account: {0} is not permitted under Payment Entry").format(account))
 
-	account_balance = get_balance_on(account, date, cost_center=cost_center, ignore_account_permission=True)
-
 	return frappe._dict(
 		{
 			"account_currency": get_account_currency(account),
-			"account_balance": account_balance,
 			"account_type": frappe.get_cached_value("Account", account, "account_type"),
 		}
 	)
@@ -3311,11 +3305,16 @@ def get_bank_cash_account(doc, bank_account):
 		"Bank",
 		mode_of_payment=doc.get("mode_of_payment"),
 		account=bank_account,
+		fetch_balance=False,
 	)
 
 	if not bank:
 		bank = get_default_bank_cash_account(
-			doc.company, "Cash", mode_of_payment=doc.get("mode_of_payment"), account=bank_account
+			doc.company,
+			"Cash",
+			mode_of_payment=doc.get("mode_of_payment"),
+			account=bank_account,
+			fetch_balance=False,
 		)
 
 	return bank
