@@ -143,6 +143,8 @@ function add_to_transaction(d, frm) {
 		posting_date: d.posting_date,
 		grand_total: d.grand_total,
 		customer: d.customer,
+		is_return: d.is_return,
+		return_against: d.return_against,
 		...(d.doctype === "POS Invoice" && { pos_invoice: d.name }),
 		...(d.doctype === "Sales Invoice" && { sales_invoice: d.name }),
 	});

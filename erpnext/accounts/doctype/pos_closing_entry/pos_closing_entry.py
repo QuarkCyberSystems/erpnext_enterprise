@@ -249,66 +249,12 @@ def get_cashiers(doctype, txt, searchfield, start, page_len, filters):
 def get_invoices(start, end, pos_profile, user):
 	invoice_doctype = frappe.db.get_single_value("POS Settings", "invoice_type")
 
-	SalesInvoice = DocType("Sales Invoice")
-	sales_inv_query = (
-		frappe.qb.from_(SalesInvoice)
-		.select(
-			SalesInvoice.name,
-			SalesInvoice.customer,
-			SalesInvoice.posting_date,
-			SalesInvoice.grand_total,
-			SalesInvoice.net_total,
-			SalesInvoice.total_qty,
-			SalesInvoice.total_taxes_and_charges,
-			fn.Timestamp(SalesInvoice.posting_date, SalesInvoice.posting_time).as_("timestamp"),
-			ConstantColumn("Sales Invoice").as_("doctype"),
-			SalesInvoice.change_amount,
-			SalesInvoice.account_for_change_amount,
-		)
-		.where(
-			(SalesInvoice.owner == user)
-			& (SalesInvoice.docstatus == 1)
-			& (SalesInvoice.is_pos == 1)
-			& (SalesInvoice.pos_profile == pos_profile)
-			& (SalesInvoice.is_created_using_pos == 1)
-			& fn.IfNull(SalesInvoice.pos_closing_entry, "").eq("")
-			& (
-				(fn.Timestamp(SalesInvoice.posting_date, SalesInvoice.posting_time) >= start)
-				& (fn.Timestamp(SalesInvoice.posting_date, SalesInvoice.posting_time) <= end)
-			)
-		)
-	)
+	sales_inv_query = build_invoice_query("Sales Invoice", user, pos_profile, start, end)
 
 	query = sales_inv_query
 
 	if invoice_doctype == "POS Invoice":
-		POSInvoice = DocType("POS Invoice")
-		pos_inv_query = (
-			frappe.qb.from_(POSInvoice)
-			.select(
-				POSInvoice.name,
-				POSInvoice.customer,
-				POSInvoice.posting_date,
-				POSInvoice.grand_total,
-				POSInvoice.net_total,
-				POSInvoice.total_qty,
-				POSInvoice.total_taxes_and_charges,
-				fn.Timestamp(POSInvoice.posting_date, POSInvoice.posting_time).as_("timestamp"),
-				ConstantColumn("POS Invoice").as_("doctype"),
-				POSInvoice.change_amount,
-				POSInvoice.account_for_change_amount,
-			)
-			.where(
-				(POSInvoice.owner == user)
-				& (POSInvoice.docstatus == 1)
-				& (POSInvoice.pos_profile == pos_profile)
-				& (
-					(fn.Timestamp(POSInvoice.posting_date, POSInvoice.posting_time) >= start)
-					& (fn.Timestamp(POSInvoice.posting_date, POSInvoice.posting_time) <= end)
-				)
-				& fn.IfNull(POSInvoice.consolidated_invoice, "").eq("")
-			)
-		)
+		pos_inv_query = build_invoice_query("POS Invoice", user, pos_profile, start, end)
 		query = query + pos_inv_query
 
 	query = query.orderby(query.timestamp)
@@ -421,6 +367,8 @@ def make_closing_entry_from_opening(opening_entry):
 				"posting_date": d.posting_date,
 				"grand_total": d.grand_total,
 				"customer": d.customer,
+				"is_return": d.is_return,
+				"return_against": d.return_against,
 			}
 		)
 		if d.doctype == "POS Invoice":
@@ -439,3 +387,45 @@ def make_closing_entry_from_opening(opening_entry):
 	closing_entry.set("taxes", taxes)
 
 	return closing_entry
+
+
+def build_invoice_query(invoice_doctype, user, pos_profile, start, end):
+	InvoiceDocType = DocType(invoice_doctype)
+	query = (
+		frappe.qb.from_(InvoiceDocType)
+		.select(
+			InvoiceDocType.name,
+			InvoiceDocType.customer,
+			InvoiceDocType.posting_date,
+			InvoiceDocType.grand_total,
+			InvoiceDocType.net_total,
+			InvoiceDocType.total_qty,
+			InvoiceDocType.total_taxes_and_charges,
+			InvoiceDocType.change_amount,
+			InvoiceDocType.account_for_change_amount,
+			InvoiceDocType.is_return,
+			InvoiceDocType.return_against,
+			fn.Timestamp(InvoiceDocType.posting_date, InvoiceDocType.posting_time).as_("timestamp"),
+			ConstantColumn(invoice_doctype).as_("doctype"),
+		)
+		.where(
+			(InvoiceDocType.owner == user)
+			& (InvoiceDocType.docstatus == 1)
+			& (InvoiceDocType.is_pos == 1)
+			& (InvoiceDocType.pos_profile == pos_profile)
+			& (
+				(fn.Timestamp(InvoiceDocType.posting_date, InvoiceDocType.posting_time) >= start)
+				& (fn.Timestamp(InvoiceDocType.posting_date, InvoiceDocType.posting_time) <= end)
+			)
+		)
+	)
+
+	if invoice_doctype == "POS Invoice":
+		query = query.where(fn.IfNull(InvoiceDocType.consolidated_invoice, "").eq(""))
+	else:
+		query = query.where(
+			(InvoiceDocType.is_created_using_pos == 1)
+			& fn.IfNull(InvoiceDocType.pos_closing_entry, "").eq("")
+		)
+
+	return query
