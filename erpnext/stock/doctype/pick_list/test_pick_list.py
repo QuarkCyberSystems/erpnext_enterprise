@@ -3,7 +3,7 @@
 
 import frappe
 from frappe import _dict
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 
 from erpnext.selling.doctype.sales_order.sales_order import create_pick_list
 from erpnext.selling.doctype.sales_order.test_sales_order import make_sales_order
@@ -22,15 +22,6 @@ from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import (
 )
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["Item", "Sales Invoice", "Stock Entry", "Batch"]
-
-
-class UnitTestPickList(UnitTestCase):
-	"""
-	Unit tests for PickList.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestPickList(IntegrationTestCase):

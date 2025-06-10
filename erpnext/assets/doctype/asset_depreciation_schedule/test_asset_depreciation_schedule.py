@@ -2,7 +2,7 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase, UnitTestCase
+from frappe.tests import IntegrationTestCase
 from frappe.utils import cstr, date_diff, flt, getdate
 
 from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
@@ -18,15 +18,6 @@ from erpnext.assets.doctype.asset_repair.test_asset_repair import create_asset_r
 from erpnext.assets.doctype.asset_value_adjustment.test_asset_value_adjustment import (
 	make_asset_value_adjustment,
 )
-
-
-class UnitTestAssetDepreciationSchedule(UnitTestCase):
-	"""
-	Unit tests for AssetDepreciationSchedule.
-	Use this class for testing individual functions and methods.
-	"""
-
-	pass
 
 
 class TestAssetDepreciationSchedule(IntegrationTestCase):
