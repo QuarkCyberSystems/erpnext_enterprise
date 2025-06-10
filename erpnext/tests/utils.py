@@ -182,6 +182,11 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_tax_category()
 		cls.make_account()
 		cls.make_supplier()
+		cls.make_role()
+		cls.make_department()
+		cls.make_territory()
+		cls.make_customer_group()
+		cls.make_user()
 		cls.update_stock_settings()
 
 		frappe.db.commit()
@@ -296,6 +301,196 @@ class ERPNextTestSuite(unittest.TestCase):
 				cls.projects.append(frappe.get_doc(x).insert())
 			else:
 				cls.projects.append(frappe.get_doc("Project", {"project_name": x.get("project_name")}))
+
+	@classmethod
+	def make_customer_group(cls):
+		records = [
+			{
+				"customer_group_name": "_Test Customer Group",
+				"doctype": "Customer Group",
+				"is_group": 0,
+				"parent_customer_group": "All Customer Groups",
+			},
+			{
+				"customer_group_name": "_Test Customer Group 1",
+				"doctype": "Customer Group",
+				"is_group": 0,
+				"parent_customer_group": "All Customer Groups",
+			},
+		]
+		cls.customer_group = []
+		for x in records:
+			if not frappe.db.exists("Customer Group", {"customer_group_name": x.get("customer_group_name")}):
+				cls.customer_group.append(frappe.get_doc(x).insert())
+			else:
+				cls.customer_group.append(
+					frappe.get_doc("Customer Group", {"customer_group_name": x.get("customer_group_name")})
+				)
+
+	@classmethod
+	def make_territory(cls):
+		records = [
+			{
+				"doctype": "Territory",
+				"is_group": 0,
+				"parent_territory": "All Territories",
+				"territory_name": "_Test Territory",
+			},
+			{
+				"doctype": "Territory",
+				"is_group": 1,
+				"parent_territory": "All Territories",
+				"territory_name": "_Test Territory India",
+			},
+			{
+				"doctype": "Territory",
+				"is_group": 0,
+				"parent_territory": "_Test Territory India",
+				"territory_name": "_Test Territory Maharashtra",
+			},
+			{
+				"doctype": "Territory",
+				"is_group": 0,
+				"parent_territory": "All Territories",
+				"territory_name": "_Test Territory Rest Of The World",
+			},
+			{
+				"doctype": "Territory",
+				"is_group": 0,
+				"parent_territory": "All Territories",
+				"territory_name": "_Test Territory United States",
+			},
+		]
+		cls.territories = []
+		for x in records:
+			if not frappe.db.exists("Territory", {"territory_name": x.get("territory_name")}):
+				cls.territories.append(frappe.get_doc(x).insert())
+			else:
+				cls.territories.append(
+					frappe.get_doc("Territory", {"territory_name": x.get("territory_name")})
+				)
+
+	@classmethod
+	def make_department(cls):
+		records = [
+			{
+				"doctype": "Department",
+				"department_name": "_Test Department",
+				"company": "_Test Company",
+				"parent_department": "All Departments",
+			},
+			{
+				"doctype": "Department",
+				"department_name": "_Test Department 1",
+				"company": "_Test Company",
+				"parent_department": "All Departments",
+			},
+		]
+		cls.department = []
+		for x in records:
+			if not frappe.db.exists("Department", {"department_name": x.get("department_name")}):
+				cls.department.append(frappe.get_doc(x).insert())
+			else:
+				cls.department.append(
+					frappe.get_doc("Department", {"department_name": x.get("department_name")})
+				)
+
+	@classmethod
+	def make_role(cls):
+		records = [
+			{"doctype": "Role", "role_name": "_Test Role", "desk_access": 1},
+			{"doctype": "Role", "role_name": "_Test Role 2", "desk_access": 1},
+			{"doctype": "Role", "role_name": "_Test Role 3", "desk_access": 1},
+			{"doctype": "Role", "role_name": "_Test Role 4", "desk_access": 0},
+		]
+		cls.roles = []
+		for x in records:
+			if not frappe.db.exists("Role", {"role_name": x.get("role_name")}):
+				cls.roles.append(frappe.get_doc(x).insert())
+			else:
+				cls.roles.append(frappe.get_doc("Role", {"role_name": x.get("role_name")}))
+
+	@classmethod
+	def make_user(cls):
+		records = [
+			{
+				"doctype": "User",
+				"email": "test@example.com",
+				"enabled": 1,
+				"first_name": "_Test",
+				"new_password": "Eastern_43A1W",
+				"roles": [
+					{"doctype": "Has Role", "parentfield": "roles", "role": "_Test Role"},
+					{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"},
+				],
+			},
+			{
+				"doctype": "User",
+				"email": "test1@example.com",
+				"first_name": "_Test1",
+				"new_password": "Eastern_43A1W",
+			},
+			{
+				"doctype": "User",
+				"email": "test2@example.com",
+				"first_name": "_Test2",
+				"new_password": "Eastern_43A1W",
+				"enabled": 1,
+			},
+			{
+				"doctype": "User",
+				"email": "test3@example.com",
+				"first_name": "_Test3",
+				"new_password": "Eastern_43A1W",
+				"enabled": 1,
+			},
+			{
+				"doctype": "User",
+				"email": "test4@example.com",
+				"first_name": "_Test4",
+				"new_password": "Eastern_43A1W",
+				"enabled": 1,
+			},
+			{
+				"doctype": "User",
+				"email": "test'5@example.com",
+				"first_name": "_Test'5",
+				"new_password": "Eastern_43A1W",
+				"enabled": 1,
+			},
+			{
+				"doctype": "User",
+				"email": "testperm@example.com",
+				"first_name": "_Test Perm",
+				"new_password": "Eastern_43A1W",
+				"enabled": 1,
+			},
+			{
+				"doctype": "User",
+				"email": "testdelete@example.com",
+				"enabled": 1,
+				"first_name": "_Test",
+				"new_password": "Eastern_43A1W",
+				"roles": [
+					{"doctype": "Has Role", "parentfield": "roles", "role": "_Test Role 2"},
+					{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"},
+				],
+			},
+			{
+				"doctype": "User",
+				"email": "testpassword@example.com",
+				"enabled": 1,
+				"first_name": "_Test",
+				"new_password": "Eastern_43A1W",
+				"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
+			},
+		]
+		cls.users = []
+		for x in records:
+			if not frappe.db.exists("User", {"email": x.get("email")}):
+				cls.users.append(frappe.get_doc(x).insert())
+			else:
+				cls.users.append(frappe.get_doc("User", {"email": x.get("email")}))
 
 	@classmethod
 	def make_employees(cls):
@@ -560,6 +755,23 @@ class ERPNextTestSuite(unittest.TestCase):
 				# "default_holiday_list": cls.holiday_list[0].name,
 				"enable_perpetual_inventory": 0,
 			},
+			{
+				"doctype": "Company",
+				"default_currency": "USD",
+				"full_name": "Test User",
+				"company_name": "Wind Power LLC",
+				"timezone": "America/New_York",
+				"company_abbr": "WP",
+				"industry": "Manufacturing",
+				"country": "United States",
+				# "fy_start_date": f"{current_year}-01-01",
+				# "fy_end_date": f"{current_year}-12-31",
+				"language": "english",
+				"company_tagline": "Testing",
+				"email": "test@erpnext.com",
+				"password": "test",
+				"chart_of_accounts": "Standard",
+			},
 		]
 		cls.companies = []
 		for x in records:
@@ -763,13 +975,31 @@ class ERPNextTestSuite(unittest.TestCase):
 				"company": "_Test Company",
 				"account_currency": "USD",
 			},
+			{
+				"doctype": "Account",
+				"account_name": "_Test Bank",
+				"parent_account": "Bank Accounts - _TC",
+				"company": "_Test Company",
+			},
+			{
+				"doctype": "Account",
+				"account_name": "_Test Bank",
+				"parent_account": "Bank Accounts - TCP1",
+				"company": "_Test Company with perpetual inventory",
+			},
 		]
 		cls.accounts = []
 		for x in records:
-			if not frappe.db.exists("Account", {"account_name": x.get("account_name")}):
+			if not frappe.db.exists(
+				"Account", {"account_name": x.get("account_name"), "company": x.get("company")}
+			):
 				cls.accounts.append(frappe.get_doc(x).insert())
 			else:
-				cls.accounts.append(frappe.get_doc("Account", {"account_name": x.get("account_name")}))
+				cls.accounts.append(
+					frappe.get_doc(
+						"Account", {"account_name": x.get("account_name"), "company": x.get("company")}
+					)
+				)
 
 	@classmethod
 	def make_supplier(cls):
