@@ -64,6 +64,7 @@ class StockController(AccountsController):
 		self.validate_internal_transfer()
 		self.validate_putaway_capacity()
 		self.reset_conversion_factor()
+		self.check_zero_rate()
 
 	def reset_conversion_factor(self):
 		for row in self.get("items"):
@@ -78,6 +79,27 @@ class StockController(AccountsController):
 					).format(bold(row.item_code), bold(row.uom), bold(row.stock_uom)),
 					alert=True,
 				)
+
+	def check_zero_rate(self):
+		if self.doctype in [
+			"POS Invoice",
+			"Purchase Invoice",
+			"Sales Invoice",
+			"Delivery Note",
+			"Purchase Receipt",
+			"Stock Entry",
+			"Stock Reconciliation",
+		]:
+			for item in self.get("items"):
+				if (item.get("valuation_rate") == 0 or item.get("incoming_rate") == 0) and item.get(
+					"allow_zero_valuation_rate"
+				) == 0:
+					frappe.toast(
+						_(
+							"Row #{0}: Item {1} has zero rate but 'Allow Zero Valuation Rate' is not enabled."
+						).format(item.idx, frappe.bold(item.item_code)),
+						indicator="orange",
+					)
 
 	def validate_items_exist(self):
 		if not self.get("items"):
