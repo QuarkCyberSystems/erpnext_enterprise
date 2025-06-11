@@ -672,8 +672,9 @@ def get_item_tax_info(doc, tax_category, item_codes, item_rates=None, item_tax_t
 	return out
 
 
+@frappe.whitelist()
 @erpnext.normalize_ctx_input(ItemDetailsCtx)
-def get_item_tax_template(ctx: ItemDetailsCtx, item, out: ItemDetails):
+def get_item_tax_template(ctx: ItemDetailsCtx, item=None, out: ItemDetails | None = None):
 	"""
 	Determines item_tax template from item or parent item groups.
 
@@ -691,6 +692,12 @@ def get_item_tax_template(ctx: ItemDetailsCtx, item, out: ItemDetails):
 	        "base_net_rate": float
 	        }
 	"""
+	if not item:
+		if not ctx.get("item_code"):
+			frappe.throw(_("Item/Item Code required to get Item Tax Template."))
+		else:
+			item = frappe.get_cached_doc("Item", ctx.item_code)
+
 	item_tax_template = None
 	if item.taxes:
 		item_tax_template = _get_item_tax_template(ctx, item.taxes, out)
@@ -702,8 +709,10 @@ def get_item_tax_template(ctx: ItemDetailsCtx, item, out: ItemDetails):
 			item_tax_template = _get_item_tax_template(ctx, item_group_doc.taxes, out)
 			item_group = item_group_doc.parent_item_group
 
-	if ctx.get("child_doctype") and item_tax_template:
+	if out and ctx.get("child_doctype") and item_tax_template:
 		out.update(get_fetch_values(ctx.get("child_doctype"), "item_tax_template", item_tax_template))
+
+	return item_tax_template
 
 
 @erpnext.normalize_ctx_input(ItemDetailsCtx)
