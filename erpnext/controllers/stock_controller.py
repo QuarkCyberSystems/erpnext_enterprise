@@ -64,6 +64,7 @@ class StockController(AccountsController):
 		self.validate_internal_transfer()
 		self.validate_putaway_capacity()
 		self.reset_conversion_factor()
+		self.check_zero_rate()
 
 	def reset_conversion_factor(self):
 		for row in self.get("items"):
@@ -77,6 +78,18 @@ class StockController(AccountsController):
 						"Conversion factor for item {0} has been reset to 1.0 as the uom {1} is same as stock uom {2}."
 					).format(bold(row.item_code), bold(row.uom), bold(row.stock_uom)),
 					alert=True,
+				)
+
+	def check_zero_rate(self):
+		for item in self.get("items"):
+			if (item.get("valuation_rate") == 0 or item.get("incoming_rate") == 0) and item.get(
+				"allow_zero_valuation_rate"
+			) == 0:
+				frappe.toast(
+					_(
+						"Row #{0}: Item {1} has zero rate but 'Allow Zero Valuation Rate' is not enabled."
+					).format(item.idx, frappe.bold(item.item_code)),
+					indicator="orange",
 				)
 
 	def validate_items_exist(self):
