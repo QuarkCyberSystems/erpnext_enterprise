@@ -81,16 +81,25 @@ class StockController(AccountsController):
 				)
 
 	def check_zero_rate(self):
-		for item in self.get("items"):
-			if (item.get("valuation_rate") == 0 or item.get("incoming_rate") == 0) and item.get(
-				"allow_zero_valuation_rate"
-			) == 0:
-				frappe.toast(
-					_(
-						"Row #{0}: Item {1} has zero rate but 'Allow Zero Valuation Rate' is not enabled."
-					).format(item.idx, frappe.bold(item.item_code)),
-					indicator="orange",
-				)
+		if self.doctype in [
+			"POS Invoice",
+			"Purchase Invoice",
+			"Sales Invoice",
+			"Delivery Note",
+			"Purchase Receipt",
+			"Stock Entry",
+			"Stock Reconciliation",
+		]:
+			for item in self.get("items"):
+				if (item.get("valuation_rate") == 0 or item.get("incoming_rate") == 0) and item.get(
+					"allow_zero_valuation_rate"
+				) == 0:
+					frappe.toast(
+						_(
+							"Row #{0}: Item {1} has zero rate but 'Allow Zero Valuation Rate' is not enabled."
+						).format(item.idx, frappe.bold(item.item_code)),
+						indicator="orange",
+					)
 
 	def validate_items_exist(self):
 		if not self.get("items"):
