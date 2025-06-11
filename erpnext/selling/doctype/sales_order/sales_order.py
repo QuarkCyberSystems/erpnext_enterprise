@@ -435,7 +435,7 @@ class SalesOrder(SellingController):
 		self.check_credit_limit()
 		self.update_reserved_qty()
 
-		frappe.get_doc("Authorization Control").validate_approving_authority(
+		frappe.get_cached_doc("Authorization Control").validate_approving_authority(
 			self.doctype, self.company, self.base_grand_total, self
 		)
 		self.update_project()
@@ -487,7 +487,7 @@ class SalesOrder(SellingController):
 			return
 
 		if self.project:
-			project = frappe.get_doc("Project", self.project)
+			project = frappe.get_lazy_doc("Project", self.project)
 			project.update_sales_amount()
 			project.db_update()
 
@@ -825,7 +825,7 @@ def close_or_unclose_sales_orders(names, status):
 
 	names = json.loads(names)
 	for name in names:
-		so = frappe.get_doc("Sales Order", name)
+		so = frappe.get_lazy_doc("Sales Order", name)
 		if so.docstatus == 1:
 			if status == "Closed":
 				if so.status not in ("Cancelled", "Closed") and (

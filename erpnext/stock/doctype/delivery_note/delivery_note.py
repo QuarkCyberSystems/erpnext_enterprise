@@ -639,7 +639,7 @@ class DeliveryNote(SellingController):
 				updated_delivery_notes += update_billed_amount_based_on_so(d.so_detail, update_modified)
 
 		for dn in set(updated_delivery_notes):
-			dn_doc = self if (dn == self.name) else frappe.get_doc("Delivery Note", dn)
+			dn_doc = self if (dn == self.name) else frappe.get_lazy_doc("Delivery Note", dn)
 			dn_doc.update_billing_percentage(update_modified=update_modified)
 
 		self.load_from_db()
@@ -1102,7 +1102,7 @@ def make_sales_return(source_name, target_doc=None):
 
 @frappe.whitelist()
 def update_delivery_note_status(docname, status):
-	dn = frappe.get_doc("Delivery Note", docname)
+	dn = frappe.get_lazy_doc("Delivery Note", docname)
 	dn.update_status(status)
 
 

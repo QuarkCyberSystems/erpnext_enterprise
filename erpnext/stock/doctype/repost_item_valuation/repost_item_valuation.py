@@ -390,7 +390,7 @@ def _get_directly_dependent_vouchers(doc):
 	warehouses = set()
 
 	if doc.based_on == "Transaction":
-		ref_doc = frappe.get_doc(doc.voucher_type, doc.voucher_no)
+		ref_doc = frappe.get_lazy_doc(doc.voucher_type, doc.voucher_no)
 		doc_items, doc_warehouses = ref_doc.get_items_and_warehouses()
 		items.update(doc_items)
 		warehouses.update(doc_warehouses)

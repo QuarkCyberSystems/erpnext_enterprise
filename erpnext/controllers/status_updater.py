@@ -559,7 +559,7 @@ class StatusUpdater(Document):
 				)
 
 		if update_data:
-			target = frappe.get_doc(args["target_parent_dt"], args["name"])
+			target = frappe.get_lazy_doc(args["target_parent_dt"], args["name"])
 			target.update(update_data)  # status calculus might depend on it
 			status = target.get_status()
 			if status.get("status"):
@@ -619,7 +619,7 @@ class StatusUpdater(Document):
 
 			per_billed = safe_div(min(ref_doc_qty, billed_qty), ref_doc_qty) * 100
 
-			ref_doc = frappe.get_doc(ref_dt, ref_dn)
+			ref_doc = frappe.get_lazy_doc(ref_dt, ref_dn)
 
 			ref_doc.db_set("per_billed", per_billed)
 

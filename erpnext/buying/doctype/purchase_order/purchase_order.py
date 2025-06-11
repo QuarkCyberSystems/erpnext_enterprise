@@ -498,7 +498,7 @@ class PurchaseOrder(BuyingController):
 		self.validate_budget()
 		self.update_reserved_qty_for_subcontract()
 
-		frappe.get_doc("Authorization Control").validate_approving_authority(
+		frappe.get_cached_doc("Authorization Control").validate_approving_authority(
 			self.doctype, self.company, self.base_grand_total
 		)
 
@@ -594,7 +594,7 @@ class PurchaseOrder(BuyingController):
 					sales_orders_to_update.append(item.sales_order)
 
 		for so_name in sales_orders_to_update:
-			so = frappe.get_doc("Sales Order", so_name)
+			so = frappe.get_lazy_doc("Sales Order", so_name)
 			so.update_delivery_status()
 			so.set_status(update=True)
 			so.notify_update()
@@ -725,7 +725,7 @@ def close_or_unclose_purchase_orders(names, status):
 
 	names = json.loads(names)
 	for name in names:
-		po = frappe.get_doc("Purchase Order", name)
+		po = frappe.get_lazy_doc("Purchase Order", name)
 		if po.docstatus == 1:
 			if status == "Closed":
 				if po.status not in ("Cancelled", "Closed") and (
@@ -902,7 +902,7 @@ def get_list_context(context=None):
 
 @frappe.whitelist()
 def update_status(status, name):
-	po = frappe.get_doc("Purchase Order", name)
+	po = frappe.get_lazy_doc("Purchase Order", name)
 	po.update_status(status)
 	po.update_delivered_qty_in_sales_order()
 

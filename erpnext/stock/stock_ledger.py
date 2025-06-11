@@ -1225,7 +1225,7 @@ class update_entries_after:
 		return False
 
 	def recalculate_amounts_in_stock_entry(self, voucher_no, voucher_detail_no):
-		stock_entry = frappe.get_doc("Stock Entry", voucher_no, for_update=True)
+		stock_entry = frappe.get_lazy_doc("Stock Entry", voucher_no, for_update=True)
 		stock_entry.calculate_rate_and_amount(reset_outgoing_rate=False, raise_error_if_no_rate=False)
 		stock_entry.db_update()
 		for d in stock_entry.items:
@@ -1268,7 +1268,7 @@ class update_entries_after:
 
 		# Recalculate subcontracted item's rate in case of subcontracted purchase receipt/invoice
 		if frappe.get_cached_value(sle.voucher_type, sle.voucher_no, "is_subcontracted"):
-			doc = frappe.get_doc(sle.voucher_type, sle.voucher_no)
+			doc = frappe.get_lazy_doc(sle.voucher_type, sle.voucher_no)
 			doc.update_valuation_rate(reset_outgoing_rate=False)
 			for d in doc.items + doc.supplied_items:
 				d.db_update()
@@ -1283,7 +1283,7 @@ class update_entries_after:
 				{"rate": outgoing_rate, "amount": abs(sle.actual_qty) * outgoing_rate},
 			)
 
-		scr = frappe.get_doc("Subcontracting Receipt", sle.voucher_no, for_update=True)
+		scr = frappe.get_lazy_doc("Subcontracting Receipt", sle.voucher_no, for_update=True)
 		scr.calculate_items_qty_and_amount()
 		scr.db_update()
 		for d in scr.items:
@@ -1291,7 +1291,7 @@ class update_entries_after:
 
 	def update_rate_on_stock_reconciliation(self, sle):
 		if not sle.serial_no and not sle.batch_no:
-			sr = frappe.get_doc("Stock Reconciliation", sle.voucher_no, for_update=True)
+			sr = frappe.get_lazy_doc("Stock Reconciliation", sle.voucher_no, for_update=True)
 
 			for item in sr.items:
 				# Skip for Serial and Batch Items

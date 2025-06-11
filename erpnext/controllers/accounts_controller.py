@@ -150,10 +150,7 @@ class AccountsController(TransactionBase):
 		supplier = None
 
 		if supplier_name:
-			supplier = frappe.get_doc(
-				"Supplier",
-				supplier_name,
-			)
+			supplier = frappe.get_lazy_doc("Supplier", supplier_name)
 
 		if supplier and supplier.on_hold:
 			if (is_buying_invoice and supplier.hold_type in ["All", "Invoices"]) or (
@@ -3918,7 +3915,7 @@ def update_child_qty_rate(parent_doctype, trans_items, parent_doctype_name, chil
 	if parent_doctype == "Sales Order":
 		make_packing_list(parent)
 		parent.set_gross_profit()
-	frappe.get_doc("Authorization Control").validate_approving_authority(
+	frappe.get_cached_doc("Authorization Control").validate_approving_authority(
 		parent.doctype, parent.company, parent.base_grand_total
 	)
 

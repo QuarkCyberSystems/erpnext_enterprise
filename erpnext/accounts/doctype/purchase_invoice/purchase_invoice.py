@@ -749,7 +749,7 @@ class PurchaseInvoice(BuyingController):
 		self.update_status_updater_args()
 		self.update_prevdoc_status()
 
-		frappe.get_doc("Authorization Control").validate_approving_authority(
+		frappe.get_cached_doc("Authorization Control").validate_approving_authority(
 			self.doctype, self.company, self.base_grand_total
 		)
 
@@ -1718,7 +1718,7 @@ class PurchaseInvoice(BuyingController):
 			res = frappe.qb.from_(pj).select(pj.total_purchase_cost).where(pj.name == proj).for_update().run()
 			current_purchase_cost = res and res[0][0] or 0
 			# frappe.db.set_value("Project", proj, "total_purchase_cost", current_purchase_cost + value)
-			project_doc = frappe.get_doc("Project", proj)
+			project_doc = frappe.get_lazy_doc("Project", proj)
 			project_doc.total_purchase_cost = current_purchase_cost + value
 			project_doc.calculate_gross_margin()
 			project_doc.db_update()
@@ -1790,7 +1790,7 @@ class PurchaseInvoice(BuyingController):
 		for pr in set(updated_pr):
 			from erpnext.stock.doctype.purchase_receipt.purchase_receipt import update_billing_percentage
 
-			pr_doc = frappe.get_doc("Purchase Receipt", pr)
+			pr_doc = frappe.get_lazy_doc("Purchase Receipt", pr)
 			update_billing_percentage(
 				pr_doc, update_modified=update_modified, adjust_incoming_rate=adjust_incoming_rate
 			)
@@ -2046,21 +2046,21 @@ def make_stock_entry(source_name, target_doc=None):
 @frappe.whitelist()
 def change_release_date(name, release_date=None):
 	if frappe.db.exists("Purchase Invoice", name):
-		pi = frappe.get_doc("Purchase Invoice", name)
+		pi = frappe.get_lazy_doc("Purchase Invoice", name)
 		pi.db_set("release_date", release_date)
 
 
 @frappe.whitelist()
 def unblock_invoice(name):
 	if frappe.db.exists("Purchase Invoice", name):
-		pi = frappe.get_doc("Purchase Invoice", name)
+		pi = frappe.get_lazy_doc("Purchase Invoice", name)
 		pi.unblock_invoice()
 
 
 @frappe.whitelist()
 def block_invoice(name, release_date, hold_comment=None):
 	if frappe.db.exists("Purchase Invoice", name):
-		pi = frappe.get_doc("Purchase Invoice", name)
+		pi = frappe.get_lazy_doc("Purchase Invoice", name)
 		pi.block_invoice(hold_comment, release_date)
 
 

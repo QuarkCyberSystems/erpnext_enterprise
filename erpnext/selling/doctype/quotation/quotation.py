@@ -284,7 +284,7 @@ class Quotation(SellingController):
 
 	def on_submit(self):
 		# Check for Approving Authority
-		frappe.get_doc("Authorization Control").validate_approving_authority(
+		frappe.get_cached_doc("Authorization Control").validate_approving_authority(
 			self.doctype, self.company, self.base_grand_total, self
 		)
 

@@ -793,7 +793,7 @@ class BuyingController(SubcontractingController):
 
 		for po, po_item_rows in po_map.items():
 			if po and po_item_rows:
-				po_obj = frappe.get_doc("Purchase Order", po)
+				po_obj = frappe.get_lazy_doc("Purchase Order", po)
 
 				if po_obj.status in ["Closed", "Cancelled"]:
 					frappe.throw(

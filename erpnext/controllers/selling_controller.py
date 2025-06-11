@@ -123,7 +123,7 @@ class SellingController(StockController):
 
 	def remove_shipping_charge(self):
 		if self.shipping_rule:
-			shipping_rule = frappe.get_doc("Shipping Rule", self.shipping_rule)
+			shipping_rule = frappe.get_last_doc("Shipping Rule", self.shipping_rule)
 			existing_shipping_charge = self.get(
 				"taxes",
 				{
@@ -463,7 +463,7 @@ class SellingController(StockController):
 
 		for so, so_item_rows in so_map.items():
 			if so and so_item_rows:
-				sales_order = frappe.get_doc("Sales Order", so)
+				sales_order = frappe.get_lazy_doc("Sales Order", so)
 
 				if (sales_order.status == "Closed" and not self.is_return) or sales_order.status in [
 					"Cancelled"

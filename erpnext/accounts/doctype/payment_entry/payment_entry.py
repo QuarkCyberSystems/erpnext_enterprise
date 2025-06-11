@@ -498,7 +498,7 @@ class PaymentEntry(AccountsController):
 	def delink_advance_entry_references(self):
 		for reference in self.references:
 			if reference.reference_doctype in ("Sales Invoice", "Purchase Invoice"):
-				doc = frappe.get_doc(reference.reference_doctype, reference.reference_name)
+				doc = frappe.get_lazy_doc(reference.reference_doctype, reference.reference_name)
 				doc.delink_advance_entries(self.name)
 
 	def set_missing_values(self):
@@ -661,7 +661,7 @@ class PaymentEntry(AccountsController):
 				if not frappe.db.exists(d.reference_doctype, d.reference_name):
 					frappe.throw(_("{0} {1} does not exist").format(d.reference_doctype, d.reference_name))
 
-				ref_doc = frappe.get_doc(d.reference_doctype, d.reference_name)
+				ref_doc = frappe.get_lazy_doc(d.reference_doctype, d.reference_name)
 
 				if d.reference_doctype != "Journal Entry":
 					if self.party != ref_doc.get(scrub(self.party_type)):
@@ -1785,7 +1785,7 @@ class PaymentEntry(AccountsController):
 		)
 		for d in self.get("references"):
 			if d.allocated_amount and d.reference_doctype in advance_payment_doctypes:
-				frappe.get_doc(
+				frappe.get_lazy_doc(
 					d.reference_doctype, d.reference_name, for_update=True
 				).set_total_advance_paid()
 
@@ -2865,7 +2865,7 @@ def get_reference_details(
 ):
 	total_amount = outstanding_amount = exchange_rate = account = None
 
-	ref_doc = frappe.get_doc(reference_doctype, reference_name)
+	ref_doc = frappe.get_lazy_doc(reference_doctype, reference_name)
 	company_currency = ref_doc.get("company_currency") or erpnext.get_company_currency(ref_doc.company)
 
 	# Only applies for Reverse Payment Entries
