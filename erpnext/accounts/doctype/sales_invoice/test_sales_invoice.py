@@ -843,6 +843,10 @@ class TestSalesInvoice(ERPNextTestSuite):
 		w = self.make()
 		self.assertEqual(w.outstanding_amount, w.base_rounded_total)
 
+	@IntegrationTestCase.change_settings(
+		"Accounts Settings",
+		{"add_taxes_from_item_tax_template": 0, "add_taxes_from_taxes_and_charges_template": 0},
+	)
 	def test_rounded_total_with_cash_discount(self):
 		si = frappe.copy_doc(self.globalTestRecords["Sales Invoice"][2])
 
