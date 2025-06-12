@@ -167,8 +167,8 @@ class TestInventoryDimension(IntegrationTestCase):
 			"Delivery Note", dict(fieldname="rack", label="Rack", fieldtype="Link", options="Rack")
 		)
 
-		frappe.reload_doc("stock", "doctype", "purchase_receipt_item")
-		frappe.reload_doc("stock", "doctype", "delivery_note_item")
+		frappe.clear_cache(doctype="Purchase Receipt")
+		frappe.clear_cache(doctype="Delivery Note")
 
 		pr_doc = make_purchase_receipt(qty=2, do_not_submit=True)
 		pr_doc.rack = "Rack 1"
