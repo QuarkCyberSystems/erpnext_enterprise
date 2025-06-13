@@ -10,15 +10,17 @@ def execute():
 	purchase_invoices = frappe.db.sql(
 		"""
 		select
-			parenttype as type, parent as name
+			PI.company, PI_ADV.parenttype as type, PI_ADV.parent as name
 		from
-			`tabPurchase Invoice Advance`
+			`tabPurchase Invoice Advance` as PI_ADV join `tabPurchase Invoice` as PI
+		on
+			PI_ADV.parent = PI.name
 		where
-			ref_exchange_rate = 1
-			and docstatus = 1
-			and ifnull(exchange_gain_loss, 0) != 0
+			PI_ADV.ref_exchange_rate = 1
+			and PI_ADV.docstatus = 1
+			and ifnull(PI_ADV.exchange_gain_loss, 0) != 0
 		group by
-			parent
+			PI_ADV.parent
 	""",
 		as_dict=1,
 	)
@@ -26,15 +28,17 @@ def execute():
 	sales_invoices = frappe.db.sql(
 		"""
 		select
-			parenttype as type, parent as name
+			SI.company, SI_ADV.parenttype as type, SI_ADV.parent as name
 		from
-			`tabSales Invoice Advance`
+			`tabSales Invoice Advance` as SI_ADV join `tabSales Invoice` as SI
+		on
+			SI_ADV.parent = SI.name
 		where
-			ref_exchange_rate = 1
-			and docstatus = 1
-			and ifnull(exchange_gain_loss, 0) != 0
+			SI_ADV.ref_exchange_rate = 1
+			and SI_ADV.docstatus = 1
+			and ifnull(SI_ADV.exchange_gain_loss, 0) != 0
 		group by
-			parent
+			SI_ADV.parent
 	""",
 		as_dict=1,
 	)
@@ -45,11 +49,21 @@ def execute():
 			message=json.dumps(purchase_invoices + sales_invoices, indent=2),
 		)
 
-	acc_frozen_upto = frappe.db.get_single_value("Accounts Settings", "acc_frozen_upto")
-	if acc_frozen_upto:
-		frappe.db.set_single_value("Accounts Settings", "acc_frozen_upto", None)
+	original_frozen_dates = {}
 
 	for invoice in purchase_invoices + sales_invoices:
+		company = invoice.company
+
+		# Unfreeze only once per company
+		if company not in original_frozen_dates:
+			accounts_frozen_till_date = frappe.get_cached_value(
+				"Company", company, "accounts_frozen_till_date"
+			)
+			original_frozen_dates[company] = accounts_frozen_till_date
+
+			if accounts_frozen_till_date:
+				frappe.db.set_value("Company", company, "accounts_frozen_till_date", None)
+
 		try:
 			doc = frappe.get_doc(invoice.type, invoice.name)
 			doc.docstatus = 2
@@ -64,5 +78,6 @@ def execute():
 			frappe.db.rollback()
 			print(f"Failed to correct gl entries of {invoice.name}")
 
-	if acc_frozen_upto:
-		frappe.db.set_single_value("Accounts Settings", "acc_frozen_upto", acc_frozen_upto)
+	for company, frozen_date in original_frozen_dates.items():
+		if frozen_date:
+			frappe.db.set_value("Company", company, "accounts_frozen_till_date", frozen_date)

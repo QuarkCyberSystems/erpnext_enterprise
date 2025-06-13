@@ -58,9 +58,9 @@ def execute():
 		):
 			posting_date = period_closing_voucher[0].period_end_date
 
-		acc_frozen_upto = frappe.db.get_single_value("Accounts Settings", "acc_frozen_upto")
-		if acc_frozen_upto and getdate(acc_frozen_upto) > getdate(posting_date):
-			posting_date = acc_frozen_upto
+		acc_frozen_till_date = frappe.db.get_value("Company", company, "accounts_frozen_till_date")
+		if acc_frozen_till_date and getdate(acc_frozen_till_date) > getdate(posting_date):
+			posting_date = acc_frozen_till_date
 
 		stock_frozen_upto = frappe.db.get_single_value("Stock Settings", "stock_frozen_upto")
 		if stock_frozen_upto and getdate(stock_frozen_upto) > getdate(posting_date):
