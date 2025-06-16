@@ -67,9 +67,9 @@ frappe.ui.form.on("Purchase Order", {
 		}
 	},
 
-	transaction_date(frm){
+	transaction_date(frm) {
 		prevent_past_schedule_dates(frm);
-		frm.set_value('schedule_date', '')
+		frm.set_value("schedule_date", "");
 	},
 
 	refresh: function (frm) {
@@ -847,9 +847,9 @@ frappe.ui.form.on("Purchase Order", "is_subcontracted", function (frm) {
 });
 
 function prevent_past_schedule_dates(frm) {
-	if (frm.doc.transaction_date){
-		frm.fields_dict['schedule_date'].datepicker.update({
-			minDate: new Date(frm.doc.transaction_date)
+	if (frm.doc.transaction_date) {
+		frm.fields_dict["schedule_date"].datepicker.update({
+			minDate: new Date(frm.doc.transaction_date),
 		});
 	}
 }
