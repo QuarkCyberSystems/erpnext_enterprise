@@ -96,7 +96,7 @@ frappe.ui.form.on("Material Request", {
 
 	transaction_date(frm) {
 		prevent_past_schedule_dates(frm);
-		frm.set_value('schedule_date', "");
+		frm.set_value("schedule_date", "");
 	},
 
 	set_from_warehouse: function (frm) {
