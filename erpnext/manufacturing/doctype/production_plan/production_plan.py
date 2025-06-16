@@ -1245,6 +1245,7 @@ def get_exploded_items(item_details, company, bom_no, include_non_stock_items, p
 			item.purchase_uom,
 			item_uom.conversion_factor,
 			item.safety_stock,
+			bom.item.as_("main_bom_item"),
 		)
 		.where(
 			(bei.docstatus < 2)
@@ -1993,6 +1994,7 @@ def get_raw_materials_of_sub_assembly_items(
 			item.purchase_uom,
 			item_uom.conversion_factor,
 			item.safety_stock,
+			bom.item.as_("main_bom_item"),
 		)
 		.where(
 			(bei.docstatus == 1)
