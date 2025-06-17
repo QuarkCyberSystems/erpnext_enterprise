@@ -115,7 +115,7 @@ class SerialandBatchBundle(Document):
 			return
 
 		self.allow_existing_serial_nos()
-		if not self.flags.ignore_validate_serial_batch or frappe.flags.in_test:
+		if not self.flags.ignore_validate_serial_batch or frappe.in_test:
 			self.validate_serial_nos_duplicate()
 			self.check_future_entries_exists()
 

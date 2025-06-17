@@ -229,7 +229,7 @@ class StockController(AccountsController):
 			return
 
 		# To handle test cases
-		if frappe.flags.in_test and frappe.flags.use_serial_and_batch_fields:
+		if frappe.in_test and frappe.flags.use_serial_and_batch_fields:
 			return
 
 		if not table_name:

@@ -602,7 +602,7 @@ def _ensure_idle_system():
 	# 1. Correctness: It's next to impossible to ensure that renamed account is not being used *right now*.
 	# 2. Performance: Renaming requires locking out many tables entirely and severely degrades performance.
 
-	if frappe.flags.in_test:
+	if frappe.in_test:
 		return
 
 	last_gl_update = None

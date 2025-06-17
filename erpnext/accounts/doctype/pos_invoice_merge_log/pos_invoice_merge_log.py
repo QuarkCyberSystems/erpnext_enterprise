@@ -492,7 +492,7 @@ def split_invoices_by_accounting_dimension(pos_invoices):
 
 def consolidate_pos_invoices(pos_invoices=None, closing_entry=None):
 	invoices = pos_invoices or (closing_entry and closing_entry.get("pos_invoices"))
-	if frappe.flags.in_test and not invoices:
+	if frappe.in_test and not invoices:
 		invoices = get_all_unconsolidated_invoices()
 
 	invoice_by_customer = get_invoice_customer_map(invoices)
@@ -654,7 +654,7 @@ def enqueue_job(job, **kwargs):
 			timeout=10000,
 			event="processing_merge_logs",
 			job_id=job_id,
-			now=frappe.conf.developer_mode or frappe.flags.in_test,
+			now=frappe.conf.developer_mode or frappe.in_test,
 		)
 
 		if job == create_merge_logs:
@@ -666,7 +666,7 @@ def enqueue_job(job, **kwargs):
 
 
 def check_scheduler_status():
-	if is_scheduler_inactive() and not frappe.flags.in_test:
+	if is_scheduler_inactive() and not frappe.in_test:
 		frappe.throw(_("Scheduler is inactive. Cannot enqueue job."), title=_("Scheduler Inactive"))
 
 

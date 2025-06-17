@@ -378,7 +378,7 @@ def update_args_in_repost_item_valuation(doc, index, args, distinct_item_warehou
 			}
 		)
 
-	if not frappe.flags.in_test:
+	if not frappe.in_test:
 		frappe.db.commit()
 
 	frappe.publish_realtime(

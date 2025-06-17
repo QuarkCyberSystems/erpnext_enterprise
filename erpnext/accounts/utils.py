@@ -1480,7 +1480,7 @@ def repost_gle_for_stock_vouchers(
 			else:
 				_delete_accounting_ledger_entries(voucher_type, voucher_no)
 
-		if not frappe.flags.in_test:
+		if not frappe.in_test:
 			frappe.db.commit()
 
 		if repost_doc:
