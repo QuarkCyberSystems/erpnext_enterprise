@@ -171,6 +171,7 @@ class AssetValueAdjustment(Document):
 		asset = self.update_asset_value_after_depreciation()
 		note = self.get_adjustment_note()
 		reschedule_depreciation(asset, note)
+		asset.set_status()
 
 	def update_asset_value_after_depreciation(self):
 		difference_amount = self.difference_amount if self.docstatus == 1 else -1 * self.difference_amount
