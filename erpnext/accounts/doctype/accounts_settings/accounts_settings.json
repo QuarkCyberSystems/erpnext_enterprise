@@ -46,6 +46,7 @@
   "role_to_override_stop_action",
   "currency_exchange_section",
   "allow_stale",
+  "allow_pegged_currencies_exchange_rates",
   "column_break_yuug",
   "stale_days",
   "section_break_jpd0",
@@ -614,6 +615,13 @@
   {
    "fieldname": "column_break_feyo",
    "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Enable this field to fetch the exchange rates for Pegged Currencies.\n\n",
+   "fieldname": "allow_pegged_currencies_exchange_rates",
+   "fieldtype": "Check",
+   "label": "Allow Pegged Currencies Exchange Rates"
   }
  ],
  "grid_page_length": 50,
@@ -622,7 +630,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-06-06 11:03:28.095723",
+ "modified": "2025-06-16 16:40:54.871486",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Accounts Settings",
