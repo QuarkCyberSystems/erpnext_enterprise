@@ -993,6 +993,7 @@ class PurchaseReceipt(BuyingController):
 
 		production_plan_references = self.get_production_plan_references()
 		production_plan_items = []
+		self.reload()
 
 		docnames = []
 		for row in self.items:
@@ -1007,6 +1008,7 @@ class PurchaseReceipt(BuyingController):
 						"from_voucher_no": self.name,
 						"from_voucher_detail_no": row.name,
 						"from_voucher_type": self.doctype,
+						"serial_and_batch_bundles": [row.serial_and_batch_bundle],
 					}
 				)
 
