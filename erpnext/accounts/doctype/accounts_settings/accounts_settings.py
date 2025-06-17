@@ -11,7 +11,6 @@ from frappe.model.document import Document
 from frappe.utils import cint
 
 from erpnext.accounts.utils import sync_auto_reconcile_config
-from erpnext.stock.utils import check_pending_reposting
 
 
 class AccountsSettings(Document):
@@ -98,8 +97,8 @@ class AccountsSettings(Document):
 		if old_doc.show_payment_schedule_in_print != self.show_payment_schedule_in_print:
 			self.enable_payment_schedule_in_print()
 
-		if old_doc.acc_frozen_upto != self.acc_frozen_upto:
-			self.validate_pending_reposts()
+		if old_doc.use_sales_invoice_in_pos != self.use_sales_invoice_in_pos:
+			self.validate_invoice_mode_switch_in_pos()
 
 		if clear_cache:
 			frappe.clear_cache()
@@ -126,10 +125,6 @@ class AccountsSettings(Document):
 				"Check",
 				validate_fields_for_doctype=False,
 			)
-
-	def validate_pending_reposts(self):
-		if self.acc_frozen_upto:
-			check_pending_reposting(self.acc_frozen_upto)
 
 	def validate_and_sync_auto_reconcile_config(self):
 		if self.has_value_changed("auto_reconciliation_job_trigger"):
