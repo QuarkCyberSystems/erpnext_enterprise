@@ -45,8 +45,7 @@ frappe.ui.form.on("Job Card", {
 
 	setup_stock_entry(frm) {
 		if (
-			frm.doc.manufactured_qty &&
-			frm.doc.finished_good &&
+			frm.doc.track_semi_finished_goods &&
 			frm.doc.docstatus === 1 &&
 			!frm.doc.is_subcontracted &&
 			flt(frm.doc.for_quantity) + flt(frm.doc.process_loss_qty) > flt(frm.doc.manufactured_qty)
@@ -252,7 +251,6 @@ frappe.ui.form.on("Job Card", {
 				fieldtype: "Float",
 				label: __("Process Loss Quantity"),
 				fieldname: "process_loss_qty",
-				reqd: 1,
 				onchange() {
 					let doc = frm.job_completion_dialog;
 
