@@ -13,6 +13,7 @@ import erpnext
 from erpnext.assets.doctype.asset.asset import get_asset_value_after_depreciation
 from erpnext.assets.doctype.asset.depreciation import (
 	depreciate_asset,
+	get_disposal_account_and_cost_center,
 	get_gl_entries_on_asset_disposal,
 	get_value_after_depreciation_on_disposal_date,
 	reset_depreciation_schedule,
@@ -429,7 +430,11 @@ class AssetCapitalization(StockController):
 		self.get_gl_entries_for_consumed_asset_items(gl_entries, target_account, target_against, precision)
 		self.get_gl_entries_for_consumed_service_items(gl_entries, target_account, target_against, precision)
 
-		self.get_gl_entries_for_target_item(gl_entries, target_account, target_against, precision)
+		composite_component_value = self.get_composite_component_value()
+
+		self.get_gl_entries_for_target_item(
+			gl_entries, target_account, target_against, precision, composite_component_value
+		)
 
 		return gl_entries
 
@@ -481,33 +486,33 @@ class AssetCapitalization(StockController):
 		for item in self.asset_items:
 			asset = frappe.get_doc("Asset", item.asset)
 
-			if asset.calculate_depreciation:
-				notes = _(
-					"This schedule was created when Asset {0} was consumed through Asset Capitalization {1}."
-				).format(
-					get_link_to_form(asset.doctype, asset.name),
-					get_link_to_form(self.doctype, self.get("name")),
-				)
-				depreciate_asset(asset, self.posting_date, notes)
-				asset.reload()
+			if not asset.is_composite_component:
+				if asset.calculate_depreciation:
+					notes = _(
+						"This schedule was created when Asset {0} was consumed through Asset Capitalization {1}."
+					).format(
+						get_link_to_form(asset.doctype, asset.name),
+						get_link_to_form(self.doctype, self.get("name")),
+					)
+					depreciate_asset(asset, self.posting_date, notes)
+					asset.reload()
 
-			fixed_asset_gl_entries = get_gl_entries_on_asset_disposal(
-				asset,
-				item.asset_value,
-				item.get("finance_book") or self.get("finance_book"),
-				self.get("doctype"),
-				self.get("name"),
-				self.get("posting_date"),
-			)
+				fixed_asset_gl_entries = get_gl_entries_on_asset_disposal(
+					asset,
+					item.asset_value,
+					item.get("finance_book") or self.get("finance_book"),
+					self.get("doctype"),
+					self.get("name"),
+					self.get("posting_date"),
+				)
+
+				for gle in fixed_asset_gl_entries:
+					gle["against"] = target_account
+					gl_entries.append(self.get_gl_dict(gle, item=item))
+					target_against.add(gle["account"])
 
 			asset.db_set("disposal_date", self.posting_date)
-
 			self.set_consumed_asset_status(asset)
-
-			for gle in fixed_asset_gl_entries:
-				gle["against"] = target_account
-				gl_entries.append(self.get_gl_dict(gle, item=item))
-				target_against.add(gle["account"])
 
 	def get_gl_entries_for_consumed_service_items(
 		self, gl_entries, target_account, target_against, precision
@@ -531,21 +536,33 @@ class AssetCapitalization(StockController):
 				)
 			)
 
-	def get_gl_entries_for_target_item(self, gl_entries, target_account, target_against, precision):
+	def get_composite_component_value(self):
+		composite_component_value = 0
+		for item in self.asset_items:
+			asset = frappe.db.get_value("Asset", item.asset, ["is_composite_component"], as_dict=True)
+			if asset and asset.is_composite_component:
+				composite_component_value += flt(item.asset_value, item.precision("asset_value"))
+		return composite_component_value
+
+	def get_gl_entries_for_target_item(
+		self, gl_entries, target_account, target_against, precision, composite_component_value
+	):
 		if self.target_is_fixed_asset:
-			# Capitalization
-			gl_entries.append(
-				self.get_gl_dict(
-					{
-						"account": target_account,
-						"against": ", ".join(target_against),
-						"remarks": self.get("remarks") or _("Accounting Entry for Asset"),
-						"debit": flt(self.total_value, precision),
-						"cost_center": self.get("cost_center"),
-					},
-					item=self,
+			total_value = flt(self.total_value - composite_component_value, precision)
+			if total_value:
+				# Capitalization
+				gl_entries.append(
+					self.get_gl_dict(
+						{
+							"account": target_account,
+							"against": ", ".join(target_against),
+							"remarks": self.get("remarks") or _("Accounting Entry for Asset"),
+							"debit": total_value,
+							"cost_center": self.get("cost_center"),
+						},
+						item=self,
+					)
 				)
-			)
 
 	def update_target_asset(self):
 		total_target_asset_value = flt(self.total_value, self.precision("total_value"))
