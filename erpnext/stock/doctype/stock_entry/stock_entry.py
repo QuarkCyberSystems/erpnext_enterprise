@@ -302,6 +302,7 @@ class StockEntry(StockController):
 			self.set_material_request_transfer_status("In Transit")
 
 	def on_update(self):
+		super().on_update()
 		self.set_serial_and_batch_bundle()
 
 	def set_job_card_data(self):
