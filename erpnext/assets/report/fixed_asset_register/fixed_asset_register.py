@@ -204,7 +204,7 @@ def get_data(filters):
 		"purchase_invoice",
 		"opening_accumulated_depreciation",
 	]
-	assets_record = frappe.db.get_all("Asset", filters=conditions, fields=fields, debug=1)
+	assets_record = frappe.db.get_all("Asset", filters=conditions, fields=fields)
 
 	for asset in assets_record:
 		if assets_linked_to_fb and asset.calculate_depreciation and asset.asset_id not in assets_linked_to_fb:
