@@ -1660,14 +1660,16 @@ class StockEntry(StockController):
 					)
 
 					account_currency = get_account_currency(item.expense_account)
+
+					# credit amount in negative to knock off the debit entry
 					gl_entries.append(
 						self.get_gl_dict(
 							{
 								"account": item.expense_account,
-								"against": account,
+								"against": warehouse_account.get(item.t_warehouse)["account"],
 								"cost_center": item.cost_center,
-								"debit": credit_amount,
-								"credit": 0.0,
+								"debit": 0.0,
+								"credit": credit_amount * -1,
 								"remarks": _("Accounting Entry for LCV in Stock Entry {0}").format(self.name),
 								"debit_in_account_currency": flt(amount["amount"]),
 								"account_currency": account_currency,
