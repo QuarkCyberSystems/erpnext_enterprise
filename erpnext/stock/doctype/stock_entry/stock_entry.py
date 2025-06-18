@@ -1022,12 +1022,12 @@ class StockEntry(StockController):
 
 			if d.transfer_qty:
 				d.amount = flt(
-					flt(d.basic_amount) + flt(d.additional_cost) + flt(d.landed_cost_voucher_amount),
+					flt(flt(d.basic_amount) + flt(d.additional_cost) + flt(d.landed_cost_voucher_amount)),
 					d.precision("amount"),
 				)
 				# Do not round off valuation rate to avoid precision loss
 				d.valuation_rate = flt(d.basic_rate) + (
-					flt(d.additional_cost) + flt(d.landed_cost_voucher_amount) / flt(d.transfer_qty)
+					flt(flt(d.additional_cost) + flt(d.landed_cost_voucher_amount)) / flt(d.transfer_qty)
 				)
 
 	def set_total_incoming_outgoing_value(self):
