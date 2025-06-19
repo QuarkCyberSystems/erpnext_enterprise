@@ -777,12 +777,14 @@ class SubcontractingReceipt(SubcontractingController):
 						)
 
 						account_currency = get_account_currency(item.expense_account)
+
+						# credit amount in negative to knock off the debit entry
 						self.add_gl_entry(
 							gl_entries=gl_entries,
 							account=item.expense_account,
 							cost_center=item.cost_center,
-							debit=credit_amount,
-							credit=0.0,
+							debit=0.0,
+							credit=credit_amount * -1,
 							remarks=remarks,
 							against_account=warehouse_account.get(item.warehouse)["account"],
 							debit_in_account_currency=flt(amount["amount"]),
