@@ -1020,7 +1020,7 @@ class StockController(AccountsController):
 								fieldname = f"{dimension.source_fieldname}"
 
 							sl_dict[dimension.target_fieldname] = row.get(fieldname)
-							return
+							continue
 
 					sl_dict[dimension.target_fieldname] = row.get(dimension.source_fieldname)
 				else:
