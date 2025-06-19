@@ -47,14 +47,6 @@ class Contract(Document):
 		status: DF.Literal["Unsigned", "Active", "Inactive"]
 	# end: auto-generated types
 
-	def autoname(self):
-		name = self.party_name
-
-		if self.contract_template:
-			name += f" - {self.contract_template} Agreement"
-
-		self.name = append_number_if_name_exists("Contract", name)
-
 	def validate(self):
 		self.set_missing_values()
 		self.validate_dates()
