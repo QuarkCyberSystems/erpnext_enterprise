@@ -379,7 +379,6 @@ class TestAssetCapitalization(IntegrationTestCase):
 
 		# Create and submit Asset Captitalization
 		asset_capitalization = create_asset_capitalization(
-			capitalization_method="Choose a WIP composite asset",
 			target_asset=wip_composite_asset.name,
 			target_asset_location="Test Location",
 			consumed_asset=consumed_asset.name,
@@ -388,7 +387,6 @@ class TestAssetCapitalization(IntegrationTestCase):
 		)
 
 		# Test Asset Capitalization values
-		self.assertEqual(asset_capitalization.capitalization_method, "Choose a WIP composite asset")
 		self.assertEqual(asset_capitalization.target_qty, 1)
 		self.assertEqual(asset_capitalization.asset_items[0].asset_value, consumed_asset_value)
 
