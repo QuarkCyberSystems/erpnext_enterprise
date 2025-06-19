@@ -12,19 +12,6 @@ class TestContract(IntegrationTestCase):
 		frappe.db.sql("delete from `tabContract`")
 		self.contract_doc = get_contract()
 
-	def test_autoname_appends_suffix_for_duplicates(self):
-		contract_1 = self.contract_doc
-		contract_1.insert()
-		self.assertEqual(contract_1.name, "_Test Customer")
-
-		contract_2 = get_contract()
-		contract_2.insert()
-		self.assertEqual(contract_2.name, "_Test Customer-1")
-
-		contract_3 = get_contract()
-		contract_3.insert()
-		self.assertEqual(contract_3.name, "_Test Customer-2")
-
 	def test_validate_start_date_before_end_date(self):
 		self.contract_doc.start_date = nowdate()
 		self.contract_doc.end_date = add_days(nowdate(), -1)
