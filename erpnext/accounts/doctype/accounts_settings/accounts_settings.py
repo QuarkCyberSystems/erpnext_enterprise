@@ -97,9 +97,6 @@ class AccountsSettings(Document):
 		if old_doc.show_payment_schedule_in_print != self.show_payment_schedule_in_print:
 			self.enable_payment_schedule_in_print()
 
-		if old_doc.use_sales_invoice_in_pos != self.use_sales_invoice_in_pos:
-			self.validate_invoice_mode_switch_in_pos()
-
 		if clear_cache:
 			frappe.clear_cache()
 
