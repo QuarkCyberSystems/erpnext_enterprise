@@ -1802,7 +1802,10 @@ def get_available_serial_nos(kwargs):
 			filters["warehouse"] = kwargs.warehouse
 
 	# Since SLEs are not present against Reserved Stock [POS invoices, SRE], need to ignore reserved serial nos.
-	ignore_serial_nos = get_reserved_serial_nos(kwargs)
+	ignore_serial_nos, consider_serial_nos = get_reserved_serial_nos(kwargs)
+
+	if consider_serial_nos:
+		filters["name"] = ("in", consider_serial_nos)
 
 	# To ignore serial nos in the same record for the draft state
 	if kwargs.get("ignore_serial_nos"):
@@ -1911,19 +1914,23 @@ def get_reserved_serial_nos(kwargs) -> list:
 	"""Returns a list of `Serial No` reserved in POS Invoice and Stock Reservation Entry."""
 
 	ignore_serial_nos = []
+	consider_serial_nos = []
 
 	# Extend the list by serial nos reserved in POS Invoice
 	ignore_serial_nos.extend(get_reserved_serial_nos_for_pos(kwargs))
 
 	reserved_entries = get_reserved_serial_nos_for_sre(kwargs)
 	if not reserved_entries:
-		return ignore_serial_nos
+		return ignore_serial_nos, consider_serial_nos
 
 	reserved_voucher_details = get_reserved_voucher_details(kwargs)
+	if not reserved_voucher_details:
+		return ignore_serial_nos, consider_serial_nos
 
 	serial_nos = []
 	for entry in reserved_entries:
 		if entry.voucher_no in reserved_voucher_details:
+			consider_serial_nos.append(entry.serial_no)
 			continue
 
 		if kwargs.get("serial_nos") and entry.serial_no in kwargs.get("serial_nos"):
@@ -1939,7 +1946,7 @@ def get_reserved_serial_nos(kwargs) -> list:
 	# Extend the list by serial nos reserved via SRE
 	ignore_serial_nos.extend(serial_nos)
 
-	return ignore_serial_nos
+	return ignore_serial_nos, consider_serial_nos
 
 
 def get_reserved_voucher_details(kwargs):
@@ -1958,15 +1965,15 @@ def get_reserved_voucher_details(kwargs):
 		"Delivery Note": {
 			"name": kwargs.get("sabb_voucher_detail_no"),
 			"parent": kwargs.get("sabb_voucher_no"),
-			"docstatus": 1,
+			"docstatus": ("<", 2),
 		},
 		"Stock Entry": {
 			"name": kwargs.get("sabb_voucher_no"),
-			"docstatus": 1,
+			"docstatus": ("<", 2),
 		},
 		"Work Order": {
 			"name": kwargs.get("sabb_voucher_no"),
-			"docstatus": 1,
+			"docstatus": ("<", 2),
 		},
 	}.get(kwargs.get("sabb_voucher_type"))
 

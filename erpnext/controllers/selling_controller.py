@@ -839,7 +839,7 @@ class SellingController(StockController):
 					sre_doc = frappe.get_doc("Stock Reservation Entry", sre)
 
 					qty_can_be_deliver = 0
-					if sre_doc.reservation_based_on == "Serial and Batch" and item.serial_and_batch_bundle:
+					if sre_doc.reservation_based_on == "Serial and Batch":
 						sbb = frappe.get_doc("Serial and Batch Bundle", item.serial_and_batch_bundle)
 						if sre_doc.has_serial_no:
 							delivered_serial_nos = [d.serial_no for d in sbb.entries]

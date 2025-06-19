@@ -454,8 +454,6 @@ class DeliveryNote(SellingController):
 		self.update_prevdoc_status()
 		self.update_billing_status()
 
-		self.update_stock_reservation_entries()
-
 		if not self.is_return:
 			self.check_credit_limit()
 		elif self.issue_credit_note:
@@ -467,6 +465,8 @@ class DeliveryNote(SellingController):
 
 			self.make_bundle_for_sales_purchase_return(table_name)
 			self.make_bundle_using_old_serial_batch_fields(table_name)
+
+		self.update_stock_reservation_entries()
 
 		# Updating stock ledger should always be called after updating prevdoc status,
 		# because updating reserved qty in bin depends upon updated delivered qty in SO
