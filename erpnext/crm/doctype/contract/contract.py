@@ -6,6 +6,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import getdate, nowdate
+from frappe.model.naming import append_number_if_name_exists
 
 
 class Contract(Document):
@@ -52,12 +53,7 @@ class Contract(Document):
 		if self.contract_template:
 			name += f" - {self.contract_template} Agreement"
 
-		# If identical, append contract name with the next number in the iteration
-		if frappe.db.exists("Contract", name):
-			count = len(frappe.get_all("Contract", filters={"name": ["like", f"%{name}%"]}))
-			name = f"{name} - {count}"
-
-		self.name = _(name)
+		self.name = append_number_if_name_exists("Contract", name)
 
 	def validate(self):
 		self.set_missing_values()
