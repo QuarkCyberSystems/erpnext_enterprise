@@ -188,6 +188,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_customer_group()
 		cls.make_user()
 		cls.make_cost_center()
+		cls.make_location()
 		cls.update_stock_settings()
 
 		frappe.db.commit()
@@ -1101,6 +1102,59 @@ class ERPNextTestSuite(unittest.TestCase):
 					frappe.get_doc(
 						"Cost Center",
 						{"cost_center_name": x.get("cost_center_name"), "company": x.get("company")},
+					)
+				)
+
+	@classmethod
+	def make_location(cls):
+		records = [
+			{"doctype": "Location", "location_name": "Test Location Area", "is_group": 1, "is_container": 1},
+			{
+				"doctype": "Location",
+				"location_name": "Basil Farm",
+				"location": '{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"point_type":"circle","radius":884.5625420736483},"geometry":{"type":"Point","coordinates":[72.875834,19.100566]}}]}',
+				"parent_location": "Test Location Area",
+				"parent": "Test Location Area",
+				"is_group": 1,
+				"is_container": 1,
+			},
+			{
+				"doctype": "Location",
+				"location_name": "Division 1",
+				"location": '{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"point_type":"circle","radius":542.3424997060739},"geometry":{"type":"Point","coordinates":[72.852359,19.11557]}}]}',
+				"parent_location": "Basil Farm",
+				"parent": "Basil Farm",
+				"is_group": 1,
+				"is_container": 1,
+			},
+			{
+				"doctype": "Location",
+				"location_name": "Field 1",
+				"location": '{"type":"FeatureCollection","features":[{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[72.846758,19.118287],[72.846758,19.121206],[72.850535,19.121206],[72.850535,19.118287],[72.846758,19.118287]]]}}]}',
+				"parent_location": "Division 1",
+				"parent": "Division 1",
+				"is_group": 1,
+				"is_container": 1,
+			},
+			{
+				"doctype": "Location",
+				"location_name": "Block 1",
+				"location": '{"type":"FeatureCollection","features":[{"type":"Feature","properties":{},"geometry":{"type":"Polygon","coordinates":[[[72.921495,19.073313],[72.924929,19.068121],[72.934713,19.06585],[72.929392,19.05579],[72.94158,19.056926],[72.951365,19.095213],[72.921495,19.073313]]]}}]}',
+				"parent_location": "Field 1",
+				"parent": "Field 1",
+				"is_group": 0,
+				"is_container": 1,
+			},
+		]
+		cls.location = []
+		for x in records:
+			if not frappe.db.exists("Location", {"location_name": x.get("location_name")}):
+				cls.location.append(frappe.get_doc(x).insert())
+			else:
+				cls.location.append(
+					frappe.get_doc(
+						"Location",
+						{"location_name": x.get("location_name")},
 					)
 				)
 
