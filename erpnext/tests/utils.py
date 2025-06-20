@@ -200,8 +200,16 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_price_list()
 		cls.update_selling_settings()
 		cls.update_stock_settings()
+		cls.update_system_settings()
 
 		frappe.db.commit()
+
+	@classmethod
+	def update_system_settings(cls):
+		system_settings = frappe.get_doc("System Settings")
+		system_settings.time_zone = "Asia/Kolkata"
+		system_settings.language = "en"
+		system_settings.save()
 
 	@classmethod
 	def update_selling_settings(cls):
