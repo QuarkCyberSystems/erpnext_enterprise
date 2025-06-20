@@ -488,7 +488,9 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.users = []
 		for x in records:
 			if not frappe.db.exists("User", {"email": x.get("email")}):
-				cls.users.append(frappe.get_doc(x).insert())
+				user = frappe.get_doc(x)
+				user.flags.no_welcome_mail = True
+				cls.users.append(user.insert())
 			else:
 				cls.users.append(frappe.get_doc("User", {"email": x.get("email")}))
 
