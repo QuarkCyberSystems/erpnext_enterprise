@@ -208,14 +208,11 @@ class Asset(AccountsController):
 		add_asset_activity(self.name, _("Asset cancelled"))
 
 	def after_insert(self):
-		if (
-			not frappe.db.exists(
-				{
-					"doctype": "Asset Activity",
-					"asset": self.name,
-				}
-			)
-			and not self.flags.asset_created_via_asset_capitalization
+		if not frappe.db.exists(
+			{
+				"doctype": "Asset Activity",
+				"asset": self.name,
+			}
 		):
 			add_asset_activity(self.name, _("Asset created"))
 
@@ -1006,7 +1003,6 @@ def create_asset_capitalization(company, asset, asset_name, item_code):
 		{
 			"target_asset": asset,
 			"company": company,
-			"capitalization_method": "Choose a WIP composite asset",
 			"target_asset_name": asset_name,
 			"target_item_code": item_code,
 		}

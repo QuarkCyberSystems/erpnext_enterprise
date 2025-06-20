@@ -40,7 +40,6 @@ from erpnext.controllers.accounts_controller import validate_account_head
 from erpnext.controllers.buying_controller import BuyingController
 from erpnext.stock import get_warehouse_account_map
 from erpnext.stock.doctype.purchase_receipt.purchase_receipt import (
-	get_item_account_wise_additional_cost,
 	update_billed_amount_based_on_po,
 )
 
@@ -940,7 +939,7 @@ class PurchaseInvoice(BuyingController):
 		if self.update_stock and self.auto_accounting_for_stock:
 			warehouse_account = get_warehouse_account_map(self.company)
 
-		landed_cost_entries = get_item_account_wise_additional_cost(self.name)
+		landed_cost_entries = self.get_item_account_wise_lcv_entries()
 
 		voucher_wise_stock_value = {}
 		if self.update_stock:

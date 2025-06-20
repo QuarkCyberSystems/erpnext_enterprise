@@ -6,6 +6,7 @@ from collections import defaultdict
 
 import frappe
 from frappe import _, bold
+from frappe.query_builder.functions import Sum
 from frappe.utils import cint, cstr, flt, get_link_to_form, getdate
 
 import erpnext
@@ -884,6 +885,91 @@ class StockController(AccountsController):
 
 		return sl_dict
 
+	def set_landed_cost_voucher_amount(self):
+		for d in self.get("items"):
+			lcv_item = frappe.qb.DocType("Landed Cost Item")
+			query = (
+				frappe.qb.from_(lcv_item)
+				.select(Sum(lcv_item.applicable_charges), lcv_item.cost_center)
+				.where((lcv_item.docstatus == 1) & (lcv_item.receipt_document == self.name))
+			)
+
+			if self.doctype == "Stock Entry":
+				query = query.where(lcv_item.stock_entry_item == d.name)
+			else:
+				query = query.where(lcv_item.purchase_receipt_item == d.name)
+
+			lc_voucher_data = query.run(as_list=True)
+
+			d.landed_cost_voucher_amount = lc_voucher_data[0][0] if lc_voucher_data else 0.0
+			if not d.cost_center and lc_voucher_data and lc_voucher_data[0][1]:
+				d.db_set("cost_center", lc_voucher_data[0][1])
+
+	def has_landed_cost_amount(self):
+		for row in self.items:
+			if row.get("landed_cost_voucher_amount"):
+				return True
+
+		return False
+
+	def get_item_account_wise_lcv_entries(self):
+		if not self.has_landed_cost_amount():
+			return
+
+		landed_cost_vouchers = frappe.get_all(
+			"Landed Cost Purchase Receipt",
+			fields=["parent"],
+			filters={"receipt_document": self.name, "docstatus": 1},
+		)
+
+		if not landed_cost_vouchers:
+			return
+
+		item_account_wise_cost = {}
+
+		row_fieldname = "purchase_receipt_item"
+		if self.doctype == "Stock Entry":
+			row_fieldname = "stock_entry_item"
+
+		for lcv in landed_cost_vouchers:
+			landed_cost_voucher_doc = frappe.get_doc("Landed Cost Voucher", lcv.parent)
+
+			based_on_field = "applicable_charges"
+			# Use amount field for total item cost for manually cost distributed LCVs
+			if landed_cost_voucher_doc.distribute_charges_based_on != "Distribute Manually":
+				based_on_field = frappe.scrub(landed_cost_voucher_doc.distribute_charges_based_on)
+
+			total_item_cost = 0
+
+			if based_on_field:
+				for item in landed_cost_voucher_doc.items:
+					total_item_cost += item.get(based_on_field)
+
+			for item in landed_cost_voucher_doc.items:
+				if item.receipt_document == self.name:
+					for account in landed_cost_voucher_doc.taxes:
+						exchange_rate = account.exchange_rate or 1
+						item_account_wise_cost.setdefault((item.item_code, item.get(row_fieldname)), {})
+						item_account_wise_cost[(item.item_code, item.get(row_fieldname))].setdefault(
+							account.expense_account, {"amount": 0.0, "base_amount": 0.0}
+						)
+
+						item_row = item_account_wise_cost[(item.item_code, item.get(row_fieldname))][
+							account.expense_account
+						]
+
+						if total_item_cost > 0:
+							item_row["amount"] += account.amount * item.get(based_on_field) / total_item_cost
+
+							item_row["base_amount"] += (
+								account.base_amount * item.get(based_on_field) / total_item_cost
+							)
+						else:
+							item_row["amount"] += item.applicable_charges / exchange_rate
+							item_row["base_amount"] += item.applicable_charges
+
+		return item_account_wise_cost
+
 	def update_inventory_dimensions(self, row, sl_dict) -> None:
 		# To handle delivery note and sales invoice
 		if row.get("item_row"):
@@ -934,7 +1020,7 @@ class StockController(AccountsController):
 								fieldname = f"{dimension.source_fieldname}"
 
 							sl_dict[dimension.target_fieldname] = row.get(fieldname)
-							return
+							continue
 
 					sl_dict[dimension.target_fieldname] = row.get(dimension.source_fieldname)
 				else:

@@ -1748,6 +1748,7 @@ def create_asset(**args):
 			"asset_owner": args.asset_owner or "Company",
 			"is_existing_asset": args.is_existing_asset or 1,
 			"is_composite_asset": args.is_composite_asset or 0,
+			"is_composite_component": args.is_composite_component or 0,
 			"asset_quantity": args.get("asset_quantity") or 1,
 			"depr_entry_posting_status": args.depr_entry_posting_status or "",
 		}

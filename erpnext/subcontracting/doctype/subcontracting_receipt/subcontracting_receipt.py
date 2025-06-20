@@ -432,10 +432,15 @@ class SubcontractingReceipt(SubcontractingController):
 					else:
 						item.scrap_cost_per_qty = 0
 
+				lcv_cost_per_qty = 0.0
+				if item.landed_cost_voucher_amount:
+					lcv_cost_per_qty = item.landed_cost_voucher_amount / item.qty
+
 				item.rate = (
 					flt(item.rm_cost_per_qty)
 					+ flt(item.service_cost_per_qty)
 					+ flt(item.additional_cost_per_qty)
+					+ flt(lcv_cost_per_qty)
 					- flt(item.scrap_cost_per_qty)
 				)
 
@@ -567,6 +572,7 @@ class SubcontractingReceipt(SubcontractingController):
 
 		gl_entries = []
 		self.make_item_gl_entries(gl_entries, warehouse_account)
+		self.make_item_gl_entries_for_lcv(gl_entries, warehouse_account)
 
 		return process_gl_map(gl_entries)
 
@@ -737,6 +743,55 @@ class SubcontractingReceipt(SubcontractingController):
 				+ ": \n"
 				+ "\n".join(warehouse_with_no_account)
 			)
+
+	def make_item_gl_entries_for_lcv(self, gl_entries, warehouse_account):
+		landed_cost_entries = self.get_item_account_wise_lcv_entries()
+
+		if not landed_cost_entries:
+			return
+
+		for item in self.items:
+			if item.landed_cost_voucher_amount and landed_cost_entries:
+				remarks = _("Accounting Entry for Landed Cost Voucher for SCR {0}").format(self.name)
+				if (item.item_code, item.name) in landed_cost_entries:
+					for account, amount in landed_cost_entries[(item.item_code, item.name)].items():
+						account_currency = get_account_currency(account)
+						credit_amount = (
+							flt(amount["base_amount"])
+							if (amount["base_amount"] or account_currency != self.company_currency)
+							else flt(amount["amount"])
+						)
+
+						self.add_gl_entry(
+							gl_entries=gl_entries,
+							account=account,
+							cost_center=item.cost_center,
+							debit=0.0,
+							credit=credit_amount,
+							remarks=remarks,
+							against_account=warehouse_account.get(item.warehouse)["account"],
+							credit_in_account_currency=flt(amount["amount"]),
+							account_currency=account_currency,
+							project=item.project,
+							item=item,
+						)
+
+						account_currency = get_account_currency(item.expense_account)
+
+						# credit amount in negative to knock off the debit entry
+						self.add_gl_entry(
+							gl_entries=gl_entries,
+							account=item.expense_account,
+							cost_center=item.cost_center,
+							debit=0.0,
+							credit=credit_amount * -1,
+							remarks=remarks,
+							against_account=warehouse_account.get(item.warehouse)["account"],
+							debit_in_account_currency=flt(amount["amount"]),
+							account_currency=account_currency,
+							project=item.project,
+							item=item,
+						)
 
 	def auto_create_purchase_receipt(self):
 		if frappe.db.get_single_value("Buying Settings", "auto_create_purchase_receipt"):

@@ -738,7 +738,7 @@ class PurchaseReceipt(BuyingController):
 					if d.is_fixed_asset
 					else self.get_company_default("stock_received_but_not_billed")
 				)
-				landed_cost_entries = get_item_account_wise_additional_cost(self.name)
+				landed_cost_entries = self.get_item_account_wise_lcv_entries()
 				if d.is_fixed_asset:
 					stock_asset_account_name = d.expense_account
 					stock_value_diff = (
@@ -993,6 +993,7 @@ class PurchaseReceipt(BuyingController):
 
 		production_plan_references = self.get_production_plan_references()
 		production_plan_items = []
+		self.reload()
 
 		docnames = []
 		for row in self.items:
@@ -1007,6 +1008,7 @@ class PurchaseReceipt(BuyingController):
 						"from_voucher_no": self.name,
 						"from_voucher_detail_no": row.name,
 						"from_voucher_type": self.doctype,
+						"serial_and_batch_bundles": [row.serial_and_batch_bundle],
 					}
 				)
 
@@ -1500,58 +1502,6 @@ def make_stock_entry(source_name, target_doc=None):
 @frappe.whitelist()
 def make_inter_company_delivery_note(source_name, target_doc=None):
 	return make_inter_company_transaction("Purchase Receipt", source_name, target_doc)
-
-
-def get_item_account_wise_additional_cost(purchase_document):
-	landed_cost_vouchers = frappe.get_all(
-		"Landed Cost Purchase Receipt",
-		fields=["parent"],
-		filters={"receipt_document": purchase_document, "docstatus": 1},
-	)
-
-	if not landed_cost_vouchers:
-		return
-
-	item_account_wise_cost = {}
-
-	for lcv in landed_cost_vouchers:
-		landed_cost_voucher_doc = frappe.get_doc("Landed Cost Voucher", lcv.parent)
-
-		based_on_field = None
-		# Use amount field for total item cost for manually cost distributed LCVs
-		if landed_cost_voucher_doc.distribute_charges_based_on != "Distribute Manually":
-			based_on_field = frappe.scrub(landed_cost_voucher_doc.distribute_charges_based_on)
-
-		total_item_cost = 0
-
-		if based_on_field:
-			for item in landed_cost_voucher_doc.items:
-				total_item_cost += item.get(based_on_field)
-
-		for item in landed_cost_voucher_doc.items:
-			if item.receipt_document == purchase_document:
-				for account in landed_cost_voucher_doc.taxes:
-					exchange_rate = account.exchange_rate or 1
-					item_account_wise_cost.setdefault((item.item_code, item.purchase_receipt_item), {})
-					item_account_wise_cost[(item.item_code, item.purchase_receipt_item)].setdefault(
-						account.expense_account, {"amount": 0.0, "base_amount": 0.0}
-					)
-
-					item_row = item_account_wise_cost[(item.item_code, item.purchase_receipt_item)][
-						account.expense_account
-					]
-
-					if total_item_cost > 0:
-						item_row["amount"] += account.amount * item.get(based_on_field) / total_item_cost
-
-						item_row["base_amount"] += (
-							account.base_amount * item.get(based_on_field) / total_item_cost
-						)
-					else:
-						item_row["amount"] += item.applicable_charges / exchange_rate
-						item_row["base_amount"] += item.applicable_charges
-
-	return item_account_wise_cost
 
 
 @erpnext.allow_regional

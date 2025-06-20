@@ -241,18 +241,6 @@ class BuyingController(SubcontractingController):
 
 		return [d.item_code for d in self.items if d.is_fixed_asset]
 
-	def set_landed_cost_voucher_amount(self):
-		for d in self.get("items"):
-			lc_voucher_data = frappe.db.sql(
-				"""select sum(applicable_charges), cost_center
-				from `tabLanded Cost Item`
-				where docstatus = 1 and purchase_receipt_item = %s and receipt_document = %s""",
-				(d.name, self.name),
-			)
-			d.landed_cost_voucher_amount = lc_voucher_data[0][0] if lc_voucher_data else 0.0
-			if not d.cost_center and lc_voucher_data and lc_voucher_data[0][1]:
-				d.db_set("cost_center", lc_voucher_data[0][1])
-
 	def validate_from_warehouse(self):
 		for item in self.get("items"):
 			if item.get("from_warehouse") and (item.get("from_warehouse") == item.get("warehouse")):
