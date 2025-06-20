@@ -188,6 +188,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_customer_group()
 		cls.make_user()
 		cls.make_cost_center()
+		cls.make_warehouse()
 		cls.make_location()
 		cls.update_stock_settings()
 
@@ -1155,6 +1156,86 @@ class ERPNextTestSuite(unittest.TestCase):
 					frappe.get_doc(
 						"Location",
 						{"location_name": x.get("location_name")},
+					)
+				)
+
+	@classmethod
+	def make_warehouse(cls):
+		records = [
+			{
+				"company": "_Test Company",
+				"doctype": "Warehouse",
+				"warehouse_name": "_Test Warehouse",
+				"is_group": 0,
+			},
+			{
+				"company": "_Test Company",
+				"doctype": "Warehouse",
+				"warehouse_name": "_Test Scrap Warehouse",
+				"is_group": 0,
+			},
+			{
+				"company": "_Test Company",
+				"doctype": "Warehouse",
+				"warehouse_name": "_Test Warehouse 1",
+				"is_group": 0,
+			},
+			{
+				"company": "_Test Company",
+				"doctype": "Warehouse",
+				"warehouse_name": "_Test Warehouse 2",
+				"is_group": 0,
+			},
+			{
+				"company": "_Test Company",
+				"doctype": "Warehouse",
+				"warehouse_name": "_Test Rejected Warehouse",
+				"is_group": 0,
+			},
+			{
+				"company": "_Test Company 1",
+				"doctype": "Warehouse",
+				"warehouse_name": "_Test Warehouse 2",
+				"is_group": 0,
+			},
+			{
+				"company": "_Test Company",
+				"doctype": "Warehouse",
+				"warehouse_name": "_Test Warehouse No Account",
+				"is_group": 0,
+			},
+			{
+				"company": "_Test Company",
+				"doctype": "Warehouse",
+				"warehouse_name": "_Test Warehouse Group",
+				"is_group": 1,
+			},
+			{
+				"company": "_Test Company",
+				"doctype": "Warehouse",
+				"warehouse_name": "_Test Warehouse Group-C1",
+				"is_group": 0,
+				"parent_warehouse": "_Test Warehouse Group - _TC",
+			},
+			{
+				"company": "_Test Company",
+				"doctype": "Warehouse",
+				"warehouse_name": "_Test Warehouse Group-C2",
+				"is_group": 0,
+				"parent_warehouse": "_Test Warehouse Group - _TC",
+			},
+		]
+		cls.warehouse = []
+		for x in records:
+			if not frappe.db.exists(
+				"Warehouse", {"warehouse_name": x.get("warehouse_name"), "company": x.get("company")}
+			):
+				cls.warehouse.append(frappe.get_doc(x).insert())
+			else:
+				cls.warehouse.append(
+					frappe.get_doc(
+						"Warehouse",
+						{"warehouse_name": x.get("warehouse_name"), "company": x.get("company")},
 					)
 				)
 
