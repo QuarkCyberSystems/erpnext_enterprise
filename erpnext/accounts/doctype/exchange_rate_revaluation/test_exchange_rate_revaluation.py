@@ -30,6 +30,8 @@ class TestExchangeRateRevaluation(AccountsTestMixin, ERPNextTestSuite):
 		system_settings = frappe.get_doc("System Settings")
 		system_settings.float_precision = 2
 		system_settings.currency_precision = 2
+		system_settings.language = "en"
+		system_settings.time_zone = "Asia/Kolkata"
 		system_settings.save()
 
 		# Using Exchange Gain/Loss account for unrealized as well.
