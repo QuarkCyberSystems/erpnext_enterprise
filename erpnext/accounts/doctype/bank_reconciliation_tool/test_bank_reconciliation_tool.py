@@ -43,6 +43,7 @@ class TestBankReconciliationTool(AccountsTestMixin, ERPNextTestSuite):
 					"bank": bank.name,
 					"is_company_account": True,
 					"account": self.bank,  # account from Chart of Accounts
+					"company": self.company,
 				}
 			)
 			.insert()
