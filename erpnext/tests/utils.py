@@ -187,6 +187,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_territory()
 		cls.make_customer_group()
 		cls.make_user()
+		cls.make_cost_center()
 		cls.update_stock_settings()
 
 		frappe.db.commit()
@@ -1075,6 +1076,45 @@ class ERPNextTestSuite(unittest.TestCase):
 			else:
 				cls.supplier_groups.append(
 					frappe.get_doc("Supplier Group", {"supplier_group_name": x.get("supplier_group_name")})
+				)
+
+	@classmethod
+	def make_cost_center(cls):
+		records = [
+			{
+				"company": "_Test Company",
+				"cost_center_name": "_Test Cost Center",
+				"doctype": "Cost Center",
+				"is_group": 0,
+				"parent_cost_center": "_Test Company - _TC",
+			},
+			{
+				"company": "_Test Company",
+				"cost_center_name": "_Test Cost Center 2",
+				"doctype": "Cost Center",
+				"is_group": 0,
+				"parent_cost_center": "_Test Company - _TC",
+			},
+			{
+				"company": "_Test Company",
+				"cost_center_name": "_Test Write Off Cost Center",
+				"doctype": "Cost Center",
+				"is_group": 0,
+				"parent_cost_center": "_Test Company - _TC",
+			},
+		]
+		cls.cost_center = []
+		for x in records:
+			if not frappe.db.exists(
+				"Cost Center", {"cost_center_name": x.get("cost_center_name"), "company": x.get("company")}
+			):
+				cls.cost_center.append(frappe.get_doc(x).insert())
+			else:
+				cls.cost_center.append(
+					frappe.get_doc(
+						"Cost Center",
+						{"cost_center_name": x.get("cost_center_name"), "company": x.get("company")},
+					)
 				)
 
 
