@@ -16,10 +16,10 @@ from erpnext.tests.utils import ERPNextTestSuite
 class TestOpeningInvoiceCreationTool(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		if not frappe.db.exists("Company", "_Test Opening Invoice Company"):
 			make_company()
 		create_dimension()
-		return super().setUpClass()
 
 	def make_invoices(
 		self,
