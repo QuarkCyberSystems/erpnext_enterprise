@@ -189,6 +189,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_user()
 		cls.make_cost_center()
 		cls.make_warehouse()
+		cls.make_item_group()
 		cls.make_item()
 		cls.make_location()
 		cls.update_stock_settings()
@@ -1238,6 +1239,127 @@ class ERPNextTestSuite(unittest.TestCase):
 						"Warehouse",
 						{"warehouse_name": x.get("warehouse_name"), "company": x.get("company")},
 					)
+				)
+
+	@classmethod
+	def make_item_group(cls):
+		records = [
+			{
+				"doctype": "Item Group",
+				"is_group": 0,
+				"item_group_name": "_Test Item Group",
+				"parent_item_group": "All Item Groups",
+				"item_group_defaults": [
+					{
+						"company": "_Test Company",
+						"buying_cost_center": "_Test Cost Center 2 - _TC",
+						"selling_cost_center": "_Test Cost Center 2 - _TC",
+						"default_warehouse": "_Test Warehouse - _TC",
+					}
+				],
+			},
+			{
+				"doctype": "Item Group",
+				"is_group": 0,
+				"item_group_name": "_Test Item Group Desktops",
+				"parent_item_group": "All Item Groups",
+			},
+			{
+				"doctype": "Item Group",
+				"is_group": 1,
+				"item_group_name": "_Test Item Group A",
+				"parent_item_group": "All Item Groups",
+			},
+			{
+				"doctype": "Item Group",
+				"is_group": 1,
+				"item_group_name": "_Test Item Group B",
+				"parent_item_group": "All Item Groups",
+			},
+			{
+				"doctype": "Item Group",
+				"is_group": 1,
+				"item_group_name": "_Test Item Group B - 1",
+				"parent_item_group": "_Test Item Group B",
+			},
+			{
+				"doctype": "Item Group",
+				"is_group": 1,
+				"item_group_name": "_Test Item Group B - 2",
+				"parent_item_group": "_Test Item Group B",
+			},
+			{
+				"doctype": "Item Group",
+				"is_group": 0,
+				"item_group_name": "_Test Item Group B - 3",
+				"parent_item_group": "_Test Item Group B",
+			},
+			{
+				"doctype": "Item Group",
+				"is_group": 1,
+				"item_group_name": "_Test Item Group C",
+				"parent_item_group": "All Item Groups",
+			},
+			{
+				"doctype": "Item Group",
+				"is_group": 1,
+				"item_group_name": "_Test Item Group C - 1",
+				"parent_item_group": "_Test Item Group C",
+			},
+			{
+				"doctype": "Item Group",
+				"is_group": 1,
+				"item_group_name": "_Test Item Group C - 2",
+				"parent_item_group": "_Test Item Group C",
+			},
+			{
+				"doctype": "Item Group",
+				"is_group": 1,
+				"item_group_name": "_Test Item Group D",
+				"parent_item_group": "All Item Groups",
+			},
+			{
+				"doctype": "Item Group",
+				"is_group": 1,
+				"item_group_name": "_Test Item Group Tax Parent",
+				"parent_item_group": "All Item Groups",
+				"taxes": [
+					{
+						"doctype": "Item Tax",
+						"parentfield": "taxes",
+						"item_tax_template": "_Test Account Excise Duty @ 10 - _TC",
+						"tax_category": "",
+					},
+					{
+						"doctype": "Item Tax",
+						"parentfield": "taxes",
+						"item_tax_template": "_Test Account Excise Duty @ 12 - _TC",
+						"tax_category": "_Test Tax Category 1",
+					},
+				],
+			},
+			{
+				"doctype": "Item Group",
+				"is_group": 0,
+				"item_group_name": "_Test Item Group Tax Child Override",
+				"parent_item_group": "_Test Item Group Tax Parent",
+				"taxes": [
+					{
+						"doctype": "Item Tax",
+						"parentfield": "taxes",
+						"item_tax_template": "_Test Account Excise Duty @ 15 - _TC",
+						"tax_category": "",
+					}
+				],
+			},
+		]
+		cls.item_group = []
+		for x in records:
+			if not frappe.db.exists("Item Group", {"item_group_name": x.get("item_group_name")}):
+				cls.item_group.append(frappe.get_doc(x).insert())
+			else:
+				cls.item_group.append(
+					frappe.get_doc("Item Group", {"item_group_name": x.get("item_group_name")})
 				)
 
 	@classmethod
