@@ -193,6 +193,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_uom()
 		cls.make_item_tax_template()
 		cls.make_item_group()
+		cls.make_item_attribute()
 		cls.make_item()
 		cls.make_location()
 		cls.update_stock_settings()
@@ -1259,6 +1260,45 @@ class ERPNextTestSuite(unittest.TestCase):
 					frappe.get_doc(
 						"UOM",
 						{"uom_name": x.get("uom_name")},
+					)
+				)
+
+	@classmethod
+	def make_item_attribute(cls):
+		records = [
+			{
+				"doctype": "Item Attribute",
+				"attribute_name": "Test Size",
+				"priority": 1,
+				"item_attribute_values": [
+					{"attribute_value": "Extra Small", "abbr": "XSL"},
+					{"attribute_value": "Small", "abbr": "S"},
+					{"attribute_value": "Medium", "abbr": "M"},
+					{"attribute_value": "Large", "abbr": "L"},
+					{"attribute_value": "Extra Large", "abbr": "XL"},
+					{"attribute_value": "2XL", "abbr": "2XL"},
+				],
+			},
+			{
+				"doctype": "Item Attribute",
+				"attribute_name": "Test Colour",
+				"priority": 2,
+				"item_attribute_values": [
+					{"attribute_value": "Red", "abbr": "R"},
+					{"attribute_value": "Green", "abbr": "G"},
+					{"attribute_value": "Blue", "abbr": "B"},
+				],
+			},
+		]
+		cls.item_attribute = []
+		for x in records:
+			if not frappe.db.exists("Item Attribute", {"attribute_name": x.get("attribute_name")}):
+				cls.item_attribute.append(frappe.get_doc(x).insert())
+			else:
+				cls.item_attribute.append(
+					frappe.get_doc(
+						"Item Attribute",
+						{"attribute_name": x.get("attribute_name")},
 					)
 				)
 
