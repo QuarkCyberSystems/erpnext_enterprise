@@ -190,6 +190,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_cost_center()
 		cls.make_warehouse()
 		cls.make_uom()
+		cls.make_item_tax_template()
 		cls.make_item_group()
 		cls.make_item()
 		cls.make_location()
@@ -1257,6 +1258,101 @@ class ERPNextTestSuite(unittest.TestCase):
 					frappe.get_doc(
 						"UOM",
 						{"uom_name": x.get("uom_name")},
+					)
+				)
+
+	@classmethod
+	def make_item_tax_template(cls):
+		records = [
+			{
+				"doctype": "Item Tax Template",
+				"title": "_Test Account Excise Duty @ 10",
+				"company": "_Test Company",
+				"taxes": [
+					{
+						"doctype": "Item Tax Template Detail",
+						"parentfield": "taxes",
+						"tax_rate": 10,
+						"tax_type": "_Test Account Excise Duty - _TC",
+					}
+				],
+			},
+			{
+				"doctype": "Item Tax Template",
+				"title": "_Test Account Excise Duty @ 12",
+				"company": "_Test Company",
+				"taxes": [
+					{
+						"doctype": "Item Tax Template Detail",
+						"parentfield": "taxes",
+						"tax_rate": 12,
+						"tax_type": "_Test Account Excise Duty - _TC",
+					}
+				],
+			},
+			{
+				"doctype": "Item Tax Template",
+				"title": "_Test Account Excise Duty @ 15",
+				"company": "_Test Company",
+				"taxes": [
+					{
+						"doctype": "Item Tax Template Detail",
+						"parentfield": "taxes",
+						"tax_rate": 15,
+						"tax_type": "_Test Account Excise Duty - _TC",
+					}
+				],
+			},
+			{
+				"doctype": "Item Tax Template",
+				"title": "_Test Account Excise Duty @ 20",
+				"company": "_Test Company",
+				"taxes": [
+					{
+						"doctype": "Item Tax Template Detail",
+						"parentfield": "taxes",
+						"tax_rate": 20,
+						"tax_type": "_Test Account Excise Duty - _TC",
+					}
+				],
+			},
+			{
+				"doctype": "Item Tax Template",
+				"title": "_Test Item Tax Template 1",
+				"company": "_Test Company",
+				"taxes": [
+					{
+						"doctype": "Item Tax Template Detail",
+						"parentfield": "taxes",
+						"tax_rate": 5,
+						"tax_type": "_Test Account Excise Duty - _TC",
+					},
+					{
+						"doctype": "Item Tax Template Detail",
+						"parentfield": "taxes",
+						"tax_rate": 10,
+						"tax_type": "_Test Account Education Cess - _TC",
+					},
+					{
+						"doctype": "Item Tax Template Detail",
+						"parentfield": "taxes",
+						"tax_rate": 15,
+						"tax_type": "_Test Account S&H Education Cess - _TC",
+					},
+				],
+			},
+		]
+		cls.item_tax_template = []
+		for x in records:
+			if not frappe.db.exists(
+				"Item Tax Template", {"title": x.get("title"), "company": x.get("company")}
+			):
+				cls.item_tax_template.append(frappe.get_doc(x).insert())
+			else:
+				cls.item_tax_template.append(
+					frappe.get_doc(
+						"Item Tax Template",
+						{"title": x.get("title"), "company": x.get("company")},
 					)
 				)
 
