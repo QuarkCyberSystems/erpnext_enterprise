@@ -187,6 +187,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_department()
 		cls.make_territory()
 		cls.make_customer_group()
+		cls.make_customer()
 		cls.make_user()
 		cls.make_cost_center()
 		cls.make_warehouse()
@@ -2082,6 +2083,76 @@ class ERPNextTestSuite(unittest.TestCase):
 					cls.test_accounts.append(
 						frappe.get_doc("Account", {"account_name": account_name, "company": company})
 					)
+
+	@classmethod
+	def make_customer(cls):
+		records = [
+			{
+				"customer_group": "_Test Customer Group",
+				"customer_name": "_Test Customer With Template",
+				"customer_type": "Individual",
+				"doctype": "Customer",
+				"territory": "_Test Territory",
+			},
+			{
+				"customer_group": "_Test Customer Group",
+				"customer_name": "_Test Customer P",
+				"customer_type": "Individual",
+				"doctype": "Customer",
+				"territory": "_Test Territory",
+			},
+			{
+				"customer_group": "_Test Customer Group",
+				"customer_name": "_Test Customer",
+				"customer_type": "Individual",
+				"doctype": "Customer",
+				"territory": "_Test Territory",
+			},
+			{
+				"customer_group": "_Test Customer Group",
+				"customer_name": "_Test Customer 1",
+				"customer_type": "Individual",
+				"doctype": "Customer",
+				"territory": "_Test Territory",
+			},
+			{
+				"customer_group": "_Test Customer Group",
+				"customer_name": "_Test Customer 2",
+				"customer_type": "Individual",
+				"doctype": "Customer",
+				"territory": "_Test Territory",
+			},
+			{
+				"customer_group": "_Test Customer Group",
+				"customer_name": "_Test Customer 3",
+				"customer_type": "Individual",
+				"doctype": "Customer",
+				"territory": "_Test Territory",
+			},
+			{
+				"customer_group": "_Test Customer Group",
+				"customer_name": "_Test Customer USD",
+				"customer_type": "Individual",
+				"doctype": "Customer",
+				"territory": "_Test Territory",
+				"default_currency": "USD",
+				"accounts": [{"company": "_Test Company", "account": "_Test Receivable USD - _TC"}],
+			},
+			{
+				"customer_group": "_Test Customer Group",
+				"customer_name": "_Test Customer With Tax Category",
+				"customer_type": "Individual",
+				"doctype": "Customer",
+				"territory": "_Test Territory",
+				"tax_category": "_Test Tax Category 1",
+			},
+		]
+		cls.customer = []
+		for x in records:
+			if not frappe.db.exists("Customer", {"customer_name": x.get("customer_name")}):
+				cls.customer.append(frappe.get_doc(x).insert())
+			else:
+				cls.customer.append(frappe.get_doc("Customer", {"customer_name": x.get("customer_name")}))
 
 
 @ERPNextTestSuite.registerAs(staticmethod)
