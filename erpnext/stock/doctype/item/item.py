@@ -773,7 +773,7 @@ class Item(Document):
 						"erpnext.stock.doctype.item.item.update_variants",
 						variants=variants,
 						template=self,
-						now=frappe.flags.in_test,
+						now=frappe.in_test,
 						timeout=600,
 						enqueue_after_commit=True,
 					)

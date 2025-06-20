@@ -79,7 +79,7 @@ class BankStatementImport(DataImport):
 		from frappe.utils.background_jobs import is_job_enqueued
 		from frappe.utils.scheduler import is_scheduler_inactive
 
-		run_now = frappe.flags.in_test or frappe.conf.developer_mode
+		run_now = frappe.in_test or frappe.conf.developer_mode
 		if is_scheduler_inactive() and not run_now:
 			frappe.throw(_("Scheduler is inactive. Cannot import data."), title=_("Scheduler Inactive"))
 

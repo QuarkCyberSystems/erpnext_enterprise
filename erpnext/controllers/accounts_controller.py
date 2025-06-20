@@ -654,7 +654,7 @@ class AccountsController(TransactionBase):
 				self.base_paid_amount = 0
 
 	def set_missing_values(self, for_validate=False):
-		if frappe.flags.in_test:
+		if frappe.in_test:
 			for fieldname in ["posting_date", "transaction_date"]:
 				if self.meta.get_field(fieldname) and not self.get(fieldname):
 					self.set(fieldname, today())
