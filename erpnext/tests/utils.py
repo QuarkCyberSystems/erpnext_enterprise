@@ -189,6 +189,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_user()
 		cls.make_cost_center()
 		cls.make_warehouse()
+		cls.make_uom()
 		cls.make_item_group()
 		cls.make_item()
 		cls.make_location()
@@ -1238,6 +1239,24 @@ class ERPNextTestSuite(unittest.TestCase):
 					frappe.get_doc(
 						"Warehouse",
 						{"warehouse_name": x.get("warehouse_name"), "company": x.get("company")},
+					)
+				)
+
+	@classmethod
+	def make_uom(cls):
+		records = [
+			{"doctype": "UOM", "must_be_whole_number": 1, "uom_name": "_Test UOM"},
+			{"doctype": "UOM", "uom_name": "_Test UOM 1"},
+		]
+		cls.uom = []
+		for x in records:
+			if not frappe.db.exists("UOM", {"uom_name": x.get("uom_name")}):
+				cls.uom.append(frappe.get_doc(x).insert())
+			else:
+				cls.uom.append(
+					frappe.get_doc(
+						"UOM",
+						{"uom_name": x.get("uom_name")},
 					)
 				)
 
