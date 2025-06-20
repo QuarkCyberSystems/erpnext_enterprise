@@ -132,7 +132,7 @@ class ERPNextTestSuite(unittest.TestCase):
 	@classmethod
 	def setUpClass(cls):
 		cls.make_presets()
-		cls.make_persistant_master_data()
+		cls.make_persistent_master_data()
 
 	@classmethod
 	def make_presets(cls):
@@ -173,7 +173,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		frappe.db.commit()
 
 	@classmethod
-	def make_persistant_master_data(cls):
+	def make_persistent_master_data(cls):
 		cls.make_fiscal_year()
 		cls.make_company()
 		cls.make_supplier_group()
