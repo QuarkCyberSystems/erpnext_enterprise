@@ -27,6 +27,7 @@ from erpnext.tests.utils import ERPNextTestSuite
 class TestPOSClosingEntry(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		frappe.db.sql("delete from `tabPOS Opening Entry`")
 		cls.enterClassContext(cls.change_settings("POS Settings", {"invoice_type": "POS Invoice"}))
 
