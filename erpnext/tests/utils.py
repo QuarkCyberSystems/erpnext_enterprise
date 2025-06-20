@@ -196,9 +196,17 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_item_attribute()
 		cls.make_item()
 		cls.make_location()
+		cls.make_price_list()
+		cls.update_selling_settings()
 		cls.update_stock_settings()
 
 		frappe.db.commit()
+
+	@classmethod
+	def update_selling_settings(cls):
+		selling_settings = frappe.get_doc("Selling Settings")
+		selling_settings.selling_price_list = "Standard Selling"
+		selling_settings.save()
 
 	@classmethod
 	def update_stock_settings(cls):
