@@ -796,21 +796,8 @@ class ERPNextTestSuite(unittest.TestCase):
 		]
 
 		start = 2012
-		this_year = now_datetime().year
 		end = now_datetime().year + 25
-		# The current year fails to load with the following error:
-		# Year start date or end date is overlapping with 2024. To avoid please set company
-		# This is a quick-fix: if current FY is needed, please refactor test data properly
-		for year in range(start, this_year):
-			records.append(
-				{
-					"doctype": "Fiscal Year",
-					"year": f"_Test Fiscal Year {year}",
-					"year_start_date": f"{year}-01-01",
-					"year_end_date": f"{year}-12-31",
-				}
-			)
-		for year in range(this_year + 1, end):
+		for year in range(start, end):
 			records.append(
 				{
 					"doctype": "Fiscal Year",
