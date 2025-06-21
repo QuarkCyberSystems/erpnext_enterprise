@@ -13,6 +13,9 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestShippingRule(ERPNextTestSuite):
+	def setUp(self):
+		self.load_test_records("Shipping Rule")
+
 	def test_from_greater_than_to(self):
 		shipping_rule = frappe.copy_doc(self.globalTestRecords["Shipping Rule"][0])
 		shipping_rule.name = self.globalTestRecords["Shipping Rule"][0].get("name")
