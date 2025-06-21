@@ -8,6 +8,7 @@ from typing import Any, NewType
 import frappe
 from frappe import _
 from frappe.core.doctype.report.report import get_report_module_dotted_path
+from frappe.tests.utils import load_test_records_for
 from frappe.utils import now_datetime
 
 ReportFilters = dict[str, Any]
@@ -133,6 +134,16 @@ class ERPNextTestSuite(unittest.TestCase):
 	def setUpClass(cls):
 		cls.make_presets()
 		cls.make_persistent_master_data()
+
+		# initilize global test records attribute
+		if not hasattr(cls, "globalTestRecords"):
+			cls.globalTestRecords = {}
+
+	@classmethod
+	def load_test_records(cls, doctype):
+		if doctype not in cls.globalTestRecords:
+			records = load_test_records_for(doctype)
+			cls.globalTestRecords[doctype] = records[doctype]
 
 	@classmethod
 	def make_presets(cls):
