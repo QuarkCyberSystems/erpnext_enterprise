@@ -156,7 +156,11 @@ class ERPNextTestSuite(unittest.TestCase):
 	def make_presets(cls):
 		from frappe.desk.page.setup_wizard.install_fixtures import update_genders, update_salutations
 
-		from erpnext.setup.setup_wizard.operations.install_fixtures import add_uom_data, get_preset_records
+		from erpnext.setup.setup_wizard.operations.install_fixtures import (
+			add_uom_data,
+			get_preset_records,
+			get_sale_stages,
+		)
 
 		update_genders()
 		update_salutations()
@@ -187,6 +191,10 @@ class ERPNextTestSuite(unittest.TestCase):
 				doc.insert()
 
 		add_uom_data()
+		# add sale stages
+		for sales_stage in get_sale_stages():
+			if not frappe.db.exists("Sales Stage", {"stage_name": sales_stage.get("stage_name")}):
+				frappe.get_doc(sales_stage).insert()
 
 		frappe.db.commit()
 
@@ -218,6 +226,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_location()
 		cls.make_price_list()
 		cls.make_shareholder()
+		cls.make_sales_taxes_template()
 		cls.update_selling_settings()
 		cls.update_stock_settings()
 		cls.update_system_settings()
@@ -2250,6 +2259,235 @@ class ERPNextTestSuite(unittest.TestCase):
 			else:
 				cls.shareholder.append(
 					frappe.get_doc("Shareholder", {"title": x.get("title"), "company": x.get("company")})
+				)
+
+	@classmethod
+	def make_sales_taxes_template(cls):
+		records = [
+			{
+				"company": "_Test Company",
+				"doctype": "Sales Taxes and Charges Template",
+				"taxes": [
+					{
+						"account_head": "_Test Account VAT - _TC",
+						"charge_type": "On Net Total",
+						"description": "VAT",
+						"doctype": "Sales Taxes and Charges",
+						"cost_center": "Main - _TC",
+						"parentfield": "taxes",
+						"rate": 6,
+					},
+					{
+						"account_head": "_Test Account Service Tax - _TC",
+						"charge_type": "On Net Total",
+						"description": "Service Tax",
+						"doctype": "Sales Taxes and Charges",
+						"cost_center": "Main - _TC",
+						"parentfield": "taxes",
+						"rate": 6.36,
+					},
+				],
+				"title": "_Test Sales Taxes and Charges Template",
+			},
+			{
+				"company": "_Test Company",
+				"doctype": "Sales Taxes and Charges Template",
+				"taxes": [
+					{
+						"account_head": "_Test Account Shipping Charges - _TC",
+						"charge_type": "Actual",
+						"cost_center": "_Test Cost Center - _TC",
+						"description": "Shipping Charges",
+						"doctype": "Sales Taxes and Charges",
+						"parentfield": "taxes",
+						"tax_amount": 100,
+					},
+					{
+						"account_head": "_Test Account Customs Duty - _TC",
+						"charge_type": "On Net Total",
+						"cost_center": "_Test Cost Center - _TC",
+						"description": "Customs Duty",
+						"doctype": "Sales Taxes and Charges",
+						"parentfield": "taxes",
+						"rate": 10,
+					},
+					{
+						"account_head": "_Test Account Excise Duty - _TC",
+						"charge_type": "On Net Total",
+						"cost_center": "_Test Cost Center - _TC",
+						"description": "Excise Duty",
+						"doctype": "Sales Taxes and Charges",
+						"parentfield": "taxes",
+						"rate": 12,
+					},
+					{
+						"account_head": "_Test Account Education Cess - _TC",
+						"charge_type": "On Previous Row Amount",
+						"cost_center": "_Test Cost Center - _TC",
+						"description": "Education Cess",
+						"doctype": "Sales Taxes and Charges",
+						"parentfield": "taxes",
+						"rate": 2,
+						"row_id": 3,
+					},
+					{
+						"account_head": "_Test Account S&H Education Cess - _TC",
+						"charge_type": "On Previous Row Amount",
+						"cost_center": "_Test Cost Center - _TC",
+						"description": "S&H Education Cess",
+						"doctype": "Sales Taxes and Charges",
+						"parentfield": "taxes",
+						"rate": 1,
+						"row_id": 3,
+					},
+					{
+						"account_head": "_Test Account CST - _TC",
+						"charge_type": "On Previous Row Total",
+						"cost_center": "_Test Cost Center - _TC",
+						"description": "CST",
+						"doctype": "Sales Taxes and Charges",
+						"parentfield": "taxes",
+						"rate": 2,
+						"row_id": 5,
+					},
+					{
+						"account_head": "_Test Account VAT - _TC",
+						"charge_type": "On Net Total",
+						"cost_center": "_Test Cost Center - _TC",
+						"description": "VAT",
+						"doctype": "Sales Taxes and Charges",
+						"parentfield": "taxes",
+						"rate": 12.5,
+					},
+					{
+						"account_head": "_Test Account Discount - _TC",
+						"charge_type": "On Previous Row Total",
+						"cost_center": "_Test Cost Center - _TC",
+						"description": "Discount",
+						"doctype": "Sales Taxes and Charges",
+						"parentfield": "taxes",
+						"rate": -10,
+						"row_id": 7,
+					},
+				],
+				"title": "_Test India Tax Master",
+			},
+			{
+				"company": "_Test Company",
+				"doctype": "Sales Taxes and Charges Template",
+				"taxes": [
+					{
+						"account_head": "_Test Account VAT - _TC",
+						"charge_type": "On Net Total",
+						"description": "VAT",
+						"doctype": "Sales Taxes and Charges",
+						"cost_center": "Main - _TC",
+						"parentfield": "taxes",
+						"rate": 12,
+					},
+					{
+						"account_head": "_Test Account Service Tax - _TC",
+						"charge_type": "On Net Total",
+						"description": "Service Tax",
+						"doctype": "Sales Taxes and Charges",
+						"cost_center": "Main - _TC",
+						"parentfield": "taxes",
+						"rate": 4,
+					},
+				],
+				"title": "_Test Sales Taxes and Charges Template - Rest of the World",
+			},
+			{
+				"company": "_Test Company",
+				"doctype": "Sales Taxes and Charges Template",
+				"taxes": [
+					{
+						"account_head": "_Test Account VAT - _TC",
+						"charge_type": "On Net Total",
+						"description": "VAT",
+						"doctype": "Sales Taxes and Charges",
+						"cost_center": "Main - _TC",
+						"parentfield": "taxes",
+						"rate": 12,
+					},
+					{
+						"account_head": "_Test Account Service Tax - _TC",
+						"charge_type": "On Net Total",
+						"description": "Service Tax",
+						"doctype": "Sales Taxes and Charges",
+						"cost_center": "Main - _TC",
+						"parentfield": "taxes",
+						"rate": 4,
+					},
+				],
+				"title": "_Test Sales Taxes and Charges Template 1",
+			},
+			{
+				"company": "_Test Company",
+				"doctype": "Sales Taxes and Charges Template",
+				"taxes": [
+					{
+						"account_head": "_Test Account VAT - _TC",
+						"charge_type": "On Net Total",
+						"description": "VAT",
+						"doctype": "Sales Taxes and Charges",
+						"cost_center": "Main - _TC",
+						"parentfield": "taxes",
+						"rate": 12,
+					},
+					{
+						"account_head": "_Test Account Service Tax - _TC",
+						"charge_type": "On Net Total",
+						"description": "Service Tax",
+						"doctype": "Sales Taxes and Charges",
+						"cost_center": "Main - _TC",
+						"parentfield": "taxes",
+						"rate": 4,
+					},
+				],
+				"title": "_Test Sales Taxes and Charges Template 2",
+			},
+			{
+				"doctype": "Sales Taxes and Charges Template",
+				"title": "_Test Tax 1",
+				"company": "_Test Company",
+				"taxes": [
+					{
+						"charge_type": "Actual",
+						"account_head": "Sales Expenses - _TC",
+						"cost_center": "Main - _TC",
+						"description": "Test Shopping cart taxes with Tax Rule",
+						"tax_amount": 1000,
+					}
+				],
+			},
+			{
+				"doctype": "Sales Taxes and Charges Template",
+				"title": "_Test Tax 2",
+				"company": "_Test Company",
+				"taxes": [
+					{
+						"charge_type": "Actual",
+						"account_head": "Sales Expenses - _TC",
+						"cost_center": "Main - _TC",
+						"description": "Test Shopping cart taxes with Tax Rule",
+						"tax_amount": 200,
+					}
+				],
+			},
+		]
+		cls.sales_taxes_and_template = []
+		for x in records:
+			if not frappe.db.exists(
+				"Sales Taxes and Charges Template", {"title": x.get("title"), "company": x.get("company")}
+			):
+				cls.sales_taxes_and_template.append(frappe.get_doc(x).insert())
+			else:
+				cls.sales_taxes_and_template.append(
+					frappe.get_doc(
+						"Sales Taxes and Charges Template",
+						{"title": x.get("title"), "company": x.get("company")},
+					)
 				)
 
 

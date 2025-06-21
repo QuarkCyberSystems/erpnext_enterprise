@@ -431,9 +431,9 @@ def add_market_segments():
 	make_records(records)
 
 
-def add_sale_stages():
+def get_sale_stages():
 	# Sale Stages
-	records = [
+	return [
 		{"doctype": "Sales Stage", "stage_name": _("Prospecting")},
 		{"doctype": "Sales Stage", "stage_name": _("Qualification")},
 		{"doctype": "Sales Stage", "stage_name": _("Needs Analysis")},
@@ -443,6 +443,10 @@ def add_sale_stages():
 		{"doctype": "Sales Stage", "stage_name": _("Proposal/Price Quote")},
 		{"doctype": "Sales Stage", "stage_name": _("Negotiation/Review")},
 	]
+
+
+def add_sale_stages():
+	records = get_sale_stages()
 	for sales_stage in records:
 		frappe.get_doc(sales_stage).db_insert()
 
