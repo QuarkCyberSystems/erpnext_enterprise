@@ -12,6 +12,9 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestJournalEntry(ERPNextTestSuite):
+	def setUp(self):
+		self.load_test_records("Journal Entry")
+
 	@ERPNextTestSuite.change_settings("Accounts Settings", {"unlink_payment_on_cancellation_of_invoice": 1})
 	def test_journal_entry_with_against_jv(self):
 		jv_invoice = frappe.copy_doc(self.globalTestRecords["Journal Entry"][2])

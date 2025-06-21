@@ -186,6 +186,7 @@ class ERPNextTestSuite(unittest.TestCase):
 	@classmethod
 	def make_persistent_master_data(cls):
 		cls.make_fiscal_year()
+		cls.make_holiday_list()
 		cls.make_company()
 		cls.make_test_account()
 		cls.make_supplier_group()
@@ -744,7 +745,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"doctype": "Company",
 				"domain": "Manufacturing",
 				"chart_of_accounts": "Standard",
-				# "default_holiday_list": cls.holiday_list[0].name,
+				"default_holiday_list": cls.holiday_list[0].name,
 				"enable_perpetual_inventory": 0,
 				"allow_account_creation_against_child_company": 1,
 			},
@@ -756,7 +757,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"doctype": "Company",
 				"domain": "Retail",
 				"chart_of_accounts": "Standard",
-				# "default_holiday_list": cls.holiday_list[0].name,
+				"default_holiday_list": cls.holiday_list[0].name,
 				"enable_perpetual_inventory": 0,
 			},
 			{
@@ -767,7 +768,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"doctype": "Company",
 				"domain": "Retail",
 				"chart_of_accounts": "Standard",
-				# "default_holiday_list": cls.holiday_list[0].name,
+				"default_holiday_list": cls.holiday_list[0].name,
 				"enable_perpetual_inventory": 0,
 			},
 			{
@@ -779,7 +780,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"doctype": "Company",
 				"domain": "Manufacturing",
 				"chart_of_accounts": "Standard",
-				# "default_holiday_list": cls.holiday_list[0].name,
+				"default_holiday_list": cls.holiday_list[0].name,
 				"enable_perpetual_inventory": 0,
 			},
 			{
@@ -792,7 +793,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"doctype": "Company",
 				"domain": "Manufacturing",
 				"chart_of_accounts": "Standard",
-				# "default_holiday_list": cls.holiday_list[0].name,
+				"default_holiday_list": cls.holiday_list[0].name,
 				"enable_perpetual_inventory": 0,
 			},
 			{
@@ -804,7 +805,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"doctype": "Company",
 				"domain": "Manufacturing",
 				"chart_of_accounts": "Standard",
-				# "default_holiday_list": cls.holiday_list[0].name,
+				"default_holiday_list": cls.holiday_list[0].name,
 				"enable_perpetual_inventory": 0,
 			},
 			{
@@ -816,7 +817,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"domain": "Manufacturing",
 				"chart_of_accounts": "Standard",
 				"enable_perpetual_inventory": 1,
-				# "default_holiday_list": cls.holiday_list[0].name,
+				"default_holiday_list": cls.holiday_list[0].name,
 			},
 			{
 				"abbr": "_TC6",
@@ -827,7 +828,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"doctype": "Company",
 				"domain": "Manufacturing",
 				"chart_of_accounts": "Standard",
-				# "default_holiday_list": cls.holiday_list[0].name,
+				"default_holiday_list": cls.holiday_list[0].name,
 				"enable_perpetual_inventory": 0,
 			},
 			{
@@ -840,7 +841,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"doctype": "Company",
 				"domain": "Manufacturing",
 				"chart_of_accounts": "Standard",
-				# "default_holiday_list": cls.holiday_list[0].name,
+				"default_holiday_list": cls.holiday_list[0].name,
 				"enable_perpetual_inventory": 0,
 			},
 			{
