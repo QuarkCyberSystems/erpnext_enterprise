@@ -28,6 +28,7 @@ class TestPOSInvoice(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		cls.load_test_records("Stock Entry")
 		cls.enterClassContext(cls.change_settings("Selling Settings", validate_selling_price=0))
 		cls.enterClassContext(cls.change_settings("POS Settings", invoice_type="POS Invoice"))
 		make_stock_entry(target="_Test Warehouse - _TC", item_code="_Test Item", qty=800, basic_rate=100)
