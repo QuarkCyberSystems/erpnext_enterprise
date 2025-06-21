@@ -217,6 +217,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_item()
 		cls.make_location()
 		cls.make_price_list()
+		cls.make_shareholder()
 		cls.update_selling_settings()
 		cls.update_stock_settings()
 		cls.update_system_settings()
@@ -2229,6 +2230,27 @@ class ERPNextTestSuite(unittest.TestCase):
 				cls.customer.append(frappe.get_doc(x).insert())
 			else:
 				cls.customer.append(frappe.get_doc("Customer", {"customer_name": x.get("customer_name")}))
+
+	@classmethod
+	def make_shareholder(cls):
+		records = [
+			{
+				"doctype": "Shareholder",
+				"naming_series": "SH-",
+				"title": "Iron Man",
+				"company": "_Test Company",
+			},
+			{"doctype": "Shareholder", "naming_series": "SH-", "title": "Thor", "company": "_Test Company"},
+			{"doctype": "Shareholder", "naming_series": "SH-", "title": "Hulk", "company": "_Test Company"},
+		]
+		cls.shareholder = []
+		for x in records:
+			if not frappe.db.exists("Shareholder", {"title": x.get("title"), "company": x.get("company")}):
+				cls.shareholder.append(frappe.get_doc(x).insert())
+			else:
+				cls.shareholder.append(
+					frappe.get_doc("Shareholder", {"title": x.get("title"), "company": x.get("company")})
+				)
 
 
 @ERPNextTestSuite.registerAs(staticmethod)
