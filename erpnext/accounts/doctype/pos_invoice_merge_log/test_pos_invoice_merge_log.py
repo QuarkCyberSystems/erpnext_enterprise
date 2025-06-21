@@ -415,6 +415,7 @@ class TestPOSInvoiceMergeLog(ERPNextTestSuite):
 		The second and third POS Invoice should be consolidated with a single Merge Log
 		"""
 
+		self.load_test_records("Stock Entry")
 		from erpnext.stock.doctype.stock_entry.test_stock_entry import make_serialized_item
 
 		se = make_serialized_item(self)
