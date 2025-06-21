@@ -1003,9 +1003,10 @@ class TestPOSInvoice(ERPNextTestSuite):
 		se.cancel()
 
 	def test_ignore_pricing_rule(self):
+		frappe.set_user("Administrator")
 		from erpnext.accounts.doctype.pricing_rule.test_pricing_rule import make_pricing_rule
 
-		item_price = frappe.get_doc(
+		item_price = self.truncate_make_item_price(
 			{
 				"doctype": "Item Price",
 				"item_code": "_Test Item",
@@ -1013,7 +1014,7 @@ class TestPOSInvoice(ERPNextTestSuite):
 				"price_list_rate": "450",
 			}
 		)
-		item_price.insert()
+
 		pr = make_pricing_rule(selling=1, priority=5, discount_percentage=10)
 		pr.save()
 
