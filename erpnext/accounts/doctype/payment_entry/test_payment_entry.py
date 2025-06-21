@@ -643,6 +643,7 @@ class TestPaymentEntry(ERPNextTestSuite):
 	def test_payment_entry_retrieves_last_exchange_rate(self):
 		from erpnext.setup.doctype.currency_exchange.test_currency_exchange import save_new_records
 
+		self.load_test_records("Currency Exchange")
 		save_new_records(self.globalTestRecords["Currency Exchange"])
 
 		pe = frappe.new_doc("Payment Entry")
@@ -980,6 +981,7 @@ class TestPaymentEntry(ERPNextTestSuite):
 	def test_gl_of_multi_currency_payment_transaction(self):
 		from erpnext.setup.doctype.currency_exchange.test_currency_exchange import save_new_records
 
+		self.load_test_records("Currency Exchange")
 		save_new_records(self.globalTestRecords["Currency Exchange"])
 		paid_from = create_account(
 			parent_account="Current Liabilities - _TC",
