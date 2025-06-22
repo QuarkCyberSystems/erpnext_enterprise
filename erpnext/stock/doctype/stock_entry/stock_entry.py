@@ -1895,10 +1895,9 @@ class StockEntry(StockController):
 		)
 
 	@frappe.whitelist()
-	def get_items(self, qty, production_item):
+	def get_items(self, qty=None, production_item=None):
 		self.set("items", [])
 		self.validate_work_order()
-		# print(qty, 'qty\n\n')
 
 		if self.purpose == "Disassemble" and qty is not None:
 			return self.get_items_for_disassembly(qty, production_item)
