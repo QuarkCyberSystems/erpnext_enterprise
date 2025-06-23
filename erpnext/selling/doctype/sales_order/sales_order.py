@@ -1852,6 +1852,7 @@ def get_work_order_items(sales_order, for_raw_material_request=0):
 						dict(
 							name=i.name,
 							item_code=i.item_code,
+							item_name=i.item_name,
 							description=i.description,
 							bom=bom or "",
 							warehouse=i.warehouse,
