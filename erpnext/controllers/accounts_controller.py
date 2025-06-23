@@ -2232,7 +2232,6 @@ class AccountsController(TransactionBase):
 	def set_advance_payment_status(self):
 		new_status = None
 
-
 		PaymentRequest = frappe.qb.DocType("Payment Request")
 		paid_amount = frappe.get_value(
 			doctype="Payment Request",

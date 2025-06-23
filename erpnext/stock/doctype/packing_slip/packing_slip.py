@@ -4,8 +4,9 @@
 
 import frappe
 from frappe import _
-from frappe.utils import cint, flt
 from frappe.query_builder.functions import Sum
+from frappe.utils import cint, flt
+
 from erpnext.controllers.status_updater import StatusUpdater
 
 
@@ -174,7 +175,9 @@ class PackingSlip(StatusUpdater):
 		return (
 			cint(
 				frappe.db.get_value(
-					"Packing Slip", {"delivery_note": self.delivery_note, "docstatus": 1}, [{"MAX": "to_case_no"}]
+					"Packing Slip",
+					{"delivery_note": self.delivery_note, "docstatus": 1},
+					[{"MAX": "to_case_no"}],
 				)
 			)
 			+ 1

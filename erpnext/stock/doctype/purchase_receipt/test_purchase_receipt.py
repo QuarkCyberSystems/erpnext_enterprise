@@ -2128,7 +2128,7 @@ class TestPurchaseReceipt(IntegrationTestCase):
 		self.assertEqual(flt(pr.total * pr.conversion_rate, 2), flt(pr.base_total, 2))
 
 		# Test - 2: Sum of Debit or Credit should be equal to Purchase Receipt Base Total
-		amount = frappe.db.get_value("GL Entry", {"docstatus": 1, "voucher_no": pr.name}, [{'SUM': 'debit'}])
+		amount = frappe.db.get_value("GL Entry", {"docstatus": 1, "voucher_no": pr.name}, [{"SUM": "debit"}])
 		expected_amount = pr.base_total
 		self.assertEqual(amount, expected_amount)
 
