@@ -618,10 +618,11 @@
   },
   {
    "default": "0",
-   "description": "Enable this field to fetch the exchange rates for Pegged Currencies.\n\n",
+   "description": "System will do an implicit conversion using the pegged currency. <br>\nEx: Instead of AED -&gt; INR, system will do AED -&gt; USD -&gt; INR using the pegged exchange rate of AED against USD.",
+   "documentation_url": "/app/pegged-currencies/Pegged Currencies",
    "fieldname": "allow_pegged_currencies_exchange_rates",
    "fieldtype": "Check",
-   "label": "Allow Pegged Currencies Exchange Rates"
+   "label": "Allow Implicit Pegged Currency Conversion"
   }
  ],
  "grid_page_length": 50,
@@ -630,7 +631,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-06-16 16:40:54.871486",
+ "modified": "2025-06-23 15:55:33.346398",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Accounts Settings",
