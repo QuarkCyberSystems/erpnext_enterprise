@@ -8,7 +8,7 @@ import frappe
 from frappe.utils import cint, get_datetime
 from frappe.utils.nestedset import get_root_of
 
-from erpnext.accounts.doctype.pos_invoice.pos_invoice import get_stock_availability
+from erpnext.accounts.doctype.pos_invoice.pos_invoice import get_item_group, get_stock_availability
 from erpnext.accounts.doctype.pos_profile.pos_profile import get_child_nodes, get_item_groups
 from erpnext.stock.utils import scan_barcode
 
@@ -109,7 +109,8 @@ def search_by_term(search_term, warehouse, price_list):
 
 def filter_result_items(result, pos_profile):
 	if result and result.get("items"):
-		pos_item_groups = frappe.db.get_all("POS Item Group", {"parent": pos_profile}, pluck="item_group")
+		pos_profile_doc = frappe.get_cached_doc("POS Profile", pos_profile)
+		pos_item_groups = get_item_group(pos_profile_doc)
 		if not pos_item_groups:
 			return
 		result["items"] = [item for item in result.get("items") if item.get("item_group") in pos_item_groups]
