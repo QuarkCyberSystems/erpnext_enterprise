@@ -1923,9 +1923,10 @@ def get_reserved_serial_nos(kwargs) -> list:
 	if not reserved_entries:
 		return ignore_serial_nos, consider_serial_nos
 
-	reserved_voucher_details = get_reserved_voucher_details(kwargs)
-	if not reserved_voucher_details:
-		return ignore_serial_nos, consider_serial_nos
+	if kwargs.get("sabb_voucher_type") == "Delivery Note" and kwargs.get("against_sales_order"):
+		reserved_voucher_details = [kwargs.get("against_sales_order")]
+	else:
+		reserved_voucher_details = get_reserved_voucher_details(kwargs)
 
 	serial_nos = []
 	for entry in reserved_entries:
