@@ -1213,7 +1213,7 @@ class WorkOrder(Document):
 			if self.wip_warehouse:
 				d.available_qty_at_wip_warehouse = get_latest_stock_qty(d.item_code, self.wip_warehouse)
 
-	def set_required_items(self, reset_only_qty=False):
+	def set_required_items(self, reset_only_qty=False, reset_source_warehouse=False):
 		"""set required_items for production to keep track of reserved qty"""
 		if not reset_only_qty:
 			self.required_items = []
@@ -1247,7 +1247,9 @@ class WorkOrder(Document):
 							"description": item.description,
 							"allow_alternative_item": item.allow_alternative_item,
 							"required_qty": item.qty,
-							"source_warehouse": item.source_warehouse or item.default_warehouse,
+							"source_warehouse": (item.source_warehouse or item.default_warehouse)
+							if not reset_source_warehouse
+							else self.source_warehouse,
 							"include_item_in_manufacturing": item.include_item_in_manufacturing,
 							"operation_row_id": item.operation_row_id,
 						},
@@ -1295,22 +1297,37 @@ class WorkOrder(Document):
 			self.update_qty_in_stock_reservation(row, transferred_qty, row_wise_serial_batch)
 
 	def update_qty_in_stock_reservation(self, row, transferred_qty, row_wise_serial_batch):
-		if name := frappe.db.get_value(
+		if names := frappe.get_all(
 			"Stock Reservation Entry",
-			{
+			filters={
 				"voucher_no": self.name,
 				"item_code": row.item_code,
 				"voucher_detail_no": row.name,
 				"warehouse": row.source_warehouse,
 			},
-			"name",
+			pluck="name",
 		):
-			doc = frappe.get_doc("Stock Reservation Entry", name)
-			doc.db_set("transferred_qty", flt(transferred_qty), update_modified=False)
-			if (doc.has_batch_no or doc.has_serial_no) and doc.reservation_based_on == "Serial and Batch":
-				doc.consume_serial_batch_for_material_transfer(row_wise_serial_batch)
-			doc.update_status()
-			doc.update_reserved_stock_in_bin()
+			for name in names:
+				doc = frappe.get_doc("Stock Reservation Entry", name)
+				qty_to_update = 0.0
+				if transferred_qty <= 0:
+					continue
+
+				if transferred_qty > flt(doc.reserved_qty - doc.consumed_qty):
+					qty_to_update = doc.reserved_qty - doc.transferred_qty
+					transferred_qty -= qty_to_update
+				else:
+					qty_to_update = transferred_qty
+					transferred_qty = 0.0
+
+				if qty_to_update <= 0:
+					continue
+
+				doc.db_set("transferred_qty", flt(qty_to_update), update_modified=False)
+				if (doc.has_batch_no or doc.has_serial_no) and doc.reservation_based_on == "Serial and Batch":
+					doc.consume_serial_batch_for_material_transfer(row_wise_serial_batch)
+				doc.update_status()
+				doc.update_reserved_stock_in_bin()
 
 	def update_returned_qty(self):
 		ste = frappe.qb.DocType("Stock Entry")
@@ -2004,17 +2021,19 @@ def stop_unstop(work_order, status):
 
 
 @frappe.whitelist()
-def query_sales_order(production_item: str) -> list[str]:
+@frappe.validate_and_sanitize_search_inputs
+def query_sales_order(doctype, txt, searchfield, start, page_len, filters) -> list[str]:
 	return frappe.get_list(
 		"Sales Order",
+		fields=["name"],
 		filters=[
 			["Sales Order", "docstatus", "=", 1],
 		],
 		or_filters=[
-			["Sales Order Item", "item_code", "=", production_item],
-			["Packed Item", "item_code", "=", production_item],
+			["Sales Order Item", "item_code", "=", filters.get("production_item")],
+			["Packed Item", "item_code", "=", filters.get("production_item")],
 		],
-		pluck="name",
+		as_list=True,
 		distinct=True,
 	)
 
@@ -2165,8 +2184,8 @@ def create_job_card(work_order, row, enable_capacity_planning=False, auto_create
 			"hour_rate": row.get("hour_rate"),
 			"serial_no": row.get("serial_no"),
 			"time_required": row.get("time_in_mins"),
-			"source_warehouse": row.get("source_warehouse"),
-			"target_warehouse": row.get("fg_warehouse"),
+			"source_warehouse": row.get("source_warehouse") or work_order.get("source_warehouse"),
+			"target_warehouse": row.get("fg_warehouse") or work_order.get("fg_warehouse"),
 			"wip_warehouse": work_order.wip_warehouse or row.get("wip_warehouse")
 			if not work_order.skip_transfer or work_order.from_wip_warehouse
 			else work_order.source_warehouse or row.get("source_warehouse"),

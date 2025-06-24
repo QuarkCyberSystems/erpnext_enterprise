@@ -884,6 +884,9 @@ class ProductionPlan(Document):
 
 		wo = frappe.new_doc("Work Order")
 		wo.update(item)
+		if not wo.source_warehouse:
+			wo.source_warehouse = item.get("fg_warehouse")
+
 		wo.reserve_stock = self.reserve_stock
 		wo.planned_start_date = item.get("planned_start_date") or item.get("schedule_date")
 
@@ -891,7 +894,7 @@ class ProductionPlan(Document):
 			wo.fg_warehouse = item.get("warehouse")
 
 		wo.set_work_order_operations()
-		wo.set_required_items()
+		wo.set_required_items(reset_source_warehouse=True)
 
 		try:
 			wo.flags.ignore_mandatory = True
@@ -1245,6 +1248,7 @@ def get_exploded_items(item_details, company, bom_no, include_non_stock_items, p
 			item.purchase_uom,
 			item_uom.conversion_factor,
 			item.safety_stock,
+			bom.item.as_("main_bom_item"),
 		)
 		.where(
 			(bei.docstatus < 2)
@@ -1993,6 +1997,7 @@ def get_raw_materials_of_sub_assembly_items(
 			item.purchase_uom,
 			item_uom.conversion_factor,
 			item.safety_stock,
+			bom.item.as_("main_bom_item"),
 		)
 		.where(
 			(bei.docstatus == 1)

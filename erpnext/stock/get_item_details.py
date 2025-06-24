@@ -202,8 +202,14 @@ def update_stock(ctx, out, doc=None):
 				"item_code": ctx.item_code,
 				"warehouse": ctx.warehouse,
 				"based_on": frappe.get_single_value("Stock Settings", "pick_serial_and_batch_based_on"),
+				"sabb_voucher_no": doc.get("name"),
+				"sabb_voucher_detail_no": ctx.child_docname,
+				"sabb_voucher_type": ctx.doctype,
 			}
 		)
+
+		if ctx.get("doctype") == "Delivery Note":
+			kwargs["against_sales_order"] = ctx.get("against_sales_order")
 
 		if ctx.get("ignore_serial_nos"):
 			kwargs["ignore_serial_nos"] = ctx.get("ignore_serial_nos")

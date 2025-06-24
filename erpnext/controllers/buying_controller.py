@@ -80,6 +80,21 @@ class BuyingController(SubcontractingController):
 				),
 			)
 
+	def validate_posting_date_with_po(self):
+		po_list = []
+		for item in self.items:
+			if item.purchase_order and item.purchase_order not in po_list:
+				po_list.append(item.purchase_order)
+
+		for po in po_list:
+			po_posting_date = frappe.get_value("Purchase Order", po, "transaction_date")
+			if getdate(po_posting_date) > getdate(self.posting_date):
+				frappe.throw(
+					_("Posting Date {0} cannot be before Purchase Order Posting Date {1}").format(
+						frappe.bold(self.posting_date), frappe.bold(po_posting_date)
+					)
+				)
+
 	def create_package_for_transfer(self) -> None:
 		"""Create serial and batch package for Sourece Warehouse in case of inter transfer."""
 
@@ -240,18 +255,6 @@ class BuyingController(SubcontractingController):
 			return []
 
 		return [d.item_code for d in self.items if d.is_fixed_asset]
-
-	def set_landed_cost_voucher_amount(self):
-		for d in self.get("items"):
-			lc_voucher_data = frappe.db.sql(
-				"""select sum(applicable_charges), cost_center
-				from `tabLanded Cost Item`
-				where docstatus = 1 and purchase_receipt_item = %s and receipt_document = %s""",
-				(d.name, self.name),
-			)
-			d.landed_cost_voucher_amount = lc_voucher_data[0][0] if lc_voucher_data else 0.0
-			if not d.cost_center and lc_voucher_data and lc_voucher_data[0][1]:
-				d.db_set("cost_center", lc_voucher_data[0][1])
 
 	def validate_from_warehouse(self):
 		for item in self.get("items"):

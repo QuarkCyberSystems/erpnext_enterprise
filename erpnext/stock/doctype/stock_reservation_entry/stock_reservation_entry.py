@@ -87,9 +87,73 @@ class StockReservationEntry(Document):
 
 	def on_cancel(self) -> None:
 		self.update_reserved_qty_in_voucher()
+		self.update_unreserved_qty_in_sre()
 		self.update_reserved_qty_in_pick_list()
 		self.update_status()
 		self.update_reserved_stock_in_bin()
+
+	def update_unreserved_qty_in_sre(self):
+		if self.voucher_type == "Delivery Note":
+			return
+
+		if self.from_voucher_type and self.from_voucher_detail_no:
+			sre = frappe.qb.DocType("Stock Reservation Entry")
+			delivered_qty = (
+				frappe.qb.from_(sre)
+				.select(Sum(sre.reserved_qty))
+				.where(
+					(sre.docstatus == 1)
+					& (sre.item_code == self.item_code)
+					& (sre.from_voucher_type == self.from_voucher_type)
+					& (sre.from_voucher_no == self.from_voucher_no)
+					& (sre.from_voucher_detail_no == self.from_voucher_detail_no)
+				)
+			).run(as_list=True)[0][0] or 0
+
+			sres = self.get_from_voucher_reservation_entries()
+			index = 0
+			for row in sres:
+				status = "Reserved"
+				if delivered_qty <= 0 or index == 0:
+					frappe.db.set_value(
+						"Stock Reservation Entry",
+						row.name,
+						{"delivered_qty": delivered_qty, "status": status},
+					)
+
+					continue
+
+				index += 1
+				if row.reserved_qty > delivered_qty:
+					frappe.db.set_value(
+						"Stock Reservation Entry",
+						row.name,
+						"delivered_qty",
+						{"delivered_qty": delivered_qty, "status": status},
+					)
+
+					delivered_qty = 0.0
+				else:
+					frappe.db.set_value(
+						"Stock Reservation Entry",
+						row.name,
+						"delivered_qty",
+						{"delivered_qty": row.reserved_qty, "status": "Delivered"},
+					)
+
+					delivered_qty -= row.reserved_qty
+
+	def get_from_voucher_reservation_entries(self):
+		return frappe.get_all(
+			"Stock Reservation Entry",
+			fields=["name", "delivered_qty", "reserved_qty"],
+			filters={
+				"voucher_type": self.from_voucher_type,
+				"voucher_no": self.from_voucher_no,
+				"voucher_detail_no": self.from_voucher_detail_no,
+				"item_code": self.item_code,
+			},
+		)
 
 	def validate_amended_doc(self) -> None:
 		"""Raises an exception if document is amended."""
@@ -162,7 +226,6 @@ class StockReservationEntry(Document):
 			not self.from_voucher_type
 			and (self.get("_action") == "submit")
 			and (self.has_serial_no or self.has_batch_no)
-			and cint(frappe.get_single_value("Stock Settings", "auto_reserve_serial_and_batch"))
 		):
 			from erpnext.stock.doctype.batch.batch import get_available_batches
 			from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos_for_outward
@@ -449,6 +512,7 @@ class StockReservationEntry(Document):
 			from_voucher_detail_no = self.from_voucher_detail_no
 
 		total_reserved_qty = get_sre_reserved_qty_for_voucher_detail_no(
+			self.item_code,
 			self.voucher_type,
 			self.voucher_no,
 			self.voucher_detail_no,
@@ -786,6 +850,7 @@ def get_sre_reserved_warehouses_for_voucher(
 
 
 def get_sre_reserved_qty_for_voucher_detail_no(
+	item_code: str,
 	voucher_type: str,
 	voucher_no: str,
 	voucher_detail_no: str,
@@ -808,6 +873,7 @@ def get_sre_reserved_qty_for_voucher_detail_no(
 		)
 		.where(
 			(sre.docstatus == 1)
+			& (sre.item_code == item_code)
 			& (sre.voucher_type == voucher_type)
 			& (sre.voucher_no == voucher_no)
 			& (sre.voucher_detail_no == voucher_detail_no)
@@ -1088,9 +1154,9 @@ class StockReservation:
 			sre.has_batch_no = item_details.has_batch_no
 			sre.voucher_type = item.get("voucher_type") or self.doc.doctype
 			sre.voucher_no = item.get("voucher_no") or self.doc.name
-			sre.voucher_detail_no = item.get(child_doctype) or item.name or item.voucher_detail_no
+			sre.voucher_detail_no = item.get(child_doctype) or item.name or item.get("voucher_detail_no")
 			sre.available_qty = self.available_qty_to_reserve
-			sre.voucher_qty = qty
+			sre.voucher_qty = self.qty_to_be_reserved
 			sre.reserved_qty = self.qty_to_be_reserved
 			sre.company = self.doc.company
 			sre.stock_uom = item_details.stock_uom
@@ -1098,6 +1164,10 @@ class StockReservation:
 			sre.from_voucher_no = item.get("from_voucher_no")
 			sre.from_voucher_detail_no = item.get("from_voucher_detail_no")
 			sre.from_voucher_type = item.get("from_voucher_type")
+			sre.reservation_based_on = sre.reservation_based_on or "Qty"
+			if item_details.has_batch_no or item_details.has_serial_no:
+				sre.reservation_based_on = "Serial and Batch"
+
 			sre.save()
 
 			if item.get("serial_and_batch_bundles"):
@@ -1245,13 +1315,15 @@ class StockReservation:
 		sre.from_voucher_no = against_row.voucher_no
 		sre.from_voucher_detail_no = against_row.voucher_detail_no
 		sre.from_voucher_type = against_row.voucher_type
+		sre.reservation_based_on = against_row.reservation_based_on
+		sre.has_serial_no = against_row.has_serial_no
+		sre.has_batch_no = against_row.has_batch_no
 
 		bundles = [against_row.name]
 		if row.serial_and_batch_bundles:
 			bundles = row.serial_and_batch_bundles
 
 		self.set_serial_batch(sre, bundles)
-
 		sre.save()
 		sre.submit()
 

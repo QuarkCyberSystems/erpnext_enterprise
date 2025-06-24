@@ -525,7 +525,7 @@ def get_grand_total(filters, doctype):
 				"docstatus": 1,
 				"posting_date": ("between", [filters.get("from_date"), filters.get("to_date")]),
 			},
-			"sum(base_grand_total)",
+			[{"SUM": "base_grand_total"}],
 		)
 	)
 

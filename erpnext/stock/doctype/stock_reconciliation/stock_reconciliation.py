@@ -86,6 +86,7 @@ class StockReconciliation(StockController):
 			self.validate_reserved_stock()
 
 	def on_update(self):
+		super().on_update()
 		self.set_serial_and_batch_bundle(ignore_validate=True)
 
 	def validate_inventory_dimension(self):
@@ -1099,6 +1100,7 @@ class StockReconciliation(StockController):
 		new_sle.actual_qty = row.current_qty * -1
 		new_sle.valuation_rate = row.current_valuation_rate
 		new_sle.serial_and_batch_bundle = row.current_serial_and_batch_bundle
+		new_sle.flags.ignore_permissions = 1
 		new_sle.submit()
 
 		creation = add_to_date(sle_creation, seconds=-1)

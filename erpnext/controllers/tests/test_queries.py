@@ -5,7 +5,6 @@ import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.core.doctype.user_permission.user_permission import add_user_permissions
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-from frappe.tests import IntegrationTestCase
 
 from erpnext.controllers import queries
 from erpnext.tests.utils import ERPNextTestSuite
@@ -120,7 +119,7 @@ class TestQueries(ERPNextTestSuite):
 			}
 		)
 
-		with IntegrationTestCase.set_user(user.name):
+		with self.set_user(user.name):
 			params = {
 				"doctype": "Employee",
 				"txt": "",

@@ -1037,7 +1037,7 @@ class TestStockLedgerEntry(IntegrationTestCase, StockTestMixin):
 					"is_cancelled": 0,
 					"account": "Stock In Hand - TCP1",
 				},
-				"sum(credit)",
+				[{"SUM": "credit"}],
 			)
 
 		def _day(days):
