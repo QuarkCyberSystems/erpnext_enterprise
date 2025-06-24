@@ -97,8 +97,10 @@ def get_data(filters, conditions):
 		elif filters.get("group_by") == "Supplier":
 			sel_col = "t1.supplier"
 
-		if filters.get("based_on") in ["Item", "Customer", "Supplier"]:
+		if filters.get("based_on") in ["Customer", "Supplier"]:
 			inc = 3
+		elif filters.get("based_on") in ["Item"]:
+			inc = 2
 		else:
 			inc = 1
 
