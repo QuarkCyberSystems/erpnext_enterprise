@@ -259,6 +259,7 @@ class PurchaseInvoice(BuyingController):
 			self.is_opening = "No"
 
 		self.validate_posting_time()
+		self.validate_posting_date_with_po()
 
 		super().validate()
 

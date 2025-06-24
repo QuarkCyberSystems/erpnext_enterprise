@@ -80,6 +80,21 @@ class BuyingController(SubcontractingController):
 				),
 			)
 
+	def validate_posting_date_with_po(self):
+		po_list = []
+		for item in self.items:
+			if item.purchase_order and item.purchase_order not in po_list:
+				po_list.append(item.purchase_order)
+
+		for po in po_list:
+			po_posting_date = frappe.get_value("Purchase Order", po, "transaction_date")
+			if getdate(po_posting_date) > getdate(self.posting_date):
+				frappe.throw(
+					_("Posting Date {0} cannot be before Purchase Order Posting Date {1}").format(
+						frappe.bold(self.posting_date), frappe.bold(po_posting_date)
+					)
+				)
+
 	def create_package_for_transfer(self) -> None:
 		"""Create serial and batch package for Sourece Warehouse in case of inter transfer."""
 
