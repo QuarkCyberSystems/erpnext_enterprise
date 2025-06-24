@@ -1138,10 +1138,17 @@ class AccountsController(TransactionBase):
 			return True
 
 	def set_taxes_and_charges(self):
+		if self.get("taxes") or self.get("is_pos"):
+			return
+
+		if frappe.get_single_value(
+			"Accounts Settings", "add_taxes_from_taxes_and_charges_template"
+		) and hasattr(self, "taxes_and_charges"):
+			if tax_master_doctype := self.meta.get_field("taxes_and_charges").options:
+				self.append_taxes_from_master(tax_master_doctype)
+
 		if frappe.get_single_value("Accounts Settings", "add_taxes_from_item_tax_template"):
-			if hasattr(self, "taxes_and_charges") and not self.get("taxes") and not self.get("is_pos"):
-				if tax_master_doctype := self.meta.get_field("taxes_and_charges").options:
-					self.append_taxes_from_master(tax_master_doctype)
+			self.append_taxes_from_item_tax_template()
 
 	def append_taxes_from_master(self, tax_master_doctype=None):
 		if self.get("taxes_and_charges"):
@@ -1174,6 +1181,8 @@ class AccountsController(TransactionBase):
 							"rate": 0,
 							"description": account_head,
 							"set_by_item_tax_template": 1,
+							"category": "Total",
+							"add_deduct_tax": "Add",
 						},
 					)
 
