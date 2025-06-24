@@ -840,6 +840,12 @@ erpnext.selling.SalesOrderController = class SalesOrderController extends erpnex
 									in_list_view: 1,
 								},
 								{
+									fieldtype: "Read Only",
+									fieldname: "item_name",
+									label: __("Item Name"),
+									in_list_view: 1,
+								},
+								{
 									fieldtype: "Link",
 									fieldname: "bom",
 									options: "BOM",
