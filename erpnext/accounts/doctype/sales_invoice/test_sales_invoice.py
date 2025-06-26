@@ -64,7 +64,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 			mode_of_payment, "_Test Company with perpetual inventory", "_Test Bank - TCP1"
 		)
 		for company in frappe.get_all("Company", pluck="name"):
-			frappe.db.set_value("Company", company, "acc_frozen_till_date", None)
+			frappe.db.set_value("Company", company, "accounts_frozen_till_date", None)
 
 	@change_settings(
 		"Accounts Settings",
