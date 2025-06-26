@@ -422,7 +422,7 @@ def update_outstanding_amt(
 def validate_frozen_account(company, account, adv_adj=None):
 	frozen_account = frappe.get_cached_value("Account", account, "freeze_account")
 	if frozen_account == "Yes" and not adv_adj:
-		role_allowed_for_frozen_entries = frappe.db.get_cached_value(
+		role_allowed_for_frozen_entries = frappe.get_cached_value(
 			"Company", company, "role_allowed_for_frozen_entries"
 		)
 

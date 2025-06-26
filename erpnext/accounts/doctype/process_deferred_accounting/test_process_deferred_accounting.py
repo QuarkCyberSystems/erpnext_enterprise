@@ -93,7 +93,7 @@ class TestProcessDeferredAccounting(IntegrationTestCase):
 
 
 def change_acc_settings(
-	company="_Test Company", acc_frozen_till_date="", book_deferred_entries_based_on="Days"
+	company="_Test Company", acc_frozen_till_date=None, book_deferred_entries_based_on="Days"
 ):
 	acc_settings = frappe.get_doc("Accounts Settings", "Accounts Settings")
 	acc_settings.book_deferred_entries_based_on = book_deferred_entries_based_on
