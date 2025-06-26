@@ -805,7 +805,7 @@ def validate_party_frozen_disabled(company, party_type, party_name):
 			if party.disabled:
 				frappe.throw(_("{0} {1} is disabled").format(party_type, party_name), PartyDisabled)
 			elif party.get("is_frozen"):
-				role_allowed_for_frozen_entries = frappe.db_get_cached_value(
+				role_allowed_for_frozen_entries = frappe.db.get_cached_value(
 					"Company", company, "role_allowed_for_frozen_entries"
 				)
 				if role_allowed_for_frozen_entries not in frappe.get_roles():
