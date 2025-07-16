@@ -196,6 +196,20 @@ class ERPNextTestSuite(unittest.TestCase):
 			if not frappe.db.exists("Sales Stage", {"stage_name": sales_stage.get("stage_name")}):
 				frappe.get_doc(sales_stage).insert()
 
+		from erpnext.buying.doctype.supplier_scorecard.supplier_scorecard import (
+			get_default_scorecard_standing,
+			get_default_scorecard_variables,
+		)
+
+		for x in get_default_scorecard_variables():
+			x["doctype"] = "Supplier Scorecard Variable"
+			if not frappe.db.exists("Supplier Scorecard Variable", {"name": x.get("variable_label")}):
+				frappe.get_doc(x).insert()
+		for x in get_default_scorecard_standing():
+			x["doctype"] = "Supplier Scorecard Standing"
+			if not frappe.db.exists("Supplier Scorecard Standing", {"name": x.get("standing_name")}):
+				frappe.get_doc(x).insert()
+
 		frappe.db.commit()
 
 	@classmethod
