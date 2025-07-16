@@ -14,6 +14,11 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestPurchaseOrder(ERPNextTestSuite):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.load_test_records("Supplier Quotation")
+
 	def test_update_child_supplier_quotation_add_item(self):
 		sq = frappe.copy_doc(self.globalTestRecords["Supplier Quotation"][0])
 		sq.submit()
