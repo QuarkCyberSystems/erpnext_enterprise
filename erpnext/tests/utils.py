@@ -2490,6 +2490,15 @@ class ERPNextTestSuite(unittest.TestCase):
 					)
 				)
 
+	@contextmanager
+	def set_user(self, user: str):
+		try:
+			old_user = frappe.session.user
+			frappe.set_user(user)
+			yield
+		finally:
+			frappe.set_user(old_user)
+
 
 @ERPNextTestSuite.registerAs(staticmethod)
 @contextmanager
