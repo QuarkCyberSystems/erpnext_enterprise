@@ -3,18 +3,18 @@
 
 import frappe
 from frappe import _
-from frappe.tests import IntegrationTestCase
 from frappe.utils import flt, today
 
 from erpnext.accounts.report.consolidated_trial_balance.consolidated_trial_balance import execute
 from erpnext.setup.utils import get_exchange_rate
+from erpnext.tests.utils import ERPNextTestSuite
 
 
 class ForeignCurrencyTranslationReserveNotFoundError(frappe.ValidationError):
 	pass
 
 
-class TestConsolidatedTrialBalance(IntegrationTestCase):
+class TestConsolidatedTrialBalance(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		from erpnext.accounts.report.trial_balance.test_trial_balance import create_company

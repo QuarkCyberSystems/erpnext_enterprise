@@ -5,7 +5,6 @@ import unittest
 import frappe
 from frappe import qb
 from frappe.query_builder.functions import Sum
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, add_months, flt, get_first_day, nowdate, nowtime, today
 
 from erpnext.assets.doctype.asset.asset import (
