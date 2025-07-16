@@ -32,6 +32,7 @@ class TestAssetRepair(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		cls.load_test_records("Stock Entry")
 		set_depreciation_settings_in_company()
 		create_asset_data()
 		create_item("_Test Stock Item")
