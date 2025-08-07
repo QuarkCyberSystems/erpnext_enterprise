@@ -881,7 +881,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"full_name": "Test User",
 				"company_name": "Wind Power LLC",
 				"timezone": "America/New_York",
-				"company_abbr": "WP",
+				"abbr": "WP",
 				"industry": "Manufacturing",
 				"country": "United States",
 				# "fy_start_date": f"{current_year}-01-01",
