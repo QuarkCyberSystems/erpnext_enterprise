@@ -236,6 +236,8 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_item_tax_template()
 		cls.make_item_group()
 		cls.make_item_attribute()
+		cls.make_asset_maintenance_team()
+		cls.make_asset_category()
 		cls.make_item()
 		cls.make_location()
 		cls.make_price_list()
@@ -520,6 +522,7 @@ class ERPNextTestSuite(unittest.TestCase):
 			{"doctype": "Role", "role_name": "_Test Role 2", "desk_access": 1},
 			{"doctype": "Role", "role_name": "_Test Role 3", "desk_access": 1},
 			{"doctype": "Role", "role_name": "_Test Role 4", "desk_access": 0},
+			{"doctype": "Role", "role_name": "Technician"},
 		]
 		cls.roles = []
 		for x in records:
@@ -601,6 +604,27 @@ class ERPNextTestSuite(unittest.TestCase):
 				"first_name": "_Test",
 				"new_password": "Eastern_43A1W",
 				"roles": [{"doctype": "Has Role", "parentfield": "roles", "role": "System Manager"}],
+			},
+			{
+				"doctype": "User",
+				"email": "marcus@abc.com",
+				"first_name": "marcus@abc.com",
+				"new_password": "password",
+				"roles": [{"doctype": "Has Role", "role": "Technician"}],
+			},
+			{
+				"doctype": "User",
+				"email": "thalia@abc.com",
+				"first_name": "thalia@abc.com",
+				"new_password": "password",
+				"roles": [{"doctype": "Has Role", "role": "Technician"}],
+			},
+			{
+				"doctype": "User",
+				"email": "mathias@abc.com",
+				"first_name": "mathias@abc.com",
+				"new_password": "password",
+				"roles": [{"doctype": "Has Role", "role": "Technician"}],
 			},
 		]
 		cls.users = []
@@ -2102,6 +2126,19 @@ class ERPNextTestSuite(unittest.TestCase):
 				"item_name": "138-CMS Shoe",
 				"stock_uom": "_Test UOM",
 			},
+			{
+				"doctype": "Item",
+				"item_code": "Photocopier",
+				"item_name": "Photocopier",
+				"item_group": "All Item Groups",
+				"company": "_Test Company",
+				"is_fixed_asset": 1,
+				"is_stock_item": 0,
+				"asset_category": "Equipment",
+				"auto_create_assets": 1,
+				"asset_naming_series": "ABC.###",
+				"stock_uom": "_Test UOM",
+			},
 		]
 		cls.item = []
 		for x in records:
@@ -2501,6 +2538,77 @@ class ERPNextTestSuite(unittest.TestCase):
 					frappe.get_doc(
 						"Sales Taxes and Charges Template",
 						{"title": x.get("title"), "company": x.get("company")},
+					)
+				)
+
+	@classmethod
+	def make_asset_category(cls):
+		records = [
+			{
+				"doctype": "Asset Category",
+				"asset_category_name": "Equipment",
+				"total_number_of_depreciations": 3,
+				"frequency_of_depreciation": 3,
+				"accounts": [
+					{
+						"company_name": "_Test Company",
+						"fixed_asset_account": "_Test Fixed Asset - _TC",
+						"accumulated_depreciation_account": "_Test Accumulated Depreciations - _TC",
+						"depreciation_expense_account": "_Test Depreciations - _TC",
+					}
+				],
+			}
+		]
+		cls.asset_category = []
+		for x in records:
+			if not frappe.db.exists("Asset Category", {"asset_category_name": x.get("asset_category_name")}):
+				cls.asset_category.append(frappe.get_doc(x).insert())
+			else:
+				cls.asset_category.append(
+					frappe.get_doc(
+						"Asset Category",
+						{"asset_category_name": x.get("asset_category_name")},
+					)
+				)
+
+	@classmethod
+	def make_asset_maintenance_team(cls):
+		records = [
+			{
+				"doctype": "Asset Maintenance Team",
+				"maintenance_manager": "marcus@abc.com",
+				"maintenance_team_name": "Team Awesome",
+				"company": "_Test Company",
+				"maintenance_team_members": [
+					{
+						"team_member": "marcus@abc.com",
+						"full_name": "marcus@abc.com",
+						"maintenance_role": "Technician",
+					},
+					{
+						"team_member": "thalia@abc.com",
+						"full_name": "thalia@abc.com",
+						"maintenance_role": "Technician",
+					},
+					{
+						"team_member": "mathias@abc.com",
+						"full_name": "mathias@abc.com",
+						"maintenance_role": "Technician",
+					},
+				],
+			}
+		]
+		cls.asset_maintenance_team = []
+		for x in records:
+			if not frappe.db.exists(
+				"Asset Maintenance Team", {"maintenance_team_name": x.get("maintenance_team_name")}
+			):
+				cls.asset_maintenance_team.append(frappe.get_doc(x).insert())
+			else:
+				cls.asset_maintenance_team.append(
+					frappe.get_doc(
+						"Asset Maintenance Team",
+						{"maintenance_team_name": x.get("maintenance_team_name")},
 					)
 				)
 
