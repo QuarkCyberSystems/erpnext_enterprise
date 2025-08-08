@@ -101,6 +101,7 @@ class WorkOrder(Document):
 		material_request: DF.Link | None
 		material_request_item: DF.Data | None
 		material_transferred_for_manufacturing: DF.Float
+		mps: DF.Link | None
 		naming_series: DF.Literal["MFG-WO-.YYYY.-"]
 		operations: DF.Table[WorkOrderOperation]
 		planned_end_date: DF.Datetime | None
