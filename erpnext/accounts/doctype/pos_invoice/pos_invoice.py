@@ -868,9 +868,8 @@ def get_bundle_availability(bundle_item_code, warehouse):
 	for item in product_bundle.items:
 		item_bin_qty = get_bin_qty(item.item_code, warehouse)
 		item_pos_reserved_qty = get_pos_reserved_qty(item.item_code, warehouse)
-		available_qty = item_bin_qty - item_pos_reserved_qty
 
-		max_available_bundles = available_qty / item.qty
+		max_available_bundles = item_bin_qty / item.qty
 		if bundle_bin_qty > max_available_bundles and frappe.get_value(
 			"Item", item.item_code, "is_stock_item"
 		):
@@ -893,9 +892,27 @@ def get_bin_qty(item_code, warehouse):
 
 
 def get_pos_reserved_qty(item_code, warehouse):
+	"""
+	Calculate total quantity reserved for the given item and warehouse.
+
+	Includes:
+	- Direct sales of the item in submitted POS Invoices
+	- Sales of the item as a component of a Product Bundle
+
+	Excludes consolidated invoices (already merged into Sales Invoices via
+	POS Closing Entry). Used to reflect near real-time availability in the
+	POS UI and to prevent overselling while multiple sessions may be active.
+	"""
+	direct_reserved = get_direct_pos_reserved_qty(item_code, warehouse)
+	bundle_reserved = get_bundle_pos_reserved_qty(item_code, warehouse)
+
+	return direct_reserved + bundle_reserved
+
+def get_direct_pos_reserved_qty(item_code, warehouse):
+	"""Reserved qty for the item from direct lines in submitted POS Invoices (matching warehouse)."""
+
 	p_inv = frappe.qb.DocType("POS Invoice")
 	p_item = frappe.qb.DocType("POS Invoice Item")
-
 	reserved_qty = (
 		frappe.qb.from_(p_inv)
 		.from_(p_item)
@@ -908,9 +925,33 @@ def get_pos_reserved_qty(item_code, warehouse):
 			& (p_item.warehouse == warehouse)
 		)
 	).run(as_dict=True)
-
 	return flt(reserved_qty[0].stock_qty) if reserved_qty else 0
 
+def get_bundle_pos_reserved_qty(item_code, warehouse):
+	"""Reserved qty for the item as a component of Product Bundles in submitted POS Invoices (matching warehouse)."""
+
+	p_inv = frappe.qb.DocType("POS Invoice")
+	p_item = frappe.qb.DocType("POS Invoice Item")
+	pb = frappe.qb.DocType("Product Bundle")
+	pb_item = frappe.qb.DocType("Product Bundle Item")
+
+	bundle_reserved = (
+		frappe.qb.from_(p_inv)
+		.from_(p_item)
+		.from_(pb)
+		.from_(pb_item)
+		.select(Sum(p_item.stock_qty * pb_item.qty).as_("stock_qty"))
+		.where(
+			(p_inv.name == p_item.parent)
+			& (IfNull(p_inv.consolidated_invoice, "") == "")
+			& (p_item.docstatus == 1)
+			& (p_item.warehouse == warehouse)
+			& (pb.name == p_item.item_code)      # POS item is a bundle
+			& (pb_item.parent == pb.name)        # Bundle items
+			& (pb_item.item_code == item_code)   # This specific item
+		)
+	).run(as_dict=True)
+	return flt(bundle_reserved[0].stock_qty) if bundle_reserved else 0
 
 @frappe.whitelist()
 def make_sales_return(source_name, target_doc=None):
