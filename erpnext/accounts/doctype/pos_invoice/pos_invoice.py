@@ -907,6 +907,7 @@ def get_pos_reserved_qty(item_code, warehouse):
 
 	return direct_reserved + bundle_reserved
 
+
 def get_direct_pos_reserved_qty(item_code, warehouse):
 	"""Reserved qty for the item from direct lines in submitted POS Invoices (matching warehouse)."""
 
@@ -925,6 +926,7 @@ def get_direct_pos_reserved_qty(item_code, warehouse):
 		)
 	).run(as_dict=True)
 	return flt(reserved_qty[0].stock_qty) if reserved_qty else 0
+
 
 def get_bundle_pos_reserved_qty(item_code, warehouse):
 	"""Reserved qty for the item as a component of Product Bundles in submitted POS Invoices (matching warehouse)."""
@@ -945,12 +947,13 @@ def get_bundle_pos_reserved_qty(item_code, warehouse):
 			& (IfNull(p_inv.consolidated_invoice, "") == "")
 			& (p_item.docstatus == 1)
 			& (p_item.warehouse == warehouse)
-			& (pb.name == p_item.item_code)      # POS item is a bundle
-			& (pb_item.parent == pb.name)        # Bundle items
-			& (pb_item.item_code == item_code)   # This specific item
+			& (pb.name == p_item.item_code)  # POS item is a bundle
+			& (pb_item.parent == pb.name)  # Bundle items
+			& (pb_item.item_code == item_code)  # This specific item
 		)
 	).run(as_dict=True)
 	return flt(bundle_reserved[0].stock_qty) if bundle_reserved else 0
+
 
 @frappe.whitelist()
 def make_sales_return(source_name, target_doc=None):
