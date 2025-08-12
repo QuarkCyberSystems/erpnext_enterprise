@@ -217,6 +217,7 @@ class POSInvoice(SalesInvoice):
 		self.validate_loyalty_transaction()
 		self.validate_company_with_pos_company()
 		self.validate_full_payment()
+		self.update_packing_list()
 		if self.coupon_code:
 			from erpnext.accounts.doctype.pricing_rule.utils import validate_coupon_code
 
