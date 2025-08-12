@@ -38,7 +38,8 @@ class AccountingDimensionFilter(Document):
 	def validate(self):
 		self.fieldname = frappe.db.get_value(
 			"Accounting Dimension", {"document_type": self.accounting_dimension}, "fieldname"
-		)
+		) or frappe.scrub(self.accounting_dimension)  # scrub to handle default accounting dimension
+
 		self.validate_applicable_accounts()
 
 	def validate_applicable_accounts(self):

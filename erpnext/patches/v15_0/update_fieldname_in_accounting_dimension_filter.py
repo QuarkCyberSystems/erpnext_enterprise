@@ -3,6 +3,7 @@ from frappe.query_builder import DocType
 
 
 def execute():
+	default_accounting_dimension()
 	ADF = DocType("Accounting Dimension Filter")
 	AD = DocType("Accounting Dimension")
 
@@ -19,5 +20,16 @@ def execute():
 			doc.name,
 			"fieldname",
 			doc.fieldname,
+			update_modified=False,
+		)
+
+
+def default_accounting_dimension():
+	for accounting_dimension in ["Cost Center", "Project"]:
+		frappe.db.set_value(
+			"Accounting Dimension Filter",
+			{"accounting_dimension": accounting_dimension},
+			"fieldname",
+			frappe.scrub(accounting_dimension),
 			update_modified=False,
 		)
