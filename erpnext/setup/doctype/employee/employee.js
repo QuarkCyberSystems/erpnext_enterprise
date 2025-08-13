@@ -11,7 +11,13 @@ erpnext.setup.EmployeeController = class EmployeeController extends frappe.ui.fo
 			};
 		};
 		this.frm.fields_dict.reports_to.get_query = function (doc, cdt, cdn) {
-			return { query: "erpnext.controllers.queries.employee_query" };
+			// return { query: "erpnext.controllers.queries.employee_query" };
+			return {
+				filters: [
+					["status", "=", "Active"],  // only active employees
+					["name", "!=", doc.name]    // exclude self
+				]
+			};
 		};
 	}
 
