@@ -906,8 +906,7 @@ def get_pos_reserved_qty(item_code, warehouse):
 	pinv_item_reserved_qty = get_pos_reserved_qty_from_table("POS Invoice Item", item_code, warehouse)
 	packed_item_reserved_qty = get_pos_reserved_qty_from_table("Packed Item", item_code, warehouse)
 
-	reserved_qty = flt(pinv_item_reserved_qty[0].stock_qty) if pinv_item_reserved_qty else 0
-	reserved_qty += flt(packed_item_reserved_qty[0].stock_qty) if packed_item_reserved_qty else 0
+	reserved_qty = pinv_item_reserved_qty + packed_item_reserved_qty
 
 	return reserved_qty
 
@@ -932,7 +931,7 @@ def get_pos_reserved_qty_from_table(child_table, item_code, warehouse):
 
 	qty_column = "qty" if child_table == "Packed Item" else "stock_qty"
 
-	stock_qty = (
+	reserved_qty = (
 		frappe.qb.from_(p_inv)
 		.from_(p_item)
 		.select(Sum(p_item[qty_column]).as_("stock_qty"))
@@ -945,7 +944,7 @@ def get_pos_reserved_qty_from_table(child_table, item_code, warehouse):
 		)
 	).run(as_dict=True)
 
-	return stock_qty
+	return flt(reserved_qty[0].stock_qty) if reserved_qty else 0
 
 
 @frappe.whitelist()
