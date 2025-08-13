@@ -120,13 +120,13 @@ class Asset(AccountsController):
 	def validate(self):
 		self.validate_category()
 		self.validate_precision()
+		self.validate_linked_purchase_docs()
 		self.set_purchase_doc_row_item()
 		self.validate_asset_values()
 		self.validate_asset_and_reference()
 		self.validate_item()
 		self.validate_cost_center()
 		self.set_missing_values()
-		self.validate_linked_purchase_docs()
 		self.validate_gross_and_purchase_amount()
 		self.validate_finance_books()
 		self.total_asset_cost = self.gross_purchase_amount + self.additional_asset_cost
