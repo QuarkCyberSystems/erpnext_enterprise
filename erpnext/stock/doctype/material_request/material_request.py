@@ -43,7 +43,6 @@ class MaterialRequest(BuyingController):
 		customer: DF.Link | None
 		items: DF.Table[MaterialRequestItem]
 		job_card: DF.Link | None
-		last_scanned_warehouse: DF.Link | None
 		letter_head: DF.Link | None
 		material_request_type: DF.Literal[
 			"Purchase",

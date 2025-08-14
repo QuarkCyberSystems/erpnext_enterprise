@@ -74,7 +74,6 @@ class Quotation(SellingController):
 		incoterm: DF.Link | None
 		items: DF.Table[QuotationItem]
 		language: DF.Link | None
-		last_scanned_warehouse: DF.Link | None
 		letter_head: DF.Link | None
 		lost_reasons: DF.TableMultiSelect[QuotationLostReasonDetail]
 		named_place: DF.Data | None
