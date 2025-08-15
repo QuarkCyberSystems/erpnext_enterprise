@@ -620,7 +620,7 @@ def get_income_account(doctype, txt, searchfield, start, page_len, filters):
 	if filters.get("company"):
 		condition += "and tabAccount.company = %(company)s"
 
-	condition += f"and tabAccount.disabled = {filters.get('disabled', 0)}"
+	condition += " and tabAccount.disabled = %(disabled)s"
 
 	return frappe.db.sql(
 		f"""select tabAccount.name from `tabAccount`
@@ -630,7 +630,11 @@ def get_income_account(doctype, txt, searchfield, start, page_len, filters):
 				and tabAccount.`{searchfield}` LIKE %(txt)s
 				{condition} {get_match_cond(doctype)}
 			order by idx desc, name""",
-		{"txt": "%" + txt + "%", "company": filters.get("company", "")},
+		{
+			"txt": "%" + txt + "%",
+			"company": filters.get("company", ""),
+			"disabled": cint(filters.get("disabled", 0)),
+		},
 	)
 
 
