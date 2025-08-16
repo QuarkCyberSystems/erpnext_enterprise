@@ -80,10 +80,10 @@ def get_loyalty_details(
 
 	loyalty_point_details = query.run(as_dict=True)
 
-	return {
-		"loyalty_points": flt(loyalty_point_details[0].loyalty_points),
-		"total_spent": flt(loyalty_point_details[0].total_spent),
-	}
+	if loyalty_point_details:
+		return loyalty_point_details[0]
+	else:
+		return {"loyalty_points": 0, "total_spent": 0}
 
 
 @frappe.whitelist()
