@@ -946,8 +946,12 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 	set_default_payment(total_amount_to_pay, update_paid_amount) {
 		var me = this;
 		var payment_status = true;
-		const set_payment = flt(this.frm.doc.paid_amount) || cint(this.frm.set_default_payment);
-		if(this.frm.doc.is_pos && set_payment && (update_paid_amount===undefined || update_paid_amount)) {
+
+		if (
+			this.frm.doc.is_pos
+			&& cint(this.frm.set_default_payment)
+			&& (update_paid_amount===undefined || update_paid_amount)
+		) {
 			$.each(this.frm.doc['payments'] || [], function(index, data) {
 				if(data.default && payment_status && total_amount_to_pay > 0) {
 					let base_amount, amount;
