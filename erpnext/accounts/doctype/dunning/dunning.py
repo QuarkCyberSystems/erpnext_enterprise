@@ -164,43 +164,17 @@ class Dunning(AccountsController):
 		]
 
 
-def resolve_dunnings(doc, method=None):
-	"""
-	Resolve / unresolve Dunning based on whether all payments have been made.
-	Called when a Payment Entry / Credit Note is submitted / cancelled.
-	"""
-
-	match doc.doctype:
-		case "Payment Entry":
-			return resolve_dunnings_from_payment_entry(doc)
-		case "Sales Invoice":
-			return resolve_dunnings_from_credit_note(doc)
-
-
-def resolve_dunnings_from_payment_entry(doc):
-	is_submitted = doc.docstatus == 1
-
-	for reference in doc.references:
-		if reference.reference_doctype != "Sales Invoice" or not reference.allocated_amount:
-			continue
-
-		_update_linked_dunnings(reference.reference_name, to_resolve=is_submitted)
-
-
-def resolve_dunnings_from_credit_note(doc):
-	"""
-	Check if dunning should be resolved when a credit note is issued against a Sales Invoice.
-	Only process if update_outstanding_for_self is False (credit note is being applied against the original invoice).
-	"""
-	if not doc.is_return or doc.update_outstanding_for_self or not doc.return_against:
+def update_linked_dunnings(doc, previous_outstanding_amount):
+	if (
+		doc.doctype != "Sales Invoice"
+		or doc.is_return
+		or previous_outstanding_amount == doc.outstanding_amount
+	):
 		return
 
-	_update_linked_dunnings(doc.return_against, to_resolve=doc.docstatus == 1)
-
-
-def _update_linked_dunnings(sales_invoice: str, to_resolve: bool = True):
+	to_resolve = doc.outstanding_amount < previous_outstanding_amount
 	state = "Unresolved" if to_resolve else "Resolved"
-	dunnings = get_linked_dunnings_as_per_state(sales_invoice, state)
+	dunnings = get_linked_dunnings_as_per_state(doc.name, state)
 	if not dunnings:
 		return
 
@@ -245,7 +219,7 @@ def _update_linked_dunnings(sales_invoice: str, to_resolve: bool = True):
 			if has_outstanding:
 				break
 
-		new_status = "Resolved" if (not has_outstanding and to_resolve) else "Unresolved"
+		new_status = "Resolved" if not has_outstanding else "Unresolved"
 
 		if dunning.status != new_status:
 			dunning.status = new_status
