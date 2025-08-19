@@ -294,6 +294,10 @@ def install(country=None):
 		{"doctype": "Market Segment", "market_segment": _("Upper Income")},
 		# Warehouse Type
 		{"doctype": "Warehouse Type", "name": "Transit"},
+		{"doctype": "Workstation Operating Component", "component_name": _("Electricity")},
+		{"doctype": "Workstation Operating Component", "component_name": _("Consumables")},
+		{"doctype": "Workstation Operating Component", "component_name": _("Rent")},
+		{"doctype": "Workstation Operating Component", "component_name": _("Wages")},
 	]
 
 	for doctype, title_field, filename in (
