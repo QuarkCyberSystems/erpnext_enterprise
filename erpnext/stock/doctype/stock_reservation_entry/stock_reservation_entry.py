@@ -696,7 +696,7 @@ def get_available_qty_to_reserve(
 		sre = frappe.qb.DocType("Stock Reservation Entry")
 		query = (
 			frappe.qb.from_(sre)
-			.select(Sum(sre.reserved_qty - sre.delivered_qty))
+			.select(Sum(sre.reserved_qty - sre.delivered_qty - sre.transferred_qty - sre.consumed_qty))
 			.where(
 				(sre.docstatus == 1)
 				& (sre.item_code == item_code)
