@@ -1803,7 +1803,7 @@ def auto_create_exchange_rate_revaluation_monthly() -> None:
 	"""
 	companies = frappe.db.get_all(
 		"Company",
-		filters={"auto_exchange_rate_revaluation": 1, "auto_err_frequency": "Montly"},
+		filters={"auto_exchange_rate_revaluation": 1, "auto_err_frequency": "Monthly"},
 		fields=["name", "submit_err_jv"],
 	)
 	create_err_and_its_journals(companies)
