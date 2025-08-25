@@ -512,7 +512,8 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 	handle_warehouse_scan(data) {
 		const warehouse = data.warehouse;
 		const warehouse_field = this.get_warehouse_field();
-		const warehouse_field_label = frappe.meta.get_label(this.items_table_name, warehouse_field);
+		const cur_grid = this.frm.fields_dict[this.items_table_name].grid;
+		const warehouse_field_label = frappe.meta.get_label(cur_grid.doctype, warehouse_field);
 
 		if (!this.last_scanned_warehouse_initialized) {
 			this.setup_last_scanned_warehouse();
