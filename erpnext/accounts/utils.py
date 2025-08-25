@@ -1773,40 +1773,38 @@ def create_err_and_its_journals(companies: list | None = None) -> None:
 					jv and frappe.get_doc("Journal Entry", jv).submit()
 
 
+def _auto_create_exchange_rate_revaluation_for(frequency: str) -> None:
+	"""
+	Internal helper to avoid code duplication and typos.
+	Fetches companies by frequency and triggers ERR.
+	"""
+	companies = frappe.db.get_all(
+		"Company",
+		filters={"auto_exchange_rate_revaluation": 1, "auto_err_frequency": frequency},
+		fields=["name", "submit_err_jv"],
+	)
+	create_err_and_its_journals(companies)
+
+
 def auto_create_exchange_rate_revaluation_daily() -> None:
 	"""
 	Executed by background job
 	"""
-	companies = frappe.db.get_all(
-		"Company",
-		filters={"auto_exchange_rate_revaluation": 1, "auto_err_frequency": "Daily"},
-		fields=["name", "submit_err_jv"],
-	)
-	create_err_and_its_journals(companies)
+	_auto_create_exchange_rate_revaluation_for("Daily")
 
 
 def auto_create_exchange_rate_revaluation_weekly() -> None:
 	"""
 	Executed by background job
 	"""
-	companies = frappe.db.get_all(
-		"Company",
-		filters={"auto_exchange_rate_revaluation": 1, "auto_err_frequency": "Weekly"},
-		fields=["name", "submit_err_jv"],
-	)
-	create_err_and_its_journals(companies)
+	_auto_create_exchange_rate_revaluation_for("Weekly")
 
 
 def auto_create_exchange_rate_revaluation_monthly() -> None:
 	"""
 	Executed by background job
 	"""
-	companies = frappe.db.get_all(
-		"Company",
-		filters={"auto_exchange_rate_revaluation": 1, "auto_err_frequency": "Monthly"},
-		fields=["name", "submit_err_jv"],
-	)
-	create_err_and_its_journals(companies)
+	_auto_create_exchange_rate_revaluation_for("Monthly")
 
 
 def get_payment_ledger_entries(gl_entries, cancel=0):
