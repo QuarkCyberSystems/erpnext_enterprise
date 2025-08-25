@@ -1342,7 +1342,7 @@ class WorkOrder(Document):
 			for name in names:
 				doc = frappe.get_doc("Stock Reservation Entry", name)
 				qty_to_update = 0.0
-				if transferred_qty <= 0:
+				if transferred_qty < 0:
 					continue
 
 				if transferred_qty > flt(doc.reserved_qty - doc.consumed_qty):
@@ -1352,12 +1352,16 @@ class WorkOrder(Document):
 					qty_to_update = transferred_qty
 					transferred_qty = 0.0
 
-				if qty_to_update <= 0:
+				if qty_to_update < 0:
 					continue
 
 				doc.db_set("transferred_qty", flt(qty_to_update), update_modified=False)
 				if (doc.has_batch_no or doc.has_serial_no) and doc.reservation_based_on == "Serial and Batch":
 					doc.consume_serial_batch_for_material_transfer(row_wise_serial_batch)
+
+				if doc.transferred_qty >= doc.reserved_qty:
+					doc.db_set("status", "Closed", update_modified=False)
+
 				doc.update_status()
 				doc.update_reserved_stock_in_bin()
 
@@ -2405,7 +2409,7 @@ def get_row_wise_serial_batch(work_order, purpose=None):
 
 	row_wise_serial_batch = {}
 	for entry in serial_batch_entries:
-		key = (entry.item_code, entry.warehouse, entry.voucher_detail_no)
+		key = (entry.item_code, entry.warehouse)
 		if key not in row_wise_serial_batch:
 			row_wise_serial_batch[key] = frappe._dict(
 				{
