@@ -2572,7 +2572,6 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 		so = make_sales_order(qty=30, rate=100)
 
 		si1 = make_sales_invoice(so.name)
-		si1.update_stock = 1
 		si1.get("items")[0].qty = 10
 		si1.insert()
 		si1.submit()
