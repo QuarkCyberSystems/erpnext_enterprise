@@ -1922,18 +1922,17 @@ def create_payment_ledger_entry(
 
 		for entry in ple_map:
 			ple = frappe.get_doc(entry)
+
+			if cancel:
+				delink_original_entry(ple, partial_cancel=partial_cancel)
+				if is_immutable_ledger_enabled():
+					ple.delinked = 0
+					ple.posting_date = frappe.form_dict.get("posting_date") or getdate()
+
 			ple.flags.ignore_permissions = 1
 			ple.flags.adv_adj = adv_adj
 			ple.flags.from_repost = from_repost
 			ple.flags.update_outstanding = update_outstanding
-
-			if cancel:
-				delink_original_entry(ple, partial_cancel=partial_cancel)
-				ple._action = "submit"
-				ple.run_before_save_methods()
-				ple.run_post_save_methods()
-				continue
-
 			ple.submit()
 
 
@@ -2013,7 +2012,6 @@ def delink_original_entry(pl_entry, partial_cancel=False):
 		ple = qb.DocType("Payment Ledger Entry")
 		query = (
 			qb.update(ple)
-			.set(ple.delinked, True)
 			.set(ple.modified, now())
 			.set(ple.modified_by, frappe.session.user)
 			.where(
@@ -2031,6 +2029,9 @@ def delink_original_entry(pl_entry, partial_cancel=False):
 
 		if partial_cancel:
 			query = query.where(ple.voucher_detail_no == pl_entry.voucher_detail_no)
+
+		if not is_immutable_ledger_enabled():
+			query = query.set(ple.delinked, True)
 
 		query.run()
 
@@ -2492,3 +2493,7 @@ def build_qb_match_conditions(doctype, user=None) -> list:
 					criterion.append(cond)
 
 	return criterion
+
+
+def is_immutable_ledger_enabled():
+	return frappe.get_single_value("Accounts Settings", "enable_immutable_ledger")
