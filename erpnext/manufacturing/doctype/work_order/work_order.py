@@ -1317,16 +1317,15 @@ class WorkOrder(Document):
 		data = query.run(as_dict=1) or []
 		transferred_items = frappe._dict({d.original_item or d.item_code: d.qty for d in data})
 
+		row_wise_serial_batch = frappe._dict({})
+		if self.reserve_stock:
+			row_wise_serial_batch = get_row_wise_serial_batch(self.name)
+
 		for row in self.required_items:
 			transferred_qty = transferred_items.get(row.item_code) or 0.0
 			row.db_set("transferred_qty", transferred_qty, update_modified=False)
-
-		if not self.reserve_stock:
-			return
-
-		row_wise_serial_batch = get_row_wise_serial_batch(self.name)
-		for row in self.required_items:
-			self.update_qty_in_stock_reservation(row, transferred_qty, row_wise_serial_batch)
+			if self.reserve_stock:
+				self.update_qty_in_stock_reservation(row, transferred_qty, row_wise_serial_batch)
 
 	def update_qty_in_stock_reservation(self, row, transferred_qty, row_wise_serial_batch):
 		if names := frappe.get_all(
