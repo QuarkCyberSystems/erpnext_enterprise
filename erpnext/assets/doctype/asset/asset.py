@@ -330,6 +330,9 @@ class Asset(AccountsController):
 			finance_books = get_item_details(self.item_code, self.asset_category, self.gross_purchase_amount)
 			self.set("finance_books", finance_books)
 
+		if self.asset_owner == "Company" and not self.asset_owner_company:
+			self.asset_owner_company = self.company
+
 	def validate_finance_books(self):
 		if not self.calculate_depreciation or len(self.finance_books) == 1:
 			return
