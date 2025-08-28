@@ -239,7 +239,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_item_attribute()
 		cls.make_asset_maintenance_team()
 		cls.make_asset_category()
-		cls.make_item()
+		cls._make_item()
 		cls.make_location()
 		cls.make_price_list()
 		cls.make_shareholder()
@@ -1653,7 +1653,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				)
 
 	@classmethod
-	def make_item(cls):
+	def _make_item(cls):
 		records = [
 			{
 				"description": "_Test Item 1",
