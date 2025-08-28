@@ -181,6 +181,7 @@ class ERPNextTestSuite(unittest.TestCase):
 			"Print Heading": "print_heading",
 			"Share Type": "title",
 			"Market Segment": "market_segment",
+			"Workstation Operating Component": "component_name",
 		}
 		for x in records:
 			dt = x.get("doctype")
