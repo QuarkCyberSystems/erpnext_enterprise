@@ -52,7 +52,7 @@
 	</div>
 </div>
 
-{% if filters.show_future_payments == 1 %}
+{% if(filters.show_future_payments)%}
 	{% set balance_row = data[-1] %}
 
 	{% set ns = namespace(idx=None) %}
@@ -62,12 +62,12 @@
 		{% endif %}
 	{% endfor %}
 
-	{% set range1 = report.columns[ns.idx].label %}
-	{% set range2 = report.columns[ns.idx+1].label %}
-	{% set range3 = report.columns[ns.idx+2].label %}
-	{% set range4 = report.columns[ns.idx+3].label %}
-	{% set range5 = report.columns[ns.idx+4].label %}
-	{% set range6 = report.columns[ns.idx+5].label %}
+	{% set age = report.columns[ns.idx].label %}
+	{% set range1 = report.columns[ns.idx+1].label %}
+	{% set range2 = report.columns[ns.idx+2].label %}
+	{% set range3 = report.columns[ns.idx+3].label %}
+	{% set range4 = report.columns[ns.idx+4].label %}
+	{% set range5 = report.columns[ns.idx+5].label %}
 
 	{% if(balance_row) %}
 	<table class="table table-bordered table-condensed">
@@ -86,12 +86,12 @@
 		<thead>
 			<tr>
 				<th>{{ _(" ") }}</th>
+				<th>{{ _(age) }}</th>
 				<th>{{ _(range1) }}</th>
 				<th>{{ _(range2) }}</th>
 				<th>{{ _(range3) }}</th>
 				<th>{{ _(range4) }}</th>
 				<th>{{ _(range5) }}</th>
-				<th>{{ _(range6) }}</th>
 				<th>{{ _("Total") }}</th>
 			</tr>
 		</thead>
@@ -102,22 +102,22 @@
 					{{ frappe.utils.flt(balance_row["age"], 2) }}
 				</td>
 				<td class="text-right">
-					{{ frappe.utils.fmt_money(balance_row["range1"], currency=data[data|length-1]["currency"]) }}
+					{{ frappe.utils.fmt_money(balance_row["range1"], currency=balance_row["currency"]) }}
 				</td>
 				<td class="text-right">
-					{{ frappe.utils.fmt_money(balance_row["range2"], currency=data[data|length-1]["currency"]) }}
+					{{ frappe.utils.fmt_money(balance_row["range2"], currency=balance_row["currency"]) }}
 				</td>
 				<td class="text-right">
-					{{ frappe.utils.fmt_money(balance_row["range3"], currency=data[data|length-1]["currency"]) }}
+					{{ frappe.utils.fmt_money(balance_row["range3"], currency=balance_row["currency"]) }}
 				</td>
 				<td class="text-right">
-					{{ frappe.utils.fmt_money(balance_row["range4"], currency=data[data|length-1]["currency"]) }}
+					{{ frappe.utils.fmt_money(balance_row["range4"], currency=balance_row["currency"]) }}
 				</td>
 				<td class="text-right">
-					{{ frappe.utils.fmt_money(balance_row["range5"], currency=data[data|length-1]["currency"]) }}
+					{{ frappe.utils.fmt_money(balance_row["range5"], currency=balance_row["currency"]) }}
 				</td>
 				<td class="text-right">
-					{{ frappe.utils.fmt_money(frappe.utils.flt(balance_row["outstanding"]), currency=data[data|length-1]["currency"]) }}
+					{{ frappe.utils.fmt_money(frappe.utils.flt(balance_row["outstanding"]), currency=balance_row["currency"]) }}
 				</td>
 			</tr>
 				<td>{{ _("Future Payments") }}</td>
@@ -128,7 +128,7 @@
 				<td></td>
 				<td></td>
 				<td class="text-right">
-					{{ frappe.utils.fmt_money(frappe.utils.flt(balance_row["future_amount"]), currency=data[data|length-1]["currency"]) }}
+					{{ frappe.utils.fmt_money(frappe.utils.flt(balance_row["future_amount"]), currency=balance_row["currency"]) }}
 				</td>
 			<tr class="cvs-footer">
 				<th class="text-left">{{ _("Cheques Required") }}</th>
@@ -139,7 +139,7 @@
 				<th></th>
 				<th></th>
 				<th class="text-right">
-					{{ frappe.utils.fmt_money(frappe.utils.flt(balance_row["outstanding"] - balance_row["future_amount"]), currency=data[data|length-1]["currency"]) }}</th>
+					{{ frappe.utils.fmt_money(frappe.utils.flt(balance_row["outstanding"] - balance_row["future_amount"]), currency=balance_row["currency"]) }}</th>
 			</tr>
 		</tbody>
 
