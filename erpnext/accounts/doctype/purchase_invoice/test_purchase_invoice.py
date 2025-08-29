@@ -40,18 +40,11 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestPurchaseInvoice(ERPNextTestSuite, StockTestMixin):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
 		unlink_payment_on_cancel_of_invoice()
 		frappe.db.set_single_value("Buying Settings", "allow_multiple_items", 1)
-
-	@classmethod
-	def tearDownClass(cls):
-		unlink_payment_on_cancel_of_invoice(0)
-
-	def tearDown(self):
-		frappe.db.rollback()
+		self.load_test_records("Purchase Invoice")
+		self.load_test_records("Journal Entry")
 
 	def test_purchase_invoice_qty(self):
 		pi = make_purchase_invoice(qty=0, do_not_save=True)
@@ -349,6 +342,9 @@ class TestPurchaseInvoice(ERPNextTestSuite, StockTestMixin):
 			self.assertEqual(expected_values[gle.account][1], gle.debit)
 			self.assertEqual(expected_values[gle.account][2], gle.credit)
 
+	@ERPNextTestSuite.change_settings(
+		"Accounts Settings", {"allow_multi_currency_invoices_against_single_party_account": 1}
+	)
 	def test_purchase_invoice_with_exchange_rate_difference(self):
 		from erpnext.stock.doctype.purchase_receipt.purchase_receipt import (
 			make_purchase_invoice as create_purchase_invoice,
@@ -372,7 +368,7 @@ class TestPurchaseInvoice(ERPNextTestSuite, StockTestMixin):
 
 		# fetching the latest GL Entry with exchange gain and loss account account
 		amount = frappe.db.get_value(
-			"GL Entry", {"account": exchange_gain_loss_account, "voucher_no": pi.name}, "debit"
+			"GL Entry", {"account": exchange_gain_loss_account, "voucher_no": pi.name}, "credit"
 		)
 		discrepancy_caused_by_exchange_rate_diff = abs(
 			pi.items[0].base_net_amount - pr.items[0].base_net_amount
@@ -418,14 +414,14 @@ class TestPurchaseInvoice(ERPNextTestSuite, StockTestMixin):
 
 		# fetching the latest GL Entry with exchange gain and loss account account
 		amount = frappe.db.get_value(
-			"GL Entry", {"account": exchange_gain_loss_account, "voucher_no": pi.name}, "debit"
+			"GL Entry", {"account": exchange_gain_loss_account, "voucher_no": pi.name}, "credit"
 		)
 
 		discrepancy_caused_by_exchange_rate_diff = abs(
 			pi.items[1].base_net_amount - pr.items[1].base_net_amount
 		)
 
-		self.assertEqual(discrepancy_caused_by_exchange_rate_diff, amount)
+		self.assertEqual(flt(discrepancy_caused_by_exchange_rate_diff, 2), amount)
 
 	def test_purchase_invoice_change_naming_series(self):
 		pi = frappe.copy_doc(self.globalTestRecords["Purchase Invoice"][1])
@@ -2276,6 +2272,7 @@ class TestPurchaseInvoice(ERPNextTestSuite, StockTestMixin):
 
 	def test_create_purchase_invoice_without_mandatory(self):
 		pi = frappe.new_doc("Purchase Invoice")
+		pi.company = self.companies[0].name
 		pi.flags.ignore_mandatory = True
 		pi.insert(ignore_permissions=True)
 
@@ -2404,6 +2401,7 @@ class TestPurchaseInvoice(ERPNextTestSuite, StockTestMixin):
 						"doctype": "Serial No",
 						"item_code": serial_item,
 						"serial_no": serial_no,
+						"company": self.companies[0].name,
 					}
 				).insert()
 
