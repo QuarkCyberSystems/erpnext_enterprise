@@ -142,7 +142,7 @@ frappe.ui.form.on("Repost Item Valuation", {
 	},
 
 	set_company_on_transaction(frm) {
-		if (frm.doc.voucher_no && frm.doc.voucher_no) {
+		if (frm.doc.voucher_no && frm.doc.voucher_type) {
 			frm.call("set_company");
 		}
 	},
