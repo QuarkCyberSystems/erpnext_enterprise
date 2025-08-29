@@ -134,7 +134,6 @@ frappe.ui.form.on("Repost Item Valuation", {
 	},
 
 	voucher_type: function (frm) {
-		console.log(frm.doc);
 		frm.trigger("set_company_on_transaction");
 	},
 
