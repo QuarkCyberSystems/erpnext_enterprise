@@ -70,10 +70,10 @@ class RepostItemValuation(Document):
 		)
 
 	def validate(self):
+		self.set_company()
 		self.validate_period_closing_voucher()
 		self.set_status(write=False)
 		self.reset_field_values()
-		self.set_company()
 		self.validate_accounts_freeze()
 		self.reset_recreate_stock_ledgers()
 
@@ -162,6 +162,7 @@ class RepostItemValuation(Document):
 	def on_trash(self):
 		self.clear_attachment()
 
+	@frappe.whitelist()
 	def set_company(self):
 		if self.based_on == "Transaction":
 			self.company = frappe.get_cached_value(self.voucher_type, self.voucher_no, "company")

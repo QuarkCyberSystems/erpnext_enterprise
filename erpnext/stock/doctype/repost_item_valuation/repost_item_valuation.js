@@ -132,4 +132,19 @@ frappe.ui.form.on("Repost Item Valuation", {
 			},
 		});
 	},
+
+	voucher_type: function (frm) {
+		console.log(frm.doc);
+		frm.trigger("set_company_on_transaction");
+	},
+
+	voucher_no: function (frm) {
+		frm.trigger("set_company_on_transaction");
+	},
+
+	set_company_on_transaction(frm) {
+		if (frm.doc.voucher_no && frm.doc.voucher_no) {
+			frm.call("set_company");
+		}
+	},
 });
