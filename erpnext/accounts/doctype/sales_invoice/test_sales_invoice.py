@@ -101,6 +101,9 @@ class TestSalesInvoice(ERPNextTestSuite):
 		cls.enterClassContext(cls.change_settings("Selling Settings", validate_selling_price=0))
 		cls.make_employees()
 		cls.make_sales_person()
+		cls.load_test_records("Journal Entry")
+		cls.load_test_records("Stock Entry")
+		cls.load_test_records("Sales Invoice")
 		unlink_payment_on_cancel_of_invoice()
 
 	@classmethod
@@ -533,6 +536,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 
 		self.assertTrue(gle)
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": True})
 	def test_tax_calculation_with_multiple_items(self):
 		si = create_sales_invoice(qty=84, rate=4.6, do_not_save=True)
 		item_row = si.get("items")[0]
@@ -561,6 +565,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 
 		self.assertEqual(si.grand_total, 5474.0)
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": True})
 	def test_tax_calculation_with_item_tax_template(self):
 		si = create_sales_invoice(qty=84, rate=4.6, do_not_save=True)
 		item_row = si.get("items")[0]
@@ -627,6 +632,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		self.assertEqual(si.rounding_adjustment, 0.43)
 		self.assertEqual(si.rounded_total, 5676.0)
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": True})
 	def test_tax_calculation_with_multiple_items_and_discount(self):
 		si = create_sales_invoice(qty=1, rate=75, do_not_save=True)
 		item_row = si.get("items")[0]
@@ -2183,6 +2189,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 			self.assertEqual(expected_values[gle.account][1], gle.debit)
 			self.assertEqual(expected_values[gle.account][2], gle.credit)
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": True})
 	def test_rounding_adjustment_2(self):
 		si = create_sales_invoice(rate=400, do_not_save=True)
 		for rate in [400.25, 600.30, 100.65]:
@@ -2240,6 +2247,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 			self.assertEqual(expected_account_values[0], gle.debit)
 			self.assertEqual(expected_account_values[1], gle.credit)
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": True})
 	def test_rounding_adjustment_3(self):
 		from erpnext.accounts.doctype.accounting_dimension.test_accounting_dimension import create_dimension
 
@@ -3457,6 +3465,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		frappe.db.set_value("Company", "_Test Company", "accounts_frozen_till_date", None)
 
 	@ERPNextTestSuite.change_settings("Accounts Settings", {"over_billing_allowance": 0})
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": 1})
 	def test_over_billing_case_against_delivery_note(self):
 		"""
 		Test a case where duplicating the item with qty = 1 in the invoice
@@ -4168,12 +4177,14 @@ class TestSalesInvoice(ERPNextTestSuite):
 		si.save()
 		return si
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": True})
 	def test_rounding_validation_for_opening_with_inclusive_tax(self):
 		si = self._create_opening_invoice_with_inclusive_tax()
 		# 'Round Off for Opening' not set in Company master
 		# Ledger level validation must be thrown
 		self.assertRaises(frappe.ValidationError, si.submit)
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": True})
 	def test_ledger_entries_on_opening_invoice_with_rounding_loss_by_inclusive_tax(self):
 		si = self._create_opening_invoice_with_inclusive_tax()
 		# 'Round Off for Opening' is set in Company master
@@ -4401,6 +4412,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		doc = frappe.get_doc("Project", project.name)
 		self.assertEqual(doc.total_billed_amount, si.grand_total)
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": True})
 	def test_total_billed_amount_with_different_projects(self):
 		# This test case is for checking the scenario where project is set at document level and for **some** child items only, not all
 		from copy import copy

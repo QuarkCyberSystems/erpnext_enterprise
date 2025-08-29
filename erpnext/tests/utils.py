@@ -1669,6 +1669,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"apply_warehouse_wise_reorder_level": 1,
 				"opening_stock": 10,
 				"valuation_rate": 100,
+				"allow_negative_stock": True,
 				"item_defaults": [
 					{
 						"company": "_Test Company",
