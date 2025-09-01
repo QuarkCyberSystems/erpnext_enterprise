@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
 "POT-Creation-Date: 2025-08-31 09:35+0000\n"
-"PO-Revision-Date: 2025-08-31 23:23\n"
+"PO-Revision-Date: 2025-09-01 23:37\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -644,10 +644,10 @@ msgid "<h4>Body Text and Closing Text Example</h4>\n\n"
 "<p>Templates are compiled using the Jinja Templating Language. To learn more about Jinja, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">read this documentation.</a></p>"
 msgstr "<h4>Primer rezimea i zaključka</h4>\n\n"
 "<div>Primili smo obaveštenje da još niste uplatili fakturu {{sales_invoice}} za {{frappe.db.get_value(\"Currency\", currency, \"symbol\")}} {{outstanding_amount}}. Obaveštavamo Vas da je faktura dospela {{due_date}}. Molimo Vas da bez odlaganja izvršite plaćanje dospelog iznosa kako biste izbegli dodatne troškove po osnovu opomene.</div>\n\n"
-"<h4>Kako dobiti imena polja</h4>\n\n"
-"<p>Imena polja koja možete koristiti u šablonu su polja u dokumentu. Možete saznati koja su polja u bilo kojem dokumentu putem Podešavanje &gt; Prilagodite pregled forme i odabirom vrste dokumenta (npr. Izlazna faktura)</p>\n\n"
+"<h4>Kako dobiti nazive polja</h4>\n\n"
+"<p>Nazive polja koja možete koristiti u šablonu su polja u dokumentu. Možete saznati koja su polja u bilo kojem dokumentu putem Podešavanje &gt; Prilagodite pregled forme i odabirom vrste dokumenta (npr. Izlazna faktura)</p>\n\n"
 "<h4>Šabloni</h4>\n\n"
-"<p>Šabloni se prave koristeći Jinja jezik. Da biste saznali više o Jinji,, pročitajte dokumentaciju na sledećem linku<a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\"></a></p>"
+"<p>Šabloni se prave koristeći Jinja jezik. Da biste saznali više o Jinja, pročitajte dokumentaciju na sledećem linku<a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\"></a></p>alance"
 
 #. Content of the 'Contract Template Help' (HTML) field in DocType 'Contract
 #. Template'
@@ -666,10 +666,10 @@ msgstr "<h4>Primer šablona ugovora</h4>\n\n"
 "-Važi od: {{ start_date }} \n"
 "-Važi do : {{ end_date }}\n"
 "</pre>\n\n"
-"<h4>Kako dobiti ime polja<h4>\n\n"
-"<p>Imena polja koju možete dobiti u šablonu ugovora su polja u ugovoru za koji pravite šablon. Možete saznati koja su polja u bilo kojem dokumentu putem Podešavanje &gt; Prilagodite pregled forme i odabirom vrste dokumenta (npr. Ugovor)</p>\n\n"
+"<h4>Kako dobiti nazive polja</h4>\n\n"
+"<p>Nazive polja koja možete dobiti u šablonu ugovora su polja u ugovoru za koji pravite šablon. Možete saznati koja su polja u bilo kojem dokumentu putem Podešavanje &gt; Prilagodite pregled forme i odabirom vrste dokumenta (npr. Ugovor)</p>\n\n"
 "<h4>Šabloni</h4>\n\n"
-"<p>Šabloni se prave koristeći Jinja jezik. Da biste saznali više o Jinji,, pročitajte dokumentaciju na sledećem linku, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\"></a></p>"
+"<p>Šabloni se prave koristeći Jinja jezik. Da biste saznali više o Jinja, pročitajte dokumentaciju na sledećem linku, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\"></a></p>"
 
 #. Content of the 'Terms and Conditions Help' (HTML) field in DocType 'Terms
 #. and Conditions'
@@ -688,10 +688,10 @@ msgstr "<h4>Primer standardnih uslova i odredbi</h4>\n\n"
 "-Datum narudžbine : {{ transaction_date }} \n"
 "-Očekivani datum isporuke : {{ delivery_date }}\n"
 "</pre>\n\n"
-"<h4>Kako dobiti ime polja</h4>\n\n"
-"<p>Imena polja koja možete koristiti u šablonu imejla su polja u dokumentu iz kojeg šaljete imejl. Možete saznati koja su polja u bilo kojem dokumentu putem Podešavanje &gt; Prilagodite pregled forme i odabirom vrste dokumenta (e.g. Izlazna faktura)</p>\n\n"
+"<h4>Kako dobiti nazive polja</h4>\n\n"
+"<p>Nazive polja koja možete koristiti u šablonu imejla su polja u dokumentu iz kojeg šaljete imejl. Možete saznati koja su polja u bilo kojem dokumentu putem Podešavanje &gt; Prilagodite pregled forme i odabirom vrste dokumenta (e.g. Izlazna faktura)</p>\n\n"
 "<h4>Šabloni</h4>\n\n"
-"<p>Šabloni se prave koristeći Jinja jezik. Da biste saznali više o Jinji,, pročitajte dokumentaciju na sledećem linku <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\"></a></p>"
+"<p>Šabloni se prave koristeći Jinja jezik. Da biste saznali više o Jinja, pročitajte dokumentaciju na sledećem linku <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\"></a></p>"
 
 #. Content of the 'html_5' (HTML) field in DocType 'Bank Statement Import'
 #: erpnext/accounts/doctype/bank_statement_import/bank_statement_import.json
@@ -49500,7 +49500,7 @@ msgstr "Postavi podrazumevani račun {0} za stavke van zaliha"
 #. Dimension'
 #: erpnext/stock/doctype/inventory_dimension/inventory_dimension.json
 msgid "Set fieldname from which you want to fetch the data from the parent form."
-msgstr "Postavite ime polja sa kojeg želite da preuzmete podatke iz matičnog obrasca."
+msgstr "Postavite naziv polja sa kojeg želite da preuzmete podatke iz matičnog obrasca."
 
 #: erpnext/manufacturing/doctype/bom/bom.js:922
 msgid "Set quantity of process loss item:"
@@ -53608,7 +53608,7 @@ msgstr "Ciljani devizni kurs"
 #. Label of the target_fieldname (Data) field in DocType 'Inventory Dimension'
 #: erpnext/stock/doctype/inventory_dimension/inventory_dimension.json
 msgid "Target Fieldname (Stock Ledger Entry)"
-msgstr "Ciljano ime polja (Unos u knjigu zaliha)"
+msgstr "Ciljani naziv polja (Unos u knjigu zaliha)"
 
 #. Label of the target_fixed_asset_account (Link) field in DocType 'Asset
 #. Capitalization'
