@@ -46,7 +46,7 @@ def set_amounts_in_reporting_currency_on_gle_and_acb():
 	previous_fiscal_year = frappe.db.get_value(
 		"Fiscal Year",
 		filters={"year_end_date": ("<", current_fiscal_year.year_start_date)},
-		fields=["name", "year_start_date", "year_end_date"],
+		fieldname=["name", "year_start_date", "year_end_date"],
 		order_by="year_end_date desc",
 		as_dict=1,
 	)
