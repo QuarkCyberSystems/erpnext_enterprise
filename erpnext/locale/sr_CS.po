@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: hello@frappe.io\n"
 "POT-Creation-Date: 2025-08-31 09:35+0000\n"
-"PO-Revision-Date: 2025-09-02 23:35\n"
+"PO-Revision-Date: 2025-09-03 23:39\n"
 "Last-Translator: hello@frappe.io\n"
 "Language-Team: Serbian (Latin)\n"
 "MIME-Version: 1.0\n"
@@ -647,7 +647,7 @@ msgstr "<h4>Primer rezimea i zaključka</h4>\n\n"
 "<h4>Kako dobiti nazive polja</h4>\n\n"
 "<p>Nazive polja koja možete koristiti u šablonu su polja u dokumentu. Možete saznati koja su polja u bilo kojem dokumentu putem Podešavanje &gt; Prilagodite pregled forme i odabirom vrste dokumenta (npr. Izlazna faktura)</p>\n\n"
 "<h4>Šabloni</h4>\n\n"
-"<p>Šabloni se prave koristeći Jinja jezik. Da biste saznali više o Jinja, pročitajte dokumentaciju na sledećem linku<a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\"></a></p>alance"
+"<p>Šabloni se prave koristeći Jinja jezik. Da biste saznali više o Jinja jeziku,<a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">pročitajte ovu dokumentaciju</a></p>"
 
 #. Content of the 'Contract Template Help' (HTML) field in DocType 'Contract
 #. Template'
@@ -669,7 +669,7 @@ msgstr "<h4>Primer šablona ugovora</h4>\n\n"
 "<h4>Kako dobiti nazive polja</h4>\n\n"
 "<p>Nazive polja koja možete dobiti u šablonu ugovora su polja u ugovoru za koji pravite šablon. Možete saznati koja su polja u bilo kojem dokumentu putem Podešavanje &gt; Prilagodite pregled forme i odabirom vrste dokumenta (npr. Ugovor)</p>\n\n"
 "<h4>Šabloni</h4>\n\n"
-"<p>Šabloni se prave koristeći Jinja jezik. Da biste saznali više o Jinja, pročitajte dokumentaciju na sledećem linku, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\"></a></p>"
+"<p>Šabloni se prave koristeći Jinja jezik. Da biste saznali više o Jinja jeziku, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">pročitajte ovu dokumentaciju</a></p>"
 
 #. Content of the 'Terms and Conditions Help' (HTML) field in DocType 'Terms
 #. and Conditions'
@@ -691,7 +691,7 @@ msgstr "<h4>Primer standardnih uslova i odredbi</h4>\n\n"
 "<h4>Kako dobiti nazive polja</h4>\n\n"
 "<p>Nazive polja koja možete koristiti u šablonu imejla su polja u dokumentu iz kojeg šaljete imejl. Možete saznati koja su polja u bilo kojem dokumentu putem Podešavanje &gt; Prilagodite pregled forme i odabirom vrste dokumenta (e.g. Izlazna faktura)</p>\n\n"
 "<h4>Šabloni</h4>\n\n"
-"<p>Šabloni se prave koristeći Jinja jezik. Da biste saznali više o Jinja, pročitajte dokumentaciju na sledećem linku <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\"></a></p>"
+"<p>Šabloni se prave koristeći Jinja jezik. Da biste saznali više o Jinja jeziku, <a class=\"strong\" href=\"http://jinja.pocoo.org/docs/dev/templates/\">pročitajte ovu dokumentaciju</a></p>"
 
 #. Content of the 'html_5' (HTML) field in DocType 'Bank Statement Import'
 #: erpnext/accounts/doctype/bank_statement_import/bank_statement_import.json
@@ -1528,7 +1528,7 @@ msgstr "Stanje računa je već na dugovnoj strani, nije dozvoljeno postaviti 'St
 #: erpnext/accounts/doctype/pos_profile/pos_profile.json
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 msgid "Account for Change Amount"
-msgstr "Račun za razliku u iznosu"
+msgstr "Račun za kusur"
 
 #: erpnext/accounts/doctype/bank_clearance/bank_clearance.py:46
 msgid "Account is mandatory to get payment entries"
@@ -1933,7 +1933,7 @@ msgstr "Računovodstveni unos za dokument troškova nabavke u unosu zaliha {0}"
 
 #: erpnext/subcontracting/doctype/subcontracting_receipt/subcontracting_receipt.py:755
 msgid "Accounting Entry for Landed Cost Voucher for SCR {0}"
-msgstr "Računovodstveni unos za dokument troškova nabavke koji se odnosi na usklađivanje zaliha {0}"
+msgstr "Računovodstveni unos za dokument zavisnih troškova nabavke koji se odnosi na usklađivanje zaliha {0}"
 
 #: erpnext/stock/doctype/purchase_receipt/purchase_receipt.py:816
 msgid "Accounting Entry for Service"
@@ -7855,7 +7855,7 @@ msgstr "Osnovni iznos (valuta kompanije)"
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.json
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 msgid "Base Change Amount (Company Currency)"
-msgstr "Osnovni iznos promene (valuta kompanije)"
+msgstr "Osnovni iznos kusura (valuta kompanije)"
 
 #. Label of the base_cost_per_unit (Float) field in DocType 'BOM Operation'
 #: erpnext/manufacturing/doctype/bom_operation/bom_operation.json
@@ -10216,7 +10216,7 @@ msgstr "Lanac"
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 #: erpnext/selling/page/point_of_sale/pos_payment.js:680
 msgid "Change Amount"
-msgstr "Promena iznosa"
+msgstr "Kusur"
 
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.js:101
 msgid "Change Release Date"
@@ -10543,7 +10543,7 @@ msgstr "Grad"
 #. 'Purchase Invoice'
 #: erpnext/accounts/doctype/purchase_invoice/purchase_invoice.json
 msgid "Claimed Landed Cost Amount (Company Currency)"
-msgstr "Potraživani troškovi nabavke (valuta kompanije)"
+msgstr "Potraživani iznos zavisnih troškova nabavke (valuta kompanije)"
 
 #. Label of the class_per (Data) field in DocType 'Employee Education'
 #: erpnext/setup/doctype/employee_education/employee_education.json
@@ -13451,7 +13451,7 @@ msgstr "Kreiraj potencijalne klijente"
 #. Settings'
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 msgid "Create Ledger Entries for Change Amount"
-msgstr "Kreiraj knjiženja za iznos promene"
+msgstr "Kreiraj knjiženja za kusur"
 
 #: erpnext/buying/doctype/supplier/supplier.js:229
 #: erpnext/selling/doctype/customer/customer.js:263
@@ -23837,7 +23837,7 @@ msgstr "Ukoliko je omogućeno, formula za <b>Potrebnu količinu</b>: <br>\n"
 #. in DocType 'Accounts Settings'
 #: erpnext/accounts/doctype/accounts_settings/accounts_settings.json
 msgid "If enabled, ledger entries will be posted for change amount in POS transactions"
-msgstr "Ukoliko je omogućeno, unosi u knjigama će biti postavljeni za iznos promene u maloprodajnim transakcijama"
+msgstr "Ukoliko je omogućeno, unosi u knjigama će biti postavljeni za iznos kusura u maloprodajnim transakcijama"
 
 #. Description of the 'Disable Rounded Total' (Check) field in DocType 'POS
 #. Profile'
@@ -26157,7 +26157,7 @@ msgstr "Razloživa"
 #. Label of the is_final_finished_good (Check) field in DocType 'BOM Operation'
 #: erpnext/manufacturing/doctype/bom_operation/bom_operation.json
 msgid "Is Final Finished Good"
-msgstr "Da li je gotov proizvod konačan proizvod"
+msgstr "Finalni gotov proizvod"
 
 #. Label of the is_finished_item (Check) field in DocType 'Stock Entry Detail'
 #: erpnext/stock/doctype/stock_entry_detail/stock_entry_detail.json
@@ -26296,7 +26296,7 @@ msgstr "Važan događaj"
 #: erpnext/buying/doctype/purchase_order/purchase_order.json
 #: erpnext/stock/doctype/purchase_receipt/purchase_receipt.json
 msgid "Is Old Subcontracting Flow"
-msgstr "Da li je stari tok podugovaranja"
+msgstr "Stari tok podugovaranja"
 
 #. Label of the is_opening (Select) field in DocType 'GL Entry'
 #. Label of the is_opening (Select) field in DocType 'Journal Entry'
@@ -27778,7 +27778,7 @@ msgstr "Stavka treba biti proizvedena ili prepakovana"
 
 #: erpnext/stock/doctype/landed_cost_voucher/landed_cost_voucher.js:34
 msgid "Item valuation rate is recalculated considering landed cost voucher amount"
-msgstr "Stopa vrednovanja stavke je preračunata uzimajući u obzir dodatne troškove koji su povezani sa nabavkom"
+msgstr "Stopa vrednovanja stavke je preračunata uzimajući u obzir zavisne troškove nabavke"
 
 #: erpnext/stock/utils.py:554
 msgid "Item valuation reposting in progress. Report might show incorrect item valuation."
@@ -28519,41 +28519,41 @@ msgstr "Oznaka"
 #. Label of the taxes (Table) field in DocType 'Landed Cost Voucher'
 #: erpnext/stock/doctype/landed_cost_voucher/landed_cost_voucher.json
 msgid "Landed Cost"
-msgstr "Troškovi nabavke"
+msgstr "Zavisni troškovi nabavke"
 
 #. Label of the landed_cost_help (HTML) field in DocType 'Landed Cost Voucher'
 #: erpnext/stock/doctype/landed_cost_voucher/landed_cost_voucher.json
 msgid "Landed Cost Help"
-msgstr "Pomoć za troškove nabavke"
+msgstr "Pomoć za zavisne troškove nabavke"
 
 #: erpnext/stock/report/landed_cost_report/landed_cost_report.py:18
 msgid "Landed Cost Id"
-msgstr "ID troška nabavke"
+msgstr "ID zavisnih troškova nabavke"
 
 #. Name of a DocType
 #: erpnext/stock/doctype/landed_cost_item/landed_cost_item.json
 msgid "Landed Cost Item"
-msgstr "Pomoć pri izračunavanju ukupnih troškova isporuke"
+msgstr "Stavka zavisnih troškova nabavke"
 
 #. Name of a DocType
 #: erpnext/stock/doctype/landed_cost_purchase_receipt/landed_cost_purchase_receipt.json
 msgid "Landed Cost Purchase Receipt"
-msgstr "Prijemnica nabavke sa ukupnim troškovima isporuke"
+msgstr "Prijemnica nabavke sa ukupnim zavisnim troškovima nabavke"
 
 #. Name of a report
 #: erpnext/stock/report/landed_cost_report/landed_cost_report.json
 msgid "Landed Cost Report"
-msgstr "Izveštaj o troškovima nabavke"
+msgstr "Izveštaj o zavisnim troškovima nabavke"
 
 #. Name of a DocType
 #: erpnext/stock/doctype/landed_cost_taxes_and_charges/landed_cost_taxes_and_charges.json
 msgid "Landed Cost Taxes and Charges"
-msgstr "Porezi i takse ukupni troškova isporuke"
+msgstr "Porezi i takse u okviru zavisnih troškova nabavke"
 
 #. Name of a DocType
 #: erpnext/stock/doctype/landed_cost_vendor_invoice/landed_cost_vendor_invoice.json
 msgid "Landed Cost Vendor Invoice"
-msgstr "Faktura dobavljača za troškove nabavke"
+msgstr "Faktura dobavljača za zavisne troškove nabavke"
 
 #. Name of a DocType
 #. Label of a Link in the Stock Workspace
@@ -28562,7 +28562,7 @@ msgstr "Faktura dobavljača za troškove nabavke"
 #: erpnext/stock/doctype/purchase_receipt/purchase_receipt.js:104
 #: erpnext/stock/workspace/stock/stock.json
 msgid "Landed Cost Voucher"
-msgstr "Dokument za troškove nabavke"
+msgstr "Dokument zavisnih troškova nabavke"
 
 #. Label of the landed_cost_voucher_amount (Currency) field in DocType
 #. 'Purchase Invoice Item'
@@ -28577,7 +28577,7 @@ msgstr "Dokument za troškove nabavke"
 #: erpnext/stock/doctype/stock_entry_detail/stock_entry_detail.json
 #: erpnext/subcontracting/doctype/subcontracting_receipt_item/subcontracting_receipt_item.json
 msgid "Landed Cost Voucher Amount"
-msgstr "Iznos dokumenta za troškove nabavke"
+msgstr "Iznos dokumenta zavisnih troškova nabavke"
 
 #. Option for the 'Orientation' (Select) field in DocType 'Process Statement Of
 #. Accounts'
@@ -37642,7 +37642,7 @@ msgstr "Molimo Vas da kreirate kupca iz potencijalnog klijenta {0}."
 
 #: erpnext/stock/doctype/landed_cost_voucher/landed_cost_voucher.py:132
 msgid "Please create Landed Cost Vouchers against Invoices that have 'Update Stock' enabled."
-msgstr "Molimo Vas da kreirate dokument za troškove nabavke za fakture koje imaju omogućenu opciju 'Ažuriraj zalihe'."
+msgstr "Molimo Vas da kreirate dokument zavisnih troškova nabavke za fakture koje imaju omogućenu opciju 'Ažuriraj zalihe'."
 
 #: erpnext/accounts/doctype/accounting_dimension/accounting_dimension.py:74
 msgid "Please create a new Accounting Dimension if required."
@@ -37725,7 +37725,7 @@ msgstr "Molimo Vas da unesete <b>račun razlike</b> ili da postavite podrazumeva
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.py:509
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1189
 msgid "Please enter Account for Change Amount"
-msgstr "Molimo Vas da unesete račun za razliku u iznosu"
+msgstr "Molimo Vas da unesete račun za kusur"
 
 #: erpnext/setup/doctype/authorization_rule/authorization_rule.py:75
 msgid "Please enter Approving Role or Approving User"
@@ -37916,7 +37916,7 @@ msgstr "Molimo Vas da navedete '{0}' u kompaniji: {1}"
 
 #: erpnext/maintenance/doctype/maintenance_schedule/maintenance_schedule.py:232
 msgid "Please mention no of visits required"
-msgstr "Molimo Vas da navedete broj potrebni poseta"
+msgstr "Molimo Vas da navedete broj potrebnih poseta"
 
 #: erpnext/manufacturing/doctype/bom_update_log/bom_update_log.py:70
 msgid "Please mention the Current and New BOM for replacement."
@@ -38187,7 +38187,7 @@ msgstr "Molimo Vas da izaberete filter za stavku, skladište ili vrstu skladišt
 
 #: erpnext/maintenance/doctype/maintenance_schedule/maintenance_schedule.py:228
 msgid "Please select item code"
-msgstr "Molimo Vas da izabere šifru stavke"
+msgstr "Molimo Vas da izaberete šifru stavke"
 
 #: erpnext/public/js/stock_reservation.js:211
 #: erpnext/selling/doctype/sales_order/sales_order.js:396
@@ -38271,7 +38271,7 @@ msgstr "Molimo Vas da postavite račun"
 
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.py:1728
 msgid "Please set Account for Change Amount"
-msgstr "Molimo Vas da postavite račun za razliku u iznosu"
+msgstr "Molimo Vas da postavite račun za kusur"
 
 #: erpnext/stock/__init__.py:88
 msgid "Please set Account in Warehouse {0} or Default Inventory Account in Company {1}"
@@ -38310,7 +38310,7 @@ msgstr "Molimo Vas da postavite imejl/telefon za kontakt"
 #: erpnext/regional/italy/utils.py:277
 #, python-format
 msgid "Please set Fiscal Code for the customer '%s'"
-msgstr "Molimo Vas da postavite fiskalniu šifru za kupca '%s'"
+msgstr "Molimo Vas da postavite fiskalnu šifru za kupca '%s'"
 
 #: erpnext/regional/italy/utils.py:285
 #, python-format
@@ -40454,7 +40454,7 @@ msgstr "Vrednost projekta"
 
 #: erpnext/config/projects.py:20
 msgid "Project activity / task."
-msgstr "Aktivnost/ zadatak projekta."
+msgstr "Aktivnost / zadatak projekta."
 
 #: erpnext/config/projects.py:13
 msgid "Project master."
@@ -40892,7 +40892,7 @@ msgstr "Menadžer nabavke"
 #: erpnext/stock/doctype/item_price/item_price.json
 #: erpnext/stock/doctype/price_list/price_list.json
 msgid "Purchase Master Manager"
-msgstr "Glavni mendžer za nabavku"
+msgstr "Glavni menadžer za nabavku"
 
 #. Option for the 'Reference Type' (Select) field in DocType 'Journal Entry
 #. Account'
@@ -41549,7 +41549,7 @@ msgstr "Količina prema skladišnoj jedinici mere"
 #: erpnext/accounts/doctype/pricing_rule/pricing_rule.json
 #: erpnext/accounts/doctype/promotional_scheme_product_discount/promotional_scheme_product_discount.json
 msgid "Qty for which recursion isn't applicable."
-msgstr "Količina za koju rekurzija nije primenjeniva."
+msgstr "Količina za koju rekurzija nije primenjiva."
 
 #: erpnext/manufacturing/doctype/work_order/work_order.js:913
 msgid "Qty for {0}"
@@ -43205,7 +43205,7 @@ msgstr "Primalac"
 #. Request'
 #: erpnext/accounts/doctype/payment_request/payment_request.json
 msgid "Recipient Message And Payment Details"
-msgstr "Prouka primaoca i detalji plaćanja"
+msgstr "Poruka primaoca i detalji plaćanja"
 
 #. Label of the recipients (Table MultiSelect) field in DocType 'Email Digest'
 #: erpnext/setup/doctype/email_digest/email_digest.json
@@ -43344,7 +43344,7 @@ msgstr "Ponovni proračun količine ne može biti manji od 0"
 #: erpnext/accounts/doctype/pricing_rule/pricing_rule.py:316
 #: erpnext/accounts/doctype/promotional_scheme/promotional_scheme.py:231
 msgid "Recursive Discounts with Mixed condition is not supported by the system"
-msgstr "Sistemski nije podržano korišćene rekurzivnih popusta sa mešovitim uslovima"
+msgstr "Sistemski nije podržano korišćenje rekurzivnih popusta sa mešovitim uslovima"
 
 #. Option for the 'Color' (Select) field in DocType 'Supplier Scorecard Scoring
 #. Standing'
@@ -43387,7 +43387,7 @@ msgstr "Iskorišćenje"
 #: erpnext/accounts/doctype/pos_invoice/pos_invoice.json
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 msgid "Redemption Account"
-msgstr "Račun za iskorišćavanje poena lojalnosti"
+msgstr "Račun za iskorišćenje poena"
 
 #. Label of the loyalty_redemption_cost_center (Link) field in DocType 'POS
 #. Invoice'
@@ -44375,7 +44375,7 @@ msgstr "Predstavlja kompaniju"
 #. Description of a DocType
 #: erpnext/accounts/doctype/fiscal_year/fiscal_year.json
 msgid "Represents a Financial Year. All accounting entries and other major transactions are tracked against the Fiscal Year."
-msgstr "Predstavlja finansijsku godinu. Svi računovodstveni unosi i druge glavne transakcije prate se prema finansijskog godini."
+msgstr "Predstavlja finansijsku godinu. Svi računovodstveni unosi i druge glavne transakcije prate se prema finansijskoj godini."
 
 #: erpnext/templates/form_grid/material_request_grid.html:25
 msgid "Reqd By Date"
@@ -44729,7 +44729,7 @@ msgstr "Rezervisana količina za podugovor: Količina sirovina potrebna za izrad
 
 #: erpnext/stock/doctype/stock_reservation_entry/stock_reservation_entry.py:614
 msgid "Reserved Qty should be greater than Delivered Qty."
-msgstr "Rezervisana količina treba da budeć veća od isporučene količine."
+msgstr "Rezervisana količina treba da bude veća od isporučene količine."
 
 #: erpnext/manufacturing/doctype/production_plan/production_plan.js:174
 msgid "Reserved Qty: Quantity ordered for sale, but not delivered."
@@ -45750,7 +45750,7 @@ msgstr "Red #{0}: Utrošena imovina {1} ne pripada kompaniji {2}"
 
 #: erpnext/accounts/doctype/sales_invoice_item/sales_invoice_item.py:109
 msgid "Row #{0}: Cost Center {1} does not belong to company {2}"
-msgstr "Red #{0}: Troškovni centar {1} ne pirpada kompaniji {2}"
+msgstr "Red #{0}: Troškovni centar {1} ne pripada kompaniji {2}"
 
 #: erpnext/accounts/doctype/tax_withholding_category/tax_withholding_category.py:76
 msgid "Row #{0}: Cumulative threshold cannot be less than Single Transaction threshold"
@@ -45997,7 +45997,7 @@ msgstr "Red #{0}: Datum početka usluge ne može biti veći od datuma završetka
 
 #: erpnext/controllers/accounts_controller.py:560
 msgid "Row #{0}: Service Start and End Date is required for deferred accounting"
-msgstr "Red #{0}: Datum početka i datum završetka usluge je obavezan za vremensko razgraničenje"
+msgstr "Red #{0}: Datum početka i datum završetka usluge su obavezni za vremensko razgraničenje"
 
 #: erpnext/selling/doctype/sales_order/sales_order.py:432
 msgid "Row #{0}: Set Supplier for item {1}"
@@ -46005,7 +46005,7 @@ msgstr "Red #{0}: Postavite dobavljača za stavku {1}"
 
 #: erpnext/manufacturing/doctype/production_plan/production_plan.py:1017
 msgid "Row #{0}: Since 'Track Semi Finished Goods' is enabled, the BOM {1} cannot be used for Sub Assembly Items"
-msgstr "Red #{0}: S obzirom da je 'Praćenje poluproizvoda' omogućeno, sastavnica {1} ne može biti korišćenja za podsklopove"
+msgstr "Red #{0}: S obzirom da je 'Praćenje poluproizvoda' omogućeno, sastavnica {1} ne može biti korišćena za podsklopove"
 
 #: erpnext/manufacturing/doctype/workstation/workstation.py:105
 msgid "Row #{0}: Start Time and End Time are required"
@@ -48344,7 +48344,7 @@ msgstr "Izaberite šifru varijante stavke za šablon stavke {0}"
 msgid "Select whether to get items from a Sales Order or a Material Request. For now select <b>Sales Order</b>.\n"
 " A Production Plan can also be created manually where you can select the Items to manufacture."
 msgstr "Izaberite da li se stavke preuzimaju iz prodajne porudžbine ili zahteva za nabavku. Za sada izaberite <b>Prodajna porudžbina</b>.\n"
-"Plan proizvodnje se takođe može kreirati ručno, u kojem možete da izabere stavke koje treba proizvesti."
+"Plan proizvodnje se takođe može kreirati ručno, u kojem možete da izaberete stavke koje treba proizvesti."
 
 #: erpnext/setup/doctype/holiday_list/holiday_list.js:65
 msgid "Select your weekly off day"
@@ -48514,7 +48514,7 @@ msgstr "Pošalji ka"
 #. Of Accounts'
 #: erpnext/accounts/doctype/process_statement_of_accounts/process_statement_of_accounts.json
 msgid "Send To Primary Contact"
-msgstr "Pošalji ka primarnom kontaktu"
+msgstr "Pošalji primarnom kontaktu"
 
 #. Description of a DocType
 #: erpnext/setup/doctype/email_digest/email_digest.json
@@ -49346,7 +49346,7 @@ msgstr "Postavi budžete po grupama stavki za ovu teritoriju. Takođe možete uk
 #. DocType 'Buying Settings'
 #: erpnext/buying/doctype/buying_settings/buying_settings.json
 msgid "Set Landed Cost Based on Purchase Invoice Rate"
-msgstr "Postavi ukupne troškove na osnovu cene ulazne fakture"
+msgstr "Postavi zavisne troškove nabavke na osnovu cene iz ulazne fakture"
 
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.js:1147
 msgid "Set Loyalty Program"
@@ -49393,7 +49393,7 @@ msgstr "Postavi status projekta"
 
 #: erpnext/projects/doctype/project/project.js:194
 msgid "Set Project and all Tasks to status {0}?"
-msgstr "Postavu projekat i sve zadatke u status {0}?"
+msgstr "Postavi projekat i sve zadatke u status {0}?"
 
 #: erpnext/manufacturing/doctype/bom/bom.js:933
 msgid "Set Quantity"
@@ -50400,7 +50400,7 @@ msgstr "Konstantna za izravnavanje"
 
 #: erpnext/setup/setup_wizard/data/industry_type.txt:44
 msgid "Soap & Detergent"
-msgstr "Sapun i detrdžent"
+msgstr "Sapun i detergent"
 
 #: erpnext/accounts/doctype/account/chart_of_accounts/verified/standard_chart_of_accounts.py:32
 #: erpnext/accounts/doctype/account/chart_of_accounts/verified/standard_chart_of_accounts_with_account_number.py:45
@@ -50428,7 +50428,7 @@ msgstr "Došlo je do greške, molimo Vas da pokušate ponovo"
 
 #: erpnext/accounts/doctype/pricing_rule/utils.py:752
 msgid "Sorry, this coupon code is no longer valid"
-msgstr "Izvinjavamo se, ovaj kupon više nije važeči"
+msgstr "Izvinjavamo se, ovaj kupon više nije važeći"
 
 #: erpnext/accounts/doctype/pricing_rule/utils.py:750
 msgid "Sorry, this coupon code's validity has expired"
@@ -52460,7 +52460,7 @@ msgstr "Datum završetka pretplate je obavezan i mora pratiti kalendarske mesece
 
 #: erpnext/accounts/doctype/subscription/subscription.py:350
 msgid "Subscription End Date must be after {0} as per the subscription plan"
-msgstr "Datum završetka pretplate mora biti nakon {0} u skladu sa planom pretpalte"
+msgstr "Datum završetka pretplate mora biti nakon {0} u skladu sa planom pretplate"
 
 #. Name of a DocType
 #: erpnext/accounts/doctype/subscription_invoice/subscription_invoice.json
@@ -53517,7 +53517,7 @@ msgstr "Odbijen porez po odbitku na izvoru"
 
 #: erpnext/accounts/doctype/account/chart_of_accounts/verified/standard_chart_of_accounts_with_account_number.py:134
 msgid "TDS Payable"
-msgstr "Obaveza za porez koji je odbijen na izvoru"
+msgstr "Obaveza za porez odbijen na izvoru"
 
 #: erpnext/accounts/report/tax_withholding_details/tax_withholding_details.py:235
 #: erpnext/accounts/report/tds_computation_summary/tds_computation_summary.py:125
@@ -54328,7 +54328,7 @@ msgstr "Član tima"
 #. Name of a UOM
 #: erpnext/setup/setup_wizard/data/uom_data.json
 msgid "Teaspoon"
-msgstr "Kašikica"
+msgstr "Kašičica"
 
 #. Name of a UOM
 #: erpnext/setup/setup_wizard/data/uom_data.json
@@ -55095,7 +55095,7 @@ msgstr "{0} {1} se ne podudara sa {0} {2} u {3} {4}"
 
 #: erpnext/manufacturing/doctype/job_card/job_card.py:882
 msgid "The {0} {1} is used to calculate the valuation cost for the finished good {2}."
-msgstr "{0} {1} se korsiti za izračunavanje vrednosti troškova za gotov proizvod {2}."
+msgstr "{0} {1} se koristi za izračunavanje vrednosti troškova za gotov proizvod {2}."
 
 #: erpnext/accounts/doctype/pricing_rule/pricing_rule.js:44
 msgid "Then Pricing Rules are filtered out based on Customer, Customer Group, Territory, Supplier, Supplier Type, Campaign, Sales Partner etc."
@@ -55139,7 +55139,7 @@ msgstr "Mogu postojati višestrukti nivoi naplate na osnovu ukupno potrošenog i
 
 #: erpnext/accounts/party.py:588
 msgid "There can only be 1 Account per Company in {0} {1}"
-msgstr "Može poostojati samo jedan račun po kompaniji {0} {1}"
+msgstr "Može postojati samo jedan račun po kompaniji {0} {1}"
 
 #: erpnext/accounts/doctype/shipping_rule/shipping_rule.py:81
 msgid "There can only be one Shipping Rule Condition with 0 or blank value for \"To Value\""
@@ -55242,7 +55242,7 @@ msgstr "Ovaj dokument prelazi ograničenje za {0} {1} za stavku {4}. Da li pravi
 
 #: erpnext/stock/doctype/delivery_note/delivery_note.js:489
 msgid "This field is used to set the 'Customer'."
-msgstr "Ovo polje se koristi za postavljanje 'Kupca'."
+msgstr "Ovo polje se koristi za postavljanje 'Kupac'."
 
 #. Description of the 'Bank / Cash Account' (Link) field in DocType 'Payment
 #. Reconciliation'
@@ -56473,7 +56473,7 @@ msgstr "Ukupno fakturisani iznos"
 #. Label of the total_billing_hours (Float) field in DocType 'Sales Invoice'
 #: erpnext/accounts/doctype/sales_invoice/sales_invoice.json
 msgid "Total Billing Hours"
-msgstr "Ukunpo fakturisani sati"
+msgstr "Ukupno fakturisani sati"
 
 #: erpnext/accounts/report/budget_variance_report/budget_variance_report.py:127
 msgid "Total Budget"
@@ -56515,7 +56515,7 @@ msgstr "Ukupni iznos doprinosa protiv fakture: {0}"
 
 #: erpnext/setup/doctype/sales_person/sales_person.js:10
 msgid "Total Contribution Amount Against Orders: {0}"
-msgstr "Ukuapn iznos doprinosa protiv narudžbina: {0}"
+msgstr "Ukupan iznos doprinosa protiv narudžbina: {0}"
 
 #. Label of the total_cost (Currency) field in DocType 'BOM'
 #. Label of the raw_material_cost (Currency) field in DocType 'BOM Creator'
@@ -56557,7 +56557,7 @@ msgstr "Ukupno duguje"
 
 #: erpnext/accounts/doctype/journal_entry/journal_entry.py:986
 msgid "Total Debit must be equal to Total Credit. The difference is {0}"
-msgstr "Ukupan iznos duguje mora da bude jednak ukupnom iznsou potražuje. Razlika je {0}"
+msgstr "Ukupan iznos duguje mora da bude jednak ukupnom iznosu potražuje. Razlika je {0}"
 
 #: erpnext/stock/report/delivery_note_trends/delivery_note_trends.py:45
 msgid "Total Delivered Amount"
@@ -56657,13 +56657,13 @@ msgstr "Ukupno stavki"
 
 #: erpnext/stock/report/landed_cost_report/landed_cost_report.py:24
 msgid "Total Landed Cost"
-msgstr "Ukupni troškovi nabavke"
+msgstr "Ukupni zavisni troškovi nabavke"
 
 #. Label of the total_taxes_and_charges (Currency) field in DocType 'Landed
 #. Cost Voucher'
 #: erpnext/stock/doctype/landed_cost_voucher/landed_cost_voucher.json
 msgid "Total Landed Cost (Company Currency)"
-msgstr "Ukupni troškovi nabavke (valuta kompanije)"
+msgstr "Ukupni zavisni troškovi nabavke (valuta kompanije)"
 
 #: erpnext/accounts/report/balance_sheet/balance_sheet.py:213
 msgid "Total Liability"
@@ -58574,7 +58574,7 @@ msgstr "Koristi polja za seriju / šaržu"
 #: erpnext/subcontracting/doctype/subcontracting_receipt_item/subcontracting_receipt_item.json
 #: erpnext/subcontracting/doctype/subcontracting_receipt_supplied_item/subcontracting_receipt_supplied_item.json
 msgid "Use Serial No / Batch Fields"
-msgstr "Korisit polja za brojeve serije / šarže"
+msgstr "Koristi polja za brojeve serije / šarže"
 
 #. Label of the use_server_side_reactivity (Check) field in DocType 'Selling
 #. Settings'
@@ -58693,11 +58693,11 @@ msgstr "Korisnik {0} je onemogućen"
 
 #: erpnext/setup/doctype/employee/employee.py:246
 msgid "User {0}: Removed Employee Self Service role as there is no mapped employee."
-msgstr "Korisnik {0}: uklonjena uloga samostalne usluge zaposlenog lica jer nema dodeljenog zaposlenog lica."
+msgstr "Korisnik {0}: Uklonjena uloga samostalnog upravljanja zaposlenog lica jer nema dodeljenog zaposlenog lica."
 
 #: erpnext/setup/doctype/employee/employee.py:241
 msgid "User {0}: Removed Employee role as there is no mapped employee."
-msgstr "Korisnik {0}: uklonjenja uloga zaposlenog lica jer nema uloge dodeljenog zaposlenog lica."
+msgstr "Korisnik {0}: Uklonjena uloga zaposlenog lica jer nema uloge dodeljenog zaposlenog lica."
 
 #: erpnext/accounts/doctype/pos_opening_entry/pos_opening_entry.py:52
 msgid "User {} is disabled. Please select valid user/cashier"
@@ -58715,7 +58715,7 @@ msgstr "Korisnici"
 #. 'BOM'
 #: erpnext/manufacturing/doctype/bom/bom.json
 msgid "Users can consume raw materials and add semi-finished goods or final finished goods against the operation using job cards."
-msgstr "Korisnici mogu trošiti sirovine i dodavati poluproizvode ili gotove proizvode u operaciju koristeći radne kartice."
+msgstr "Korisnici mogu trošiti sirovine i dodavati poluproizvode ili finalne gotove proizvode u operaciju koristeći radne kartice."
 
 #. Description of the 'Set Landed Cost Based on Purchase Invoice Rate' (Check)
 #. field in DocType 'Buying Settings'
@@ -58986,7 +58986,7 @@ msgstr "Stopa vrednovanja"
 
 #: erpnext/stock/report/incorrect_serial_no_valuation/incorrect_serial_no_valuation.py:166
 msgid "Valuation Rate (In / Out)"
-msgstr "Stopa vrednovaja (ulaz/izlaz)"
+msgstr "Stopa vrednovanja (ulaz/izlaz)"
 
 #: erpnext/stock/stock_ledger.py:1915
 msgid "Valuation Rate Missing"
@@ -59140,7 +59140,7 @@ msgstr "Vrednost robe ne može biti 0"
 
 #: erpnext/public/js/stock_analytics.js:46
 msgid "Value or Qty"
-msgstr "Vrednost ili kolčina"
+msgstr "Vrednost ili količina"
 
 #: erpnext/manufacturing/page/bom_comparison_tool/bom_comparison_tool.js:121
 msgid "Values Changed"
@@ -59321,7 +59321,7 @@ msgstr "Putem portala za korisnike"
 #. Valuation'
 #: erpnext/stock/doctype/repost_item_valuation/repost_item_valuation.json
 msgid "Via Landed Cost Voucher"
-msgstr "Putem dokumenata za troškove nabavke"
+msgstr "Putem dokumenta zavisnih troškova nabavke"
 
 #: erpnext/setup/setup_wizard/data/designation.txt:31
 msgid "Vice President"
