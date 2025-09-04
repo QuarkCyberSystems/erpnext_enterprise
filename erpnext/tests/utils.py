@@ -256,6 +256,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		system_settings.time_zone = "Asia/Kolkata"
 		system_settings.language = "en"
 		system_settings.currency_precision = system_settings.float_precision = 2
+		system_settings.rounding_method = "Banker's Rounding"
 		system_settings.save()
 
 	@classmethod
