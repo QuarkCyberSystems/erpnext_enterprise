@@ -708,6 +708,7 @@ class BatchNoValuation(DeprecatedBatchNoValuation):
 		for key, value in kwargs.items():
 			setattr(self, key, value)
 
+		self.stock_queue = []
 		self.batch_nos = self.get_batch_nos()
 		self.prepare_batches()
 		self.calculate_avg_rate()
@@ -804,15 +805,12 @@ class BatchNoValuation(DeprecatedBatchNoValuation):
 			self.non_batchwise_valuation_batches = self.batches
 			return
 
-		if get_valuation_method(self.sle.item_code) == "FIFO":
-			self.batchwise_valuation_batches = self.batches
-		else:
-			batches = frappe.get_all(
-				"Batch", filters={"name": ("in", self.batches), "use_batchwise_valuation": 1}, fields=["name"]
-			)
+		batches = frappe.get_all(
+			"Batch", filters={"name": ("in", self.batches), "use_batchwise_valuation": 1}, fields=["name"]
+		)
 
-			for batch in batches:
-				self.batchwise_valuation_batches.append(batch.name)
+		for batch in batches:
+			self.batchwise_valuation_batches.append(batch.name)
 
 		self.non_batchwise_valuation_batches = list(set(self.batches) - set(self.batchwise_valuation_batches))
 

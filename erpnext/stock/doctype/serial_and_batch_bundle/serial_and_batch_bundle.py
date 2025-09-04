@@ -3,6 +3,7 @@
 
 import collections
 import csv
+import json
 from collections import Counter, defaultdict
 
 import frappe
@@ -29,6 +30,7 @@ from erpnext.stock.serial_batch_bundle import (
 	get_batches_from_bundle,
 )
 from erpnext.stock.serial_batch_bundle import get_serial_nos as get_serial_nos_from_bundle
+from erpnext.stock.valuation import FIFOValuation
 
 
 class SerialNoExistsInFutureTransactionError(frappe.ValidationError):
@@ -467,6 +469,8 @@ class SerialandBatchBundle(Document):
 				)
 
 	def set_incoming_rate_for_outward_transaction(self, row=None, save=False, allow_negative_stock=False):
+		from erpnext.stock.utils import get_valuation_method
+
 		sle = self.get_sle_for_outward_transaction()
 
 		if self.has_serial_no:
@@ -483,13 +487,40 @@ class SerialandBatchBundle(Document):
 				warehouse=self.warehouse,
 			)
 
+		stock_queue = []
+		if hasattr(sn_obj, "stock_queue") and sn_obj.stock_queue:
+			stock_queue = parse_json(sn_obj.stock_queue)
+
+		val_method = get_valuation_method(self.item_code)
+
 		for d in self.entries:
 			available_qty = 0
 
 			if self.has_serial_no:
 				d.incoming_rate = abs(sn_obj.serial_no_incoming_rate.get(d.serial_no, 0.0))
 			else:
-				d.incoming_rate = abs(flt(sn_obj.batch_avg_rate.get(d.batch_no)))
+				actual_qty = d.qty
+				if (
+					stock_queue
+					and val_method == "FIFO"
+					and d.batch_no in sn_obj.non_batchwise_valuation_batches
+				):
+					if actual_qty < 0:
+						stock_queue = FIFOValuation(stock_queue)
+						_prev_qty, prev_stock_value = stock_queue.get_total_stock_and_value()
+
+						stock_queue.remove_stock(qty=abs(actual_qty))
+						_qty, stock_value = stock_queue.get_total_stock_and_value()
+
+						stock_value_difference = stock_value - prev_stock_value
+						d.incoming_rate = abs(flt(stock_value_difference) / abs(flt(actual_qty)))
+						stock_queue = stock_queue.state
+					else:
+						d.incoming_rate = abs(flt(sn_obj.batch_avg_rate.get(d.batch_no)))
+						stock_queue.append([d.qty, d.incoming_rate])
+					d.stock_queue = json.dumps(stock_queue)
+				else:
+					d.incoming_rate = abs(flt(sn_obj.batch_avg_rate.get(d.batch_no)))
 
 				available_qty = flt(sn_obj.available_qty.get(d.batch_no), d.precision("qty"))
 				if self.docstatus == 1:
