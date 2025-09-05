@@ -219,7 +219,12 @@ class TestSerialandBatchBundle(IntegrationTestCase):
 			).insert(ignore_permissions=True)
 
 			self.assertTrue(batch_doc.use_batchwise_valuation)
-			batch_doc.db_set("use_batchwise_valuation", 0)
+			batch_doc.db_set(
+				{
+					"use_batchwise_valuation": 0,
+					"batch_qty": 30,
+				}
+			)
 
 		stock_queue = []
 		qty_after_transaction = 0
