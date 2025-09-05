@@ -518,8 +518,10 @@ def update_stock_settings():
 	stock_settings.save()
 
 
-def create_bank_account(args):
+def create_bank_account(args, demo=False):
 	if not args.get("bank_account"):
+		if not demo:
+			return
 		args["bank_account"] = _("Bank Account")
 
 	company_name = args.get("company_name")
