@@ -31,6 +31,7 @@ class HolidayList(Document):
 		from_date: DF.Date
 		holiday_list_name: DF.Data
 		holidays: DF.Table[Holiday]
+		is_half_day: DF.Check
 		subdivision: DF.Autocomplete | None
 		to_date: DF.Date
 		total_holidays: DF.Int
@@ -56,7 +57,15 @@ class HolidayList(Document):
 			if d in existing_holidays:
 				continue
 
-			self.append("holidays", {"description": _(self.weekly_off), "holiday_date": d, "weekly_off": 1})
+			self.append(
+				"holidays",
+				{
+					"description": _(self.weekly_off),
+					"holiday_date": d,
+					"weekly_off": 1,
+					"is_half_day": self.is_half_day,
+				},
+			)
 
 	@frappe.whitelist()
 	def get_supported_countries(self):
