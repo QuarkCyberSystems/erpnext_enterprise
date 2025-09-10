@@ -203,7 +203,25 @@ def is_holiday(holiday_list, date=None):
 	if date is None:
 		date = today()
 	if holiday_list:
-		return bool(frappe.db.exists("Holiday", {"parent": holiday_list, "holiday_date": date}, cache=True))
+		return bool(
+			frappe.db.exists(
+				"Holiday", {"parent": holiday_list, "holiday_date": date, "is_half_day": 0}, cache=True
+			)
+		)
+	else:
+		return False
+
+
+def is_half_holiday(holiday_list, date=None):
+	"""Returns true if the given date is a half holiday in the given holiday list"""
+	if date is None:
+		date = today()
+	if holiday_list:
+		return bool(
+			frappe.db.exists(
+				"Holiday", {"parent": holiday_list, "holiday_date": date, "is_half_day": 1}, cache=True
+			)
+		)
 	else:
 		return False
 
