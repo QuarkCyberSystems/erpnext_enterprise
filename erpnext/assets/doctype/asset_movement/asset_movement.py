@@ -80,7 +80,7 @@ class AssetMovement(Document):
 				)
 
 	def validate_employee(self, d):
-		if self.purpose == "Tranfer and Issue":
+		if self.purpose == "Transfer and Issue":
 			if not d.from_employee:
 				frappe.throw(_("From Employee is required while issuing Asset {0}").format(d.asset))
 
