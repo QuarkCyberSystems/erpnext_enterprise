@@ -388,6 +388,10 @@ class SerialBatchBundle:
 		doc.flags.ignore_voucher_validation = True
 		doc.submit()
 
+		for row in doc.entries:
+			if row.docstatus == 0:
+				frappe.throw(_("Serial and Batch Bundle {0} is not submitted").format(bold(doc.name)))
+
 	def set_warehouse_and_status_in_serial_nos(self):
 		from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos as get_parsed_serial_nos
 
