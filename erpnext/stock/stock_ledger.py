@@ -821,7 +821,7 @@ class update_entries_after:
 
 		if (
 			sle.voucher_type == "Stock Reconciliation"
-			and (sle.batch_no or sle.serial_no or sle.serial_and_batch_bundle)
+			and (sle.serial_and_batch_bundle)
 			and sle.voucher_detail_no
 			and not self.args.get("sle_id")
 			and sle.is_cancelled == 0
