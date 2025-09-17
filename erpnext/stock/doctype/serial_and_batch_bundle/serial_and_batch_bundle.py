@@ -2419,6 +2419,16 @@ def get_available_batches(kwargs):
 			kwargs.posting_date, kwargs.posting_time
 		)
 
+		if kwargs.get("creation"):
+			timestamp_condition = stock_ledger_entry.posting_datetime < get_combine_datetime(
+				kwargs.posting_date, kwargs.posting_time
+			)
+
+			timestamp_condition |= (
+				stock_ledger_entry.posting_datetime
+				== get_combine_datetime(kwargs.posting_date, kwargs.posting_time)
+			) & (stock_ledger_entry.creation < kwargs.creation)
+
 		query = query.where(timestamp_condition)
 
 	for field in ["warehouse", "item_code"]:
@@ -2660,6 +2670,16 @@ def get_stock_ledgers_for_serial_nos(kwargs):
 			kwargs.posting_date, kwargs.posting_time
 		)
 
+		if kwargs.get("creation"):
+			timestamp_condition = stock_ledger_entry.posting_datetime < get_combine_datetime(
+				kwargs.posting_date, kwargs.posting_time
+			)
+
+			timestamp_condition |= (
+				stock_ledger_entry.posting_datetime
+				== get_combine_datetime(kwargs.posting_date, kwargs.posting_time)
+			) & (stock_ledger_entry.creation < kwargs.creation)
+
 		query = query.where(timestamp_condition)
 
 	for field in ["warehouse", "item_code", "serial_no"]:
@@ -2717,6 +2737,16 @@ def get_stock_ledgers_batches(kwargs):
 		timestamp_condition = stock_ledger_entry.posting_datetime <= get_combine_datetime(
 			kwargs.posting_date, kwargs.posting_time
 		)
+
+		if kwargs.get("creation"):
+			timestamp_condition = stock_ledger_entry.posting_datetime < get_combine_datetime(
+				kwargs.posting_date, kwargs.posting_time
+			)
+
+			timestamp_condition |= (
+				stock_ledger_entry.posting_datetime
+				== get_combine_datetime(kwargs.posting_date, kwargs.posting_time)
+			) & (stock_ledger_entry.creation < kwargs.creation)
 
 		query = query.where(timestamp_condition)
 
