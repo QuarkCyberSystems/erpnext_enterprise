@@ -111,9 +111,23 @@ class ProcessStatementOfAccounts(Document):
 				self.from_date = add_months(self.to_date, -1 * self.filter_duration)
 
 		if self.print_format:
-			print_format_type = frappe.db.get_value("Print Format", self.print_format, "print_format_type")
-			if print_format_type != "Jinja":
+			pf = frappe.db.get_value(
+				"Print Format",
+				self.print_format,
+				["print_format_type", "print_format_for", "report", "disabled"],
+				as_dict=True,
+			)
+			if not pf:
+				frappe.throw(title=_("Invalid Print Format"), msg=_("Selected Print Format does not exist."))
+			if pf.print_format_type != "Jinja":
 				frappe.throw(title=_("Invalid Print Format"), msg=_("Print Format Type should be Jinja."))
+			if pf.print_format_for != "Report" or pf.report != self.report or pf.disabled:
+				frappe.throw(
+					title=_("Invalid Print Format"),
+					msg=_(
+						"Print Format must be an enabled Report Print Format matching the selected Report."
+					),
+				)
 
 	def validate_account(self):
 		if not self.account:
