@@ -1905,16 +1905,42 @@ def get_available_serial_nos(kwargs):
 		if kwargs.warehouse:
 			filters["warehouse"] = kwargs.warehouse
 
-	# Since SLEs are not present against Reserved Stock [POS invoices, SRE], need to ignore reserved serial nos.
-	ignore_serial_nos, consider_serial_nos = get_reserved_serial_nos(kwargs)
+	reserved_entries = get_reserved_serial_nos_for_sre(kwargs)
 
-	if consider_serial_nos:
-		filters["name"] = ("in", consider_serial_nos)
+	ignore_serial_nos = []
+	if reserved_entries:
+		if kwargs.get("sabb_voucher_type") == "Delivery Note" and kwargs.get("against_sales_order"):
+			reserved_voucher_details = [kwargs.get("against_sales_order")]
+		else:
+			reserved_voucher_details = get_reserved_voucher_details(kwargs)
+
+		# Check if serial nos are reserved for the current voucher then fetch only those serial nos
+		if reserved_serial_nos := get_reserved_serial_nos_for_voucher(
+			kwargs, reserved_entries, reserved_voucher_details
+		):
+			filters["name"] = ("in", reserved_serial_nos)
+			return frappe.get_all(
+				"Serial No",
+				fields=fields,
+				filters=filters,
+				limit=cint(kwargs.qty) or 10000000,
+				order_by=order_by,
+			)
+
+		# Check if serial nos are reserved for other vouchers then ignore those serial nos
+		elif ignore_reserved_serial_nos := get_other_doc_reserved_serials(
+			kwargs, reserved_entries, reserved_voucher_details
+		):
+			ignore_serial_nos.extend(ignore_reserved_serial_nos)
+
+	if reserved_for_pos := get_reserved_serial_nos_for_pos(kwargs):
+		ignore_serial_nos.extend(reserved_for_pos)
 
 	# To ignore serial nos in the same record for the draft state
 	if kwargs.get("ignore_serial_nos"):
 		ignore_serial_nos.extend(kwargs.get("ignore_serial_nos"))
 
+	ignore_serial_nos = list(set(ignore_serial_nos))
 	if kwargs.get("posting_date"):
 		if kwargs.get("posting_time") is None:
 			kwargs.posting_time = nowtime()
@@ -1924,9 +1950,15 @@ def get_available_serial_nos(kwargs):
 		if not time_based_serial_nos:
 			return []
 
+		for sn in ignore_serial_nos:
+			if sn in time_based_serial_nos:
+				time_based_serial_nos.remove(sn)
+
 		filters["name"] = ("in", time_based_serial_nos)
 	elif ignore_serial_nos:
 		filters["name"] = ("not in", ignore_serial_nos)
+	elif kwargs.get("serial_nos"):
+		filters["name"] = ("in", kwargs.get("serial_nos"))
 
 	if kwargs.get("batches"):
 		batches = get_non_expired_batches(kwargs.get("batches"))
@@ -2012,46 +2044,6 @@ def get_bundle_wise_serial_nos(data, kwargs):
 			bundle_wise_serial_nos[d.parent].append(d.serial_no)
 
 	return bundle_wise_serial_nos
-
-
-def get_reserved_serial_nos(kwargs) -> list:
-	"""Returns a list of `Serial No` reserved in POS Invoice and Stock Reservation Entry."""
-
-	ignore_serial_nos = []
-	consider_serial_nos = []
-
-	# Extend the list by serial nos reserved in POS Invoice
-	ignore_serial_nos.extend(get_reserved_serial_nos_for_pos(kwargs))
-
-	reserved_entries = get_reserved_serial_nos_for_sre(kwargs)
-	if not reserved_entries:
-		return ignore_serial_nos, consider_serial_nos
-
-	if kwargs.get("sabb_voucher_type") == "Delivery Note" and kwargs.get("against_sales_order"):
-		reserved_voucher_details = [kwargs.get("against_sales_order")]
-	else:
-		reserved_voucher_details = get_reserved_voucher_details(kwargs)
-
-	serial_nos = []
-	for entry in reserved_entries:
-		if entry.voucher_no in reserved_voucher_details:
-			consider_serial_nos.append(entry.serial_no)
-			continue
-
-		if kwargs.get("serial_nos") and entry.serial_no in kwargs.get("serial_nos"):
-			frappe.throw(
-				_(
-					"The Serial No {0} is reserved against the {1} {2} and cannot be used for any other transaction."
-				).format(bold(entry.serial_no), entry.voucher_type, bold(entry.voucher_no)),
-				title=_("Serial No Reserved"),
-			)
-
-		serial_nos.append(entry.serial_no)
-
-	# Extend the list by serial nos reserved via SRE
-	ignore_serial_nos.extend(serial_nos)
-
-	return ignore_serial_nos, consider_serial_nos
 
 
 def get_reserved_voucher_details(kwargs):
@@ -2161,6 +2153,38 @@ def get_reserved_serial_nos_for_pos(kwargs):
 	return list(ignore_serial_nos_counter - returned_serial_nos_counter)
 
 
+def get_reserved_serial_nos_for_voucher(kwargs, reserved_entries, reserved_voucher_details):
+	serial_nos = []
+	if not kwargs.get("pick_reserved_items"):
+		return serial_nos
+
+	for entry in reserved_entries:
+		if entry.voucher_no in reserved_voucher_details:
+			serial_nos.append(entry.serial_no)
+			continue
+
+		if kwargs.get("serial_nos") and entry.serial_no in kwargs.get("serial_nos"):
+			frappe.throw(
+				_(
+					"The Serial No {0} is reserved against the {1} {2} and cannot be used for any other transaction."
+				).format(bold(entry.serial_no), entry.voucher_type, bold(entry.voucher_no)),
+				title=_("Serial No Reserved"),
+			)
+
+	return serial_nos
+
+
+def get_other_doc_reserved_serials(kwargs, reserved_entries, reserved_voucher_details):
+	serial_nos = []
+	for entry in reserved_entries:
+		if entry.voucher_no in reserved_voucher_details:
+			continue
+
+		serial_nos.append(entry.serial_no)
+
+	return serial_nos
+
+
 def get_reserved_serial_nos_for_sre(kwargs) -> list:
 	"""Returns a list of `Serial No` reserved in Stock Reservation Entry."""
 
@@ -2182,6 +2206,7 @@ def get_reserved_serial_nos_for_sre(kwargs) -> list:
 			& (sb_entry.delivered_qty < sb_entry.qty)
 			& (sre.reservation_based_on == "Serial and Batch")
 		)
+		.orderby(sb_entry.idx)
 	)
 
 	if kwargs.warehouse:
