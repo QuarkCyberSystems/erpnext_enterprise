@@ -2120,7 +2120,7 @@ class StockEntry(StockController):
 			key = (d.item_code, d.s_warehouse)
 			if details := reservation_entries.get(key):
 				if details.get("serial_no"):
-					d.serial_no = "\n".join(details.get("serial_no"))
+					d.serial_no = "\n".join(details.get("serial_no")[: cint(d.qty)])
 
 				if batches := details.get("batch_no"):
 					for batch_no, qty in batches.items():
@@ -2180,7 +2180,12 @@ class StockEntry(StockController):
 				doctype.transferred_qty,
 				doctype.consumed_qty,
 			)
-			.where((doctype.docstatus == 1) & (doctype.voucher_no == self.work_order))
+			.where(
+				(doctype.docstatus == 1)
+				& (doctype.voucher_no == self.work_order)
+				& (serial_batch_doc.delivered_qty < serial_batch_doc.qty)
+			)
+			.orderby(serial_batch_doc.idx)
 		)
 
 		return query.run(as_dict=True)

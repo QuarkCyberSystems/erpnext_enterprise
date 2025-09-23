@@ -205,6 +205,7 @@ def update_stock(ctx, out, doc=None):
 				"sabb_voucher_no": doc.get("name") if doc else None,
 				"sabb_voucher_detail_no": ctx.child_docname,
 				"sabb_voucher_type": ctx.doctype,
+				"pick_reserved_items": True,
 			}
 		)
 
