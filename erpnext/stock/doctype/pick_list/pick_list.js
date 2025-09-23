@@ -355,12 +355,12 @@ frappe.ui.form.on("Pick List Item", {
 	},
 
 	warehouse: (frm, cdt, cdn) => {
-		let row = frappe.get_doc(cdt, cdn);
-		if (row.warehouse) {
-			get_item_details(row.item_code, row.warehouse).then((data) => {
-				frappe.model.set_value(cdt, cdn, "actual_qty", data.actual_qty);
-			});
-		}
+		const row = frappe.get_doc(cdt, cdn);
+		if (!row.item_code || !row.warehouse) return;
+		get_item_details(row.item_code, row.uom, row.warehouse, frm.doc.company).then((data) => {
+			frappe.model.set_value(cdt, cdn, "actual_qty", data.actual_qty);
+			frappe.model.set_value(cdt, cdn, "company_total_stock", data.company_total_stock);
+		});
 	},
 
 	qty: (frm, cdt, cdn) => {
