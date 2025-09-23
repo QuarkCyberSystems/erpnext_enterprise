@@ -778,7 +778,9 @@ class SerialandBatchBundle(Document):
 				(parent.warehouse == self.warehouse) & (parent.voucher_type == "Stock Reconciliation")
 			)
 		elif batches:
-			future_entries = future_entries.where(child.batch_no.isin(batches))
+			future_entries = future_entries.where(
+				(child.batch_no.isin(batches)) & (parent.warehouse == self.warehouse)
+			)
 
 		future_entries = future_entries.run(as_dict=True)
 
