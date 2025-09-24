@@ -1863,8 +1863,7 @@ def get_valuation_rate(
 					"warehouse": warehouse,
 					"actual_qty": -1,
 					"serial_and_batch_bundle": serial_and_batch_bundle,
-					"posting_date": sabb.posting_date,
-					"posting_time": sabb.posting_time,
+					"posting_datetime": get_combine_datetime(sabb.posting_date, sabb.posting_time),
 				}
 			)
 		)
@@ -2208,8 +2207,7 @@ def validate_reserved_batch_nos(item_code, warehouse, batch_nos):
 				{
 					"item_code": item_code,
 					"warehouse": warehouse,
-					"posting_date": nowdate(),
-					"posting_time": nowtime(),
+					"posting_datetime": get_combine_datetime(nowdate(), nowtime()),
 				}
 			)
 		)

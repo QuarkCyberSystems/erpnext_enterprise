@@ -73,8 +73,7 @@ class SerialandBatchBundle(Document):
 		item_group: DF.Link | None
 		item_name: DF.Data | None
 		naming_series: DF.Literal["", "SABB-.########"]
-		posting_date: DF.Date | None
-		posting_time: DF.Time | None
+		posting_datetime: DF.Datetime | None
 		returned_against: DF.Data | None
 		total_amount: DF.Float
 		total_qty: DF.Float
@@ -252,8 +251,7 @@ class SerialandBatchBundle(Document):
 			kwargs.update(
 				{
 					"voucher_no": self.voucher_no,
-					"posting_date": self.posting_date,
-					"posting_time": self.posting_time,
+					"posting_datetime": self.posting_datetime,
 				}
 			)
 
@@ -291,8 +289,7 @@ class SerialandBatchBundle(Document):
 		kwargs = frappe._dict(
 			{
 				"item_code": self.item_code,
-				"posting_date": self.posting_date,
-				"posting_time": self.posting_time,
+				"posting_datetime": self.posting_datetime,
 				"serial_nos": serial_nos,
 				"check_serial_nos": True,
 			}
@@ -560,8 +557,7 @@ class SerialandBatchBundle(Document):
 	def get_sle_for_outward_transaction(self):
 		sle = frappe._dict(
 			{
-				"posting_date": self.posting_date,
-				"posting_time": self.posting_time,
+				"posting_datetime": self.posting_datetime,
 				"item_code": self.item_code,
 				"warehouse": self.warehouse,
 				"serial_and_batch_bundle": self.name,
@@ -662,11 +658,10 @@ class SerialandBatchBundle(Document):
 		if not self.voucher_detail_no or self.voucher_detail_no != row.name:
 			values_to_set["voucher_detail_no"] = row.name
 
-		if parent.get("posting_date") and (not self.posting_date or self.posting_date != parent.posting_date):
-			values_to_set["posting_date"] = parent.posting_date or today()
-
-		if parent.get("posting_time") and (not self.posting_time or self.posting_time != parent.posting_time):
-			values_to_set["posting_time"] = parent.posting_time
+		if parent.get("posting_date") and parent.get("posting_time"):
+			posting_datetime = combine_datetime(parent.posting_date, parent.posting_time)
+			if not self.posting_datetime or self.posting_datetime != posting_datetime:
+				values_to_set["posting_datetime"] = posting_datetime
 
 		if parent.doctype in [
 			"Delivery Note",
@@ -741,9 +736,7 @@ class SerialandBatchBundle(Document):
 		parent = frappe.qb.DocType("Serial and Batch Bundle")
 		child = frappe.qb.DocType("Serial and Batch Entry")
 
-		timestamp_condition = CombineDatetime(parent.posting_date, parent.posting_time) > CombineDatetime(
-			self.posting_date, self.posting_time
-		)
+		timestamp_condition = parent.posting_datetime > self.posting_datetime
 
 		future_entries = (
 			frappe.qb.from_(parent)
@@ -1251,7 +1244,7 @@ class SerialandBatchBundle(Document):
 				frappe.qb.update(sn_table)
 				.set(sn_table.reference_doctype, self.voucher_type)
 				.set(sn_table.reference_name, self.voucher_no)
-				.set(sn_table.posting_date, self.posting_date)
+				.set(sn_table.posting_date, getdate(self.posting_datetime))
 				.where((sn_table.name.isin(serial_nos)) & (sn_table.reference_name.isnull()))
 			).run()
 
@@ -1700,6 +1693,8 @@ def create_serial_batch_no_ledgers(
 	if parent_doc.get("doctype") == "Stock Entry":
 		warehouse = warehouse or child_row.s_warehouse or child_row.t_warehouse
 
+	posting_datetime = combine_datetime(parent_doc.get("posting_date"), parent_doc.get("posting_time"))
+
 	doc = frappe.get_doc(
 		{
 			"doctype": "Serial and Batch Bundle",
@@ -1708,8 +1703,7 @@ def create_serial_batch_no_ledgers(
 			"warehouse": warehouse,
 			"is_rejected": child_row.is_rejected,
 			"type_of_transaction": type_of_transaction,
-			"posting_date": parent_doc.get("posting_date"),
-			"posting_time": parent_doc.get("posting_time"),
+			"posting_datetime": posting_datetime,
 			"company": parent_doc.get("company"),
 		}
 	)
@@ -1743,6 +1737,12 @@ def create_serial_batch_no_ledgers(
 	frappe.msgprint(_("Serial and Batch Bundle created"), alert=True)
 
 	return doc
+
+
+def combine_datetime(date, time=None):
+	from erpnext.stock.utils import get_combine_datetime
+
+	return get_combine_datetime(date, time)
 
 
 def get_batch(item_code):
@@ -1788,8 +1788,8 @@ def get_type_of_transaction(parent_doc, child_row):
 def update_serial_batch_no_ledgers(bundle, entries, child_row, parent_doc, warehouse=None) -> object:
 	doc = frappe.get_doc("Serial and Batch Bundle", bundle)
 	doc.voucher_detail_no = child_row.name
-	doc.posting_date = parent_doc.posting_date
-	doc.posting_time = parent_doc.posting_time
+	doc.posting_datetime = combine_datetime(parent_doc.get("posting_date"), parent_doc.get("posting_time"))
+
 	doc.warehouse = warehouse or doc.warehouse
 	doc.set("entries", [])
 
@@ -1896,6 +1896,9 @@ def get_available_serial_nos(kwargs):
 	elif kwargs.based_on == "Expiry":
 		order_by = "amc_expiry_date asc"
 
+	if not kwargs.get("posting_datetime") and kwargs.get("posting_date"):
+		kwargs["posting_datetime"] = combine_datetime(kwargs.get("posting_date"), kwargs.get("posting_time"))
+
 	filters = {"item_code": kwargs.item_code}
 
 	# ignore_warehouse is used for backdated stock transactions
@@ -1941,10 +1944,7 @@ def get_available_serial_nos(kwargs):
 		ignore_serial_nos.extend(kwargs.get("ignore_serial_nos"))
 
 	ignore_serial_nos = list(set(ignore_serial_nos))
-	if kwargs.get("posting_date"):
-		if kwargs.get("posting_time") is None:
-			kwargs.posting_time = nowtime()
-
+	if kwargs.get("posting_datetime"):
 		time_based_serial_nos = get_serial_nos_based_on_posting_date(kwargs, ignore_serial_nos)
 
 		if not time_based_serial_nos:
@@ -2343,11 +2343,13 @@ def get_auto_batch_nos(kwargs):
 			kwargs.batch_no = batches
 			kwargs.warehouse = warehouses
 
+	if not kwargs.get("posting_datetime") and kwargs.get("posting_date"):
+		kwargs["posting_datetime"] = combine_datetime(kwargs.get("posting_date"), kwargs.get("posting_time"))
+
 	available_batches = get_available_batches(kwargs)
 	stock_ledgers_batches = get_stock_ledgers_batches(kwargs)
 	pos_invoice_batches = get_reserved_batches_for_pos(kwargs)
 	sre_reserved_batches = get_reserved_batches_for_sre(kwargs)
-
 	if kwargs.against_sales_order and only_consider_batches:
 		kwargs.batch_no = kwargs.warehouse = None
 
@@ -2367,7 +2369,7 @@ def get_auto_batch_nos(kwargs):
 	if kwargs.based_on == "Expiry":
 		available_batches = sorted(available_batches, key=lambda x: (x.expiry_date or getdate("9999-12-31")))
 
-	if not kwargs.get("do_not_check_future_batches") and available_batches and kwargs.get("posting_date"):
+	if not kwargs.get("do_not_check_future_batches") and available_batches and kwargs.get("posting_datetime"):
 		filter_zero_near_batches(available_batches, kwargs)
 
 	if not kwargs.consider_negative_batches:
@@ -2404,8 +2406,7 @@ def get_batches_to_be_considered(sales_order_name):
 def filter_zero_near_batches(available_batches, kwargs):
 	kwargs.batch_no = [d.batch_no for d in available_batches]
 
-	del kwargs["posting_date"]
-	del kwargs["posting_time"]
+	del kwargs["posting_datetime"]
 
 	kwargs.do_not_check_future_batches = 1
 	available_batches_in_future = get_auto_batch_nos(kwargs)
@@ -2471,8 +2472,6 @@ def update_available_batches(available_batches, *reserved_batches) -> None:
 
 
 def get_available_batches(kwargs):
-	from erpnext.stock.utils import get_combine_datetime
-
 	stock_ledger_entry = frappe.qb.DocType("Stock Ledger Entry")
 	batch_ledger = frappe.qb.DocType("Serial and Batch Entry")
 	batch_table = frappe.qb.DocType("Batch")
@@ -2497,23 +2496,15 @@ def get_available_batches(kwargs):
 	if not kwargs.get("for_stock_levels"):
 		query = query.where((batch_table.expiry_date >= today()) | (batch_table.expiry_date.isnull()))
 
-	if kwargs.get("posting_date"):
-		if kwargs.get("posting_time") is None:
-			kwargs.posting_time = nowtime()
-
-		timestamp_condition = stock_ledger_entry.posting_datetime <= get_combine_datetime(
-			kwargs.posting_date, kwargs.posting_time
-		)
+	if kwargs.get("posting_datetime"):
+		timestamp_condition = stock_ledger_entry.posting_datetime <= kwargs.posting_datetime
 
 		if kwargs.get("creation"):
-			timestamp_condition = stock_ledger_entry.posting_datetime < get_combine_datetime(
-				kwargs.posting_date, kwargs.posting_time
-			)
+			timestamp_condition = stock_ledger_entry.posting_datetime < kwargs.posting_datetime
 
-			timestamp_condition |= (
-				stock_ledger_entry.posting_datetime
-				== get_combine_datetime(kwargs.posting_date, kwargs.posting_time)
-			) & (stock_ledger_entry.creation < kwargs.creation)
+			timestamp_condition |= (stock_ledger_entry.posting_datetime == kwargs.posting_datetime) & (
+				stock_ledger_entry.creation < kwargs.creation
+			)
 
 		query = query.where(timestamp_condition)
 
@@ -2693,15 +2684,14 @@ def get_ledgers_from_serial_batch_bundle(**kwargs) -> list[frappe._dict]:
 			serial_batch_table.incoming_rate,
 			bundle_table.voucher_detail_no,
 			bundle_table.voucher_no,
-			bundle_table.posting_date,
-			bundle_table.posting_time,
+			bundle_table.posting_datetime,
 		)
 		.where(
 			(bundle_table.docstatus == 1)
 			& (bundle_table.is_cancelled == 0)
 			& (bundle_table.type_of_transaction.isin(["Inward", "Outward"]))
 		)
-		.orderby(bundle_table.posting_date, bundle_table.posting_time)
+		.orderby(bundle_table.posting_datetime)
 	)
 
 	for key, val in kwargs.items():
@@ -2719,7 +2709,7 @@ def get_ledgers_from_serial_batch_bundle(**kwargs) -> list[frappe._dict]:
 				query = query.where(bundle_table[key].isin(val))
 			else:
 				query = query.where(bundle_table[key] == val)
-		elif key in ["posting_date", "posting_time"]:
+		elif key in ["posting_datetime"]:
 			query = query.where(bundle_table[key] >= val)
 		else:
 			if isinstance(val, list):
@@ -2731,8 +2721,6 @@ def get_ledgers_from_serial_batch_bundle(**kwargs) -> list[frappe._dict]:
 
 
 def get_stock_ledgers_for_serial_nos(kwargs):
-	from erpnext.stock.utils import get_combine_datetime
-
 	stock_ledger_entry = frappe.qb.DocType("Stock Ledger Entry")
 
 	query = (
@@ -2748,23 +2736,15 @@ def get_stock_ledgers_for_serial_nos(kwargs):
 		.orderby(stock_ledger_entry.creation)
 	)
 
-	if kwargs.get("posting_date"):
-		if kwargs.get("posting_time") is None:
-			kwargs.posting_time = nowtime()
-
-		timestamp_condition = stock_ledger_entry.posting_datetime <= get_combine_datetime(
-			kwargs.posting_date, kwargs.posting_time
-		)
+	if kwargs.get("posting_datetime"):
+		timestamp_condition = stock_ledger_entry.posting_datetime <= kwargs.posting_datetime
 
 		if kwargs.get("creation"):
-			timestamp_condition = stock_ledger_entry.posting_datetime < get_combine_datetime(
-				kwargs.posting_date, kwargs.posting_time
-			)
+			timestamp_condition = stock_ledger_entry.posting_datetime < kwargs.posting_datetime
 
-			timestamp_condition |= (
-				stock_ledger_entry.posting_datetime
-				== get_combine_datetime(kwargs.posting_date, kwargs.posting_time)
-			) & (stock_ledger_entry.creation < kwargs.creation)
+			timestamp_condition |= (stock_ledger_entry.posting_datetime == kwargs.posting_datetime) & (
+				stock_ledger_entry.creation < kwargs.creation
+			)
 
 		query = query.where(timestamp_condition)
 
@@ -2784,8 +2764,6 @@ def get_stock_ledgers_for_serial_nos(kwargs):
 
 
 def get_stock_ledgers_batches(kwargs):
-	from erpnext.stock.utils import get_combine_datetime
-
 	stock_ledger_entry = frappe.qb.DocType("Stock Ledger Entry")
 	batch_table = frappe.qb.DocType("Batch")
 
@@ -2816,23 +2794,15 @@ def get_stock_ledgers_batches(kwargs):
 	if not kwargs.get("for_stock_levels"):
 		query = query.where((batch_table.expiry_date >= today()) | (batch_table.expiry_date.isnull()))
 
-	if kwargs.get("posting_date"):
-		if kwargs.get("posting_time") is None:
-			kwargs.posting_time = nowtime()
-
-		timestamp_condition = stock_ledger_entry.posting_datetime <= get_combine_datetime(
-			kwargs.posting_date, kwargs.posting_time
-		)
+	if kwargs.get("posting_datetime"):
+		timestamp_condition = stock_ledger_entry.posting_datetime <= kwargs.posting_datetime
 
 		if kwargs.get("creation"):
-			timestamp_condition = stock_ledger_entry.posting_datetime < get_combine_datetime(
-				kwargs.posting_date, kwargs.posting_time
-			)
+			timestamp_condition = stock_ledger_entry.posting_datetime < kwargs.posting_datetime
 
-			timestamp_condition |= (
-				stock_ledger_entry.posting_datetime
-				== get_combine_datetime(kwargs.posting_date, kwargs.posting_time)
-			) & (stock_ledger_entry.creation < kwargs.creation)
+			timestamp_condition |= (stock_ledger_entry.posting_datetime == kwargs.posting_datetime) & (
+				stock_ledger_entry.creation < kwargs.creation
+			)
 
 		query = query.where(timestamp_condition)
 
@@ -2920,3 +2890,7 @@ def get_stock_reco_details(voucher_detail_no):
 		],
 		as_dict=True,
 	)
+
+
+def on_doctype_update():
+	frappe.db.add_index("Serial and Batch Bundle", ["item_code", "warehouse", "posting_datetime", "creation"])

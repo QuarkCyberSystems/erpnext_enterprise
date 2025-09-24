@@ -54,7 +54,7 @@ from erpnext.stock.serial_batch_bundle import (
 	get_serial_or_batch_items,
 )
 from erpnext.stock.stock_ledger import NegativeStockError, get_previous_sle, get_valuation_rate
-from erpnext.stock.utils import get_bin, get_incoming_rate
+from erpnext.stock.utils import get_bin, get_combine_datetime, get_incoming_rate
 
 
 class FinishedGoodError(frappe.ValidationError):
@@ -1122,8 +1122,7 @@ class StockEntry(StockController):
 					{
 						"item_code": row.item_code,
 						"warehouse": row.s_warehouse,
-						"posting_date": self.posting_date,
-						"posting_time": self.posting_time,
+						"posting_datetime": get_combine_datetime(self.posting_date, self.posting_time),
 						"voucher_type": self.doctype,
 						"voucher_detail_no": row.name,
 						"qty": row.transfer_qty * -1,
