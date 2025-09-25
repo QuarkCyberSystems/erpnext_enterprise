@@ -5,7 +5,7 @@
 from typing import TYPE_CHECKING, overload
 
 import frappe
-from frappe.utils import cint, flt
+from frappe.utils import cint, flt, today
 
 import erpnext
 from erpnext.stock.utils import get_combine_datetime
@@ -77,6 +77,9 @@ def make_stock_entry(**args):
 	if args.inspection_required:
 		s.inspection_required = args.inspection_required
 
+	if not args.posting_date:
+		s.posting_date = today()
+
 	# map names
 	if args.from_warehouse:
 		args.source = args.from_warehouse
@@ -142,8 +145,8 @@ def make_stock_entry(**args):
 			batches = args.batches
 
 		posting_datetime = None
-		if args.posting_date and args.posting_time:
-			posting_datetime = get_combine_datetime(args.posting_date, args.posting_time)
+		if s.posting_date and s.posting_time:
+			posting_datetime = get_combine_datetime(s.posting_date, s.posting_time)
 
 		bundle_id = (
 			SerialBatchCreation(
