@@ -739,13 +739,13 @@ class TestSubcontractingReceipt(IntegrationTestCase):
 		for row in scr.supplied_items:
 			self.assertEqual(row.rate, 300.00)
 			self.assertTrue(row.serial_and_batch_bundle)
-			auto_created_serial_batch = frappe.db.get_value(
+			serial_and_batch_bundle = frappe.db.get_value(
 				"Stock Ledger Entry",
 				{"voucher_no": scr.name, "voucher_detail_no": row.name},
-				"auto_created_serial_and_batch_bundle",
+				"serial_and_batch_bundle",
 			)
 
-			self.assertTrue(auto_created_serial_batch)
+			self.assertTrue(serial_and_batch_bundle)
 
 		self.assertEqual(scr.items[0].rm_cost_per_qty, 900)
 		self.assertEqual(scr.items[0].service_cost_per_qty, 100)
