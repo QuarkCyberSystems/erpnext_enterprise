@@ -53,6 +53,7 @@ class Budget(Document):
 		monthly_distribution: DF.Link | None
 		naming_series: DF.Literal["BUDGET-.YYYY.-"]
 		project: DF.Link | None
+		total_budget_amount: DF.Currency
 	# end: auto-generated types
 
 	def validate(self):
@@ -62,6 +63,7 @@ class Budget(Document):
 		self.validate_accounts()
 		self.set_null_value()
 		self.validate_applicable_for()
+		self.set_total_budget_amount()
 
 	def validate_duplicate(self):
 		budget_against_field = frappe.scrub(self.budget_against)
@@ -138,6 +140,9 @@ class Budget(Document):
 			or self.applicable_on_booking_actual_expenses
 		):
 			self.applicable_on_booking_actual_expenses = 1
+
+	def set_total_budget_amount(self):
+		self.total_budget_amount = flt(sum(d.budget_amount for d in self.accounts))
 
 
 def validate_expense_against_budget(args, expense_amount=0):

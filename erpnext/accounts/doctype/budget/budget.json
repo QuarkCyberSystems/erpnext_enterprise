@@ -33,7 +33,11 @@
   "action_if_annual_exceeded_on_cumulative_expense",
   "action_if_accumulated_monthly_exceeded_on_cumulative_expense",
   "section_break_21",
-  "accounts"
+  "accounts",
+  "section_break_hqka",
+  "column_break_gnot",
+  "column_break_ybiq",
+  "total_budget_amount"
  ],
  "fields": [
   {
@@ -188,7 +192,8 @@
   },
   {
    "fieldname": "section_break_21",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "hide_border": 1
   },
   {
    "fieldname": "accounts",
@@ -232,13 +237,31 @@
    "fieldtype": "Select",
    "label": "Action if Accumulative Monthly Budget Exceeded on Cumulative Expense",
    "options": "\nStop\nWarn\nIgnore"
+  },
+  {
+   "fieldname": "section_break_hqka",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_gnot",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ybiq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_budget_amount",
+   "fieldtype": "Currency",
+   "label": "Total Budget Amount",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-06-16 15:57:13.114981",
+ "modified": "2025-10-06 14:55:07.247313",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Budget",
