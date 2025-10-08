@@ -22,7 +22,7 @@ frappe.query_reports["Stock Qty vs Batch Qty"] = {
 			get_query: function () {
 				const item_code = frappe.query_report.get_filter_value("item");
 				return {
-					filters: { item: item_code },
+					filters: { item: item_code, disabled: 0 },
 				};
 			},
 		},

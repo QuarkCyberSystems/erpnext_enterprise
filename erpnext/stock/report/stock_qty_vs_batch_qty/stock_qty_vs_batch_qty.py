@@ -5,9 +5,7 @@ import json
 
 import frappe
 from frappe import _
-from frappe.query_builder import DocType
-
-from erpnext.stock.doctype.batch.batch import get_batch_qty
+from frappe.query_builder.functions import Sum
 
 
 def execute(filters=None):
@@ -43,43 +41,37 @@ def get_data(filters):
 	item_filter = filters.get("item")
 	batch_filter = filters.get("batch")
 
-	Batch = DocType("Batch")
+	stock_ledger_entry = frappe.qb.DocType("Stock Ledger Entry")
+	batch_ledger = frappe.qb.DocType("Serial and Batch Entry")
+	batch_table = frappe.qb.DocType("Batch")
 
 	query = (
-		frappe.qb.from_(Batch)
-		.select(Batch.item.as_("item_code"), Batch.item_name, Batch.batch_qty, Batch.name.as_("batch_no"))
-		.where(Batch.disabled == 0)
+		frappe.qb.from_(stock_ledger_entry)
+		.inner_join(batch_ledger)
+		.on(stock_ledger_entry.serial_and_batch_bundle == batch_ledger.parent)
+		.inner_join(batch_table)
+		.on(batch_ledger.batch_no == batch_table.name)
+		.select(
+			batch_table.item.as_("item_code"),
+			batch_table.item_name.as_("item_name"),
+			batch_table.name.as_("batch"),
+			batch_table.batch_qty.as_("batch_qty"),
+			Sum(batch_ledger.qty).as_("stock_qty"),
+			(Sum(batch_ledger.qty) - batch_table.batch_qty).as_("difference"),
+		)
+		.where(batch_table.disabled == 0)
+		.where(stock_ledger_entry.is_cancelled == 0)
+		.groupby(batch_table.name)
+		.having((Sum(batch_ledger.qty) - batch_table.batch_qty) != 0)
 	)
 
 	if item_filter:
-		query = query.where(Batch.item == item_filter)
+		query = query.where(batch_table.item == item_filter)
 
 	if batch_filter:
-		query = query.where(Batch.name == batch_filter)
+		query = query.where(batch_table.name == batch_filter)
 
-	batch_list = query.run(as_dict=True)
-	data = []
-	for batch in batch_list:
-		batches = get_batch_qty(batch_no=batch.batch_no)
-
-		if not batches:
-			continue
-
-		batch_qty = batch.get("batch_qty", 0)
-		actual_qty = sum(b.get("qty", 0) for b in batches)
-
-		difference = batch_qty - actual_qty
-
-		row = {
-			"item_code": batch.item_code,
-			"item_name": batch.item_name,
-			"batch": batch.batch_no,
-			"batch_qty": batch_qty,
-			"stock_qty": actual_qty,
-			"difference": difference,
-		}
-
-		data.append(row)
+	data = query.run(as_dict=True)
 
 	return data
 
