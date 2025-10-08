@@ -613,11 +613,13 @@ class SerialNoValuation(DeprecatedSerialNoValuation):
 		else:
 			self.serial_no_incoming_rate = defaultdict(float)
 			self.stock_value_change = 0.0
+			self.old_serial_nos = []
 
 			serial_nos = self.get_serial_nos()
 			for serial_no in serial_nos:
 				incoming_rate = self.get_incoming_rate_from_bundle(serial_no)
 				if incoming_rate is None:
+					self.old_serial_nos.append(serial_no)
 					continue
 
 				self.stock_value_change += incoming_rate
@@ -1247,7 +1249,7 @@ class SerialBatchCreation:
 	def create_batch(self):
 		from erpnext.stock.doctype.batch.batch import make_batch
 
-		if self.is_rejected:
+		if hasattr(self, "is_rejected") and self.is_rejected:
 			bundle = frappe.db.get_value(
 				"Serial and Batch Bundle",
 				{
@@ -1389,18 +1391,19 @@ def get_batch_current_qty(batch):
 
 
 def throw_negative_batch_validation(batch_no, qty):
-	frappe.throw(
-		_("The Batch {0} has negative quantity {1}. Please correct the quantity.").format(
-			bold(batch_no), bold(qty)
-		),
-		title=_("Negative Batch Quantity"),
+	frappe.msgprint(
+		_(
+			"The Batch {0} has negative batch quantity {1}. To fix this, go to the batch and click on Recalculate Batch Qty. If the issue still persists, create an inward entry."
+		).format(bold(get_link_to_form("Batch", batch_no)), bold(qty)),
+		title=_("Warning!"),
+		indicator="orange",
 	)
 
 
 def get_batchwise_qty(voucher_type, voucher_no):
 	bundles = frappe.get_all(
 		"Serial and Batch Bundle",
-		filters={"voucher_no": voucher_no, "voucher_type": voucher_type},
+		filters={"voucher_no": voucher_no, "voucher_type": voucher_type, "docstatus": (">", 0)},
 		pluck="name",
 	)
 	if not bundles:
