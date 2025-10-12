@@ -239,6 +239,7 @@ def get_batch_qty(
 		get_auto_batch_nos,
 	)
 
+	stock_settings = frappe.get_cached_doc("Stock Settings")
 	batchwise_qty = defaultdict(float)
 	kwargs = frappe._dict(
 		{
@@ -247,6 +248,7 @@ def get_batch_qty(
 			"posting_date": posting_date,
 			"posting_time": posting_time,
 			"batch_no": batch_no,
+			"based_on": stock_settings.pick_serial_and_batch_based_on,
 			"ignore_voucher_nos": ignore_voucher_nos,
 			"for_stock_levels": for_stock_levels,
 			"consider_negative_batches": consider_negative_batches,
