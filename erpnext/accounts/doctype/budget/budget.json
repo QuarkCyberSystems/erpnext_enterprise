@@ -16,6 +16,9 @@
   "column_break_3",
   "monthly_distribution",
   "amended_from",
+  "account",
+  "distribution_type",
+  "allocation_frequency",
   "section_break_6",
   "applicable_on_material_request",
   "action_if_annual_budget_exceeded_on_mr",
@@ -267,13 +270,36 @@
    "fieldtype": "Table",
    "label": "Budget Distribution",
    "options": "Budget Distribution"
+  },
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "label": "Account",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "default": "Percent",
+   "fieldname": "distribution_type",
+   "fieldtype": "Select",
+   "label": "Distribution Type",
+   "options": "Amount\nPercent",
+   "reqd": 1
+  },
+  {
+   "default": "Monthly",
+   "fieldname": "allocation_frequency",
+   "fieldtype": "Select",
+   "label": "Allocation Frequency",
+   "options": "Monthly\nQuarterly\nHalf-Yearly\nYearly\nDate Range",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-12 23:44:49.632709",
+ "modified": "2025-10-13 16:15:53.046278",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Budget",
