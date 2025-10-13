@@ -5,7 +5,8 @@ import json
 
 import frappe
 from frappe import _
-from frappe.query_builder.functions import Sum
+
+from erpnext.stock.doctype.batch.batch import get_batch_qty
 
 
 def execute(filters=None):
@@ -37,43 +38,56 @@ def get_columns() -> list[dict]:
 	return columns
 
 
-def get_data(filters):
-	item_filter = filters.get("item")
-	batch_filter = filters.get("batch")
+def get_data(filters=None):
+	filters = filters or {}
 
-	stock_ledger_entry = frappe.qb.DocType("Stock Ledger Entry")
-	batch_ledger = frappe.qb.DocType("Serial and Batch Entry")
-	batch_table = frappe.qb.DocType("Batch")
+	item = filters.get("item")
+	batch_no = filters.get("batch")
+
+	batch_sle_data = get_batch_qty(item_code=item, batch_no=batch_no) or []
+
+	stock_qty_map = {}
+	for row in batch_sle_data:
+		batch = row.get("batch_no")
+		if not batch:
+			continue
+		stock_qty_map[batch] = stock_qty_map.get(batch, 0) + (row.get("qty") or 0)
+
+	batch = frappe.qb.DocType("Batch")
 
 	query = (
-		frappe.qb.from_(stock_ledger_entry)
-		.inner_join(batch_ledger)
-		.on(stock_ledger_entry.serial_and_batch_bundle == batch_ledger.parent)
-		.inner_join(batch_table)
-		.on(batch_ledger.batch_no == batch_table.name)
-		.select(
-			batch_table.item.as_("item_code"),
-			batch_table.item_name.as_("item_name"),
-			batch_table.name.as_("batch"),
-			batch_table.batch_qty.as_("batch_qty"),
-			Sum(batch_ledger.qty).as_("stock_qty"),
-			(Sum(batch_ledger.qty) - batch_table.batch_qty).as_("difference"),
-		)
-		.where(batch_table.disabled == 0)
-		.where(stock_ledger_entry.is_cancelled == 0)
-		.groupby(batch_table.name)
-		.having((Sum(batch_ledger.qty) - batch_table.batch_qty) != 0)
+		frappe.qb.from_(batch)
+		.select(batch.name, batch.item, batch.item_name, batch.batch_qty)
+		.where(batch.disabled == 0)
 	)
 
-	if item_filter:
-		query = query.where(batch_table.item == item_filter)
+	if item:
+		query = query.where(batch.item == item)
+	if batch_no:
+		query = query.where(batch.name == batch_no)
 
-	if batch_filter:
-		query = query.where(batch_table.name == batch_filter)
+	batch_records = query.run(as_dict=True) or []
 
-	data = query.run(as_dict=True)
+	result = []
+	for batch_doc in batch_records:
+		name = batch_doc.get("name")
+		batch_qty = batch_doc.get("batch_qty") or 0
+		stock_qty = stock_qty_map.get(name, 0)
+		difference = stock_qty - batch_qty
 
-	return data
+		if difference != 0:
+			result.append(
+				{
+					"item_code": batch_doc.get("item"),
+					"item_name": batch_doc.get("item_name"),
+					"batch": name,
+					"batch_qty": batch_qty,
+					"stock_qty": stock_qty,
+					"difference": difference,
+				}
+			)
+
+	return result
 
 
 @frappe.whitelist()
