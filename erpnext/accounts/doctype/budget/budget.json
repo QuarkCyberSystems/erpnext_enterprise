@@ -37,7 +37,9 @@
   "section_break_hqka",
   "column_break_gnot",
   "column_break_ybiq",
-  "total_budget_amount"
+  "total_budget_amount",
+  "section_break_fpdt",
+  "budget_distribution"
  ],
  "fields": [
   {
@@ -255,13 +257,23 @@
    "fieldtype": "Currency",
    "label": "Total Budget Amount",
    "read_only": 1
+  },
+  {
+   "fieldname": "section_break_fpdt",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "budget_distribution",
+   "fieldtype": "Table",
+   "label": "Budget Distribution",
+   "options": "Budget Distribution"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-06 14:55:07.247313",
+ "modified": "2025-10-12 23:44:49.632709",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Budget",

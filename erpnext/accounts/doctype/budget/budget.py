@@ -31,6 +31,7 @@ class Budget(Document):
 		from frappe.types import DF
 
 		from erpnext.accounts.doctype.budget_account.budget_account import BudgetAccount
+		from erpnext.accounts.doctype.budget_distribution.budget_distribution import BudgetDistribution
 
 		accounts: DF.Table[BudgetAccount]
 		action_if_accumulated_monthly_budget_exceeded: DF.Literal["", "Stop", "Warn", "Ignore"]
@@ -47,6 +48,7 @@ class Budget(Document):
 		applicable_on_material_request: DF.Check
 		applicable_on_purchase_order: DF.Check
 		budget_against: DF.Literal["", "Cost Center", "Project"]
+		budget_distribution: DF.Table[BudgetDistribution]
 		company: DF.Link
 		cost_center: DF.Link | None
 		fiscal_year: DF.Link
