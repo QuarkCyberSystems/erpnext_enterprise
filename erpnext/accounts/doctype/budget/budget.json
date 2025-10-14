@@ -19,6 +19,8 @@
   "account",
   "distribution_type",
   "allocation_frequency",
+  "budget_start_date",
+  "budget_end_date",
   "section_break_6",
   "applicable_on_material_request",
   "action_if_annual_budget_exceeded_on_mr",
@@ -287,6 +289,18 @@
    "reqd": 1
   },
   {
+   "fieldname": "budget_start_date",
+   "fieldtype": "Date",
+   "label": "Budget Start Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "budget_end_date",
+   "fieldtype": "Date",
+   "label": "Budget End Date",
+   "reqd": 1
+  },
+  {
    "default": "Monthly",
    "fieldname": "allocation_frequency",
    "fieldtype": "Select",
@@ -299,7 +313,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-13 16:15:53.046278",
+ "modified": "2025-10-15 01:20:30.551362",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Budget",

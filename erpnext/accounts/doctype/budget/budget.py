@@ -2,10 +2,12 @@
 # For license information, please see license.txt
 
 
+from datetime import date
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import add_months, flt, fmt_money, get_last_day, getdate
+from frappe.utils import add_months, flt, fmt_money, get_last_day, getdate, month_diff
 
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_accounting_dimensions,
@@ -33,6 +35,7 @@ class Budget(Document):
 		from erpnext.accounts.doctype.budget_account.budget_account import BudgetAccount
 		from erpnext.accounts.doctype.budget_distribution.budget_distribution import BudgetDistribution
 
+		account: DF.Link
 		accounts: DF.Table[BudgetAccount]
 		action_if_accumulated_monthly_budget_exceeded: DF.Literal["", "Stop", "Warn", "Ignore"]
 		action_if_accumulated_monthly_budget_exceeded_on_mr: DF.Literal["", "Stop", "Warn", "Ignore"]
@@ -42,6 +45,7 @@ class Budget(Document):
 		action_if_annual_budget_exceeded_on_mr: DF.Literal["", "Stop", "Warn", "Ignore"]
 		action_if_annual_budget_exceeded_on_po: DF.Literal["", "Stop", "Warn", "Ignore"]
 		action_if_annual_exceeded_on_cumulative_expense: DF.Literal["", "Stop", "Warn", "Ignore"]
+		allocation_frequency: DF.Literal["Monthly", "Quarterly", "Half-Yearly", "Yearly", "Date Range"]
 		amended_from: DF.Link | None
 		applicable_on_booking_actual_expenses: DF.Check
 		applicable_on_cumulative_expense: DF.Check
@@ -49,8 +53,11 @@ class Budget(Document):
 		applicable_on_purchase_order: DF.Check
 		budget_against: DF.Literal["", "Cost Center", "Project"]
 		budget_distribution: DF.Table[BudgetDistribution]
+		budget_end_date: DF.Date
+		budget_start_date: DF.Date
 		company: DF.Link
 		cost_center: DF.Link | None
+		distribution_type: DF.Literal["Amount", "Percent"]
 		fiscal_year: DF.Link
 		monthly_distribution: DF.Link | None
 		naming_series: DF.Literal["BUDGET-.YYYY.-"]
