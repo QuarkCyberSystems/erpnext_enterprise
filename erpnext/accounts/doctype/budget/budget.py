@@ -8,6 +8,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import add_months, flt, fmt_money, get_last_day, getdate, month_diff
+from frappe.utils.data import get_first_day
 
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
 	get_accounting_dimensions,
@@ -152,6 +153,63 @@ class Budget(Document):
 
 	def set_total_budget_amount(self):
 		self.total_budget_amount = flt(sum(d.budget_amount for d in self.accounts))
+
+	def before_save(self):
+		self.allocate_budget()
+
+	def allocate_budget(self):
+		self.set("budget_distribution", [])
+		if not (self.budget_start_date and self.budget_end_date and self.allocation_frequency):
+			return
+
+		start = getdate(self.budget_start_date)
+		end = getdate(self.budget_end_date)
+		freq = self.allocation_frequency
+
+		current = start
+
+		if freq == "Monthly":
+			while current <= end:
+				row = self.append("budget_distribution", {})
+				row.start_date = get_first_day(current)
+				row.end_date = get_last_day(current)
+				current = add_months(current, 1)
+
+		elif freq == "Quarterly":
+			while current <= end:
+				row = self.append("budget_distribution", {})
+
+				month = ((current.month - 1) // 3) * 3 + 1
+				quarter_start = date(current.year, month, 1)
+				quarter_end = get_last_day(add_months(quarter_start, 2))
+				if quarter_end > end:
+					quarter_end = end
+				row.start_date = quarter_start
+				row.end_date = quarter_end
+				current = add_months(quarter_start, 3)
+
+		elif freq == "Half-Yearly":
+			while current <= end:
+				row = self.append("budget_distribution", {})
+				half = 1 if current.month <= 6 else 2
+				half_start = date(current.year, 1, 1) if half == 1 else date(current.year, 7, 1)
+				half_end = date(current.year, 6, 30) if half == 1 else date(current.year, 12, 31)
+				if half_end > end:
+					half_end = end
+				row.start_date = half_start
+				row.end_date = half_end
+				current = add_months(half_start, 6)
+
+		elif freq == "Yearly":
+			while current <= end:
+				row = self.append("budget_distribution", {})
+				year_start = date(current.year, 1, 1)
+				year_end = date(current.year, 12, 31)
+				if year_end > end:
+					year_end = end
+				row.start_date = year_start
+				row.end_date = year_end
+				current = date(current.year + 1, 1, 1)
 
 
 def validate_expense_against_budget(args, expense_amount=0):
