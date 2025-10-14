@@ -736,6 +736,10 @@ class update_entries_after:
 			elif dependant_sle.voucher_type == "Stock Entry" and is_transfer_stock_entry(
 				dependant_sle.voucher_no
 			):
+				if self.distinct_item_warehouses[key].get("transfer_entry_to_repost"):
+					return
+
+				val["transfer_entry_to_repost"] = True
 				self.distinct_item_warehouses[key] = val
 				self.new_items_found = True
 
@@ -892,9 +896,8 @@ class update_entries_after:
 		sle.stock_value = self.wh_data.stock_value
 		sle.stock_queue = json.dumps(self.wh_data.stock_queue)
 
-		if not sle.is_adjustment_entry:
-			sle.stock_value_difference = stock_value_difference
-		elif sle.is_adjustment_entry and not self.args.get("sle_id"):
+		sle.stock_value_difference = stock_value_difference
+		if sle.is_adjustment_entry and flt(sle.qty_after_transaction, self.flt_precision) == 0:
 			sle.stock_value_difference = (
 				get_stock_value_difference(
 					sle.item_code, sle.warehouse, sle.posting_date, sle.posting_time, sle.voucher_no
@@ -1074,15 +1077,14 @@ class update_entries_after:
 
 		for d in sabb_data:
 			incoming_rate = get_incoming_rate_for_serial_and_batch(self.item_code, d, sn_obj)
-
-			if flt(incoming_rate, self.currency_precision) == flt(
-				d.valuation_rate, self.currency_precision
-			) and not getattr(d, "stock_queue", None):
-				continue
-
 			amount = incoming_rate * flt(d.qty)
 			tot_amt += flt(amount)
 			total_qty += flt(d.qty)
+
+			if flt(incoming_rate, self.currency_precision) == flt(
+				d.incoming_rate, self.currency_precision
+			) and not getattr(d, "stock_queue", None):
+				continue
 
 			values_to_update = {
 				"incoming_rate": incoming_rate,

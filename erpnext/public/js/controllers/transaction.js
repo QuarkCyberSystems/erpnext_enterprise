@@ -1170,7 +1170,8 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 
 		if (
 			frappe.meta.get_docfield(this.frm.doctype, "shipping_address") &&
-			["Purchase Order", "Purchase Receipt", "Purchase Invoice"].includes(this.frm.doctype)
+			["Purchase Order", "Purchase Receipt", "Purchase Invoice"].includes(this.frm.doctype) &&
+			!this.frm.doc.shipping_address
 		) {
 			let is_drop_ship = me.frm.doc.items.some((item) => item.delivered_by_supplier);
 
@@ -1692,6 +1693,17 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 		);
 
 		var company_currency = this.get_company_currency();
+
+		if (
+			this._last_company_currency === company_currency &&
+			this._last_price_list_currency === this.frm.doc.price_list_currency
+		) {
+			return;
+		}
+
+		this._last_company_currency = company_currency;
+		this._last_price_list_currency = this.frm.doc.price_list_currency;
+
 		this.change_form_labels(company_currency);
 		this.change_grid_labels(company_currency);
 		this.frm.refresh_fields();
