@@ -53,6 +53,7 @@ class Budget(Document):
 		applicable_on_material_request: DF.Check
 		applicable_on_purchase_order: DF.Check
 		budget_against: DF.Literal["", "Cost Center", "Project"]
+		budget_amount: DF.Currency
 		budget_distribution: DF.Table[BudgetDistribution]
 		budget_end_date: DF.Date
 		budget_start_date: DF.Date
@@ -166,50 +167,67 @@ class Budget(Document):
 		end = getdate(self.budget_end_date)
 		freq = self.allocation_frequency
 
+		months = month_diff(end, start) + 1
+		if freq == "Monthly":
+			total_periods = months
+		elif freq == "Quarterly":
+			total_periods = months // 3 + (1 if months % 3 else 0)
+		elif freq == "Half-Yearly":
+			total_periods = months // 6 + (1 if months % 6 else 0)
+		else:
+			total_periods = end.year - start.year + 1
+
+		if self.distribution_type == "Amount":
+			per_row = flt(self.budget_amount / total_periods, 2)
+		else:
+			per_row = flt(100 / total_periods, 2)
+
+		assigned = 0
 		current = start
 
-		if freq == "Monthly":
-			while current <= end:
-				row = self.append("budget_distribution", {})
+		while current <= end:
+			row = self.append("budget_distribution", {})
+
+			if freq == "Monthly":
 				row.start_date = get_first_day(current)
 				row.end_date = get_last_day(current)
 				current = add_months(current, 1)
-
-		elif freq == "Quarterly":
-			while current <= end:
-				row = self.append("budget_distribution", {})
-
+			elif freq == "Quarterly":
 				month = ((current.month - 1) // 3) * 3 + 1
 				quarter_start = date(current.year, month, 1)
 				quarter_end = get_last_day(add_months(quarter_start, 2))
-				if quarter_end > end:
-					quarter_end = end
 				row.start_date = quarter_start
-				row.end_date = quarter_end
+				row.end_date = min(quarter_end, end)
 				current = add_months(quarter_start, 3)
-
-		elif freq == "Half-Yearly":
-			while current <= end:
-				row = self.append("budget_distribution", {})
+			elif freq == "Half-Yearly":
 				half = 1 if current.month <= 6 else 2
 				half_start = date(current.year, 1, 1) if half == 1 else date(current.year, 7, 1)
 				half_end = date(current.year, 6, 30) if half == 1 else date(current.year, 12, 31)
-				if half_end > end:
-					half_end = end
 				row.start_date = half_start
-				row.end_date = half_end
+				row.end_date = min(half_end, end)
 				current = add_months(half_start, 6)
-
-		elif freq == "Yearly":
-			while current <= end:
-				row = self.append("budget_distribution", {})
+			else:  # Yearly
 				year_start = date(current.year, 1, 1)
 				year_end = date(current.year, 12, 31)
-				if year_end > end:
-					year_end = end
 				row.start_date = year_start
-				row.end_date = year_end
+				row.end_date = min(year_end, end)
 				current = date(current.year + 1, 1, 1)
+
+			if self.distribution_type == "Amount":
+				if len(self.budget_distribution) == total_periods:
+					row.amount = flt(self.budget_amount - assigned)
+
+				else:
+					row.amount = per_row
+					assigned += per_row
+				row.percent = flt(row.amount * 100 / self.budget_amount)
+			else:
+				if len(self.budget_distribution) == total_periods:
+					row.percent = flt(100 - assigned)
+				else:
+					row.percent = per_row
+					assigned += per_row
+				row.amount = flt(row.percent * self.budget_amount / 100)
 
 
 def validate_expense_against_budget(args, expense_amount=0):
