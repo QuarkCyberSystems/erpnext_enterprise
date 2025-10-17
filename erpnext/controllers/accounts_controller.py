@@ -2965,29 +2965,46 @@ class AccountsController(TransactionBase):
 			return
 
 		item_doctype = self.meta.get_field("items").options
-		item_meta = frappe.get_meta(item_doctype)
-
-		reference_fieldname = next(
-			(
-				row.fieldname
-				for row in item_meta.fields
-				if row.fieldtype == "Link"
-				and row.options == source_doc.doctype
-				and not row.get("is_custom_field")
-			),
-			None,
-		)
-
-		if not reference_fieldname:
-			return
-
 		doctype_table = frappe.qb.DocType(self.doctype)
 		item_table = frappe.qb.DocType(item_doctype)
-		discount_already_applied = (
+
+		is_same_doctype = self.doctype == source_doc.doctype
+		is_return = self.get("is_return") and is_same_doctype
+
+		if is_same_doctype and not is_return:
+			# should never happen
+			# you don't map to the same doctype without it being a return
+			return
+
+		query = (
 			frappe.qb.from_(doctype_table)
 			.where(doctype_table.docstatus == 1)
 			.where(doctype_table.discount_amount != 0)
-			.where(
+			.select(Sum(doctype_table.discount_amount))
+		)
+
+		if is_return:
+			query = query.where(doctype_table.is_return == 1).where(
+				doctype_table.return_against == source_doc.name
+			)
+
+		else:
+			item_meta = frappe.get_meta(item_doctype)
+			reference_fieldname = next(
+				(
+					row.fieldname
+					for row in item_meta.fields
+					if row.fieldtype == "Link"
+					and row.options == source_doc.doctype
+					and not row.get("is_custom_field")
+				),
+				None,
+			)
+
+			if not reference_fieldname:
+				return
+
+			query = query.where(
 				doctype_table.name.isin(
 					frappe.qb.from_(item_table)
 					.select(item_table.parent)
@@ -2995,20 +3012,29 @@ class AccountsController(TransactionBase):
 					.distinct()
 				)
 			)
-			.select(Sum(doctype_table.discount_amount))
-		).run()
 
+		result = query.run()
+		if not result:
+			return
+
+		discount_already_applied = result[0][0]
 		if not discount_already_applied:
 			return
 
-		discount_already_applied = flt(discount_already_applied[0][0], self.precision("discount_amount"))
+		if is_return:
+			# returns have negative discount
+			discount_already_applied *= -1
+
 		if (source_doc.discount_amount * (discount_already_applied - source_doc.discount_amount)) >= 0:
 			# full discount already applied or exceeded
 			self.discount_amount = 0
 		else:
-			self.discount_amount = flt(
-				self.discount_amount - discount_already_applied, self.precision("discount_amount")
-			)
+			discount_amount = source_doc.discount_amount - discount_already_applied
+			if is_return:
+				# returns have negative discount
+				discount_amount *= -1
+
+			self.discount_amount = flt(discount_amount, self.precision("discount_amount"))
 
 		self.calculate_taxes_and_totals()
 

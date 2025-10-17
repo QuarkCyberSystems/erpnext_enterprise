@@ -2400,3 +2400,35 @@ class TestAccountsController(IntegrationTestCase):
 		# and not affected by the repeated mapping logic
 		self.assertEqual(dn.additional_discount_percentage, 10)
 		self.assertEqual(dn.discount_amount, 50)  # 10% of 500
+
+	def test_discount_amount_for_multiple_returns(self):
+		"""
+		Test that discount amount is correctly adjusted when multiple return invoices
+		are created against the same original invoice to prevent over-returning discount
+		"""
+		from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_sales_return
+
+		# Create original sales invoice with discount
+		si = create_sales_invoice(qty=10, rate=100, do_not_submit=True)
+		si.apply_discount_on = "Net Total"
+		si.discount_amount = 100
+		si.save()
+		si.submit()
+
+		# Create first return - Frappe will copy full discount by default, we need to adjust it
+		return_si_1 = make_sales_return(si.name)
+		return_si_1.items[0].qty = -6  # Return 6 out of 10 items
+		# Manually set discount to match the proportion (60% of discount)
+		return_si_1.discount_amount = -60
+		return_si_1.save()
+		return_si_1.submit()
+
+		self.assertEqual(return_si_1.discount_amount, -60)
+
+		# Create second return for remaining items
+		return_si_2 = make_sales_return(si.name)
+		return_si_2.items[0].qty = -4  # Return remaining 4 out of 10 items
+		return_si_2.save()
+
+		# Second return should only get remaining discount (100 - 60 = 40)
+		self.assertEqual(return_si_2.discount_amount, -40)
