@@ -3025,16 +3025,11 @@ class AccountsController(TransactionBase):
 			# returns have negative discount
 			discount_already_applied *= -1
 
-		if (source_doc.discount_amount * (discount_already_applied - source_doc.discount_amount)) >= 0:
-			# full discount already applied or exceeded
-			self.discount_amount = 0
-		else:
-			discount_amount = source_doc.discount_amount - discount_already_applied
-			if is_return:
-				# returns have negative discount
-				discount_amount *= -1
+		discount_amount = max(source_doc.discount_amount - discount_already_applied, 0)
+		if discount_amount and is_return:
+			discount_amount *= -1
 
-			self.discount_amount = flt(discount_amount, self.precision("discount_amount"))
+		self.discount_amount = flt(discount_amount, self.precision("discount_amount"))
 
 		self.calculate_taxes_and_totals()
 

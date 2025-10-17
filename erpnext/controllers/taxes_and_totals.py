@@ -723,7 +723,10 @@ class calculate_taxes_and_totals:
 		grand_total = self.doc.grand_total
 
 		# validate that discount amount cannot exceed the total before discount
-		if grand_total * (discount_amount - grand_total) > 0:
+		if (
+			(grand_total >= 0 and discount_amount > grand_total)
+			or (grand_total < 0 and discount_amount < grand_total)  # returns
+		):
 			frappe.throw(
 				_(
 					"Additional Discount Amount ({discount_amount}) cannot exceed "
