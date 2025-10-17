@@ -7,7 +7,7 @@ import json
 import frappe
 from frappe import _, scrub
 from frappe.model.document import Document
-from frappe.utils import cint, flt, fmt_money, round_based_on_smallest_currency_fraction
+from frappe.utils import cint, flt, round_based_on_smallest_currency_fraction
 
 import erpnext
 from erpnext.accounts.doctype.journal_entry.journal_entry import get_exchange_rate
