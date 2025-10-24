@@ -29,20 +29,22 @@
    "fieldname": "amount",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Amount"
+   "label": "Amount",
+   "read_only_depends_on": "eval:doc.end_date < frappe.datetime.get_today()"
   },
   {
    "fieldname": "percent",
    "fieldtype": "Percent",
    "in_list_view": 1,
-   "label": "Percent"
+   "label": "Percent",
+   "read_only_depends_on": "eval:doc.end_date < frappe.datetime.get_today()"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2025-10-12 23:47:30.393908",
+ "modified": "2025-10-15 16:53:23.462653",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Budget Distribution",

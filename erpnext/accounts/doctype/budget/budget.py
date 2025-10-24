@@ -64,6 +64,7 @@ class Budget(Document):
 		monthly_distribution: DF.Link | None
 		naming_series: DF.Literal["BUDGET-.YYYY.-"]
 		project: DF.Link | None
+		revision_of: DF.Data | None
 		total_budget_amount: DF.Currency
 	# end: auto-generated types
 
@@ -159,6 +160,9 @@ class Budget(Document):
 		self.allocate_budget()
 
 	def allocate_budget(self):
+		if self.revision_of:
+			return
+
 		self.set("budget_distribution", [])
 		if not (self.budget_start_date and self.budget_end_date and self.allocation_frequency):
 			return
@@ -167,7 +171,7 @@ class Budget(Document):
 		end = getdate(self.budget_end_date)
 		freq = self.allocation_frequency
 
-		months = month_diff(end, start) + 1
+		months = month_diff(end, start)
 		if freq == "Monthly":
 			total_periods = months
 		elif freq == "Quarterly":
@@ -652,3 +656,20 @@ def get_expense_cost_center(doctype, args):
 		return frappe.db.get_value(
 			doctype, args.get(frappe.scrub(doctype)), ["cost_center", "default_expense_account"]
 		)
+
+
+@frappe.whitelist()
+def revise_budget(budget_name):
+	old_budget = frappe.get_doc("Budget", budget_name)
+
+	if old_budget.docstatus == 1:
+		old_budget.cancel()
+		frappe.db.commit()
+
+	new_budget = frappe.copy_doc(old_budget)
+	new_budget.docstatus = 0
+	new_budget.revision_of = old_budget.name
+	new_budget.posting_date = frappe.utils.nowdate()
+	new_budget.insert()
+
+	return new_budget.name

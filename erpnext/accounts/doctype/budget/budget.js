@@ -32,6 +32,16 @@ frappe.ui.form.on("Budget", {
 
 	refresh: function (frm) {
 		frm.trigger("toggle_reqd_fields");
+
+		if (!frm.doc.__islocal && frm.doc.docstatus == 1) {
+			frm.add_custom_button(
+				__("Revise Budget"),
+				function () {
+					frm.events.revise_budget_action(frm);
+				},
+				__("Actions")
+			);
+		}
 	},
 
 	budget_against: function (frm) {
@@ -50,5 +60,28 @@ frappe.ui.form.on("Budget", {
 	toggle_reqd_fields: function (frm) {
 		frm.toggle_reqd("cost_center", frm.doc.budget_against == "Cost Center");
 		frm.toggle_reqd("project", frm.doc.budget_against == "Project");
+	},
+
+	revise_budget_action: function (frm) {
+		frappe.confirm(
+			__(
+				"Are you sure you want to revise this budget? The current budget will be cancelled and a new draft will be created."
+			),
+			function () {
+				frappe.call({
+					method: "erpnext.accounts.doctype.budget.budget.revise_budget",
+					args: { budget_name: frm.doc.name },
+					callback: function (r) {
+						if (r.message) {
+							frappe.msgprint(__("New revised budget created successfully"));
+							frappe.set_route("Form", "Budget", r.message);
+						}
+					},
+				});
+			},
+			function () {
+				frappe.msgprint(__("Revision cancelled"));
+			}
+		);
 	},
 });
