@@ -3,7 +3,7 @@
 import unittest
 
 import frappe
-from frappe.utils import now_datetime, nowdate
+from frappe.utils import add_days, getdate, now_datetime, nowdate
 
 from erpnext.accounts.doctype.budget.budget import (
 	BudgetError,
@@ -25,6 +25,10 @@ class TestBudget(ERPNextTestSuite):
 
 	def setUp(self):
 		frappe.db.set_single_value("Accounts Settings", "use_legacy_budget_controller", False)
+		self.company = "_Test Company"
+		self.fiscal_year = frappe.db.get_value("Fiscal Year", {}, "name")
+		self.account = "_Test Account Cost for Goods Sold - _TC"
+		self.cost_center = "_Test Cost Center - _TC"
 
 	def test_monthly_budget_crossed_ignore(self):
 		set_total_expense_zero(nowdate(), "cost_center")
@@ -421,6 +425,117 @@ class TestBudget(ERPNextTestSuite):
 		budget.cancel()
 		po.cancel()
 		jv.cancel()
+
+	def test_distribution_date_validation(self):
+		budget = frappe.new_doc("Budget")
+		budget.company = self.company
+		budget.fiscal_year = self.fiscal_year
+		budget.budget_against = "Cost Center"
+		budget.cost_center = self.cost_center
+		budget.append("accounts", {"account": self.account, "budget_amount": 100000})
+
+		start = getdate("2025-04-10")
+		end = getdate("2025-04-05")
+
+		budget.append(
+			"budget_distribution",
+			{
+				"start_date": start,
+				"end_date": end,
+				"amount": 50000,
+			},
+		)
+
+		with self.assertRaises(frappe.ValidationError):
+			budget.save()
+
+	def test_total_distribution_equals_budget(self):
+		budget = frappe.new_doc("Budget")
+		budget.company = self.company
+		budget.fiscal_year = self.fiscal_year
+		budget.budget_against = "Cost Center"
+		budget.cost_center = self.cost_center
+		budget.account = ("_Test Account Cost for Goods Sold - _TC",)
+		budget.budget_amount = 12000
+
+		budget.start_date = getdate("2025-04-01")
+		budget.end_date = getdate("2025-06-30")
+
+		budget.append(
+			"budget_distribution",
+			{
+				"start_date": getdate("2025-04-01"),
+				"end_date": getdate("2025-04-30"),
+				"amount": 6000,
+			},
+		)
+		budget.append(
+			"budget_distribution",
+			{
+				"start_date": getdate("2025-05-01"),
+				"end_date": getdate("2025-06-30"),
+				"amount": 5000,
+			},
+		)
+
+		with self.assertRaises(frappe.ValidationError):
+			budget.save()
+
+	def test_evenly_distribute_budget(self):
+		budget = frappe.new_doc("Budget")
+		budget.company = self.company
+		budget.fiscal_year = self.fiscal_year
+		budget.budget_against = "Cost Center"
+		budget.cost_center = self.cost_center
+		budget.distribute_evenly = 1
+		budget.account = ("_Test Account Cost for Goods Sold - _TC",)
+		budget.budget_amount = 12000
+
+		budget.budget_start_date = getdate("2025-04-01")
+		budget.budget_end_date = getdate("2026-03-31")
+
+		for i in range(12):
+			budget.append(
+				"budget_distribution",
+				{
+					"start_date": add_days(getdate("2025-04-01"), 30 * i),
+					"end_date": add_days(getdate("2025-04-30"), 30 * i),
+				},
+			)
+
+		budget.save()
+		budget.reload()
+
+		total = sum([d.amount for d in budget.budget_distribution])
+		self.assertEqual(total, 120000)
+		self.assertTrue(all(d.amount == 10000 for d in budget.budget_distribution))
+
+	def test_create_revised_budget(self):
+		budget = make_budget(budget_against="Cost Center", budget_amount=120000)
+
+		revised_name = frappe.get_doc("Budget", budget.name).revise_budget()
+
+		revised_budget = frappe.get_doc("Budget", revised_name)
+		self.assertNotEqual(budget.name, revised_budget.name)
+		self.assertEqual(revised_budget.budget_against, budget.budget_against)
+		self.assertEqual(revised_budget.accounts[0].budget_amount, budget.accounts[0].budget_amount)
+
+		old_budget = frappe.get_doc("Budget", budget.name)
+		self.assertEqual(old_budget.docstatus, 2)
+
+	def test_revision_preserves_distribution(self):
+		budget = make_budget(budget_against="Cost Center", budget_amount=120000)
+		budget.distribute_evenly = 1
+		budget.allocate_budget()
+		budget.save()
+
+		revised_name = budget.revise_budget()
+		revised_budget = frappe.get_doc("Budget", revised_name)
+
+		self.assertGreater(len(revised_budget.budget_distribution), 0)
+
+		total = sum(row.amount for row in revised_budget.budget_distribution)
+		self.assertEqual(total, revised_budget.accounts[0].budget_amount)
 
 
 def set_total_expense_zero(posting_date, budget_against_field=None, budget_against_CC=None):
