@@ -9,6 +9,7 @@ from erpnext.accounts.doctype.budget.budget import (
 	BudgetError,
 	get_accumulated_monthly_budget,
 	get_actual_expense,
+	revise_budget,
 )
 from erpnext.accounts.doctype.journal_entry.test_journal_entry import make_journal_entry
 from erpnext.accounts.utils import get_fiscal_year
@@ -24,7 +25,7 @@ class TestBudget(ERPNextTestSuite):
 		cls.make_projects()
 
 	def setUp(self):
-		frappe.db.set_single_value("Accounts Settings", "use_legacy_budget_controller", False)
+		frappe.db.set_single_value("Accounts Settings", "use_legacy_budget_controller", True)
 		self.company = "_Test Company"
 		self.fiscal_year = frappe.db.get_value("Fiscal Year", {}, "name")
 		self.account = "_Test Account Cost for Goods Sold - _TC"
@@ -59,7 +60,8 @@ class TestBudget(ERPNextTestSuite):
 		frappe.db.set_value("Budget", budget.name, "action_if_accumulated_monthly_budget_exceeded", "Stop")
 
 		accumulated_limit = get_accumulated_monthly_budget(
-			budget.monthly_distribution, nowdate(), budget.fiscal_year, budget.accounts[0].budget_amount
+			budget.name,
+			nowdate(),
 		)
 		jv = make_journal_entry(
 			"_Test Account Cost for Goods Sold - _TC",
@@ -81,9 +83,7 @@ class TestBudget(ERPNextTestSuite):
 
 		frappe.db.set_value("Budget", budget.name, "action_if_accumulated_monthly_budget_exceeded", "Stop")
 
-		accumulated_limit = get_accumulated_monthly_budget(
-			budget.monthly_distribution, nowdate(), budget.fiscal_year, budget.accounts[0].budget_amount
-		)
+		accumulated_limit = get_accumulated_monthly_budget(budget.name, nowdate())
 		jv = make_journal_entry(
 			"_Test Account Cost for Goods Sold - _TC",
 			"_Test Bank - _TC",
@@ -118,7 +118,8 @@ class TestBudget(ERPNextTestSuite):
 		frappe.db.set_value("Budget", budget.name, "fiscal_year", fiscal_year)
 
 		accumulated_limit = get_accumulated_monthly_budget(
-			budget.monthly_distribution, nowdate(), budget.fiscal_year, budget.accounts[0].budget_amount
+			budget.name,
+			nowdate(),
 		)
 
 		mr = frappe.get_doc(
@@ -162,7 +163,8 @@ class TestBudget(ERPNextTestSuite):
 		frappe.db.set_value("Budget", budget.name, "fiscal_year", fiscal_year)
 
 		accumulated_limit = get_accumulated_monthly_budget(
-			budget.monthly_distribution, nowdate(), budget.fiscal_year, budget.accounts[0].budget_amount
+			budget.name,
+			nowdate(),
 		)
 		po = create_purchase_order(
 			transaction_date=nowdate(), qty=1, rate=accumulated_limit + 1, do_not_submit=True
@@ -185,7 +187,8 @@ class TestBudget(ERPNextTestSuite):
 
 		project = frappe.get_value("Project", {"project_name": "_Test Project"})
 		accumulated_limit = get_accumulated_monthly_budget(
-			budget.monthly_distribution, nowdate(), budget.fiscal_year, budget.accounts[0].budget_amount
+			budget.name,
+			nowdate(),
 		)
 		jv = make_journal_entry(
 			"_Test Account Cost for Goods Sold - _TC",
@@ -306,7 +309,8 @@ class TestBudget(ERPNextTestSuite):
 		frappe.db.set_value("Budget", budget.name, "action_if_accumulated_monthly_budget_exceeded", "Stop")
 
 		accumulated_limit = get_accumulated_monthly_budget(
-			budget.monthly_distribution, nowdate(), budget.fiscal_year, budget.accounts[0].budget_amount
+			budget.name,
+			nowdate(),
 		)
 		jv = make_journal_entry(
 			"_Test Account Cost for Goods Sold - _TC",
@@ -339,7 +343,8 @@ class TestBudget(ERPNextTestSuite):
 		frappe.db.set_value("Budget", budget.name, "action_if_accumulated_monthly_budget_exceeded", "Stop")
 
 		accumulated_limit = get_accumulated_monthly_budget(
-			budget.monthly_distribution, nowdate(), budget.fiscal_year, budget.accounts[0].budget_amount
+			budget.name,
+			nowdate(),
 		)
 		jv = make_journal_entry(
 			"_Test Account Cost for Goods Sold - _TC",
@@ -393,9 +398,7 @@ class TestBudget(ERPNextTestSuite):
 
 		budget = make_budget(budget_against="Cost Center", applicable_on_cumulative_expense=True)
 
-		accumulated_limit = get_accumulated_monthly_budget(
-			budget.monthly_distribution, nowdate(), budget.fiscal_year, budget.accounts[0].budget_amount
-		)
+		accumulated_limit = get_accumulated_monthly_budget(budget.name, nowdate())
 
 		jv = make_journal_entry(
 			"_Test Account Cost for Goods Sold - _TC",
@@ -413,6 +416,8 @@ class TestBudget(ERPNextTestSuite):
 			transaction_date=nowdate(), qty=1, rate=accumulated_limit + 1, do_not_submit=True
 		)
 		po.set_missing_values()
+
+		print(">>>>>>>>>>>>>>>>>>>>>>>>")
 
 		self.assertRaises(BudgetError, po.submit)
 
@@ -432,7 +437,8 @@ class TestBudget(ERPNextTestSuite):
 		budget.fiscal_year = self.fiscal_year
 		budget.budget_against = "Cost Center"
 		budget.cost_center = self.cost_center
-		budget.append("accounts", {"account": self.account, "budget_amount": 100000})
+		budget.account = self.account
+		budget.budget_amount = 100000
 
 		start = getdate("2025-04-10")
 		end = getdate("2025-04-05")
@@ -482,29 +488,7 @@ class TestBudget(ERPNextTestSuite):
 			budget.save()
 
 	def test_evenly_distribute_budget(self):
-		budget = frappe.new_doc("Budget")
-		budget.company = self.company
-		budget.fiscal_year = self.fiscal_year
-		budget.budget_against = "Cost Center"
-		budget.cost_center = self.cost_center
-		budget.distribute_evenly = 1
-		budget.account = ("_Test Account Cost for Goods Sold - _TC",)
-		budget.budget_amount = 12000
-
-		budget.budget_start_date = getdate("2025-04-01")
-		budget.budget_end_date = getdate("2026-03-31")
-
-		for i in range(12):
-			budget.append(
-				"budget_distribution",
-				{
-					"start_date": add_days(getdate("2025-04-01"), 30 * i),
-					"end_date": add_days(getdate("2025-04-30"), 30 * i),
-				},
-			)
-
-		budget.save()
-		budget.reload()
+		budget = make_budget(budget_against="Cost Center", budget_amount=120000)
 
 		total = sum([d.amount for d in budget.budget_distribution])
 		self.assertEqual(total, 120000)
@@ -513,29 +497,26 @@ class TestBudget(ERPNextTestSuite):
 	def test_create_revised_budget(self):
 		budget = make_budget(budget_against="Cost Center", budget_amount=120000)
 
-		revised_name = frappe.get_doc("Budget", budget.name).revise_budget()
+		revised_name = revise_budget(budget.name)
 
 		revised_budget = frappe.get_doc("Budget", revised_name)
 		self.assertNotEqual(budget.name, revised_budget.name)
 		self.assertEqual(revised_budget.budget_against, budget.budget_against)
-		self.assertEqual(revised_budget.accounts[0].budget_amount, budget.accounts[0].budget_amount)
+		self.assertEqual(revised_budget.budget_amount, budget.budget_amount)
 
 		old_budget = frappe.get_doc("Budget", budget.name)
 		self.assertEqual(old_budget.docstatus, 2)
 
 	def test_revision_preserves_distribution(self):
 		budget = make_budget(budget_against="Cost Center", budget_amount=120000)
-		budget.distribute_evenly = 1
-		budget.allocate_budget()
-		budget.save()
 
-		revised_name = budget.revise_budget()
+		revised_name = revise_budget(budget.name)
 		revised_budget = frappe.get_doc("Budget", revised_name)
 
 		self.assertGreater(len(revised_budget.budget_distribution), 0)
 
 		total = sum(row.amount for row in revised_budget.budget_distribution)
-		self.assertEqual(total, revised_budget.accounts[0].budget_amount)
+		self.assertEqual(total, revised_budget.budget_amount)
 
 
 def set_total_expense_zero(posting_date, budget_against_field=None, budget_against_CC=None):
@@ -589,18 +570,33 @@ def make_budget(**args):
 
 	budget_against = args.budget_against
 	cost_center = args.cost_center
-
 	fiscal_year = get_fiscal_year(nowdate())[0]
 
 	if budget_against == "Project":
-		project_name = "{}%".format("_Test Project/" + fiscal_year)
-		budget_list = frappe.get_all("Budget", fields=["name"], filters={"name": ("like", project_name)})
+		project = frappe.get_value("Project", {"project_name": "_Test Project"})
+		budget_list = frappe.get_all(
+			"Budget",
+			filters={
+				"project": project,
+				"account": "_Test Account Cost for Goods Sold - _TC",
+			},
+			pluck="name",
+		)
 	else:
-		cost_center_name = "{}%".format(cost_center or "_Test Cost Center - _TC/" + fiscal_year)
-		budget_list = frappe.get_all("Budget", fields=["name"], filters={"name": ("like", cost_center_name)})
-	for d in budget_list:
-		frappe.db.sql("delete from `tabBudget` where name = %(name)s", d)
-		frappe.db.sql("delete from `tabBudget Account` where parent = %(name)s", d)
+		budget_list = frappe.get_all(
+			"Budget",
+			filters={
+				"cost_center": cost_center or "_Test Cost Center - _TC",
+				"account": "_Test Account Cost for Goods Sold - _TC",
+			},
+			pluck="name",
+		)
+
+	for name in budget_list:
+		doc = frappe.get_doc("Budget", name)
+		if doc.docstatus == 1:
+			doc.cancel()
+		frappe.delete_doc("Budget", name, force=True, ignore_missing=True)
 
 	budget = frappe.new_doc("Budget")
 
@@ -609,18 +605,19 @@ def make_budget(**args):
 	else:
 		budget.cost_center = cost_center or "_Test Cost Center - _TC"
 
-	monthly_distribution = frappe.get_doc("Monthly Distribution", "_Test Distribution")
-	monthly_distribution.fiscal_year = fiscal_year
-	monthly_distribution.save()
-
 	budget.fiscal_year = fiscal_year
-	budget.monthly_distribution = "_Test Distribution"
 	budget.company = "_Test Company"
+	budget.account = "_Test Account Cost for Goods Sold - _TC"
+	budget.budget_amount = args.budget_amount or 200000
 	budget.applicable_on_booking_actual_expenses = 1
 	budget.action_if_annual_budget_exceeded = "Stop"
 	budget.action_if_accumulated_monthly_budget_exceeded = "Ignore"
 	budget.budget_against = budget_against
-	budget.append("accounts", {"account": "_Test Account Cost for Goods Sold - _TC", "budget_amount": 200000})
+
+	budget.budget_start_date = "2025-04-01"
+	budget.budget_end_date = "2026-03-31"
+	budget.allocation_frequency = "Monthly"
+	budget.distribution_type = "Amount"
 
 	if args.applicable_on_material_request:
 		budget.applicable_on_material_request = 1

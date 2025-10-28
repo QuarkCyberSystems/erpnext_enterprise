@@ -285,7 +285,7 @@ def validate_expense_against_budget(args, expense_amount=0):
 			budget_records = frappe.db.sql(
 				f"""
 				select
-					b.name, b.{budget_against} as budget_against, b.budget_amount, b.monthly_distribution,
+					b.name, b.{budget_against} as budget_against, b.budget_amount,
 					ifnull(b.applicable_on_material_request, 0) as for_material_request,
 					ifnull(applicable_on_purchase_order, 0) as for_purchase_order,
 					ifnull(applicable_on_booking_actual_expenses,0) as for_actual_expenses,
