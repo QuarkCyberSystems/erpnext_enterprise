@@ -59,10 +59,8 @@ class BudgetValidation:
 		_obj.update(
 			{
 				"accumulated_monthly_budget": get_accumulated_monthly_budget(
-					self.budget_map[key].monthly_distribution,
+					self.budget_map[key].name,
 					self.doc_date,
-					self.fiscal_year,
-					self.budget_map[key].budget_amount,
 				)
 			}
 		)

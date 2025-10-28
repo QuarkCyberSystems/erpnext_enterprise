@@ -7,6 +7,7 @@ from datetime import date
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.query_builder.functions import Sum
 from frappe.utils import add_months, flt, fmt_money, get_last_day, getdate, month_diff
 from frappe.utils.data import get_first_day
 
@@ -33,11 +34,9 @@ class Budget(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		from erpnext.accounts.doctype.budget_account.budget_account import BudgetAccount
 		from erpnext.accounts.doctype.budget_distribution.budget_distribution import BudgetDistribution
 
 		account: DF.Link
-		accounts: DF.Table[BudgetAccount]
 		action_if_accumulated_monthly_budget_exceeded: DF.Literal["", "Stop", "Warn", "Ignore"]
 		action_if_accumulated_monthly_budget_exceeded_on_mr: DF.Literal["", "Stop", "Warn", "Ignore"]
 		action_if_accumulated_monthly_budget_exceeded_on_po: DF.Literal["", "Stop", "Warn", "Ignore"]
@@ -61,73 +60,67 @@ class Budget(Document):
 		cost_center: DF.Link | None
 		distribution_type: DF.Literal["Amount", "Percent"]
 		fiscal_year: DF.Link
-		monthly_distribution: DF.Link | None
 		naming_series: DF.Literal["BUDGET-.YYYY.-"]
 		project: DF.Link | None
 		revision_of: DF.Data | None
-		total_budget_amount: DF.Currency
 	# end: auto-generated types
 
 	def validate(self):
 		if not self.get(frappe.scrub(self.budget_against)):
 			frappe.throw(_("{0} is mandatory").format(self.budget_against))
 		self.validate_duplicate()
-		self.validate_accounts()
+		self.validate_account()
 		self.set_null_value()
 		self.validate_applicable_for()
-		self.set_total_budget_amount()
 
 	def validate_duplicate(self):
 		budget_against_field = frappe.scrub(self.budget_against)
 		budget_against = self.get(budget_against_field)
+		account = self.account
 
-		accounts = [d.account for d in self.accounts] or []
-		existing_budget = frappe.db.sql(
-			"""
-			select
-				b.name, ba.account from `tabBudget` b, `tabBudget Account` ba
-			where
-				ba.parent = b.name and b.docstatus < 2 and b.company = {} and {}={} and
-				b.fiscal_year={} and b.name != {} and ba.account in ({}) """.format(
-				"%s", budget_against_field, "%s", "%s", "%s", ",".join(["%s"] * len(accounts))
-			),
-			(self.company, budget_against, self.fiscal_year, self.name, *tuple(accounts)),
-			as_dict=1,
+		if not account:
+			return
+
+		existing_budget = frappe.db.get_all(
+			"Budget",
+			filters={
+				"docstatus": ("<", 2),
+				"company": self.company,
+				budget_against_field: budget_against,
+				"fiscal_year": self.fiscal_year,
+				"account": account,
+				"name": ("!=", self.name),
+			},
+			fields=["name", "account"],
 		)
 
-		for d in existing_budget:
+		if existing_budget:
+			d = existing_budget[0]
 			frappe.throw(
-				_(
-					"Another Budget record '{0}' already exists against {1} '{2}' and account '{3}' for fiscal year {4}"
-				).format(d.name, self.budget_against, budget_against, d.account, self.fiscal_year),
+				_("Another Budget record '{0}' already exists against {1} '{2}' and account '{3}'").format(
+					d.name, self.budget_against, budget_against, d.account
+				),
 				DuplicateBudgetError,
 			)
 
-	def validate_accounts(self):
-		account_list = []
-		for d in self.get("accounts"):
-			if d.account:
-				account_details = frappe.get_cached_value(
-					"Account", d.account, ["is_group", "company", "report_type"], as_dict=1
+	def validate_account(self):
+		if not self.account:
+			frappe.throw(_("Account is mandatory"))
+
+		account_details = frappe.get_cached_value(
+			"Account", self.account, ["is_group", "company", "report_type"], as_dict=1
+		)
+
+		if account_details.is_group:
+			frappe.throw(_("Budget cannot be assigned against Group Account {0}").format(self.account))
+		elif account_details.company != self.company:
+			frappe.throw(_("Account {0} does not belong to company {1}").format(self.account, self.company))
+		elif account_details.report_type != "Profit and Loss":
+			frappe.throw(
+				_("Budget cannot be assigned against {0}, as it's not an Income or Expense account").format(
+					self.account
 				)
-
-				if account_details.is_group:
-					frappe.throw(_("Budget cannot be assigned against Group Account {0}").format(d.account))
-				elif account_details.company != self.company:
-					frappe.throw(
-						_("Account {0} does not belongs to company {1}").format(d.account, self.company)
-					)
-				elif account_details.report_type != "Profit and Loss":
-					frappe.throw(
-						_(
-							"Budget cannot be assigned against {0}, as it's not an Income or Expense account"
-						).format(d.account)
-					)
-
-				if d.account in account_list:
-					frappe.throw(_("Account {0} has been entered multiple times").format(d.account))
-				else:
-					account_list.append(d.account)
+			)
 
 	def set_null_value(self):
 		if self.budget_against == "Cost Center":
@@ -152,9 +145,6 @@ class Budget(Document):
 			or self.applicable_on_booking_actual_expenses
 		):
 			self.applicable_on_booking_actual_expenses = 1
-
-	def set_total_budget_amount(self):
-		self.total_budget_amount = flt(sum(d.budget_amount for d in self.accounts))
 
 	def before_save(self):
 		self.allocate_budget()
@@ -295,7 +285,7 @@ def validate_expense_against_budget(args, expense_amount=0):
 			budget_records = frappe.db.sql(
 				f"""
 				select
-					b.{budget_against} as budget_against, ba.budget_amount, b.monthly_distribution,
+					b.name, b.{budget_against} as budget_against, b.budget_amount, b.monthly_distribution,
 					ifnull(b.applicable_on_material_request, 0) as for_material_request,
 					ifnull(applicable_on_purchase_order, 0) as for_purchase_order,
 					ifnull(applicable_on_booking_actual_expenses,0) as for_actual_expenses,
@@ -303,10 +293,10 @@ def validate_expense_against_budget(args, expense_amount=0):
 					b.action_if_annual_budget_exceeded_on_mr, b.action_if_accumulated_monthly_budget_exceeded_on_mr,
 					b.action_if_annual_budget_exceeded_on_po, b.action_if_accumulated_monthly_budget_exceeded_on_po
 				from
-					`tabBudget` b, `tabBudget Account` ba
+					`tabBudget` b
 				where
-					b.name=ba.parent and b.fiscal_year=%s
-					and ba.account=%s and b.docstatus=1
+					b.fiscal_year=%s
+					and b.account=%s and b.docstatus=1
 					{condition}
 			""",
 				(args.fiscal_year, args.account),
@@ -335,9 +325,7 @@ def validate_budget_records(args, budget_records, expense_amount):
 				)
 
 			if monthly_action in ["Stop", "Warn"]:
-				budget_amount = get_accumulated_monthly_budget(
-					budget.monthly_distribution, args.posting_date, args.fiscal_year, budget.budget_amount
-				)
+				budget_amount = get_accumulated_monthly_budget(budget.name, args.posting_date)
 
 				args["month_end_date"] = get_last_day(args.posting_date)
 
@@ -581,37 +569,23 @@ def get_actual_expense(args):
 	return amount
 
 
-def get_accumulated_monthly_budget(monthly_distribution, posting_date, fiscal_year, annual_budget):
-	distribution = {}
-	if monthly_distribution:
-		mdp = frappe.qb.DocType("Monthly Distribution Percentage")
-		md = frappe.qb.DocType("Monthly Distribution")
+def get_accumulated_monthly_budget(budget_name, posting_date):
+	posting_date = getdate(posting_date)
 
-		res = (
-			frappe.qb.from_(mdp)
-			.join(md)
-			.on(mdp.parent == md.name)
-			.select(mdp.month, mdp.percentage_allocation)
-			.where(md.fiscal_year == fiscal_year)
-			.where(md.name == monthly_distribution)
-			.run(as_dict=True)
-		)
+	bd = frappe.qb.DocType("Budget Distribution")
+	b = frappe.qb.DocType("Budget")
 
-		for d in res:
-			distribution.setdefault(d.month, d.percentage_allocation)
+	result = (
+		frappe.qb.from_(bd)
+		.join(b)
+		.on(bd.parent == b.name)
+		.select(Sum(bd.amount).as_("accumulated_amount"))
+		.where(b.name == budget_name)
+		.where(bd.end_date >= posting_date)
+		.run(as_dict=True)
+	)
 
-	dt = frappe.get_cached_value("Fiscal Year", fiscal_year, "year_start_date")
-	accumulated_percentage = 0.0
-
-	while dt <= getdate(posting_date):
-		if monthly_distribution and distribution:
-			accumulated_percentage += distribution.get(getdate(dt).strftime("%B"), 0)
-		else:
-			accumulated_percentage += 100.0 / 12
-
-		dt = add_months(dt, 1)
-
-	return annual_budget * accumulated_percentage / 100
+	return flt(result[0]["accumulated_amount"]) if result else 0.0
 
 
 def get_item_details(args):
