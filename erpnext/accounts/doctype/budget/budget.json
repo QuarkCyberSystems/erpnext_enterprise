@@ -270,7 +270,9 @@
   {
    "fieldname": "budget_amount",
    "fieldtype": "Currency",
-   "label": "Budget Amount"
+   "label": "Budget Amount",
+   "options": "Company:company:default_currency",
+   "reqd": 1
   },
   {
    "fieldname": "section_break_kkan",
@@ -280,6 +282,7 @@
    "fieldname": "revision_of",
    "fieldtype": "Data",
    "label": "Revision Of",
+   "no_copy": 1,
    "read_only": 1
   }
  ],
@@ -287,7 +290,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-28 13:02:43.456568",
+ "modified": "2025-10-29 03:06:52.730795",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Budget",
