@@ -81,11 +81,8 @@ class Budget(Document):
 		if not account:
 			return
 
-		from_start, _ = frappe.get_cached_value(
-			"Fiscal Year", self.from_fiscal_year, ["year_start_date", "year_end_date"]
-		)
-		_, to_end = frappe.get_cached_value(
-			"Fiscal Year", self.to_fiscal_year, ["year_start_date", "year_end_date"]
+		year_start_date, year_end_date = get_fiscal_year_date_range(
+			self.from_fiscal_year, self.to_fiscal_year
 		)
 
 		existing_budget = frappe.db.sql(
@@ -103,12 +100,13 @@ class Budget(Document):
 					AND (SELECT year_end_date FROM `tabFiscal Year` WHERE name = to_fiscal_year) >= %s
 				)
 			""",
-			(self.company, budget_against, account, self.name, to_end, from_start),
+			(self.company, budget_against, account, self.name, year_end_date, year_start_date),
 			as_dict=True,
 		)
 
 		if existing_budget:
 			d = existing_budget[0]
+			print(d)
 			frappe.throw(
 				_(
 					"Another Budget record '{0}' already exists against {1} '{2}' and account '{3}' with overlapping fiscal years."

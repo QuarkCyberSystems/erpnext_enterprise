@@ -570,6 +570,62 @@ class TestBudget(ERPNextTestSuite):
 
 		self.assertEqual(total_child_amount, budget.budget_amount)
 
+	def test_fiscal_year_company_mismatch(self):
+		budget = make_budget(budget_against="Cost Center", do_not_save=True, submit_budget=False)
+
+		fy = frappe.get_doc(
+			{
+				"doctype": "Fiscal Year",
+				"year": "2099",
+				"year_start_date": "2099-04-01",
+				"year_end_date": "2100-03-31",
+				"company": "_Test Company 2",
+			}
+		).insert(ignore_permissions=True)
+
+		budget.from_fiscal_year = fy.name
+		budget.to_fiscal_year = fy.name
+
+		with self.assertRaises(frappe.ValidationError):
+			budget.save()
+
+	def test_manual_distribution_total_equals_budget_amount(self):
+		budget = make_budget(
+			budget_against="Cost Center",
+			cost_center="_Test Cost Center - _TC",
+			distribute_equally=0,
+			budget_amount=12000,
+			do_not_save=False,
+			submit_budget=False,
+		)
+
+		for d in budget.budget_distribution:
+			d.amount = 2000
+
+		with self.assertRaises(frappe.ValidationError):
+			budget.save()
+
+	def test_duplicate_budget_validation(self):
+		make_budget(
+			budget_against="Cost Center",
+			distribute_equally=0,
+			budget_amount=15000,
+			do_not_save=False,
+			submit_budget=False,
+		)
+
+		budget = frappe.new_doc("Budget")
+		budget.company = "_Test Company"
+		budget.from_fiscal_year = frappe.db.get_value("Fiscal Year", {}, "name")
+		budget.to_fiscal_year = budget.from_fiscal_year
+		budget.budget_against = "Cost Center"
+		budget.cost_center = "_Test Cost Center - _TC"
+		budget.account = "_Test Account Cost for Goods Sold - _TC"
+		budget.budget_amount = 10000
+
+		with self.assertRaises(frappe.ValidationError):
+			budget.insert()
+
 
 def set_total_expense_zero(posting_date, budget_against_field=None, budget_against_CC=None):
 	if budget_against_field == "project":
