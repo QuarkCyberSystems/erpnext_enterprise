@@ -3,7 +3,8 @@
 import unittest
 
 import frappe
-from frappe.utils import add_days, getdate, now_datetime, nowdate
+from frappe.client import submit
+from frappe.utils import add_days, flt, get_first_day, get_last_day, getdate, now_datetime, nowdate
 
 from erpnext.accounts.doctype.budget.budget import (
 	BudgetError,
@@ -34,7 +35,7 @@ class TestBudget(ERPNextTestSuite):
 	def test_monthly_budget_crossed_ignore(self):
 		set_total_expense_zero(nowdate(), "cost_center")
 
-		budget = make_budget(budget_against="Cost Center")
+		budget = make_budget(budget_against="Cost Center", do_not_save=False, submit_budget=True)
 
 		jv = make_journal_entry(
 			"_Test Account Cost for Goods Sold - _TC",
@@ -55,7 +56,7 @@ class TestBudget(ERPNextTestSuite):
 	def test_monthly_budget_crossed_stop1(self):
 		set_total_expense_zero(nowdate(), "cost_center")
 
-		budget = make_budget(budget_against="Cost Center")
+		budget = make_budget(budget_against="Cost Center", do_not_save=False, submit_budget=True)
 
 		frappe.db.set_value("Budget", budget.name, "action_if_accumulated_monthly_budget_exceeded", "Stop")
 
@@ -79,7 +80,7 @@ class TestBudget(ERPNextTestSuite):
 	def test_exception_approver_role(self):
 		set_total_expense_zero(nowdate(), "cost_center")
 
-		budget = make_budget(budget_against="Cost Center")
+		budget = make_budget(budget_against="Cost Center", do_not_save=False, submit_budget=True)
 
 		frappe.db.set_value("Budget", budget.name, "action_if_accumulated_monthly_budget_exceeded", "Stop")
 
@@ -111,11 +112,11 @@ class TestBudget(ERPNextTestSuite):
 			applicable_on_purchase_order=1,
 			action_if_accumulated_monthly_budget_exceeded_on_mr="Stop",
 			budget_against="Cost Center",
+			do_not_save=False,
+			subimit_budget=True,
 		)
 
-		fiscal_year = get_fiscal_year(nowdate())[0]
 		frappe.db.set_value("Budget", budget.name, "action_if_accumulated_monthly_budget_exceeded", "Stop")
-		frappe.db.set_value("Budget", budget.name, "fiscal_year", fiscal_year)
 
 		accumulated_limit = get_accumulated_monthly_budget(
 			budget.name,
@@ -156,11 +157,11 @@ class TestBudget(ERPNextTestSuite):
 			applicable_on_purchase_order=1,
 			action_if_accumulated_monthly_budget_exceeded_on_po="Stop",
 			budget_against="Cost Center",
+			do_not_save=False,
+			submit_budget=True,
 		)
 
-		fiscal_year = get_fiscal_year(nowdate())[0]
 		frappe.db.set_value("Budget", budget.name, "action_if_accumulated_monthly_budget_exceeded", "Stop")
-		frappe.db.set_value("Budget", budget.name, "fiscal_year", fiscal_year)
 
 		accumulated_limit = get_accumulated_monthly_budget(
 			budget.name,
@@ -181,7 +182,7 @@ class TestBudget(ERPNextTestSuite):
 	def test_monthly_budget_crossed_stop2(self):
 		set_total_expense_zero(nowdate(), "project")
 
-		budget = make_budget(budget_against="Project")
+		budget = make_budget(budget_against="Project", do_not_save=False, submit_budget=True)
 
 		frappe.db.set_value("Budget", budget.name, "action_if_accumulated_monthly_budget_exceeded", "Stop")
 
@@ -207,7 +208,7 @@ class TestBudget(ERPNextTestSuite):
 	def test_yearly_budget_crossed_stop1(self):
 		set_total_expense_zero(nowdate(), "cost_center")
 
-		budget = make_budget(budget_against="Cost Center")
+		budget = make_budget(budget_against="Cost Center", do_not_save=False, submit_budget=True)
 
 		jv = make_journal_entry(
 			"_Test Account Cost for Goods Sold - _TC",
@@ -224,7 +225,7 @@ class TestBudget(ERPNextTestSuite):
 	def test_yearly_budget_crossed_stop2(self):
 		set_total_expense_zero(nowdate(), "project")
 
-		budget = make_budget(budget_against="Project")
+		budget = make_budget(budget_against="Project", do_not_save=False, submit_budget=True)
 
 		project = frappe.get_value("Project", {"project_name": "_Test Project"})
 
@@ -244,7 +245,7 @@ class TestBudget(ERPNextTestSuite):
 	def test_monthly_budget_on_cancellation1(self):
 		set_total_expense_zero(nowdate(), "cost_center")
 
-		budget = make_budget(budget_against="Cost Center")
+		budget = make_budget(budget_against="Cost Center", do_not_save=False, submit_budget=True)
 		month = now_datetime().month
 		if month > 9:
 			month = 9
@@ -273,7 +274,7 @@ class TestBudget(ERPNextTestSuite):
 	def test_monthly_budget_on_cancellation2(self):
 		set_total_expense_zero(nowdate(), "project")
 
-		budget = make_budget(budget_against="Project")
+		budget = make_budget(budget_against="Project", do_not_save=False, submit_budget=True)
 		month = now_datetime().month
 		if month > 9:
 			month = 9
@@ -305,7 +306,12 @@ class TestBudget(ERPNextTestSuite):
 		set_total_expense_zero(nowdate(), "cost_center")
 		set_total_expense_zero(nowdate(), "cost_center", "_Test Cost Center 2 - _TC")
 
-		budget = make_budget(budget_against="Cost Center", cost_center="_Test Company - _TC")
+		budget = make_budget(
+			budget_against="Cost Center",
+			cost_center="_Test Company - _TC",
+			do_not_save=False,
+			submit_budget=True,
+		)
 		frappe.db.set_value("Budget", budget.name, "action_if_accumulated_monthly_budget_exceeded", "Stop")
 
 		accumulated_limit = get_accumulated_monthly_budget(
@@ -339,7 +345,9 @@ class TestBudget(ERPNextTestSuite):
 				}
 			).insert(ignore_permissions=True)
 
-		budget = make_budget(budget_against="Cost Center", cost_center=cost_center)
+		budget = make_budget(
+			budget_against="Cost Center", cost_center=cost_center, do_not_save=False, submit_budget=True
+		)
 		frappe.db.set_value("Budget", budget.name, "action_if_accumulated_monthly_budget_exceeded", "Stop")
 
 		accumulated_limit = get_accumulated_monthly_budget(
@@ -381,7 +389,12 @@ class TestBudget(ERPNextTestSuite):
 			{"Sub Budget Cost Center 1 - _TC": 60, "Sub Budget Cost Center 2 - _TC": 40},
 		)
 
-		make_budget(budget_against="Cost Center", cost_center="Main Budget Cost Center 1 - _TC")
+		make_budget(
+			budget_against="Cost Center",
+			cost_center="Main Budget Cost Center 1 - _TC",
+			do_not_save=False,
+			submit_budget=True,
+		)
 
 		jv = make_journal_entry(
 			"_Test Account Cost for Goods Sold - _TC",
@@ -396,7 +409,12 @@ class TestBudget(ERPNextTestSuite):
 	def test_action_for_cumulative_limit(self):
 		set_total_expense_zero(nowdate(), "cost_center")
 
-		budget = make_budget(budget_against="Cost Center", applicable_on_cumulative_expense=True)
+		budget = make_budget(
+			budget_against="Cost Center",
+			applicable_on_cumulative_expense=True,
+			do_not_save=False,
+			submit_budget=True,
+		)
 
 		accumulated_limit = get_accumulated_monthly_budget(budget.name, nowdate())
 
@@ -417,8 +435,6 @@ class TestBudget(ERPNextTestSuite):
 		)
 		po.set_missing_values()
 
-		print(">>>>>>>>>>>>>>>>>>>>>>>>")
-
 		self.assertRaises(BudgetError, po.submit)
 
 		frappe.db.set_value(
@@ -434,7 +450,6 @@ class TestBudget(ERPNextTestSuite):
 	def test_distribution_date_validation(self):
 		budget = frappe.new_doc("Budget")
 		budget.company = self.company
-		budget.fiscal_year = self.fiscal_year
 		budget.budget_against = "Cost Center"
 		budget.cost_center = self.cost_center
 		budget.account = self.account
@@ -456,9 +471,14 @@ class TestBudget(ERPNextTestSuite):
 			budget.save()
 
 	def test_total_distribution_equals_budget(self):
+		budget = make_budget(
+			budget_against="Cost Center",
+			applicable_on_cumulative_expense=True,
+			do_not_save=False,
+			submit_budget=True,
+		)
 		budget = frappe.new_doc("Budget")
 		budget.company = self.company
-		budget.fiscal_year = self.fiscal_year
 		budget.budget_against = "Cost Center"
 		budget.cost_center = self.cost_center
 		budget.account = ("_Test Account Cost for Goods Sold - _TC",)
@@ -488,14 +508,18 @@ class TestBudget(ERPNextTestSuite):
 			budget.save()
 
 	def test_evenly_distribute_budget(self):
-		budget = make_budget(budget_against="Cost Center", budget_amount=120000)
+		budget = make_budget(
+			budget_against="Cost Center", budget_amount=120000, do_not_save=False, submit_budget=True
+		)
 
 		total = sum([d.amount for d in budget.budget_distribution])
-		self.assertEqual(total, 120000)
+		self.assertEqual(flt(total), 120000)
 		self.assertTrue(all(d.amount == 10000 for d in budget.budget_distribution))
 
 	def test_create_revised_budget(self):
-		budget = make_budget(budget_against="Cost Center", budget_amount=120000)
+		budget = make_budget(
+			budget_against="Cost Center", budget_amount=120000, do_not_save=False, submit_budget=True
+		)
 
 		revised_name = revise_budget(budget.name)
 
@@ -508,7 +532,9 @@ class TestBudget(ERPNextTestSuite):
 		self.assertEqual(old_budget.docstatus, 2)
 
 	def test_revision_preserves_distribution(self):
-		budget = make_budget(budget_against="Cost Center", budget_amount=120000)
+		budget = make_budget(
+			budget_against="Cost Center", budget_amount=120000, do_not_save=False, submit_budget=True
+		)
 
 		revised_name = revise_budget(budget.name)
 		revised_budget = frappe.get_doc("Budget", revised_name)
@@ -517,6 +543,32 @@ class TestBudget(ERPNextTestSuite):
 
 		total = sum(row.amount for row in revised_budget.budget_distribution)
 		self.assertEqual(total, revised_budget.budget_amount)
+
+	def test_manual_budget_amount_total(self):
+		budget = make_budget(
+			budget_against="Cost Center",
+			distribute_equally=0,
+			budget_amount=30000,
+			budget_start_date="2025-04-01",
+			budget_end_date="2025-06-30",
+			do_not_save=True,
+			submit_budget=False,
+		)
+
+		budget.budget_distribution = []
+
+		for row in [
+			{"start_date": "2025-04-01", "end_date": "2025-04-30", "amount": 10000},
+			{"start_date": "2025-05-01", "end_date": "2025-05-31", "amount": 15000},
+			{"start_date": "2025-06-01", "end_date": "2025-06-30", "amount": 5000},
+		]:
+			budget.append("budget_distribution", row)
+
+		budget.save()
+
+		total_child_amount = sum(row.amount for row in budget.budget_distribution)
+
+		self.assertEqual(total_child_amount, budget.budget_amount)
 
 
 def set_total_expense_zero(posting_date, budget_against_field=None, budget_against_CC=None):
@@ -533,7 +585,8 @@ def set_total_expense_zero(posting_date, budget_against_field=None, budget_again
 			"cost_center": "_Test Cost Center - _TC",
 			"monthly_end_date": posting_date,
 			"company": "_Test Company",
-			"fiscal_year": fiscal_year,
+			"from_fiscal_year": fiscal_year,
+			"to_fiscal_year": fiscal_year,
 			"budget_against_field": budget_against_field,
 		}
 	)
@@ -605,7 +658,8 @@ def make_budget(**args):
 	else:
 		budget.cost_center = cost_center or "_Test Cost Center - _TC"
 
-	budget.fiscal_year = fiscal_year
+	budget.from_fiscal_year = fiscal_year
+	budget.to_fiscal_year = fiscal_year
 	budget.company = "_Test Company"
 	budget.account = "_Test Account Cost for Goods Sold - _TC"
 	budget.budget_amount = args.budget_amount or 200000
@@ -614,10 +668,9 @@ def make_budget(**args):
 	budget.action_if_accumulated_monthly_budget_exceeded = "Ignore"
 	budget.budget_against = budget_against
 
-	budget.budget_start_date = "2025-04-01"
-	budget.budget_end_date = "2026-03-31"
 	budget.allocation_frequency = "Monthly"
 	budget.distribution_type = "Amount"
+	budget.distribute_equally = args.get("distribute_equally", 1)
 
 	if args.applicable_on_material_request:
 		budget.applicable_on_material_request = 1
@@ -642,7 +695,13 @@ def make_budget(**args):
 			args.action_if_accumulated_monthly_exceeded_on_cumulative_expense or "Warn"
 		)
 
-	budget.insert()
-	budget.submit()
+	if not args.do_not_save:
+		try:
+			budget.insert(ignore_if_duplicate=True)
+		except frappe.DuplicateEntryError:
+			pass
+
+	if args.submit_budget:
+		budget.submit()
 
 	return budget

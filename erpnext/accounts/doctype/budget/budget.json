@@ -13,14 +13,17 @@
   "cost_center",
   "project",
   "account",
-  "fiscal_year",
   "column_break_3",
   "amended_from",
+  "from_fiscal_year",
+  "to_fiscal_year",
   "distribution_type",
   "allocation_frequency",
-  "budget_start_date",
-  "budget_end_date",
   "budget_amount",
+  "section_break_nwug",
+  "distribute_equally",
+  "section_break_fpdt",
+  "budget_distribution",
   "section_break_6",
   "applicable_on_material_request",
   "action_if_annual_budget_exceeded_on_mr",
@@ -37,8 +40,6 @@
   "applicable_on_cumulative_expense",
   "action_if_annual_exceeded_on_cumulative_expense",
   "action_if_accumulated_monthly_exceeded_on_cumulative_expense",
-  "section_break_fpdt",
-  "budget_distribution",
   "section_break_kkan",
   "revision_of"
  ],
@@ -51,6 +52,7 @@
    "in_standard_filter": 1,
    "label": "Budget Against",
    "options": "\nCost Center\nProject",
+   "read_only_depends_on": "eval: doc.revision_of",
    "reqd": 1
   },
   {
@@ -60,6 +62,7 @@
    "in_standard_filter": 1,
    "label": "Company",
    "options": "Company",
+   "read_only_depends_on": "eval: doc.revision_of",
    "reqd": 1
   },
   {
@@ -69,7 +72,8 @@
    "in_global_search": 1,
    "in_standard_filter": 1,
    "label": "Cost Center",
-   "options": "Cost Center"
+   "options": "Cost Center",
+   "read_only_depends_on": "eval: doc.revision_of"
   },
   {
    "depends_on": "eval:doc.budget_against == 'Project'",
@@ -77,16 +81,8 @@
    "fieldtype": "Link",
    "in_standard_filter": 1,
    "label": "Project",
-   "options": "Project"
-  },
-  {
-   "fieldname": "fiscal_year",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "in_standard_filter": 1,
-   "label": "Fiscal Year",
-   "options": "Fiscal Year",
-   "reqd": 1
+   "options": "Project",
+   "read_only_depends_on": "eval: doc.revision_of"
   },
   {
    "fieldname": "column_break_3",
@@ -237,6 +233,7 @@
    "fieldtype": "Link",
    "label": "Account",
    "options": "Account",
+   "read_only_depends_on": "eval: doc.revision_of",
    "reqd": 1
   },
   {
@@ -245,18 +242,7 @@
    "fieldtype": "Select",
    "label": "Distribution Type",
    "options": "Amount\nPercent",
-   "reqd": 1
-  },
-  {
-   "fieldname": "budget_start_date",
-   "fieldtype": "Date",
-   "label": "Budget Start Date",
-   "reqd": 1
-  },
-  {
-   "fieldname": "budget_end_date",
-   "fieldtype": "Date",
-   "label": "Budget End Date",
+   "read_only_depends_on": "eval: doc.revision_of",
    "reqd": 1
   },
   {
@@ -264,14 +250,15 @@
    "fieldname": "allocation_frequency",
    "fieldtype": "Select",
    "label": "Allocation Frequency",
-   "options": "Monthly\nQuarterly\nHalf-Yearly\nYearly\nDate Range",
+   "options": "Monthly\nQuarterly\nHalf-Yearly\nYearly",
+   "read_only_depends_on": "eval: doc.revision_of",
    "reqd": 1
   },
   {
    "fieldname": "budget_amount",
    "fieldtype": "Currency",
    "label": "Budget Amount",
-   "options": "Company:company:default_currency",
+   "read_only_depends_on": "eval: doc.revision_of",
    "reqd": 1
   },
   {
@@ -284,13 +271,40 @@
    "label": "Revision Of",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "distribute_equally",
+   "fieldtype": "Check",
+   "label": "Distribute Equally"
+  },
+  {
+   "fieldname": "section_break_nwug",
+   "fieldtype": "Section Break",
+   "hide_border": 1
+  },
+  {
+   "fieldname": "from_fiscal_year",
+   "fieldtype": "Link",
+   "label": "From Fiscal Year",
+   "options": "Fiscal Year",
+   "read_only_depends_on": "eval: doc.revision_of",
+   "reqd": 1
+  },
+  {
+   "fieldname": "to_fiscal_year",
+   "fieldtype": "Link",
+   "label": "To Fiscal Year",
+   "options": "Fiscal Year",
+   "read_only_depends_on": "eval: doc.revision_of",
+   "reqd": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-29 03:06:52.730795",
+ "modified": "2025-10-30 19:07:51.022844",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Budget",
