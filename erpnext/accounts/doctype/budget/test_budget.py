@@ -551,16 +551,16 @@ class TestBudget(ERPNextTestSuite):
 			budget_amount=30000,
 			budget_start_date="2025-04-01",
 			budget_end_date="2025-06-30",
-			do_not_save=True,
+			do_not_save=False,
 			submit_budget=False,
 		)
 
 		budget.budget_distribution = []
 
 		for row in [
-			{"start_date": "2025-04-01", "end_date": "2025-04-30", "amount": 10000},
-			{"start_date": "2025-05-01", "end_date": "2025-05-31", "amount": 15000},
-			{"start_date": "2025-06-01", "end_date": "2025-06-30", "amount": 5000},
+			{"start_date": "2025-04-01", "end_date": "2025-04-30", "amount": 10000, "percent": 33.33},
+			{"start_date": "2025-05-01", "end_date": "2025-05-31", "amount": 15000, "percent": 50.00},
+			{"start_date": "2025-06-01", "end_date": "2025-06-30", "amount": 5000, "percent": 16.67},
 		]:
 			budget.append("budget_distribution", row)
 
@@ -608,10 +608,10 @@ class TestBudget(ERPNextTestSuite):
 	def test_duplicate_budget_validation(self):
 		make_budget(
 			budget_against="Cost Center",
-			distribute_equally=0,
+			distribute_equally=1,
 			budget_amount=15000,
 			do_not_save=False,
-			submit_budget=False,
+			submit_budget=True,
 		)
 
 		budget = frappe.new_doc("Budget")

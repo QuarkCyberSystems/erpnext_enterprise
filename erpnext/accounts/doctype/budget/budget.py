@@ -160,6 +160,9 @@ class Budget(Document):
 	def before_save(self):
 		self.allocate_budget()
 
+	def on_update(self):
+		self.validate_distribution_totals()
+
 	def allocate_budget(self):
 		if self.revision_of:
 			return
@@ -183,14 +186,14 @@ class Budget(Document):
 	def should_regenerate_budget_distribution(self):
 		"""Check whether budget distribution should be recalculated."""
 		old_doc = self.get_doc_before_save() if not self.is_new() else None
-
-		if not self.budget_distribution:
+		if not old_doc or not self.budget_distribution:
 			return True
 
 		if old_doc:
 			changed_fields = [
 				"from_fiscal_year",
 				"to_fiscal_year",
+				"budget_amount",
 				"allocation_frequency",
 				"distribute_equally",
 			]
@@ -255,8 +258,27 @@ class Budget(Document):
 			row.amount = 0
 			row.percent = 0
 		else:
-			row.amount = flt(self.budget_amount * row_percent / 100, 2)
+			row.amount = flt(self.budget_amount * row_percent / 100, 3)
 			row.percent = flt(row_percent, 3)
+
+	def validate_distribution_totals(self):
+		if self.should_regenerate_budget_distribution():
+			return
+
+		total_amount = sum(d.amount for d in self.budget_distribution)
+		total_percent = sum(d.percent for d in self.budget_distribution)
+
+		if flt(abs(total_amount - self.budget_amount), 2) > 0.10:
+			frappe.throw(
+				_("Total distributed amount {0} must equal Budget Amount {1}").format(
+					flt(total_amount, 2), self.budget_amount
+				)
+			)
+
+		if round(total_percent, 2) != 100:
+			frappe.throw(
+				_("Total distribution percent must equal 100 (currently {0})").format(round(total_percent, 2))
+			)
 
 
 def validate_expense_against_budget(args, expense_amount=0):

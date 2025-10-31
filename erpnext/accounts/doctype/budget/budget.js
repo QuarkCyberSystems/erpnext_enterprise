@@ -49,6 +49,15 @@ frappe.ui.form.on("Budget", {
 		frm.trigger("toggle_reqd_fields");
 	},
 
+	budget_amount(frm) {
+		if (frm.doc.budget_distribution?.length) {
+			frm.doc.budget_distribution.forEach((row) => {
+				row.amount = flt((row.percent / 100) * frm.doc.budget_amount, 2);
+			});
+			frm.refresh_field("budget_distribution");
+		}
+	},
+
 	set_null_value: function (frm) {
 		if (frm.doc.budget_against == "Cost Center") {
 			frm.set_value("project", null);
@@ -83,5 +92,22 @@ frappe.ui.form.on("Budget", {
 				frappe.msgprint(__("Revision cancelled"));
 			}
 		);
+	},
+});
+
+frappe.ui.form.on("Budget Distribution", {
+	amount(frm, cdt, cdn) {
+		let row = frappe.get_doc(cdt, cdn);
+		if (frm.doc.budget_amount) {
+			row.percent = flt((row.amount / frm.doc.budget_amount) * 100, 2);
+			frm.refresh_field("budget_distribution");
+		}
+	},
+	percent(frm, cdt, cdn) {
+		let row = frappe.get_doc(cdt, cdn);
+		if (frm.doc.budget_amount) {
+			row.amount = flt((row.percent / 100) * frm.doc.budget_amount, 2);
+			frm.refresh_field("budget_distribution");
+		}
 	},
 });
