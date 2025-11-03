@@ -112,9 +112,11 @@ def get_companies_with_frozen_limits():
 		if not d.accounts_frozen_till_date:
 			continue
 
-		if d.role_allowed_for_frozen_entries in frappe.get_roles() or frappe.session.user == "Administrator":
-			continue
-		companies_with_frozen_limits[d.name] = getdate(d.accounts_frozen_till_date)
+		if (
+			d.role_allowed_for_frozen_entries not in frappe.get_roles()
+			and frappe.session.user != "Administrator"
+		):
+			companies_with_frozen_limits[d.name] = getdate(d.accounts_frozen_till_date)
 	return companies_with_frozen_limits
 
 
