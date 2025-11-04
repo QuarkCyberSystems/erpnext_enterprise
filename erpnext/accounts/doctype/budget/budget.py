@@ -54,10 +54,11 @@ class Budget(Document):
 		budget_against: DF.Literal["", "Cost Center", "Project"]
 		budget_amount: DF.Currency
 		budget_distribution: DF.Table[BudgetDistribution]
+		budget_end_date: DF.Date | None
+		budget_start_date: DF.Date | None
 		company: DF.Link
 		cost_center: DF.Link | None
 		distribute_equally: DF.Check
-		distribution_type: DF.Literal["Amount", "Percent"]
 		from_fiscal_year: DF.Link
 		naming_series: DF.Literal["BUDGET-.YYYY.-"]
 		project: DF.Link | None
@@ -68,10 +69,22 @@ class Budget(Document):
 	def validate(self):
 		if not self.get(frappe.scrub(self.budget_against)):
 			frappe.throw(_("{0} is mandatory").format(self.budget_against))
+		self.set_fiscal_year_dates()
 		self.validate_duplicate()
 		self.validate_account()
 		self.set_null_value()
 		self.validate_applicable_for()
+
+	def set_fiscal_year_dates(self):
+		if self.from_fiscal_year:
+			self.budget_start_date = frappe.get_cached_value(
+				"Fiscal Year", self.from_fiscal_year, "year_start_date"
+			)
+
+		if self.to_fiscal_year:
+			self.budget_end_date = frappe.get_cached_value(
+				"Fiscal Year", self.to_fiscal_year, "year_end_date"
+			)
 
 	def validate_duplicate(self):
 		budget_against_field = frappe.scrub(self.budget_against)
@@ -275,7 +288,7 @@ class Budget(Document):
 				)
 			)
 
-		if round(total_percent, 2) != 100:
+		if flt(abs(total_percent - 100), 2) > 0.10:
 			frappe.throw(
 				_("Total distribution percent must equal 100 (currently {0})").format(round(total_percent, 2))
 			)
@@ -361,6 +374,8 @@ def validate_expense_against_budget(args, expense_amount=0):
 					b.budget_amount,
 					b.from_fiscal_year,
 					b.to_fiscal_year,
+					b.budget_start_date,
+					b.budget_end_date,
 					IFNULL(b.applicable_on_material_request, 0) AS for_material_request,
 					IFNULL(b.applicable_on_purchase_order, 0) AS for_purchase_order,
 					IFNULL(b.applicable_on_booking_actual_expenses, 0) AS for_actual_expenses,
@@ -375,12 +390,7 @@ def validate_expense_against_budget(args, expense_amount=0):
 				WHERE
 					b.company = %s
 					AND b.docstatus = 1
-					AND (
-						%s BETWEEN
-						(SELECT year_start_date FROM `tabFiscal Year` WHERE name = b.from_fiscal_year)
-						AND
-						(SELECT year_end_date FROM `tabFiscal Year` WHERE name = b.to_fiscal_year)
-					)
+					AND %s BETWEEN b.budget_start_date AND b.budget_end_date
 					AND b.account = %s
 					{condition}
 				""",
@@ -627,14 +637,7 @@ def get_actual_expense(args):
 	budget_against_field = args.get("budget_against_field")
 	condition1 = " and gle.posting_date <= %(month_end_date)s" if args.get("month_end_date") else ""
 
-	from_start, _ = frappe.get_cached_value(
-		"Fiscal Year", args.from_fiscal_year, ["year_start_date", "year_end_date"]
-	)
-	_, to_end = frappe.get_cached_value(
-		"Fiscal Year", args.to_fiscal_year, ["year_start_date", "year_end_date"]
-	)
-
-	date_condition = f"and gle.posting_date between '{from_start}' and '{to_end}'"
+	date_condition = f"and gle.posting_date between '{args.budget_start_date}' and '{args.budget_end_date}'"
 
 	if args.is_tree:
 		lft_rgt = frappe.db.get_value(
@@ -687,7 +690,7 @@ def get_accumulated_monthly_budget(budget_name, posting_date):
 		.on(bd.parent == b.name)
 		.select(Sum(bd.amount).as_("accumulated_amount"))
 		.where(b.name == budget_name)
-		.where(bd.end_date >= posting_date)
+		.where(bd.start_date <= posting_date)
 		.run(as_dict=True)
 	)
 

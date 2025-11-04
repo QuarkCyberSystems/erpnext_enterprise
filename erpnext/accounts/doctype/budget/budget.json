@@ -17,7 +17,8 @@
   "amended_from",
   "from_fiscal_year",
   "to_fiscal_year",
-  "distribution_type",
+  "budget_start_date",
+  "budget_end_date",
   "allocation_frequency",
   "budget_amount",
   "section_break_nwug",
@@ -238,15 +239,6 @@
    "reqd": 1
   },
   {
-   "default": "Percent",
-   "fieldname": "distribution_type",
-   "fieldtype": "Select",
-   "label": "Distribution Type",
-   "options": "Amount\nPercent",
-   "read_only_depends_on": "eval: doc.revision_of",
-   "reqd": 1
-  },
-  {
    "default": "Monthly",
    "fieldname": "allocation_frequency",
    "fieldtype": "Select",
@@ -298,13 +290,25 @@
    "options": "Fiscal Year",
    "read_only_depends_on": "eval: doc.revision_of",
    "reqd": 1
+  },
+  {
+   "fieldname": "budget_start_date",
+   "fieldtype": "Date",
+   "hidden": 1,
+   "label": "Budget Start Date"
+  },
+  {
+   "fieldname": "budget_end_date",
+   "fieldtype": "Date",
+   "hidden": 1,
+   "label": "Budget End Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-10-31 01:13:15.114440",
+ "modified": "2025-11-05 01:00:46.470251",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Budget",

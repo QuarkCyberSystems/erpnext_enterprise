@@ -725,7 +725,6 @@ def make_budget(**args):
 	budget.budget_against = budget_against
 
 	budget.allocation_frequency = "Monthly"
-	budget.distribution_type = "Amount"
 	budget.distribute_equally = args.get("distribute_equally", 1)
 
 	if args.applicable_on_material_request:
