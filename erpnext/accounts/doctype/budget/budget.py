@@ -69,11 +69,25 @@ class Budget(Document):
 	def validate(self):
 		if not self.get(frappe.scrub(self.budget_against)):
 			frappe.throw(_("{0} is mandatory").format(self.budget_against))
+		self.validate_fiscal_year()
 		self.set_fiscal_year_dates()
 		self.validate_duplicate()
 		self.validate_account()
 		self.set_null_value()
 		self.validate_applicable_for()
+
+	def validate_fiscal_year(self):
+		if self.from_fiscal_year:
+			self.validate_fiscal_year_company(self.from_fiscal_year, self.company)
+		if self.to_fiscal_year:
+			self.validate_fiscal_year_company(self.to_fiscal_year, self.company)
+
+	def validate_fiscal_year_company(self, fiscal_year, company):
+		linked_companies = frappe.get_all(
+			"Fiscal Year Company", filters={"parent": fiscal_year}, pluck="company"
+		)
+		if linked_companies and company not in linked_companies:
+			frappe.throw(_("Fiscal Year {0} is not available for Company {1}.").format(fiscal_year, company))
 
 	def set_fiscal_year_dates(self):
 		if self.from_fiscal_year:
@@ -94,10 +108,6 @@ class Budget(Document):
 		if not account:
 			return
 
-		year_start_date, year_end_date = get_fiscal_year_date_range(
-			self.from_fiscal_year, self.to_fiscal_year
-		)
-
 		existing_budget = frappe.db.sql(
 			f"""
 			SELECT name, account
@@ -113,13 +123,12 @@ class Budget(Document):
 					AND (SELECT year_end_date FROM `tabFiscal Year` WHERE name = to_fiscal_year) >= %s
 				)
 			""",
-			(self.company, budget_against, account, self.name, year_end_date, year_start_date),
+			(self.company, budget_against, account, self.name, self.budget_end_date, self.budget_start_date),
 			as_dict=True,
 		)
 
 		if existing_budget:
 			d = existing_budget[0]
-			print(d)
 			frappe.throw(
 				_(
 					"Another Budget record '{0}' already exists against {1} '{2}' and account '{3}' with overlapping fiscal years."
@@ -185,7 +194,6 @@ class Budget(Document):
 
 		self.set("budget_distribution", [])
 
-		self.set_budget_date_range()
 		periods = self.get_budget_periods()
 		total_periods = len(periods)
 		row_percent = 100 / total_periods if total_periods else 0
@@ -215,18 +223,6 @@ class Budget(Document):
 					return True
 
 		return bool(self.distribute_equally)
-
-	def set_budget_date_range(self):
-		"""Set budget start and end dates based on selected fiscal years."""
-		from_fiscal_year = frappe.db.get_value(
-			"Fiscal Year", self.from_fiscal_year, ["year_start_date", "year_end_date"], as_dict=True
-		)
-		to_fiscal_year = frappe.db.get_value(
-			"Fiscal Year", self.to_fiscal_year, ["year_start_date", "year_end_date"], as_dict=True
-		)
-
-		self.budget_start_date = from_fiscal_year.year_start_date
-		self.budget_end_date = to_fiscal_year.year_end_date
 
 	def get_budget_periods(self):
 		"""Return list of (start_date, end_date) tuples based on frequency."""
@@ -298,6 +294,9 @@ def validate_expense_against_budget(args, expense_amount=0):
 	args = frappe._dict(args)
 	if not frappe.db.count("Budget", cache=True):
 		return
+
+	if not args.fiscal_year:
+		args.fiscal_year = get_fiscal_year(args.get("posting_date"), company=args.get("company"))[0]
 
 	posting_date = getdate(args.get("posting_date"))
 	posting_fiscal_year = get_fiscal_year(posting_date, company=args.get("company"))[0]
@@ -522,7 +521,7 @@ def get_expense_breakup(args, currency, budget_against):
 			"status": [["!=", "Stopped"]],
 			"docstatus": 1,
 			"material_request_type": "Purchase",
-			"schedule_date": [["between", from_date, to_date]],
+			"schedule_date": [["between", [from_date, to_date]]],
 			"item_code": args.item_code,
 			"per_ordered": [["<", 100]],
 		}
@@ -547,7 +546,7 @@ def get_expense_breakup(args, currency, budget_against):
 		{
 			"status": [["!=", "Closed"]],
 			"docstatus": 1,
-			"transaction_date": [["between", from_date, to_date]],
+			"transaction_date": [["between", [from_date, to_date]]],
 			"item_code": args.item_code,
 			"per_billed": [["<", 100]],
 		}
@@ -761,7 +760,6 @@ def revise_budget(budget_name):
 
 	if old_budget.docstatus == 1:
 		old_budget.cancel()
-		frappe.db.commit()
 
 	new_budget = frappe.copy_doc(old_budget)
 	new_budget.docstatus = 0

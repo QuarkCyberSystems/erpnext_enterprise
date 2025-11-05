@@ -26,7 +26,7 @@ class TestBudget(ERPNextTestSuite):
 		cls.make_projects()
 
 	def setUp(self):
-		frappe.db.set_single_value("Accounts Settings", "use_legacy_budget_controller", True)
+		frappe.db.set_single_value("Accounts Settings", "use_legacy_budget_controller", False)
 		self.company = "_Test Company"
 		self.fiscal_year = frappe.db.get_value("Fiscal Year", {}, "name")
 		self.account = "_Test Account Cost for Goods Sold - _TC"
@@ -113,7 +113,7 @@ class TestBudget(ERPNextTestSuite):
 			action_if_accumulated_monthly_budget_exceeded_on_mr="Stop",
 			budget_against="Cost Center",
 			do_not_save=False,
-			subimit_budget=True,
+			submit_budget=True,
 		)
 
 		frappe.db.set_value("Budget", budget.name, "action_if_accumulated_monthly_budget_exceeded", "Stop")
@@ -122,7 +122,6 @@ class TestBudget(ERPNextTestSuite):
 			budget.name,
 			nowdate(),
 		)
-
 		mr = frappe.get_doc(
 			{
 				"doctype": "Material Request",
@@ -579,12 +578,13 @@ class TestBudget(ERPNextTestSuite):
 				"year": "2099",
 				"year_start_date": "2099-04-01",
 				"year_end_date": "2100-03-31",
-				"company": "_Test Company 2",
+				"companies": [{"company": "_Test Company 2"}],
 			}
 		).insert(ignore_permissions=True)
 
 		budget.from_fiscal_year = fy.name
 		budget.to_fiscal_year = fy.name
+		budget.company = "_Test Company"
 
 		with self.assertRaises(frappe.ValidationError):
 			budget.save()
@@ -606,7 +606,7 @@ class TestBudget(ERPNextTestSuite):
 			budget.save()
 
 	def test_duplicate_budget_validation(self):
-		make_budget(
+		budget = make_budget(
 			budget_against="Cost Center",
 			distribute_equally=1,
 			budget_amount=15000,
@@ -614,17 +614,17 @@ class TestBudget(ERPNextTestSuite):
 			submit_budget=True,
 		)
 
-		budget = frappe.new_doc("Budget")
-		budget.company = "_Test Company"
-		budget.from_fiscal_year = frappe.db.get_value("Fiscal Year", {}, "name")
-		budget.to_fiscal_year = budget.from_fiscal_year
-		budget.budget_against = "Cost Center"
-		budget.cost_center = "_Test Cost Center - _TC"
-		budget.account = "_Test Account Cost for Goods Sold - _TC"
-		budget.budget_amount = 10000
+		new_budget = frappe.new_doc("Budget")
+		new_budget.company = "_Test Company"
+		new_budget.from_fiscal_year = budget.from_fiscal_year
+		new_budget.to_fiscal_year = new_budget.from_fiscal_year
+		new_budget.budget_against = "Cost Center"
+		new_budget.cost_center = "_Test Cost Center - _TC"
+		new_budget.account = "_Test Account Cost for Goods Sold - _TC"
+		new_budget.budget_amount = 10000
 
 		with self.assertRaises(frappe.ValidationError):
-			budget.insert()
+			new_budget.insert()
 
 
 def set_total_expense_zero(posting_date, budget_against_field=None, budget_against_CC=None):
