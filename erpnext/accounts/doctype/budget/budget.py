@@ -409,6 +409,10 @@ def validate_budget_records(args, budget_records, expense_amount):
 			args["for_material_request"] = budget.for_material_request
 			args["for_purchase_order"] = budget.for_purchase_order
 			args["from_fiscal_year"], args["to_fiscal_year"] = budget.from_fiscal_year, budget.to_fiscal_year
+			args["budget_start_date"], args["budget_end_date"] = (
+				budget.budget_start_date,
+				budget.budget_end_date,
+			)
 
 			if yearly_action in ("Stop", "Warn"):
 				compare_expense_with_budget(
