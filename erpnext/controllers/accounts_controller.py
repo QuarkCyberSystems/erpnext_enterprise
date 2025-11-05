@@ -303,6 +303,31 @@ class AccountsController(TransactionBase):
 		self.set_default_letter_head()
 		self.validate_company_in_accounting_dimension()
 		self.validate_party_address_and_contact()
+		self.validate_company_linked_addresses()
+
+	def validate_company_linked_addresses(self):
+		address_fields = []
+		if self.doctype in ("Quotation", "Sales Order", "Delivery Note", "Sales Invoice"):
+			address_fields = ["dispatch_address_name", "company_address"]
+		elif self.doctype in ("Purchase Order", "Purchase Receipt", "Purchase Invoice", "Supplier Quotation"):
+			address_fields = ["billing_address", "shipping_address"]
+
+		for field in address_fields:
+			address = self.get(field)
+			if address and not frappe.db.exists(
+				"Dynamic Link",
+				{
+					"parent": address,
+					"parenttype": "Address",
+					"link_doctype": "Company",
+					"link_name": self.company,
+				},
+			):
+				frappe.throw(
+					_("{0} does not belong to the {1}.").format(
+						_(self.meta.get_label(field)), bold(self.company)
+					)
+				)
 
 	def set_default_letter_head(self):
 		if hasattr(self, "letter_head") and not self.letter_head:
