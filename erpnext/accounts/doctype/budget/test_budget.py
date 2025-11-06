@@ -446,24 +446,23 @@ class TestBudget(ERPNextTestSuite):
 		po.cancel()
 		jv.cancel()
 
-	def test_distribution_date_validation(self):
-		budget = frappe.new_doc("Budget")
-		budget.company = self.company
-		budget.budget_against = "Cost Center"
-		budget.cost_center = self.cost_center
-		budget.account = self.account
-		budget.budget_amount = 100000
-
-		start = getdate("2025-04-10")
-		end = getdate("2025-04-05")
-
-		budget.append(
-			"budget_distribution",
+	def test_fiscal_year_validation(self):
+		frappe.get_doc(
 			{
-				"start_date": start,
-				"end_date": end,
-				"amount": 50000,
-			},
+				"doctype": "Fiscal Year",
+				"year": "2100",
+				"year_start_date": "2100-04-01",
+				"year_end_date": "2101-03-31",
+				"companies": [{"company": "_Test Company"}],
+			}
+		).insert(ignore_permissions=True)
+
+		budget = make_budget(
+			budget_against="Cost Center",
+			from_fiscal_year="2100",
+			to_fiscal_year="2099",
+			do_not_save=True,
+			submit_budget=False,
 		)
 
 		with self.assertRaises(frappe.ValidationError):
@@ -473,35 +472,14 @@ class TestBudget(ERPNextTestSuite):
 		budget = make_budget(
 			budget_against="Cost Center",
 			applicable_on_cumulative_expense=True,
+			distribute_equally=0,
+			budget_amount=12000,
 			do_not_save=False,
-			submit_budget=True,
+			submit_budget=False,
 		)
-		budget = frappe.new_doc("Budget")
-		budget.company = self.company
-		budget.budget_against = "Cost Center"
-		budget.cost_center = self.cost_center
-		budget.account = ("_Test Account Cost for Goods Sold - _TC",)
-		budget.budget_amount = 12000
 
-		budget.start_date = getdate("2025-04-01")
-		budget.end_date = getdate("2025-06-30")
-
-		budget.append(
-			"budget_distribution",
-			{
-				"start_date": getdate("2025-04-01"),
-				"end_date": getdate("2025-04-30"),
-				"amount": 6000,
-			},
-		)
-		budget.append(
-			"budget_distribution",
-			{
-				"start_date": getdate("2025-05-01"),
-				"end_date": getdate("2025-06-30"),
-				"amount": 5000,
-			},
-		)
+		for row in budget.budget_distribution:
+			row.amount = 2000
 
 		with self.assertRaises(frappe.ValidationError):
 			budget.save()
@@ -531,6 +509,7 @@ class TestBudget(ERPNextTestSuite):
 		self.assertEqual(old_budget.docstatus, 2)
 
 	def test_revision_preserves_distribution(self):
+		set_total_expense_zero(nowdate(), "cost_center", "_Test Cost Center - _TC")
 		budget = make_budget(
 			budget_against="Cost Center", budget_amount=120000, do_not_save=False, submit_budget=True
 		)
@@ -634,6 +613,7 @@ def set_total_expense_zero(posting_date, budget_against_field=None, budget_again
 		budget_against = budget_against_CC or "_Test Cost Center - _TC"
 
 	fiscal_year = get_fiscal_year(nowdate())[0]
+	fiscal_year_start_date, fiscal_year_end_date = get_fiscal_year(nowdate())[1:3]
 
 	args = frappe._dict(
 		{
@@ -644,11 +624,20 @@ def set_total_expense_zero(posting_date, budget_against_field=None, budget_again
 			"from_fiscal_year": fiscal_year,
 			"to_fiscal_year": fiscal_year,
 			"budget_against_field": budget_against_field,
+			"budget_start_date": fiscal_year_start_date,
+			"budget_end_date": fiscal_year_end_date,
 		}
 	)
 
 	if not args.get(budget_against_field):
 		args[budget_against_field] = budget_against
+
+	args.budget_against_doctype = frappe.unscrub(budget_against_field)
+
+	if frappe.get_cached_value("DocType", args.budget_against_doctype, "is_tree"):
+		args.is_tree = True
+	else:
+		args.is_tree = False
 
 	existing_expense = get_actual_expense(args)
 
@@ -714,8 +703,8 @@ def make_budget(**args):
 	else:
 		budget.cost_center = cost_center or "_Test Cost Center - _TC"
 
-	budget.from_fiscal_year = fiscal_year
-	budget.to_fiscal_year = fiscal_year
+	budget.from_fiscal_year = args.from_fiscal_year or fiscal_year
+	budget.to_fiscal_year = args.to_fiscal_year or fiscal_year
 	budget.company = "_Test Company"
 	budget.account = "_Test Account Cost for Goods Sold - _TC"
 	budget.budget_amount = args.budget_amount or 200000
@@ -724,7 +713,7 @@ def make_budget(**args):
 	budget.action_if_accumulated_monthly_budget_exceeded = "Ignore"
 	budget.budget_against = budget_against
 
-	budget.allocation_frequency = "Monthly"
+	budget.distribution_frequency = "Monthly"
 	budget.distribute_equally = args.get("distribute_equally", 1)
 
 	if args.applicable_on_material_request:

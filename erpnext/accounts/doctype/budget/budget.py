@@ -45,7 +45,6 @@ class Budget(Document):
 		action_if_annual_budget_exceeded_on_mr: DF.Literal["", "Stop", "Warn", "Ignore"]
 		action_if_annual_budget_exceeded_on_po: DF.Literal["", "Stop", "Warn", "Ignore"]
 		action_if_annual_exceeded_on_cumulative_expense: DF.Literal["", "Stop", "Warn", "Ignore"]
-		allocation_frequency: DF.Literal["Monthly", "Quarterly", "Half-Yearly", "Yearly"]
 		amended_from: DF.Link | None
 		applicable_on_booking_actual_expenses: DF.Check
 		applicable_on_cumulative_expense: DF.Check
@@ -59,6 +58,7 @@ class Budget(Document):
 		company: DF.Link
 		cost_center: DF.Link | None
 		distribute_equally: DF.Check
+		distribution_frequency: DF.Literal["Monthly", "Quarterly", "Half-Yearly", "Yearly"]
 		from_fiscal_year: DF.Link
 		naming_series: DF.Literal["BUDGET-.YYYY.-"]
 		project: DF.Link | None
@@ -75,6 +75,7 @@ class Budget(Document):
 		self.validate_account()
 		self.set_null_value()
 		self.validate_applicable_for()
+		self.validate_existing_expenses()
 
 	def validate_fiscal_year(self):
 		if self.from_fiscal_year:
@@ -94,11 +95,13 @@ class Budget(Document):
 			self.budget_start_date = frappe.get_cached_value(
 				"Fiscal Year", self.from_fiscal_year, "year_start_date"
 			)
-
 		if self.to_fiscal_year:
 			self.budget_end_date = frappe.get_cached_value(
 				"Fiscal Year", self.to_fiscal_year, "year_end_date"
 			)
+
+		if self.budget_start_date > self.budget_end_date:
+			frappe.throw(_("From Fiscal Year cannot be greater than To Fiscal Year"))
 
 	def validate_duplicate(self):
 		budget_against_field = frappe.scrub(self.budget_against)
@@ -179,6 +182,47 @@ class Budget(Document):
 		):
 			self.applicable_on_booking_actual_expenses = 1
 
+	def validate_existing_expenses(self):
+		if self.is_new() and self.revision_of:
+			return
+
+		args = frappe._dict(
+			{
+				"company": self.company,
+				"account": self.account,
+				"budget_start_date": self.budget_start_date,
+				"budget_end_date": self.budget_end_date,
+				"budget_against_field": frappe.scrub(self.budget_against),
+				"budget_against_doctype": frappe.unscrub(self.budget_against),
+			}
+		)
+
+		args[args.budget_against_field] = self.get(args.budget_against_field)
+
+		if frappe.get_cached_value("DocType", args.budget_against_doctype, "is_tree"):
+			args.is_tree = True
+		else:
+			args.is_tree = False
+
+		actual_spent = get_actual_expense(args)
+
+		if actual_spent > self.budget_amount:
+			frappe.throw(
+				_(
+					"Spending for Account {0} ({1}) between {2} and {3} "
+					"has already exceeded the new allocated budget. "
+					"Spent: {4}, Budget: {5}"
+				).format(
+					frappe.bold(self.account),
+					frappe.bold(self.company),
+					frappe.bold(self.budget_start_date),
+					frappe.bold(self.budget_end_date),
+					frappe.bold(frappe.utils.fmt_money(actual_spent)),
+					frappe.bold(frappe.utils.fmt_money(self.budget_amount)),
+				),
+				title=_("Budget Limit Exceeded"),
+			)
+
 	def before_save(self):
 		self.allocate_budget()
 
@@ -215,7 +259,7 @@ class Budget(Document):
 				"from_fiscal_year",
 				"to_fiscal_year",
 				"budget_amount",
-				"allocation_frequency",
+				"distribution_frequency",
 				"distribute_equally",
 			]
 			for field in changed_fields:
@@ -226,7 +270,7 @@ class Budget(Document):
 
 	def get_budget_periods(self):
 		"""Return list of (start_date, end_date) tuples based on frequency."""
-		frequency = self.allocation_frequency
+		frequency = self.distribution_frequency
 		periods = []
 
 		start_date = getdate(self.budget_start_date)
@@ -279,7 +323,7 @@ class Budget(Document):
 
 		if flt(abs(total_amount - self.budget_amount), 2) > 0.10:
 			frappe.throw(
-				_("Total distributed amount {0} must equal Budget Amount {1}").format(
+				_("Total distributed amount {0} must be equal to Budget Amount {1}").format(
 					flt(total_amount, 2), self.budget_amount
 				)
 			)
