@@ -2,7 +2,6 @@
 // License: GNU General Public License v3. See license.txt
 
 frappe.provide("erpnext.buying");
-// cur_frm.add_fetch('project', 'cost_center', 'cost_center');
 
 erpnext.buying = {
 	setup_buying_controller: function () {
@@ -11,6 +10,7 @@ erpnext.buying = {
 				super.setup();
 				this.toggle_enable_for_stock_uom("allow_to_edit_stock_uom_qty_for_purchase");
 				this.frm.email_field = "contact_email";
+				this.frm.add_fetch("project", "cost_center", "cost_center");
 			}
 
 			onload(doc, cdt, cdn) {
