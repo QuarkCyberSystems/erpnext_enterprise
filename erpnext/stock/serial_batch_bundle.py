@@ -742,7 +742,7 @@ class BatchNoValuation(DeprecatedBatchNoValuation):
 				"Serial and Batch Bundle", self.sle.serial_and_batch_bundle, "total_amount"
 			)
 		else:
-			entries = self.get_batch_no_ledgers()
+			entries = self.get_batch_stock_before_date()
 			self.stock_value_change = 0.0
 			self.batch_avg_rate = defaultdict(float)
 			self.available_qty = defaultdict(float)
@@ -751,8 +751,9 @@ class BatchNoValuation(DeprecatedBatchNoValuation):
 			for ledger in entries:
 				self.stock_value_differece[ledger.batch_no] += flt(ledger.incoming_rate)
 				self.available_qty[ledger.batch_no] += flt(ledger.qty)
+				self.total_qty[ledger.batch_no] += flt(ledger.qty)
 
-			entries = self.get_batch_wise_total_available_qty()
+			entries = self.get_batch_stock_after_date()
 			for row in entries:
 				self.total_qty[row.batch_no] += flt(row.total_qty)
 
@@ -760,29 +761,33 @@ class BatchNoValuation(DeprecatedBatchNoValuation):
 			self.calculate_avg_rate_for_non_batchwise_valuation()
 			self.set_stock_value_difference()
 
-	def get_batch_wise_total_available_qty(self) -> list[dict]:
+	def get_batch_stock_after_date(self) -> list[dict]:
 		# Get total qty of each batch no from Serial and Batch Bundle without checking time condition
 		if not self.batchwise_valuation_batches:
 			return []
 
-		parent = frappe.qb.DocType("Serial and Batch Bundle")
 		child = frappe.qb.DocType("Serial and Batch Entry")
 
+		timestamp_condition = ""
+		if self.sle.posting_datetime:
+			timestamp_condition = child.posting_datetime > self.sle.posting_datetime
+
+			if self.sle.creation:
+				timestamp_condition |= (child.posting_datetime == self.sle.posting_datetime) & (
+					child.creation > self.sle.creation
+				)
+
 		query = (
-			frappe.qb.from_(parent)
-			.inner_join(child)
-			.on(parent.name == child.parent)
+			frappe.qb.from_(child)
 			.select(
 				child.batch_no,
 				Sum(child.qty).as_("total_qty"),
 			)
 			.where(
-				(parent.warehouse == self.sle.warehouse)
-				& (parent.item_code == self.sle.item_code)
+				(child.warehouse == self.sle.warehouse)
 				& (child.batch_no.isin(self.batchwise_valuation_batches))
-				& (parent.docstatus == 1)
-				& (parent.is_cancelled == 0)
-				& (parent.type_of_transaction.isin(["Inward", "Outward"]))
+				& (child.docstatus == 1)
+				& (child.type_of_transaction.isin(["Inward", "Outward"]))
 			)
 			.for_update()
 			.groupby(child.batch_no)
@@ -790,47 +795,45 @@ class BatchNoValuation(DeprecatedBatchNoValuation):
 
 		# Important to exclude the current voucher detail no / voucher no to calculate the correct stock value difference
 		if self.sle.voucher_detail_no:
-			query = query.where(parent.voucher_detail_no != self.sle.voucher_detail_no)
+			query = query.where(child.voucher_detail_no != self.sle.voucher_detail_no)
 		elif self.sle.voucher_no:
-			query = query.where(parent.voucher_no != self.sle.voucher_no)
+			query = query.where(child.voucher_no != self.sle.voucher_no)
 
-		query = query.where(parent.voucher_type != "Pick List")
+		query = query.where(child.voucher_type != "Pick List")
+
+		if timestamp_condition:
+			query = query.where(timestamp_condition)
 
 		return query.run(as_dict=True)
 
-	def get_batch_no_ledgers(self) -> list[dict]:
+	def get_batch_stock_before_date(self) -> list[dict]:
 		# Get batch wise stock value difference from Serial and Batch Bundle considering time condition
 		if not self.batchwise_valuation_batches:
 			return []
 
-		parent = frappe.qb.DocType("Serial and Batch Bundle")
 		child = frappe.qb.DocType("Serial and Batch Entry")
 
 		timestamp_condition = ""
 		if self.sle.posting_datetime:
-			timestamp_condition = parent.posting_datetime < self.sle.posting_datetime
+			timestamp_condition = child.posting_datetime < self.sle.posting_datetime
 
 			if self.sle.creation:
-				timestamp_condition |= (parent.posting_datetime == self.sle.posting_datetime) & (
-					parent.creation < self.sle.creation
+				timestamp_condition |= (child.posting_datetime == self.sle.posting_datetime) & (
+					child.creation < self.sle.creation
 				)
 
 		query = (
-			frappe.qb.from_(parent)
-			.inner_join(child)
-			.on(parent.name == child.parent)
+			frappe.qb.from_(child)
 			.select(
 				child.batch_no,
 				Sum(child.stock_value_difference).as_("incoming_rate"),
 				Sum(child.qty).as_("qty"),
 			)
 			.where(
-				(parent.warehouse == self.sle.warehouse)
-				& (parent.item_code == self.sle.item_code)
+				(child.warehouse == self.sle.warehouse)
 				& (child.batch_no.isin(self.batchwise_valuation_batches))
-				& (parent.docstatus == 1)
-				& (parent.is_cancelled == 0)
-				& (parent.type_of_transaction.isin(["Inward", "Outward"]))
+				& (child.docstatus == 1)
+				& (child.type_of_transaction.isin(["Inward", "Outward"]))
 			)
 			.for_update()
 			.groupby(child.batch_no)
@@ -838,11 +841,11 @@ class BatchNoValuation(DeprecatedBatchNoValuation):
 
 		# Important to exclude the current voucher detail no / voucher no to calculate the correct stock value difference
 		if self.sle.voucher_detail_no:
-			query = query.where(parent.voucher_detail_no != self.sle.voucher_detail_no)
+			query = query.where(child.voucher_detail_no != self.sle.voucher_detail_no)
 		elif self.sle.voucher_no:
-			query = query.where(parent.voucher_no != self.sle.voucher_no)
+			query = query.where(child.voucher_no != self.sle.voucher_no)
 
-		query = query.where(parent.voucher_type != "Pick List")
+		query = query.where(child.voucher_type != "Pick List")
 		if timestamp_condition:
 			query = query.where(timestamp_condition)
 
