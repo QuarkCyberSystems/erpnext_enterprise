@@ -933,6 +933,18 @@ class TestMaterialRequest(IntegrationTestCase):
 		self.assertEqual(mr.per_ordered, 100)
 		self.assertEqual(mr.status, "Ordered")
 
+	def test_material_request_qty_over_sales_order_limit(self):
+		from erpnext.controllers.status_updater import OverAllowanceError
+		from erpnext.selling.doctype.sales_order.test_sales_order import make_sales_order
+
+		so = make_sales_order()
+		mr = make_material_request(qty=100, do_not_submit=True)
+		mr.items[0].sales_order = so.name
+		mr.items[0].sales_order_item = so.items[0].name
+		mr.save()
+
+		self.assertRaises(OverAllowanceError, mr.submit)
+
 
 def get_in_transit_warehouse(company):
 	if not frappe.db.exists("Warehouse Type", "Transit"):
