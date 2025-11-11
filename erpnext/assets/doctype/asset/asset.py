@@ -100,6 +100,7 @@ class Asset(AccountsController):
 		status: DF.Literal[
 			"Draft",
 			"Submitted",
+			"Cancelled",
 			"Partially Depreciated",
 			"Fully Depreciated",
 			"Sold",
@@ -463,6 +464,7 @@ class Asset(AccountsController):
 				"asset_name": self.asset_name,
 				"target_location": self.location,
 				"to_employee": self.custodian,
+				"company": self.company,
 			}
 		]
 		asset_movement = frappe.get_doc(
