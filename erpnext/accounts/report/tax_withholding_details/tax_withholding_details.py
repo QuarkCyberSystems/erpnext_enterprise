@@ -80,13 +80,13 @@ def get_result(filters, tds_docs, tds_accounts, tax_category_map, journal_entry_
 
 			if values:
 				if voucher_type == "Journal Entry" and tax_amount and rate:
-					# back calcalute total amount from rate and tax_amount
+					# back calculate total amount from rate and tax_amount
 					base_total = min(flt(tax_amount / (rate / 100), precision=precision), values[0])
 					total_amount = grand_total = base_total
 
 				else:
 					if tax_amount and rate:
-						# back calcalute total amount from rate and tax_amount
+						# back calculate total amount from rate and tax_amount
 						total_amount = flt((tax_amount * 100) / rate, precision=precision)
 					else:
 						total_amount = values[0]
