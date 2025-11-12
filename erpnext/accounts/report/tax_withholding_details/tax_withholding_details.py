@@ -4,7 +4,9 @@
 
 import frappe
 from frappe import _
-from frappe.utils import getdate
+from frappe.utils import flt, getdate
+
+from erpnext.accounts.utils import get_currency_precision
 
 
 def execute(filters=None):
@@ -43,6 +45,7 @@ def get_result(filters, tds_docs, tds_accounts, tax_category_map, journal_entry_
 	party_map = get_party_pan_map(filters.get("party_type"))
 	tax_rate_map = get_tax_rate_map(filters)
 	gle_map = get_gle_map(tds_docs)
+	precision = get_currency_precision()
 
 	out = []
 	entries = {}
@@ -78,13 +81,13 @@ def get_result(filters, tds_docs, tds_accounts, tax_category_map, journal_entry_
 			if values:
 				if voucher_type == "Journal Entry" and tax_amount and rate:
 					# back calcalute total amount from rate and tax_amount
-					base_total = min(tax_amount / (rate / 100), values[0])
+					base_total = min(flt(tax_amount / (rate / 100), precision=precision), values[0])
 					total_amount = grand_total = base_total
 
 				else:
 					if tax_amount and rate:
 						# back calcalute total amount from rate and tax_amount
-						total_amount = (tax_amount * 100) / rate
+						total_amount = flt((tax_amount * 100) / rate, precision=precision)
 					else:
 						total_amount = values[0]
 
