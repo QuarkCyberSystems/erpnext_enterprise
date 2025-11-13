@@ -12,11 +12,12 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 class TestProspect(ERPNextTestSuite):
 	def test_add_lead_to_prospect_and_address_linking(self):
+		company = self.companies[0].name
 		lead_doc = make_lead()
 		address_doc = make_address(address_title=lead_doc.name)
 		address_doc.append("links", {"link_doctype": lead_doc.doctype, "link_name": lead_doc.name})
 		address_doc.save()
-		prospect_doc = make_prospect()
+		prospect_doc = make_prospect(company=company, company_name=company)
 		add_lead_to_prospect(lead_doc.name, prospect_doc.name)
 		prospect_doc.reload()
 		lead_exists_in_prosoect = False
@@ -37,6 +38,7 @@ class TestProspect(ERPNextTestSuite):
 				"doctype": "Prospect",
 				"company_name": "_Test Prospect",
 				"customer_group": "_Test Customer Group",
+				"company": self.companies[0].name,
 			}
 		)
 		prospect.insert()
@@ -58,6 +60,7 @@ def make_prospect(**args):
 		{
 			"doctype": "Prospect",
 			"company_name": args.company_name or f"_Test Company {random_string(3)}",
+			"company": args.company,
 		}
 	).insert()
 
