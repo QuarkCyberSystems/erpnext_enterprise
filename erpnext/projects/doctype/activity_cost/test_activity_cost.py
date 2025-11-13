@@ -15,6 +15,7 @@ class TestActivityCost(ERPNextTestSuite):
 		super().setUpClass()
 		# TODO: only 1 employee is required
 		cls.make_employees()
+		cls.make_activity_type()
 
 	def test_duplication(self):
 		frappe.db.sql("delete from `tabActivity Cost`")
@@ -23,7 +24,7 @@ class TestActivityCost(ERPNextTestSuite):
 			{
 				"employee": self.employees[0].name,
 				"employee_name": self.employees[0].first_name,
-				"activity_type": "_Test Activity Type 1",
+				"activity_type": self.activity_type[1].name,
 				"billing_rate": 100,
 				"costing_rate": 50,
 			}

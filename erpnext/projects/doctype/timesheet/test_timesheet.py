@@ -19,6 +19,7 @@ class TestTimesheet(ERPNextTestSuite):
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.make_projects()
+		cls.make_activity_type()
 
 	def setUp(self):
 		frappe.db.delete("Timesheet")
@@ -102,7 +103,7 @@ class TestTimesheet(ERPNextTestSuite):
 		self.assertEqual(timesheet.total_billable_amount, 0)
 
 	def test_sales_invoice_from_timesheet(self):
-		emp = make_employee("test_employee_6@salary.com")
+		emp = make_employee("test_employee_6@salary.com", company=self.companies[0].name)
 
 		timesheet = make_timesheet(emp, simulate=True, is_billable=1)
 		sales_invoice = make_sales_invoice(timesheet.name, "_Test Item", "_Test Customer", currency="INR")
@@ -287,7 +288,7 @@ class TestTimesheet(ERPNextTestSuite):
 		This test ensures Timesheet status is recalculated correctly
 		across billing and return lifecycle events.
 		"""
-		emp = make_employee("test_employee_6@salary.com")
+		emp = make_employee("test_employee_6@salary.com", company=self.companies[0].name)
 
 		timesheet = make_timesheet(emp, simulate=True, is_billable=1, do_not_submit=True)
 		timesheet_detail = timesheet.append("time_logs", {})

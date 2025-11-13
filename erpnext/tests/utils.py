@@ -2616,6 +2616,29 @@ class ERPNextTestSuite(unittest.TestCase):
 					)
 				)
 
+	@classmethod
+	def make_activity_type(cls):
+		records = [
+			{
+				"doctype": "Activity Type",
+				"name": "_Test Activity Type",
+				"activity_type": "_Test Activity Type",
+			},
+			{
+				"doctype": "Activity Type",
+				"name": "_Test Activity Type 1",
+				"activity_type": "_Test Activity Type 1",
+			},
+		]
+		cls.activity_type = []
+		for x in records:
+			if not frappe.db.exists("Activity Type", {"activity_type": x.get("activity_type")}):
+				cls.activity_type.append(frappe.get_doc(x).insert())
+			else:
+				cls.activity_type.append(
+					frappe.get_doc("Activity Type", {"activity_type": x.get("activity_type")})
+				)
+
 	@contextmanager
 	def set_user(self, user: str):
 		try:
