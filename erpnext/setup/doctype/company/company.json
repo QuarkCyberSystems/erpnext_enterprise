@@ -117,6 +117,7 @@
   "enable_item_wise_inventory_account",
   "enable_provisional_accounting_for_non_stock_items",
   "default_inventory_account",
+  "valuation_method",
   "column_break_32",
   "stock_adjustment_account",
   "stock_received_but_not_billed",
@@ -889,6 +890,14 @@
    "fieldname": "enable_item_wise_inventory_account",
    "fieldtype": "Check",
    "label": "Enable Item-wise Inventory Account"
+  },
+  {
+   "default": "FIFO",
+   "fieldname": "valuation_method",
+   "fieldtype": "Select",
+   "label": "Default Stock Valuation Method",
+   "options": "FIFO\nMoving Average\nLIFO",
+   "reqd": 1
   },
   {
    "fieldname": "default_wip_warehouse",
