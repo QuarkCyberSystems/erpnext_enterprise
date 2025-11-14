@@ -174,7 +174,7 @@ def add_solvency_ratios(
 	return_on_equity_ratio = {"ratio": _("Return on Equity Ratio")}
 
 	for year in years:
-		profit_after_tax = flt(total_income.get(year)) + flt(total_expense.get(year))
+		profit_after_tax = flt(total_income.get(year)) - flt(total_expense.get(year))
 		share_holder_fund = flt(total_asset.get(year)) - flt(total_liability.get(year))
 
 		debt_equity_ratio[year] = calculate_ratio(total_liability.get(year), share_holder_fund, precision)
