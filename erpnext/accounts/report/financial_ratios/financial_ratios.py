@@ -199,7 +199,7 @@ def add_turnover_ratios(data, years, period_list, filters, total_asset, net_sale
 
 	avg_data = {}
 	for d in ["Receivable", "Payable", "Stock"]:
-		avg_data[frappe.scrub(d)] = avg_ratio_balance("Receivable", period_list, precision, filters)
+		avg_data[frappe.scrub(d)] = avg_ratio_balance(d, period_list, precision, filters)
 
 	avg_debtors, avg_creditors, avg_stock = (
 		avg_data.get("receivable"),
