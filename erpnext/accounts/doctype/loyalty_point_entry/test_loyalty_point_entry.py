@@ -5,7 +5,6 @@ import unittest
 import frappe
 from frappe.utils import today
 
-from erpnext.accounts.doctype.loyalty_program.test_loyalty_program import create_records
 from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
 from erpnext.tests.utils import ERPNextTestSuite
 
@@ -15,7 +14,6 @@ class TestLoyaltyPointEntry(ERPNextTestSuite):
 	def setUpClass(cls):
 		super().setUpClass()
 		# Create test records
-		create_records()
 		cls.loyalty_program_name = "Test Single Loyalty"
 		cls.customer_name = "Test Loyalty Customer"
 		customer = frappe.get_doc("Customer", cls.customer_name)

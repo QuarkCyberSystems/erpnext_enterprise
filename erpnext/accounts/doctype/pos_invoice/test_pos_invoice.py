@@ -640,9 +640,7 @@ class TestPOSInvoice(ERPNextTestSuite):
 		from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
 			get_loyalty_program_details_with_points,
 		)
-		from erpnext.accounts.doctype.loyalty_program.test_loyalty_program import create_records
 
-		create_records()
 		frappe.db.set_value("Customer", "Test Loyalty Customer", "loyalty_program", "Test Single Loyalty")
 		before_lp_details = get_loyalty_program_details_with_points(
 			"Test Loyalty Customer", company="_Test Company", loyalty_program="Test Single Loyalty"

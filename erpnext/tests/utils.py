@@ -9,7 +9,7 @@ import frappe
 from frappe import _
 from frappe.core.doctype.report.report import get_report_module_dotted_path
 from frappe.tests.utils import load_test_records_for
-from frappe.utils import now_datetime
+from frappe.utils import now_datetime, today
 
 ReportFilters = dict[str, Any]
 ReportName = NewType("ReportName", str)
@@ -235,6 +235,8 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls._make_item()
 		cls.make_location()
 		cls.make_price_list()
+		cls.make_item_price()
+		cls.make_loyalty_program()
 		cls.make_shareholder()
 		cls.make_sales_taxes_template()
 		cls.update_selling_settings()
@@ -2136,6 +2138,17 @@ class ERPNextTestSuite(unittest.TestCase):
 				"asset_naming_series": "ABC.###",
 				"stock_uom": "_Test UOM",
 			},
+			{
+				"doctype": "Item",
+				"item_code": "Loyal Item",
+				"item_name": "Loyal Item",
+				"item_group": "All Item Groups",
+				"company": "_Test Company",
+				"is_stock_item": 1,
+				"opening_stock": 100,
+				"valuation_rate": 10000,
+				"stock_uom": "_Test UOM",
+			},
 		]
 		cls.item = []
 		for x in records:
@@ -2190,6 +2203,8 @@ class ERPNextTestSuite(unittest.TestCase):
 			["_Test Payable", "Current Liabilities", 0, "Payable", None],
 			["_Test Receivable USD", "Current Assets", 0, "Receivable", "USD"],
 			["_Test Payable USD", "Current Liabilities", 0, "Payable", "USD"],
+			# Loyalty Account
+			["Loyalty", "Direct Expenses", 0, "Expense Account", None],
 		]
 
 		cls.test_accounts = []
@@ -2279,6 +2294,13 @@ class ERPNextTestSuite(unittest.TestCase):
 				"doctype": "Customer",
 				"territory": "_Test Territory",
 				"tax_category": "_Test Tax Category 1",
+			},
+			{
+				"customer_group": "_Test Customer Group",
+				"customer_name": "Test Loyalty Customer",
+				"customer_type": "Individual",
+				"doctype": "Customer",
+				"territory": "_Test Territory",
 			},
 		]
 		cls.customer = []
@@ -2630,6 +2652,138 @@ class ERPNextTestSuite(unittest.TestCase):
 			else:
 				cls.activity_type.append(
 					frappe.get_doc("Activity Type", {"activity_type": x.get("activity_type")})
+				)
+
+	@classmethod
+	def make_loyalty_program(cls):
+		records = [
+			{
+				"doctype": "Loyalty Program",
+				"loyalty_program_name": "Test Single Loyalty",
+				"auto_opt_in": 1,
+				"from_date": today(),
+				"loyalty_program_type": "Single Tier Program",
+				"conversion_factor": 1,
+				"expiry_duration": 10,
+				"company": "_Test Company",
+				"cost_center": "Main - _TC",
+				"expense_account": "Loyalty - _TC",
+				"collection_rules": [{"tier_name": "Bronce", "collection_factor": 1000, "min_spent": 0}],
+			},
+			{
+				"doctype": "Loyalty Program",
+				"loyalty_program_name": "Test Multiple Loyalty",
+				"auto_opt_in": 1,
+				"from_date": today(),
+				"loyalty_program_type": "Multiple Tier Program",
+				"conversion_factor": 1,
+				"expiry_duration": 10,
+				"company": "_Test Company",
+				"cost_center": "Main - _TC",
+				"expense_account": "Loyalty - _TC",
+				"collection_rules": [
+					{"tier_name": "Bronze", "collection_factor": 1000, "min_spent": 0},
+					{"tier_name": "Silver", "collection_factor": 1000, "min_spent": 10000},
+					{"tier_name": "Gold", "collection_factor": 1000, "min_spent": 19000},
+				],
+			},
+		]
+		cls.loyalty_program = []
+		for x in records:
+			if not frappe.db.exists(
+				"Loyalty Program", {"loyalty_program_name": x.get("loyalty_program_name")}
+			):
+				cls.loyalty_program.append(frappe.get_doc(x).insert())
+			else:
+				cls.loyalty_program.append(
+					frappe.get_doc("Loyalty Program", {"loyalty_program_name": x.get("loyalty_program_name")})
+				)
+
+	@classmethod
+	def make_item_price(cls):
+		records = [
+			{
+				"doctype": "Item Price",
+				"item_code": "_Test Item",
+				"price_list": "_Test Price List",
+				"price_list_rate": 100,
+				"valid_from": "2017-04-18",
+				"valid_upto": "2017-04-26",
+			},
+			{
+				"doctype": "Item Price",
+				"item_code": "_Test Item",
+				"price_list": "_Test Price List Rest of the World",
+				"price_list_rate": 10,
+			},
+			{
+				"doctype": "Item Price",
+				"item_code": "_Test Item 2",
+				"price_list": "_Test Price List Rest of the World",
+				"price_list_rate": 20,
+				"valid_from": "2017-04-18",
+				"valid_upto": "2017-04-26",
+				"customer": "_Test Customer",
+				"uom": "_Test UOM",
+			},
+			{
+				"doctype": "Item Price",
+				"item_code": "_Test Item Home Desktop 100",
+				"price_list": "_Test Price List",
+				"price_list_rate": 1000,
+				"valid_from": "2017-04-10",
+				"valid_upto": "2017-04-17",
+			},
+			{
+				"doctype": "Item Price",
+				"item_code": "_Test Item Home Desktop Manufactured",
+				"price_list": "_Test Price List",
+				"price_list_rate": 1000,
+				"valid_from": "2017-04-10",
+				"valid_upto": "2017-04-17",
+			},
+			{
+				"doctype": "Item Price",
+				"item_code": "_Test Item",
+				"price_list": "_Test Buying Price List",
+				"price_list_rate": 100,
+				"supplier": "_Test Supplier",
+			},
+			{
+				"doctype": "Item Price",
+				"item_code": "_Test Item",
+				"price_list": "_Test Selling Price List",
+				"price_list_rate": 200,
+				"customer": "_Test Customer",
+			},
+			{
+				"doctype": "Item Price",
+				"price_list": _("Standard Selling"),
+				"item_code": "Loyal Item",
+				"price_list_rate": 10000,
+			},
+		]
+		cls.item_price = []
+		for x in records:
+			if not frappe.db.exists(
+				"Item Price",
+				{
+					"item_code": x.get("item_code"),
+					"price_list": x.get("price_list"),
+					"price_list_rate": x.get("price_list_rate"),
+				},
+			):
+				cls.item_price.append(frappe.get_doc(x).insert())
+			else:
+				cls.item_price.append(
+					frappe.get_doc(
+						"Item Price",
+						{
+							"item_code": x.get("item_code"),
+							"price_list": x.get("price_list"),
+							"price_list_rate": x.get("price_list_rate"),
+						},
+					)
 				)
 
 	@contextmanager
