@@ -146,13 +146,6 @@ class ERPNextTestSuite(unittest.TestCase):
 			cls.globalTestRecords[doctype] = records[doctype]
 
 	@classmethod
-	def truncate_make_item_price(cls, record):
-		frappe.db.truncate("Item Price")
-		item_price = frappe.get_doc(record)
-		item_price.insert()
-		return item_price
-
-	@classmethod
 	def make_presets(cls):
 		from frappe.desk.page.setup_wizard.install_fixtures import update_genders, update_salutations
 

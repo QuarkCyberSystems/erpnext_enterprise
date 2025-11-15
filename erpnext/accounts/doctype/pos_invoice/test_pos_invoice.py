@@ -29,31 +29,28 @@ class TestPOSInvoice(ERPNextTestSuite):
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.load_test_records("Stock Entry")
-		cls.enterClassContext(cls.change_settings("Selling Settings", validate_selling_price=0))
-		cls.enterClassContext(cls.change_settings("POS Settings", invoice_type="POS Invoice"))
-		make_stock_entry(target="_Test Warehouse - _TC", item_code="_Test Item", qty=800, basic_rate=100)
-		frappe.db.sql("delete from `tabTax Rule`")
 
+	def setUp(self):
 		from erpnext.accounts.doctype.pos_closing_entry.test_pos_closing_entry import init_user_and_profile
-		from erpnext.accounts.doctype.pos_opening_entry.test_pos_opening_entry import create_opening_entry
 
-		cls.test_user, cls.pos_profile = init_user_and_profile()
-		cls.opening_entry = create_opening_entry(cls.pos_profile, cls.test_user.name)
-		mode_of_payment = frappe.get_doc("Mode of Payment", "Bank Draft")
-		set_default_account_for_mode_of_payment(mode_of_payment, "_Test Company", "_Test Bank - _TC")
+		self.test_user, self.pos_profile = init_user_and_profile()
 
-	@classmethod
-	def tearDownClass(cls):
-		frappe.db.sql("delete from `tabPOS Invoice`")
-		opening_entry_doc = frappe.get_doc("POS Opening Entry", cls.opening_entry.name)
-		opening_entry_doc.cancel()
-
-	def tearDown(self):
 		if frappe.session.user != "Administrator":
 			frappe.set_user("Administrator")
 
-		if frappe.db.get_single_value("Selling Settings", "validate_selling_price"):
-			frappe.db.set_single_value("Selling Settings", "validate_selling_price", 0)
+		frappe.db.set_single_value("Selling Settings", "validate_selling_price", 0)
+		frappe.db.set_single_value("POS Settings", "invoice_type", "POS Invoice")
+		make_stock_entry(target="_Test Warehouse - _TC", item_code="_Test Item", qty=800, basic_rate=100)
+		frappe.db.sql("delete from `tabTax Rule`")
+
+		from erpnext.accounts.doctype.pos_opening_entry.test_pos_opening_entry import create_opening_entry
+
+		self.opening_entry = create_opening_entry(self.pos_profile, self.test_user.name)
+		mode_of_payment = frappe.get_doc("Mode of Payment", "Bank Draft")
+		set_default_account_for_mode_of_payment(mode_of_payment, "_Test Company", "_Test Bank - _TC")
+
+	def tearDown(self):
+		frappe.db.rollback()
 
 	def test_timestamp_change(self):
 		w = create_pos_invoice(do_not_save=1)
@@ -1003,43 +1000,41 @@ class TestPOSInvoice(ERPNextTestSuite):
 		se.cancel()
 
 	def test_ignore_pricing_rule(self):
-		frappe.set_user("Administrator")
 		from erpnext.accounts.doctype.pricing_rule.test_pricing_rule import make_pricing_rule
 
-		item_price = self.truncate_make_item_price(
-			{
-				"doctype": "Item Price",
-				"item_code": "_Test Item",
-				"price_list": "_Test Price List",
-				"price_list_rate": "450",
-			}
-		)
+		if not frappe.db.exists(
+			"Item Price",
+			{"item_code": "_Test Item", "price_list": "_Test Price List", "price_list_rate": "450"},
+		):
+			item_price = frappe.get_doc(
+				{
+					"doctype": "Item Price",
+					"item_code": "_Test Item",
+					"price_list": "_Test Price List",
+					"price_list_rate": "450",
+				}
+			)
+			item_price.insert()
 
 		pr = make_pricing_rule(selling=1, priority=5, discount_percentage=10)
 		pr.save()
 
-		try:
-			pos_inv = create_pos_invoice(qty=1, do_not_submit=1)
-			pos_inv.items[0].rate = 300
-			pos_inv.save()
-			self.assertEqual(pos_inv.items[0].discount_percentage, 10)
-			# rate shouldn't change
-			self.assertEqual(pos_inv.items[0].rate, 405)
+		pos_inv = create_pos_invoice(qty=1, do_not_submit=1)
+		pos_inv.items[0].rate = 300
+		pos_inv.save()
+		self.assertEqual(pos_inv.items[0].discount_percentage, 10)
+		# rate shouldn't change
+		self.assertEqual(pos_inv.items[0].rate, 405)
 
-			pos_inv.ignore_pricing_rule = 1
-			pos_inv.save()
-			self.assertEqual(pos_inv.ignore_pricing_rule, 1)
-			# rate should reset since pricing rules are ignored
-			self.assertEqual(pos_inv.items[0].rate, 450)
+		pos_inv.ignore_pricing_rule = 1
+		pos_inv.save()
+		self.assertEqual(pos_inv.ignore_pricing_rule, 1)
+		# rate should reset since pricing rules are ignored
+		self.assertEqual(pos_inv.items[0].rate, 450)
 
-			pos_inv.items[0].rate = 300
-			pos_inv.save()
-			self.assertEqual(pos_inv.items[0].rate, 300)
-
-		finally:
-			item_price.delete()
-			pos_inv.delete()
-			pr.delete()
+		pos_inv.items[0].rate = 300
+		pos_inv.save()
+		self.assertEqual(pos_inv.items[0].rate, 300)
 
 	def test_delivered_serial_no_case(self):
 		from erpnext.accounts.doctype.pos_invoice_merge_log.test_pos_invoice_merge_log import (
@@ -1048,32 +1043,26 @@ class TestPOSInvoice(ERPNextTestSuite):
 		from erpnext.stock.doctype.delivery_note.test_delivery_note import create_delivery_note
 		from erpnext.stock.doctype.stock_entry.test_stock_entry import make_serialized_item
 
-		frappe.db.savepoint("before_test_delivered_serial_no_case")
-		try:
-			se = make_serialized_item(self)
-			serial_no = get_serial_nos_from_bundle(se.get("items")[0].serial_and_batch_bundle)[0]
+		se = make_serialized_item(self)
+		serial_no = get_serial_nos_from_bundle(se.get("items")[0].serial_and_batch_bundle)[0]
 
-			dn = create_delivery_note(item_code="_Test Serialized Item With Series", serial_no=[serial_no])
-			delivered_serial_no = get_serial_nos_from_bundle(dn.get("items")[0].serial_and_batch_bundle)[0]
+		dn = create_delivery_note(item_code="_Test Serialized Item With Series", serial_no=[serial_no])
+		delivered_serial_no = get_serial_nos_from_bundle(dn.get("items")[0].serial_and_batch_bundle)[0]
 
-			self.assertEqual(serial_no, delivered_serial_no)
+		self.assertEqual(serial_no, delivered_serial_no)
 
-			init_user_and_profile()
+		init_user_and_profile()
 
-			pos_inv = create_pos_invoice(
-				item_code="_Test Serialized Item With Series",
-				serial_no=[serial_no],
-				qty=1,
-				rate=100,
-				do_not_submit=True,
-				ignore_sabb_validation=True,
-			)
+		pos_inv = create_pos_invoice(
+			item_code="_Test Serialized Item With Series",
+			serial_no=[serial_no],
+			qty=1,
+			rate=100,
+			do_not_submit=True,
+			ignore_sabb_validation=True,
+		)
 
-			self.assertRaises(frappe.ValidationError, pos_inv.submit)
-
-		finally:
-			frappe.db.rollback(save_point="before_test_delivered_serial_no_case")
-			frappe.set_user("Administrator")
+		self.assertRaises(frappe.ValidationError, pos_inv.submit)
 
 	def test_bundle_stock_availability_validation(self):
 		from erpnext.accounts.doctype.pos_invoice.pos_invoice import ProductBundleStockValidationError
