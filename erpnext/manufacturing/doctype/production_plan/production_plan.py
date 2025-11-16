@@ -624,7 +624,7 @@ class ProductionPlan(Document):
 		so_wise_planned_qty = frappe._dict()
 		data = frappe.get_all(
 			"Production Plan Item",
-			fields=["sales_order", "sales_order_item", "SUM(planned_qty) as qty"],
+			fields=["sales_order", "sales_order_item", {"SUM": "planned_qty", "as": "qty"}],
 			filters={
 				"sales_order": ("in", sales_orders),
 				"docstatus": 1,

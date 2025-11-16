@@ -1511,7 +1511,7 @@ def get_batchwise_qty(voucher_type, voucher_no):
 	batches = frappe.get_all(
 		"Serial and Batch Entry",
 		filters={"parent": ("in", bundles), "batch_no": ("is", "set")},
-		fields=["batch_no", "SUM(qty) as qty"],
+		fields=["batch_no", {"SUM": "qty", "as": "qty"}],
 		group_by="batch_no",
 		as_list=1,
 	)

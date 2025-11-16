@@ -292,7 +292,7 @@ class SubcontractingController(StockController):
 		):
 			for row in frappe.get_all(
 				f"{self.subcontract_data.order_doctype} Item",
-				fields=["item_code", "(qty - received_qty) as qty", "parent", "name"],
+				fields=["item_code", {"SUB": ["qty", "received_qty"], "as": "qty"}, "parent", "name"],
 				filters={"docstatus": 1, "parent": ("in", self.subcontract_orders)},
 			):
 				self.qty_to_be_received[(row.item_code, row.parent)] += row.qty
@@ -553,7 +553,9 @@ class SubcontractingController(StockController):
 		data = []
 
 		doctype = "BOM Item" if not exploded_item else "BOM Explosion Item"
-		fields = [f"`tab{doctype}`.`stock_qty` / `tabBOM`.`quantity` as qty_consumed_per_unit"]
+		fields = [
+			{"DIV": [f"`tab{doctype}`.`stock_qty`", "`tabBOM`.`quantity`"], "as": "qty_consumed_per_unit"}
+		]
 
 		alias_dict = {
 			"item_code": "rm_item_code",

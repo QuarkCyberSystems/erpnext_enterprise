@@ -976,8 +976,9 @@ class TestWorkOrder(IntegrationTestCase):
 
 		job_cards = frappe.get_all(
 			"Job Card Time Log",
-			fields=["distinct parent as name", "docstatus"],
+			fields=["parent as name", "docstatus"],
 			order_by="creation asc",
+			distinct=True,
 		)
 
 		for job_card in job_cards:
