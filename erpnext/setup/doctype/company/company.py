@@ -59,6 +59,7 @@ class Company(NestedSet):
 		default_deferred_revenue_account: DF.Link | None
 		default_discount_account: DF.Link | None
 		default_expense_account: DF.Link | None
+		default_fg_warehouse: DF.Link | None
 		default_finance_book: DF.Link | None
 		default_holiday_list: DF.Link | None
 		default_in_transit_warehouse: DF.Link | None
@@ -69,8 +70,10 @@ class Company(NestedSet):
 		default_payable_account: DF.Link | None
 		default_provisional_account: DF.Link | None
 		default_receivable_account: DF.Link | None
+		default_scrap_warehouse: DF.Link | None
 		default_selling_terms: DF.Link | None
 		default_warehouse_for_sales_return: DF.Link | None
+		default_wip_warehouse: DF.Link | None
 		depreciation_cost_center: DF.Link | None
 		depreciation_expense_account: DF.Link | None
 		disposal_account: DF.Link | None
