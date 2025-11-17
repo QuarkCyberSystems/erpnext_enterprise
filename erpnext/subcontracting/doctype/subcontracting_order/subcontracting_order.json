@@ -36,6 +36,7 @@
   "service_items",
   "raw_materials_supplied_section",
   "set_reserve_warehouse",
+  "reserve_stock",
   "supplied_items",
   "tab_address_and_contact",
   "supplier_address",
@@ -62,7 +63,8 @@
   "select_print_heading",
   "column_break_43",
   "letter_head",
-  "tab_connections"
+  "tab_connections",
+  "production_plan"
  ],
  "fields": [
   {
@@ -470,6 +472,22 @@
    "label": "Job Worker Currency",
    "no_copy": 1,
    "options": "Currency",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "reserve_stock",
+   "fieldtype": "Check",
+   "label": "Reserve Stock",
+   "no_copy": 1,
+   "show_on_timeline": 1
+  },
+  {
+   "fieldname": "production_plan",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Production Plan",
+   "no_copy": 1,
    "read_only": 1
   }
  ],
