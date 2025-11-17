@@ -3,14 +3,14 @@ from frappe.utils import add_months, flt, get_first_day, get_last_day
 
 
 def execute():
-	submitted_budgets = frappe.get_all("Budget", filters={"docstatus": 1}, pluck="name")
+	budgets = frappe.get_all("Budget", filters={"docstatus": ["in", [0, 1]]}, pluck="name")
 
-	for old_budget in submitted_budgets:
-		old_bud = frappe.get_doc("Budget", old_budget)
+	for budget in budgets:
+		old_budget = frappe.get_doc("Budget", budget)
 
 		old_accounts = frappe.get_all(
 			"Budget Account",
-			filters={"parent": old_bud.name},
+			filters={"parent": old_budget.name},
 			fields=["account", "budget_amount"],
 			order_by="idx asc",
 		)
@@ -19,10 +19,10 @@ def execute():
 			continue
 
 		old_distribution = []
-		if old_bud.monthly_distribution:
+		if old_budget.monthly_distribution:
 			old_distribution = frappe.get_all(
 				"Monthly Distribution Percentage",
-				filters={"parent": old_bud.monthly_distribution},
+				filters={"parent": old_budget.monthly_distribution},
 				fields=["percentage_allocation"],
 				order_by="idx asc",
 			)
@@ -32,16 +32,16 @@ def execute():
 		else:
 			percentage_list = [100 / 12] * 12
 
-		fy = frappe.get_doc("Fiscal Year", old_bud.fiscal_year)
+		fy = frappe.get_doc("Fiscal Year", old_budget.fiscal_year)
 		fy_start = fy.year_start_date
 		fy_end = fy.year_end_date
 
 		for acc in old_accounts:
 			new = frappe.new_doc("Budget")
 
-			new.company = old_bud.company
-			new.cost_center = old_bud.cost_center
-			new.project = old_bud.project
+			new.company = old_budget.company
+			new.cost_center = old_budget.cost_center
+			new.project = old_budget.project
 			new.fiscal_year = fy.name
 
 			new.from_fiscal_year = fy.name
@@ -71,8 +71,8 @@ def execute():
 			]
 
 			for field in fields_to_copy:
-				if hasattr(old_bud, field):
-					new.set(field, old_bud.get(field))
+				if hasattr(old_budget, field):
+					new.set(field, old_budget.get(field))
 
 			start = fy_start
 			for percentage in percentage_list:
@@ -92,11 +92,14 @@ def execute():
 				start = add_months(start, 1)
 
 			new.flags.ignore_validate = True
-			new.flags.ignore_mandatory = True
 			new.flags.ignore_links = True
-			new.flags.ignore_permissions = True
 
 			new.insert(ignore_permissions=True, ignore_mandatory=True)
-			new.submit()
 
-		old_bud.cancel()
+			if old_budget.docstatus == 1:
+				new.submit()
+
+		if old_budget.docstatus == 1:
+			old_budget.cancel()
+		else:
+			old_budget.delete()

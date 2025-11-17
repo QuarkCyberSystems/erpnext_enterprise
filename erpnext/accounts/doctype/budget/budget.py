@@ -60,7 +60,7 @@ class Budget(Document):
 		distribute_equally: DF.Check
 		distribution_frequency: DF.Literal["Monthly", "Quarterly", "Half-Yearly", "Yearly"]
 		from_fiscal_year: DF.Link
-		naming_series: DF.Literal["BUDGET-.YYYY.-"]
+		naming_series: DF.Literal["BUDGET-.########"]
 		project: DF.Link | None
 		revision_of: DF.Data | None
 		to_fiscal_year: DF.Link
