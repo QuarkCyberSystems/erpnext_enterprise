@@ -5,7 +5,12 @@
 import json
 
 import frappe
+<<<<<<< HEAD
 from frappe.utils import cint, get_datetime
+=======
+from frappe.query_builder import DocType, Order
+from frappe.utils import cint
+>>>>>>> dfda8e6241 (fix: item price not considering based on valid_upto)
 from frappe.utils.nestedset import get_root_of
 
 from erpnext.accounts.doctype.pos_invoice.pos_invoice import get_item_group, get_stock_availability
@@ -200,18 +205,24 @@ def get_items(start, page_length, price_list, item_group, pos_profile, search_te
 	for item in items_data:
 		item.actual_qty, _, is_negative_stock_allowed = get_stock_availability(item.item_code, warehouse)
 
-		item_prices = frappe.get_all(
-			"Item Price",
-			fields=["price_list_rate", "currency", "uom", "batch_no", "valid_from", "valid_upto"],
-			filters={
-				"price_list": price_list,
-				"item_code": item.item_code,
-				"selling": True,
-				"valid_from": ["<=", current_date],
-				"valid_upto": ["in", [None, "", current_date]],
-			},
-			order_by="valid_from desc",
-		)
+		ItemPrice = DocType("Item Price")
+		item_prices = (
+			frappe.qb.from_(ItemPrice)
+			.select(
+				ItemPrice.price_list_rate,
+				ItemPrice.currency,
+				ItemPrice.uom,
+				ItemPrice.batch_no,
+				ItemPrice.valid_from,
+				ItemPrice.valid_upto,
+			)
+			.where(ItemPrice.price_list == price_list)
+			.where(ItemPrice.item_code == item.item_code)
+			.where(ItemPrice.selling == 1)
+			.where((ItemPrice.valid_from <= current_date) | (ItemPrice.valid_from.isnull()))
+			.where((ItemPrice.valid_upto >= current_date) | (ItemPrice.valid_upto.isnull()))
+			.orderby(ItemPrice.valid_from, order=Order.desc)
+		).run(as_dict=True)
 
 		stock_uom_price = next((d for d in item_prices if d.get("uom") == item.stock_uom), {})
 		item_uom = item.stock_uom
