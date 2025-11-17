@@ -28,7 +28,7 @@ def execute():
 			)
 
 		if old_distribution:
-			percentage_list = [flt(d.percentage) for d in old_distribution]
+			percentage_list = [flt(d.percentage_allocation) for d in old_distribution]
 		else:
 			percentage_list = [100 / 12] * 12
 
