@@ -453,7 +453,7 @@ class JournalEntry(AccountsController):
 			if (
 				d.reference_type == "Asset"
 				and d.reference_name
-				and d.account_type == "Depreciation"
+				and frappe.get_cached_value("Account", d.account, "root_type") == "Expense"
 				and d.debit
 			):
 				asset = frappe.get_cached_doc("Asset", d.reference_name)
