@@ -326,10 +326,15 @@ class JournalEntry(AccountsController):
 
 	def validate_depr_account_and_depr_entry_voucher_type(self):
 		for d in self.get("accounts"):
+			root_type = frappe.get_cached_value("Account", d.account, "root_type")
 			if (
 				d.reference_type == "Asset"
 				and d.reference_name
-				and (d.account_type == "Depreciation" or self.voucher_type == "Depreciation Entry")
+				and (
+					d.account_type == "Depreciation"
+					or self.voucher_type == "Depreciation Entry"
+					or root_type == "Expense"
+				)
 				and d.debit
 			):
 				if d.account_type != "Depreciation":
@@ -340,7 +345,7 @@ class JournalEntry(AccountsController):
 						_("Journal Entry type should be set as Depreciation Entry for asset depreciation")
 					)
 
-				if frappe.get_cached_value("Account", d.account, "root_type") != "Expense":
+				if root_type != "Expense":
 					frappe.throw(_("Account {0} should be of type Expense").format(d.account))
 
 	def validate_stock_accounts(self):
