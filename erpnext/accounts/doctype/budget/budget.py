@@ -334,16 +334,16 @@ class Budget(Document):
 			)
 
 
-def validate_expense_against_budget(args, expense_amount=0):
-	args = frappe._dict(args)
+def validate_expense_against_budget(params, expense_amount=0):
+	params = frappe._dict(params)
 	if not frappe.db.count("Budget", cache=True):
 		return
 
-	if not args.fiscal_year:
-		args.fiscal_year = get_fiscal_year(args.get("posting_date"), company=args.get("company"))[0]
+	if not params.fiscal_year:
+		params.fiscal_year = get_fiscal_year(params.get("posting_date"), company=params.get("company"))[0]
 
-	posting_date = getdate(args.get("posting_date"))
-	posting_fiscal_year = get_fiscal_year(posting_date, company=args.get("company"))[0]
+	posting_date = getdate(params.get("posting_date"))
+	posting_fiscal_year = get_fiscal_year(posting_date, company=params.get("company"))[0]
 	year_start_date, year_end_date = get_fiscal_year_date_range(posting_fiscal_year, posting_fiscal_year)
 
 	budget_exists = frappe.db.sql(
@@ -356,24 +356,24 @@ def validate_expense_against_budget(args, expense_amount=0):
 		and (SELECT year_end_date FROM `tabFiscal Year` WHERE name = to_fiscal_year) >= %s
 		limit 1
 		""",
-		(args.company, year_end_date, year_start_date),
+		(params.company, year_end_date, year_start_date),
 	)
 
 	if not budget_exists:
 		return
 
-	if args.get("company"):
+	if params.get("company"):
 		frappe.flags.exception_approver_role = frappe.get_cached_value(
-			"Company", args.get("company"), "exception_budget_approver_role"
+			"Company", params.get("company"), "exception_budget_approver_role"
 		)
 
-	if not args.account:
-		args.account = args.get("expense_account")
+	if not params.account:
+		params.account = params.get("expense_account")
 
-	if not (args.get("account") and args.get("cost_center")) and args.item_code:
-		args.cost_center, args.account = get_item_details(args)
+	if not (params.get("account") and params.get("cost_center")) and params.item_code:
+		params.cost_center, params.account = get_item_details(params)
 
-	if not args.account:
+	if not params.account:
 		return
 
 	default_dimensions = [
@@ -391,23 +391,23 @@ def validate_expense_against_budget(args, expense_amount=0):
 		budget_against = dimension.get("fieldname")
 
 		if (
-			args.get(budget_against)
-			and args.account
-			and (frappe.get_cached_value("Account", args.account, "root_type") == "Expense")
+			params.get(budget_against)
+			and params.account
+			and (frappe.get_cached_value("Account", params.account, "root_type") == "Expense")
 		):
 			doctype = dimension.get("document_type")
 
 			if frappe.get_cached_value("DocType", doctype, "is_tree"):
-				lft, rgt = frappe.get_cached_value(doctype, args.get(budget_against), ["lft", "rgt"])
+				lft, rgt = frappe.get_cached_value(doctype, params.get(budget_against), ["lft", "rgt"])
 				condition = f"""and exists(select name from `tab{doctype}`
 					where lft<={lft} and rgt>={rgt} and name=b.{budget_against})"""  # nosec
-				args.is_tree = True
+				params.is_tree = True
 			else:
-				condition = f"and b.{budget_against}={frappe.db.escape(args.get(budget_against))}"
-				args.is_tree = False
+				condition = f"and b.{budget_against}={frappe.db.escape(params.get(budget_against))}"
+				params.is_tree = False
 
-			args.budget_against_field = budget_against
-			args.budget_against_doctype = doctype
+			params.budget_against_field = budget_against
+			params.budget_against_doctype = doctype
 
 			budget_records = frappe.db.sql(
 				f"""
@@ -437,29 +437,32 @@ def validate_expense_against_budget(args, expense_amount=0):
 					AND b.account = %s
 					{condition}
 				""",
-				(args.company, args.posting_date, args.account),
+				(params.company, params.posting_date, params.account),
 				as_dict=True,
 			)  # nosec
 
 			if budget_records:
-				validate_budget_records(args, budget_records, expense_amount)
+				validate_budget_records(params, budget_records, expense_amount)
 
 
-def validate_budget_records(args, budget_records, expense_amount):
+def validate_budget_records(params, budget_records, expense_amount):
 	for budget in budget_records:
 		if flt(budget.budget_amount):
-			yearly_action, monthly_action = get_actions(args, budget)
-			args["for_material_request"] = budget.for_material_request
-			args["for_purchase_order"] = budget.for_purchase_order
-			args["from_fiscal_year"], args["to_fiscal_year"] = budget.from_fiscal_year, budget.to_fiscal_year
-			args["budget_start_date"], args["budget_end_date"] = (
+			yearly_action, monthly_action = get_actions(params, budget)
+			params["for_material_request"] = budget.for_material_request
+			params["for_purchase_order"] = budget.for_purchase_order
+			params["from_fiscal_year"], params["to_fiscal_year"] = (
+				budget.from_fiscal_year,
+				budget.to_fiscal_year,
+			)
+			params["budget_start_date"], params["budget_end_date"] = (
 				budget.budget_start_date,
 				budget.budget_end_date,
 			)
 
 			if yearly_action in ("Stop", "Warn"):
 				compare_expense_with_budget(
-					args,
+					params,
 					flt(budget.budget_amount),
 					_("Annual"),
 					yearly_action,
@@ -468,12 +471,12 @@ def validate_budget_records(args, budget_records, expense_amount):
 				)
 
 			if monthly_action in ["Stop", "Warn"]:
-				budget_amount = get_accumulated_monthly_budget(budget.name, args.posting_date)
+				budget_amount = get_accumulated_monthly_budget(budget.name, params.posting_date)
 
-				args["month_end_date"] = get_last_day(args.posting_date)
+				params["month_end_date"] = get_last_day(params.posting_date)
 
 				compare_expense_with_budget(
-					args,
+					params,
 					budget_amount,
 					_("Accumulated Monthly"),
 					monthly_action,
@@ -482,38 +485,41 @@ def validate_budget_records(args, budget_records, expense_amount):
 				)
 
 
-def compare_expense_with_budget(args, budget_amount, action_for, action, budget_against, amount=0):
-	args.actual_expense, args.requested_amount, args.ordered_amount = get_actual_expense(args), 0, 0
+def compare_expense_with_budget(params, budget_amount, action_for, action, budget_against, amount=0):
+	params.actual_expense, params.requested_amount, params.ordered_amount = get_actual_expense(params), 0, 0
 	if not amount:
-		args.requested_amount, args.ordered_amount = get_requested_amount(args), get_ordered_amount(args)
+		params.requested_amount, params.ordered_amount = (
+			get_requested_amount(params),
+			get_ordered_amount(params),
+		)
 
-		if args.get("doctype") == "Material Request" and args.for_material_request:
-			amount = args.requested_amount + args.ordered_amount
+		if params.get("doctype") == "Material Request" and params.for_material_request:
+			amount = params.requested_amount + params.ordered_amount
 
-		elif args.get("doctype") == "Purchase Order" and args.for_purchase_order:
-			amount = args.ordered_amount
+		elif params.get("doctype") == "Purchase Order" and params.for_purchase_order:
+			amount = params.ordered_amount
 
-	total_expense = args.actual_expense + amount
+	total_expense = params.actual_expense + amount
 
 	if total_expense > budget_amount:
-		if args.actual_expense > budget_amount:
-			diff = args.actual_expense - budget_amount
+		if params.actual_expense > budget_amount:
+			diff = params.actual_expense - budget_amount
 			_msg = _("{0} Budget for Account {1} against {2} {3} is {4}. It is already exceeded by {5}.")
 		else:
 			diff = total_expense - budget_amount
 			_msg = _("{0} Budget for Account {1} against {2} {3} is {4}. It will be exceeded by {5}.")
 
-		currency = frappe.get_cached_value("Company", args.company, "default_currency")
+		currency = frappe.get_cached_value("Company", params.company, "default_currency")
 		msg = _msg.format(
 			_(action_for),
-			frappe.bold(args.account),
-			frappe.unscrub(args.budget_against_field),
+			frappe.bold(params.account),
+			frappe.unscrub(params.budget_against_field),
 			frappe.bold(budget_against),
 			frappe.bold(fmt_money(budget_amount, currency=currency)),
 			frappe.bold(fmt_money(diff, currency=currency)),
 		)
 
-		msg += get_expense_breakup(args, currency, budget_against)
+		msg += get_expense_breakup(params, currency, budget_against)
 
 		if frappe.flags.exception_approver_role and frappe.flags.exception_approver_role in frappe.get_roles(
 			frappe.session.user
@@ -526,19 +532,19 @@ def compare_expense_with_budget(args, budget_amount, action_for, action, budget_
 			frappe.msgprint(msg, indicator="orange", title=_("Budget Exceeded"))
 
 
-def get_expense_breakup(args, currency, budget_against):
+def get_expense_breakup(params, currency, budget_against):
 	msg = "<hr> {} - <ul>".format(_("Total Expenses booked through"))
 
 	common_filters = frappe._dict(
 		{
-			args.budget_against_field: budget_against,
-			"account": args.account,
-			"company": args.company,
+			params.budget_against_field: budget_against,
+			"account": params.account,
+			"company": params.company,
 		}
 	)
 
-	from_date = frappe.get_cached_value("Fiscal Year", args.from_fiscal_year, "year_start_date")
-	to_date = frappe.get_cached_value("Fiscal Year", args.to_fiscal_year, "year_end_date")
+	from_date = frappe.get_cached_value("Fiscal Year", params.from_fiscal_year, "year_start_date")
+	to_date = frappe.get_cached_value("Fiscal Year", params.to_fiscal_year, "year_end_date")
 	gl_filters = common_filters.copy()
 	gl_filters.update(
 		{
@@ -556,7 +562,7 @@ def get_expense_breakup(args, currency, budget_against):
 			filters=gl_filters,
 		)
 		+ " - "
-		+ frappe.bold(fmt_money(args.actual_expense, currency=currency))
+		+ frappe.bold(fmt_money(params.actual_expense, currency=currency))
 		+ "</li>"
 	)
 	mr_filters = common_filters.copy()
@@ -566,7 +572,7 @@ def get_expense_breakup(args, currency, budget_against):
 			"docstatus": 1,
 			"material_request_type": "Purchase",
 			"schedule_date": [["between", [from_date, to_date]]],
-			"item_code": args.item_code,
+			"item_code": params.item_code,
 			"per_ordered": [["<", 100]],
 		}
 	)
@@ -581,7 +587,7 @@ def get_expense_breakup(args, currency, budget_against):
 			filters=mr_filters,
 		)
 		+ " - "
-		+ frappe.bold(fmt_money(args.requested_amount, currency=currency))
+		+ frappe.bold(fmt_money(params.requested_amount, currency=currency))
 		+ "</li>"
 	)
 
@@ -591,7 +597,7 @@ def get_expense_breakup(args, currency, budget_against):
 			"status": [["!=", "Closed"]],
 			"docstatus": 1,
 			"transaction_date": [["between", [from_date, to_date]]],
-			"item_code": args.item_code,
+			"item_code": params.item_code,
 			"per_billed": [["<", 100]],
 		}
 	)
@@ -606,7 +612,7 @@ def get_expense_breakup(args, currency, budget_against):
 			filters=po_filters,
 		)
 		+ " - "
-		+ frappe.bold(fmt_money(args.ordered_amount, currency=currency))
+		+ frappe.bold(fmt_money(params.ordered_amount, currency=currency))
 		+ "</li></ul>"
 	)
 
