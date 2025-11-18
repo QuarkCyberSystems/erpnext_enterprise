@@ -254,10 +254,10 @@ class ItemTax:
 
 		item_tax_rates = frappe.parse_json(item.item_tax_rate)
 
-		if tax_row.account_head in item_tax_rates:
+		if item_tax_rates and tax_row.account_head in item_tax_rates:
 			return item_tax_rates[tax_row.account_head]
 
-		return tax_row.rate
+		return flt(tax_row.rate)
 
 
 def get_item_tax_doc(item, tax, rate, tax_value, idx, precision=2):
