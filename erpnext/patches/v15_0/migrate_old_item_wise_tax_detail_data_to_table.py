@@ -256,7 +256,7 @@ class ItemTax:
 		# NOTE: Use item tax rate as same item code
 		# could have different tax rates in same invoice
 
-		item_tax_rates = frappe.parse_json(item.item_tax_rate)
+		item_tax_rates = frappe.parse_json(item.item_tax_rate or {})
 
 		if item_tax_rates and tax_row.account_head in item_tax_rates:
 			return item_tax_rates[tax_row.account_head]
