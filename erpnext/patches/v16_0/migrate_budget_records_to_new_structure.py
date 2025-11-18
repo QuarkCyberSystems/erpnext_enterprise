@@ -8,14 +8,14 @@ def execute():
 	for budget in budgets:
 		old_budget = frappe.get_doc("Budget", budget)
 
-		old_accounts = frappe.get_all(
+		accounts = frappe.get_all(
 			"Budget Account",
 			filters={"parent": old_budget.name},
 			fields=["account", "budget_amount"],
 			order_by="idx asc",
 		)
 
-		if not old_accounts:
+		if not accounts:
 			continue
 
 		old_distribution = []
@@ -36,9 +36,11 @@ def execute():
 		fy_start = fy.year_start_date
 		fy_end = fy.year_end_date
 
-		for acc in old_accounts:
+		for account in accounts:
 			new = frappe.new_doc("Budget")
 
+			new.naming_series = "BUDGET-.########"
+			new.budget_against = old_budget.budget_against
 			new.company = old_budget.company
 			new.cost_center = old_budget.cost_center
 			new.project = old_budget.project
@@ -49,8 +51,8 @@ def execute():
 			new.budget_start_date = fy_start
 			new.budget_end_date = fy_end
 
-			new.account = acc.account
-			new.budget_amount = flt(acc.budget_amount)
+			new.account = account.account
+			new.budget_amount = flt(account.budget_amount)
 			new.distribution_frequency = "Monthly"
 
 			new.distribute_equally = 1 if len(set(percentage_list)) == 1 else 0
