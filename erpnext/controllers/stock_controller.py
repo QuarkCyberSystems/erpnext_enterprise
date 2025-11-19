@@ -1320,7 +1320,7 @@ class StockController(AccountsController):
 				total_returned += flt(item.returned_qty * item.rate)
 
 			if total_returned < total_amount:
-				target_ref_field = "(amount - (returned_qty * rate))"
+				target_ref_field = {"SUB": ["amount", {"MUL": ["returned_qty", "rate"]}], "as": "ref_amount"}
 
 		self._update_percent_field(
 			{

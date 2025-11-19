@@ -563,11 +563,14 @@ class StatusUpdater(Document):
 			fields=[target_ref_field, target_field],
 		)
 
-		sum_ref = sum(abs(record[target_ref_field]) for record in child_records)
+		# For operator dicts, the alias is in the "as" key; for strings, use the field name directly
+		ref_key = target_ref_field.get("as") if isinstance(target_ref_field, dict) else target_ref_field
+
+		sum_ref = sum(abs(record[ref_key]) for record in child_records)
 
 		if sum_ref > 0:
 			percentage = round(
-				sum(min(abs(record[target_field]), abs(record[target_ref_field])) for record in child_records)
+				sum(min(abs(record[target_field]), abs(record[ref_key])) for record in child_records)
 				/ sum_ref
 				* 100,
 				6,

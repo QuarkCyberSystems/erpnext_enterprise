@@ -2420,7 +2420,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 			data = frappe.get_all(
 				"Work Order Operation",
 				filters={"parent": self.work_order},
-				fields=["max(process_loss_qty) as process_loss_qty"],
+				fields=[{"MAX": "process_loss_qty", "as": "process_loss_qty"}],
 			)
 
 			if data and data[0].process_loss_qty is not None:
@@ -3145,7 +3145,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 				stock_entries_child_list.append(d.ste_detail)
 				transferred_qty = frappe.get_all(
 					"Stock Entry Detail",
-					fields=["sum(qty) as qty"],
+					fields=[{"SUM": "qty", "as": "qty"}],
 					filters={
 						"against_stock_entry": d.against_stock_entry,
 						"ste_detail": d.ste_detail,

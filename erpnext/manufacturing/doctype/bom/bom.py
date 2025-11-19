@@ -10,6 +10,8 @@ import frappe
 from frappe import _, bold
 from frappe.core.doctype.version.version import get_diff
 from frappe.model.mapper import get_mapped_doc
+from frappe.query_builder import Field
+from frappe.query_builder.functions import Count, IfNull, Sum
 from frappe.utils import cint, cstr, flt, get_link_to_form, parse_json, today
 from frappe.website.website_generator import WebsiteGenerator
 
@@ -1191,7 +1193,6 @@ def get_valuation_rate(data):
 	2) If no value, get last valuation rate from SLE
 	3) If no value, get valuation rate from Item
 	"""
-	from frappe.query_builder.functions import Count, IfNull, Sum
 	from pypika import Case
 
 	item_code, company = data.get("item_code"), data.get("company")
@@ -1482,7 +1483,10 @@ def add_non_stock_items_cost(stock_entry, work_order, expense_account, job_card=
 	non_stock_items = frappe.get_all(
 		"Item",
 		fields="name",
-		filters={"name": ("in", list(items.keys())), "ifnull(is_stock_item, 0)": 0},
+		filters=[
+			["name", "in", list(items.keys())],
+			[IfNull(Field("is_stock_item"), 0), "=", 0],
+		],
 		as_list=1,
 	)
 
@@ -1601,8 +1605,6 @@ def add_operations_cost(stock_entry, work_order=None, expense_account=None, job_
 			)
 
 	def get_max_operation_quantity():
-		from frappe.query_builder.functions import Sum
-
 		table = frappe.qb.DocType("Job Card")
 		query = (
 			frappe.qb.from_(table)
@@ -1617,8 +1619,6 @@ def add_operations_cost(stock_entry, work_order=None, expense_account=None, job_
 		return min([d.qty for d in query.run(as_dict=True)], default=0)
 
 	def get_utilised_corrective_cost():
-		from frappe.query_builder.functions import Sum
-
 		table = frappe.qb.DocType("Stock Entry")
 		subquery = (
 			frappe.qb.from_(table)
@@ -1728,7 +1728,10 @@ def item_query(doctype, txt, searchfield, start, page_len, filters):
 	if not searchfields:
 		searchfields = ["name"]
 
-	query_filters = {"disabled": 0, "ifnull(end_of_life, '3099-12-31')": (">", today())}
+	query_filters = [
+		["disabled", "=", 0],
+		[IfNull(Field("end_of_life"), "3099-12-31"), ">", today()],
+	]
 
 	or_cond_filters = {}
 	if txt:
@@ -1737,8 +1740,9 @@ def item_query(doctype, txt, searchfield, start, page_len, filters):
 
 		barcodes = frappe.get_all(
 			"Item Barcode",
-			fields=["distinct parent as item_code"],
+			fields=["parent as item_code"],
 			filters={"barcode": ("like", f"%{txt}%")},
+			distinct=True,
 		)
 
 		barcodes = [d.item_code for d in barcodes]
@@ -1748,11 +1752,11 @@ def item_query(doctype, txt, searchfield, start, page_len, filters):
 	if filters and filters.get("item_code"):
 		has_variants = frappe.get_cached_value("Item", filters.get("item_code"), "has_variants")
 		if not has_variants:
-			query_filters["has_variants"] = 0
+			query_filters.append(["has_variants", "=", 0])
 
 	if filters:
 		for fieldname, value in filters.items():
-			query_filters[fieldname] = value
+			query_filters.append([fieldname, "=", value])
 
 	return frappe.get_list(
 		"Item",

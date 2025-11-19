@@ -630,7 +630,7 @@ def get_ordered_items(quotation: str):
 		frappe.get_all(
 			"Sales Order Item",
 			filters={"prevdoc_docname": quotation, "docstatus": 1},
-			fields=["quotation_item", "sum(qty)"],
+			fields=["quotation_item", {"SUM": "qty"}],
 			group_by="quotation_item",
 			as_list=1,
 		)

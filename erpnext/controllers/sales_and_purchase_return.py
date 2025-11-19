@@ -323,22 +323,24 @@ def get_returned_qty_map_for_row(return_against, party, row_name, doctype):
 		party_type = "customer"
 
 	fields = [
-		f"sum(abs(`tab{child_doctype}`.qty)) as qty",
+		{"SUM": [{"ABS": f"`tab{child_doctype}`.qty"}], "as": "qty"},
 	]
 
 	if doctype != "Subcontracting Receipt":
 		fields += [
-			f"sum(abs(`tab{child_doctype}`.stock_qty)) as stock_qty",
+			{"SUM": [{"ABS": f"`tab{child_doctype}`.stock_qty"}], "as": "stock_qty"},
 		]
 
 	if doctype in ("Purchase Receipt", "Purchase Invoice", "Subcontracting Receipt"):
 		fields += [
-			f"sum(abs(`tab{child_doctype}`.rejected_qty)) as rejected_qty",
-			f"sum(abs(`tab{child_doctype}`.received_qty)) as received_qty",
+			{"SUM": [{"ABS": f"`tab{child_doctype}`.rejected_qty"}], "as": "rejected_qty"},
+			{"SUM": [{"ABS": f"`tab{child_doctype}`.received_qty"}], "as": "received_qty"},
 		]
 
 		if doctype == "Purchase Receipt":
-			fields += [f"sum(abs(`tab{child_doctype}`.received_stock_qty)) as received_stock_qty"]
+			fields += [
+				{"SUM": [{"ABS": f"`tab{child_doctype}`.received_stock_qty"}], "as": "received_stock_qty"}
+			]
 
 	# Used retrun against and supplier and is_retrun because there is an index added for it
 	data = frappe.get_all(

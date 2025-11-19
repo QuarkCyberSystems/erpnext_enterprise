@@ -73,9 +73,10 @@ class TestProductionPlan(IntegrationTestCase):
 
 		material_requests = frappe.get_all(
 			"Material Request Item",
-			fields=["distinct parent"],
+			fields=["parent"],
 			filters={"production_plan": pln.name},
 			as_list=1,
+			distinct=True,
 		)
 
 		self.assertTrue(len(material_requests), 2)
