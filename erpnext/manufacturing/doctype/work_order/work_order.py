@@ -166,9 +166,10 @@ class WorkOrder(Document):
 		operation_details = frappe._dict(
 			frappe.get_all(
 				"Job Card",
-				fields=["operation", "for_quantity"],
+				fields=["operation", "sum(for_quantity)"],
 				filters={"docstatus": ("<", 2), "work_order": self.name},
 				as_list=1,
+				group_by="operation_id",
 			)
 		)
 
