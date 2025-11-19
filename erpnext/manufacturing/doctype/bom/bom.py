@@ -1504,7 +1504,7 @@ def add_non_stock_items_cost(stock_entry, work_order, expense_account, job_card=
 
 
 def add_operating_cost_component_wise(
-	stock_entry, work_order=None, operating_cost_per_unit=None, op_expense_account=None, job_card=None
+	stock_entry, work_order=None, consumed_operating_cost=None, op_expense_account=None, job_card=None
 ):
 	if not work_order:
 		return False
@@ -1528,11 +1528,11 @@ def add_operating_cost_component_wise(
 				get_component_account(wc.operating_component, stock_entry.company) or op_expense_account
 			)
 			actual_cp_operating_cost = flt(
-				flt(wc.operating_cost) * flt(flt(row.actual_operation_time) / 60.0),
+				flt(wc.operating_cost) * flt(flt(row.actual_operation_time) / 60.0) - consumed_operating_cost,
 				row.precision("actual_operating_cost"),
 			)
 
-			per_unit_cost = flt(actual_cp_operating_cost) / flt(row.completed_qty)
+			per_unit_cost = flt(actual_cp_operating_cost) / flt(row.completed_qty - work_order.produced_qty)
 
 			if per_unit_cost and expense_account:
 				stock_entry.append(
@@ -1543,6 +1543,7 @@ def add_operating_cost_component_wise(
 							wc.operating_component, row.operation
 						),
 						"amount": per_unit_cost * flt(stock_entry.fg_completed_qty),
+						"has_operating_cost": 1,
 					},
 				)
 
@@ -1559,13 +1560,20 @@ def get_component_account(parent, company):
 
 
 def add_operations_cost(stock_entry, work_order=None, expense_account=None, job_card=None):
-	from erpnext.stock.doctype.stock_entry.stock_entry import get_operating_cost_per_unit
+	from erpnext.stock.doctype.stock_entry.stock_entry import (
+		get_consumed_operating_cost,
+		get_operating_cost_per_unit,
+	)
 
 	operating_cost_per_unit = get_operating_cost_per_unit(work_order, stock_entry.bom_no)
 
 	if operating_cost_per_unit:
 		cost_added = add_operating_cost_component_wise(
-			stock_entry, work_order, operating_cost_per_unit, expense_account, job_card=job_card
+			stock_entry,
+			work_order,
+			get_consumed_operating_cost(work_order.name, stock_entry.bom_no),
+			expense_account,
+			job_card=job_card,
 		)
 
 		if not cost_added:
@@ -1575,6 +1583,7 @@ def add_operations_cost(stock_entry, work_order=None, expense_account=None, job_
 					"expense_account": expense_account,
 					"description": _("Operating Cost as per Work Order / BOM"),
 					"amount": operating_cost_per_unit * flt(stock_entry.fg_completed_qty),
+					"has_operating_cost": 1,
 				},
 			)
 
