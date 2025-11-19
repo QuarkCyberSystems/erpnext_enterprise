@@ -3,105 +3,126 @@ from frappe.utils import add_months, flt, get_first_day, get_last_day
 
 
 def execute():
-	budgets = frappe.get_all("Budget", filters={"docstatus": ["in", [0, 1]]}, pluck="name")
+	remove_old_property_setter()
 
-	for budget in budgets:
-		old_budget = frappe.get_doc("Budget", budget)
+	budget_names = frappe.db.get_list(
+		"Budget",
+		filters={"docstatus": ["in", [0, 1]]},
+		pluck="name",
+	)
 
-		accounts = frappe.get_all(
-			"Budget Account",
-			filters={"parent": old_budget.name},
-			fields=["account", "budget_amount"],
-			order_by="idx asc",
+	for budget in budget_names:
+		migrate_single_budget(budget)
+
+
+def remove_old_property_setter():
+	old_property_setter = frappe.db.get_value(
+		"Property Setter",
+		{
+			"doc_type": "Budget",
+			"field_name": "naming_series",
+			"property": "options",
+			"value": "Budget-.YYYY.-",
+		},
+		"name",
+	)
+
+	if old_property_setter:
+		frappe.delete_doc("Property Setter", old_property_setter, force=1)
+
+
+def migrate_single_budget(budget_name):
+	budget_doc = frappe.get_doc("Budget", budget_name)
+
+	account_rows = frappe.get_all(
+		"Budget Account",
+		filters={"parent": budget_name},
+		fields=["account", "budget_amount"],
+		order_by="idx asc",
+	)
+
+	if not account_rows:
+		return
+
+	frappe.db.delete("Budget Account", {"parent": budget_doc.name})
+
+	percentage_allocations = get_percentage_allocations(budget_doc)
+
+	fiscal_year = frappe.get_cached_value(
+		"Fiscal Year",
+		budget_doc.fiscal_year,
+		["name", "year_start_date", "year_end_date"],
+		as_dict=True,
+	)
+
+	for row in account_rows:
+		create_new_budget_from_row(budget_doc, fiscal_year, row, percentage_allocations)
+
+	if budget_doc.docstatus == 1:
+		budget_doc.cancel()
+	else:
+		frappe.delete_doc("Budget", budget_name)
+
+
+def get_percentage_allocations(budget_doc):
+	if budget_doc.monthly_distribution:
+		distribution_doc = frappe.get_cached_doc("Monthly Distribution", budget_doc.monthly_distribution)
+		return [flt(row.percentage_allocation) for row in distribution_doc.percentages]
+
+	return [100 / 12] * 12
+
+
+def create_new_budget_from_row(budget_doc, fiscal_year, account_row, percentage_allocations):
+	new_budget = frappe.new_doc("Budget")
+
+	core_fields = ["budget_against", "company", "cost_center", "project"]
+	for field in core_fields:
+		new_budget.set(field, budget_doc.get(field))
+
+	new_budget.from_fiscal_year = fiscal_year.name
+	new_budget.to_fiscal_year = fiscal_year.name
+	new_budget.budget_start_date = fiscal_year.year_start_date
+	new_budget.budget_end_date = fiscal_year.year_end_date
+
+	new_budget.account = account_row.account
+	new_budget.budget_amount = flt(account_row.budget_amount)
+	new_budget.distribution_frequency = "Monthly"
+	new_budget.distribute_equally = 1 if len(set(percentage_allocations)) == 1 else 0
+
+	copy_fields = [
+		"applicable_on_material_request",
+		"action_if_annual_budget_exceeded_on_mr",
+		"action_if_accumulated_monthly_budget_exceeded_on_mr",
+		"applicable_on_purchase_order",
+		"action_if_annual_budget_exceeded_on_po",
+		"action_if_accumulated_monthly_budget_exceeded_on_po",
+		"applicable_on_booking_actual_expenses",
+		"action_if_annual_budget_exceeded",
+		"action_if_accumulated_monthly_budget_exceeded",
+		"applicable_on_cumulative_expense",
+		"action_if_annual_exceeded_on_cumulative_expense",
+		"action_if_accumulated_monthly_exceeded_on_cumulative_expense",
+	]
+
+	for field in copy_fields:
+		new_budget.set(field, budget_doc.get(field))
+
+	current_start = fiscal_year.year_start_date
+	for percentage in percentage_allocations:
+		new_budget.append(
+			"budget_distribution",
+			{
+				"start_date": get_first_day(current_start),
+				"end_date": get_last_day(current_start),
+				"percent": percentage,
+				"amount": new_budget.budget_amount * percentage / 100,
+			},
 		)
+		current_start = add_months(current_start, 1)
 
-		if not accounts:
-			continue
+	new_budget.flags.ignore_validate = True
+	new_budget.flags.ignore_links = True
+	new_budget.insert(ignore_permissions=True, ignore_mandatory=True)
 
-		old_distribution = []
-		if old_budget.monthly_distribution:
-			old_distribution = frappe.get_all(
-				"Monthly Distribution Percentage",
-				filters={"parent": old_budget.monthly_distribution},
-				fields=["percentage_allocation"],
-				order_by="idx asc",
-			)
-
-		if old_distribution:
-			percentage_list = [flt(d.percentage_allocation) for d in old_distribution]
-		else:
-			percentage_list = [100 / 12] * 12
-
-		fy = frappe.get_doc("Fiscal Year", old_budget.fiscal_year)
-		fy_start = fy.year_start_date
-		fy_end = fy.year_end_date
-
-		for account in accounts:
-			new = frappe.new_doc("Budget")
-
-			new.naming_series = "BUDGET-.########"
-			new.budget_against = old_budget.budget_against
-			new.company = old_budget.company
-			new.cost_center = old_budget.cost_center
-			new.project = old_budget.project
-			new.fiscal_year = fy.name
-
-			new.from_fiscal_year = fy.name
-			new.to_fiscal_year = fy.name
-			new.budget_start_date = fy_start
-			new.budget_end_date = fy_end
-
-			new.account = account.account
-			new.budget_amount = flt(account.budget_amount)
-			new.distribution_frequency = "Monthly"
-
-			new.distribute_equally = 1 if len(set(percentage_list)) == 1 else 0
-
-			fields_to_copy = [
-				"applicable_on_material_request",
-				"action_if_annual_budget_exceeded_on_mr",
-				"action_if_accumulated_monthly_budget_exceeded_on_mr",
-				"applicable_on_purchase_order",
-				"action_if_annual_budget_exceeded_on_po",
-				"action_if_accumulated_monthly_budget_exceeded_on_po",
-				"applicable_on_booking_actual_expenses",
-				"action_if_annual_budget_exceeded",
-				"action_if_accumulated_monthly_budget_exceeded",
-				"applicable_on_cumulative_expense",
-				"action_if_annual_exceeded_on_cumulative_expense",
-				"action_if_accumulated_monthly_exceeded_on_cumulative_expense",
-			]
-
-			for field in fields_to_copy:
-				if hasattr(old_budget, field):
-					new.set(field, old_budget.get(field))
-
-			start = fy_start
-			for percentage in percentage_list:
-				row_start = get_first_day(start)
-				row_end = get_last_day(start)
-
-				new.append(
-					"budget_distribution",
-					{
-						"start_date": row_start,
-						"end_date": row_end,
-						"percent": percentage,
-						"amount": new.budget_amount * percentage / 100,
-					},
-				)
-
-				start = add_months(start, 1)
-
-			new.flags.ignore_validate = True
-			new.flags.ignore_links = True
-
-			new.insert(ignore_permissions=True, ignore_mandatory=True)
-
-			if old_budget.docstatus == 1:
-				new.submit()
-
-		if old_budget.docstatus == 1:
-			old_budget.cancel()
-		else:
-			old_budget.delete()
+	if budget_doc.docstatus == 1:
+		new_budget.submit()
