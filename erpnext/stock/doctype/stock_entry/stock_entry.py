@@ -3418,6 +3418,25 @@ def get_work_order_details(work_order, company):
 
 
 def get_operating_cost_per_unit(work_order=None, bom_no=None):
+	def get_consumed_operating_cost(wo_name, bom_no):
+		table = frappe.qb.DocType("Stock Entry")
+		child_table = frappe.qb.DocType("Landed Cost Taxes and Charges")
+		query = (
+			frappe.qb.from_(child_table)
+			.join(table)
+			.on(child_table.parent == table.name)
+			.select(Sum(child_table.amount).as_("consumed_cost"))
+			.where(
+				(table.docstatus == 1)
+				& (table.work_order == wo_name)
+				& (table.purpose == "Manufacture")
+				& (table.bom_no == bom_no)
+				& (child_table.has_operating_cost == 1)
+			)
+		)
+		cost = query.run(pluck="consumed_cost")
+		return cost[0] if cost and cost[0] else 0
+
 	operating_cost_per_unit = 0
 	if work_order:
 		if (
@@ -3434,7 +3453,9 @@ def get_operating_cost_per_unit(work_order=None, bom_no=None):
 
 		for d in work_order.get("operations"):
 			if flt(d.completed_qty):
-				operating_cost_per_unit += flt(d.actual_operating_cost) / flt(d.completed_qty)
+				operating_cost_per_unit += flt(
+					d.actual_operating_cost - get_consumed_operating_cost(work_order.name, bom_no)
+				) / flt(d.completed_qty - work_order.produced_qty)
 			elif work_order.qty:
 				operating_cost_per_unit += flt(d.planned_operating_cost) / flt(work_order.qty)
 
