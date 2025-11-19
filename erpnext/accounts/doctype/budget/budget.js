@@ -4,16 +4,6 @@ frappe.provide("erpnext.accounts.dimensions");
 
 frappe.ui.form.on("Budget", {
 	onload: function (frm) {
-		frm.set_query("account", "accounts", function () {
-			return {
-				filters: {
-					company: frm.doc.company,
-					report_type: "Profit and Loss",
-					is_group: 0,
-				},
-			};
-		});
-
 		frm.set_query("monthly_distribution", function () {
 			return {
 				filters: {
@@ -30,17 +20,27 @@ frappe.ui.form.on("Budget", {
 		});
 	},
 
-	refresh: function (frm) {
+	refresh: async function (frm) {
 		frm.trigger("toggle_reqd_fields");
 
 		if (!frm.doc.__islocal && frm.doc.docstatus == 1) {
-			frm.add_custom_button(
-				__("Revise Budget"),
-				function () {
-					frm.events.revise_budget_action(frm);
-				},
-				__("Actions")
+			let exception_role = await frappe.db.get_value(
+				"Company",
+				frm.doc.company,
+				"exception_budget_approver_role"
 			);
+
+			const role = exception_role.message.exception_budget_approver_role;
+
+			if (role && frappe.user.has_role(role)) {
+				frm.add_custom_button(
+					__("Revise Budget"),
+					function () {
+						frm.events.revise_budget_action(frm);
+					},
+					__("Actions")
+				);
+			}
 		}
 	},
 
