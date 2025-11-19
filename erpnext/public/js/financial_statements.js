@@ -4,13 +4,17 @@ erpnext.financial_statements = {
 	filters: get_filters(),
 	baseData: null,
 	formatter: function (value, row, column, data, default_formatter, filter) {
+		const report_params = [value, row, column, data, default_formatter, filter];
 		// Growth/Margin
-		if (this._is_special_view(column, data))
-			return this._format_special_view(value, row, column, data, default_formatter);
+		if (erpnext.financial_statements._is_special_view(column, data))
+			return erpnext.financial_statements._format_special_view(...report_params);
 
 		if (frappe.query_report.get_filter_value("report_template"))
-			return this._format_custom_report(value, row, column, data, default_formatter, filter);
-		else return this._format_standard_report(value, row, column, data, default_formatter, filter);
+			return erpnext.financial_statements._format_custom_report(...report_params);
+
+		if (frappe.query_report.get_filter_value("report_template"))
+			return erpnext.financial_statements._format_custom_report(...report_params);
+		else return erpnext.financial_statements._format_standard_report(...report_params);
 	},
 
 	_is_special_view: function (column, data) {
@@ -20,11 +24,11 @@ erpnext.financial_statements = {
 	},
 
 	_format_custom_report: function (value, row, column, data, default_formatter, filter) {
-		const columnInfo = this._parse_column_info(column.fieldname, data);
-		const formatting = this._get_formatting_for_column(data, columnInfo);
+		const columnInfo = erpnext.financial_statements._parse_column_info(column.fieldname, data);
+		const formatting = erpnext.financial_statements._get_formatting_for_column(data, columnInfo);
 
 		if (columnInfo.isAccount) {
-			return this._format_custom_account_column(
+			return erpnext.financial_statements._format_custom_account_column(
 				value,
 				data,
 				formatting,
@@ -33,7 +37,14 @@ erpnext.financial_statements = {
 				row
 			);
 		} else {
-			return this._format_custom_value_column(value, data, formatting, column, default_formatter, row);
+			return erpnext.financial_statements._format_custom_value_column(
+				value,
+				data,
+				formatting,
+				column,
+				default_formatter,
+				row
+			);
 		}
 	},
 
@@ -99,7 +110,7 @@ erpnext.financial_statements = {
 		}
 
 		// Style
-		return this._style_custom_value(formattedValue, formatting, null);
+		return erpnext.financial_statements._style_custom_value(formattedValue, formatting, null);
 	},
 
 	_format_custom_value_column: function (value, data, formatting, column, default_formatter, row) {
@@ -111,7 +122,7 @@ erpnext.financial_statements = {
 		if (col.fieldtype === "Float") col.options = null;
 
 		let formattedValue = default_formatter(value, row, col, data);
-		return this._style_custom_value(formattedValue, formatting, value);
+		return erpnext.financial_statements._style_custom_value(formattedValue, formatting, value);
 	},
 
 	_style_custom_value(formattedValue, formatting, value) {
@@ -157,7 +168,7 @@ erpnext.financial_statements = {
 	},
 
 	_format_standard_report: function (value, row, column, data, default_formatter, filter) {
-		if (data && column.fieldname == this.name_field) {
+		if (data && column.fieldname == erpnext.financial_statements.name_field) {
 			value = data.section_name || data.account_name || value;
 
 			if (filter && filter?.text && filter?.type == "contains") {
