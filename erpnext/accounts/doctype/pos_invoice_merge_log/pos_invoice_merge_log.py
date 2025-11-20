@@ -283,7 +283,7 @@ class POSInvoiceMergeLog(Document):
 			base_rounding_adjustment += doc.base_rounding_adjustment
 			base_rounded_total += doc.base_rounded_total
 
-			for d in doc.get("item_wise_tax_details"):
+			for d in doc.get("item_wise_tax_details") or []:
 				row = frappe._dict(
 					item=old_new_item_map[d.item_row],
 					tax=old_new_tax_map[d.tax_row],
