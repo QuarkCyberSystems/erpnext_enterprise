@@ -64,6 +64,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		)
 		for company in frappe.get_all("Company", pluck="name"):
 			frappe.db.set_value("Company", company, "accounts_frozen_till_date", None)
+		frappe.db.set_single_value("Selling Settings", "validate_selling_price", 0)
 
 	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
@@ -2132,6 +2133,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		si.insert()
 		return si
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"sales_update_frequency": "Each Transaction"})
 	def test_company_monthly_sales(self):
 		existing_current_month_sales = frappe.get_cached_value(
 			"Company", "_Test Company", "total_monthly_sales"
@@ -3452,7 +3454,6 @@ class TestSalesInvoice(ERPNextTestSuite):
 			si.commission_rate = commission_rate
 			self.assertRaises(frappe.ValidationError, si.save)
 
-	@ERPNextTestSuite.change_settings("Accounts Settings", {"acc_frozen_upto": add_days(getdate(), 1)})
 	def test_sales_invoice_submission_post_account_freezing_date(self):
 		frappe.db.set_value("Company", "_Test Company", "accounts_frozen_till_date", add_days(getdate(), 1))
 		si = create_sales_invoice(do_not_save=True)
@@ -3887,19 +3888,18 @@ class TestSalesInvoice(ERPNextTestSuite):
 
 	def test_loyalty_points_redemption_with_shopping_cart(self):
 		from erpnext.accounts.doctype.loyalty_program.test_loyalty_program import (
-			create_records,
 			create_sales_invoice_record,
 		)
 		from erpnext.selling.doctype.sales_order.sales_order import make_sales_invoice
 		from erpnext.selling.doctype.sales_order.test_sales_order import make_sales_order
 
 		# Set up loyalty program
-		create_records()
-		frappe.db.set_value("Customer", "Test Loyalty Customer", "loyalty_program", "Test Single Loyalty")
+		loyalty_customer = frappe.get_doc("Customer", {"customer_name": "Test Loyalty Customer"}).name
+		frappe.db.set_value("Customer", loyalty_customer, "loyalty_program", "Test Single Loyalty")
 		create_sales_invoice_record(10).insert().submit()
 
 		# Create a sales order
-		so = make_sales_order(qty=10, do_not_save=True, customer="Test Loyalty Customer")
+		so = make_sales_order(qty=10, do_not_save=True, customer=loyalty_customer)
 		so.name = "_T-Sales Order LP-0001"
 		so.order_type = "Shopping Cart"
 		so.loyalty_points = 50
@@ -4397,6 +4397,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 
 		self.assertTrue(all([x == "Credit Note" for x in gl_entries]))
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"sales_update_frequency": "Each Transaction"})
 	def test_total_billed_amount(self):
 		si = create_sales_invoice(do_not_submit=True)
 
@@ -4413,6 +4414,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		self.assertEqual(doc.total_billed_amount, si.grand_total)
 
 	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": True})
+	@ERPNextTestSuite.change_settings("Selling Settings", {"sales_update_frequency": "Each Transaction"})
 	def test_total_billed_amount_with_different_projects(self):
 		# This test case is for checking the scenario where project is set at document level and for **some** child items only, not all
 		from copy import copy
