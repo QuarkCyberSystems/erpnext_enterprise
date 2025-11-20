@@ -505,8 +505,9 @@ class calculate_taxes_and_totals:
 
 		for idx, d in enumerate(self.doc._item_wise_tax_details):
 			tax = d.get("tax")
-			if not tax:
+			if not tax or (tax.get("charge_type") == "Actual" and d.rate == 0):
 				continue
+
 			tax._total_tax_breakup += d.amount or 0
 			tax._last_row_idx = idx
 
