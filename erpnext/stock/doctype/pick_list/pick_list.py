@@ -637,10 +637,12 @@ class PickList(TransactionBase):
 
 	def update_bundle_picked_qty(self):
 		product_bundles = self._get_product_bundles()
-		product_bundle_qty_map = self._get_product_bundle_qty_map(product_bundles.values())
+		product_bundle_qty_map = self._get_product_bundle_qty_map(
+			next(iter(product_bundles.values())).get("item_code")
+		)
 
-		for so_row, item_code in product_bundles.items():
-			picked_qty = self._compute_picked_qty_for_bundle(so_row, product_bundle_qty_map[item_code])
+		for so_row, value in product_bundles.items():
+			picked_qty = self._compute_picked_qty_for_bundle(so_row, product_bundle_qty_map[value.item_code])
 			item_table = "Sales Order Item"
 			already_picked = frappe.db.get_value(item_table, so_row, "picked_qty", for_update=True)
 			frappe.db.set_value(
@@ -763,15 +765,23 @@ class PickList(TransactionBase):
 			if not item.product_bundle_item:
 				continue
 
-			product_bundles[item.sales_order_item] = frappe.db.get_value(
-				"Sales Order Item",
-				item.sales_order_item,
-				"item_code",
+			product_bundles[item.sales_order_item] = frappe._dict(
+				{
+					"item_code": frappe.db.get_value(
+						"Sales Order Item",
+						item.sales_order_item,
+						"item_code",
+					),
+					"pick_list_item": item.name,
+				}
 			)
 		return product_bundles
 
 	def _get_product_bundle_qty_map(self, bundles: list[str]) -> dict[str, dict[str, float]]:
 		# bundle_item_code: Dict[component, qty]
+		if isinstance(bundles, str):
+			bundles = [bundles]
+
 		product_bundle_qty_map = {}
 		for bundle_item_code in bundles:
 			bundle = frappe.get_last_doc("Product Bundle", {"new_item_code": bundle_item_code, "disabled": 0})
@@ -1378,17 +1388,20 @@ def add_product_bundles_to_delivery_note(
 	When mapping pick list items, the bundle item itself isn't part of the
 	locations. Dynamically fetch and add parent bundle item into DN."""
 	product_bundles = pick_list._get_product_bundles()
-	product_bundle_qty_map = pick_list._get_product_bundle_qty_map(product_bundles.values())
+	product_bundle_qty_map = pick_list._get_product_bundle_qty_map(
+		next(iter(product_bundles.values())).get("item_code")
+	)
 
-	for so_row, item_code in product_bundles.items():
+	for so_row, value in product_bundles.items():
 		sales_order_item = frappe.get_doc("Sales Order Item", so_row)
 		if sales_order and sales_order_item.parent != sales_order:
 			continue
 
 		dn_bundle_item = map_child_doc(sales_order_item, delivery_note, item_mapper)
 		dn_bundle_item.qty = pick_list._compute_picked_qty_for_bundle(
-			so_row, product_bundle_qty_map[item_code]
+			so_row, product_bundle_qty_map[value.item_code]
 		)
+		dn_bundle_item.pick_list_item = value.pick_list_item
 		dn_bundle_item.against_pick_list = pick_list.name
 		update_delivery_note_item(sales_order_item, dn_bundle_item, delivery_note)
 
