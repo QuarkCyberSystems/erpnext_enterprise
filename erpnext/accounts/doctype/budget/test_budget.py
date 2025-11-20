@@ -619,7 +619,7 @@ def set_total_expense_zero(posting_date, budget_against_field=None, budget_again
 		{
 			"account": "_Test Account Cost for Goods Sold - _TC",
 			"cost_center": "_Test Cost Center - _TC",
-			"monthly_end_date": posting_date,
+			"month_end_date": posting_date,
 			"company": "_Test Company",
 			"from_fiscal_year": fiscal_year,
 			"to_fiscal_year": fiscal_year,

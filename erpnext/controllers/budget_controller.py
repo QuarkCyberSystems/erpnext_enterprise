@@ -428,7 +428,7 @@ class BudgetValidation:
 				frappe.bold(key[2]),
 				frappe.bold(frappe.unscrub(key[0])),
 				frappe.bold(key[1]),
-				frappe.bold(fmt_money(v_map.accumulated_montly_budget, currency=currency)),
+				frappe.bold(fmt_money(v_map.accumulated_monthly_budget, currency=currency)),
 				self.budget_applicable_for(v_map, current_amt),
 				frappe.bold(fmt_money(monthly_diff, currency=currency)),
 			)

@@ -44,7 +44,7 @@ def migrate_single_budget(budget_name):
 	if not account_rows:
 		return
 
-	frappe.db.delete("Budget Account", {"parent": budget_doc.name})
+	frappe.db.delete("Budget Account", filters={"parent": budget_doc.name})
 
 	percentage_allocations = get_percentage_allocations(budget_doc)
 

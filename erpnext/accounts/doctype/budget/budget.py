@@ -69,6 +69,7 @@ class Budget(Document):
 	def validate(self):
 		if not self.get(frappe.scrub(self.budget_against)):
 			frappe.throw(_("{0} is mandatory").format(self.budget_against))
+		self.validate_budget_amount()
 		self.validate_fiscal_year()
 		self.set_fiscal_year_dates()
 		self.validate_duplicate()
@@ -76,6 +77,10 @@ class Budget(Document):
 		self.set_null_value()
 		self.validate_applicable_for()
 		self.validate_existing_expenses()
+
+	def validate_budget_amount(self):
+		if self.budget_amount <= 0:
+			frappe.throw(_("Budget Amount can not be {0}.").format(self.budget_amount))
 
 	def validate_fiscal_year(self):
 		if self.from_fiscal_year:
@@ -369,6 +374,9 @@ def validate_expense_against_budget(params, expense_amount=0):
 
 	if not params.account:
 		params.account = params.get("expense_account")
+
+	if not params.get("expense_account") and params.get("account"):
+		params.expense_account = params.account
 
 	if not (params.get("account") and params.get("cost_center")) and params.item_code:
 		params.cost_center, params.account = get_item_details(params)
