@@ -4536,6 +4536,60 @@ class TestPurchaseReceipt(IntegrationTestCase):
 			if row.account == expense_contra_account:
 				self.assertEqual(row.credit, 1000)
 
+	def test_repost_gl_entries(self):
+		from erpnext.stock.doctype.stock_entry.test_stock_entry import make_stock_entry
+
+		item = "Test Item for Repost GL Entries"
+		make_item(item, {"is_stock_item": 1})
+		company = "_Test Company with perpetual inventory"
+
+		account = "Reposting Adjustment - TCP1"
+		if not frappe.db.exists("Account", account):
+			frappe.get_doc(
+				{
+					"doctype": "Account",
+					"account_name": "Reposting Adjustment",
+					"parent_account": "Stock Expenses - TCP1",
+					"company": company,
+					"is_group": 0,
+					"account_type": "Expense Account",
+				}
+			).insert()
+
+		se = make_stock_entry(
+			item_code=item,
+			qty=10,
+			rate=100,
+			company=company,
+			target="Stores - TCP1",
+		)
+
+		gl_entries = get_gl_entries(se.doctype, se.name)
+		for row in gl_entries:
+			self.assertTrue(row.account in ["Stock In Hand - TCP1", "Stock Adjustment - TCP1"])
+
+		se.items[0].db_set("expense_account", account)
+		se.reload()
+
+		repost_doc = frappe.get_doc(
+			{
+				"doctype": "Repost Item Valuation",
+				"based_on": "Transaction",
+				"voucher_type": se.doctype,
+				"voucher_no": se.name,
+				"posting_date": se.posting_date,
+				"posting_time": se.posting_time,
+				"company": se.company,
+				"repost_only_accounting_ledgers": 1,
+			}
+		)
+
+		repost_doc.submit()
+
+		gl_entries = get_gl_entries(se.doctype, se.name)
+		for row in gl_entries:
+			self.assertTrue(row.account in ["Stock In Hand - TCP1", account])
+
 
 def prepare_data_for_internal_transfer():
 	from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_internal_supplier
