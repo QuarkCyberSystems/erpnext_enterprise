@@ -3612,7 +3612,7 @@ class TestSalesInvoice(ERPNextTestSuite):
 		frappe.db.get_all(
 			"Payment Ledger Entry",
 			filters={"against_voucher_no": si.name, "delinked": 0},
-			fields=["sum(amount), sum(amount_in_account_currency)"],
+			fields=[{"SUM": "amount"}, {"SUM": "amount_in_account_currency"}],
 			as_list=1,
 		)
 

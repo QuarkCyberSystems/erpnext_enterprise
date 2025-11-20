@@ -10,6 +10,8 @@ import frappe
 from frappe import _, bold
 from frappe.core.doctype.version.version import get_diff
 from frappe.model.mapper import get_mapped_doc
+from frappe.query_builder import Field
+from frappe.query_builder.functions import Count, IfNull, Sum
 from frappe.utils import cint, cstr, flt, get_link_to_form, parse_json, today
 from frappe.website.website_generator import WebsiteGenerator
 
@@ -1193,7 +1195,6 @@ def get_valuation_rate(data):
 	2) If no value, get last valuation rate from SLE
 	3) If no value, get valuation rate from Item
 	"""
-	from frappe.query_builder.functions import Count, IfNull, Sum
 	from pypika import Case
 
 	item_code, company = data.get("item_code"), data.get("company")
@@ -1484,7 +1485,10 @@ def add_non_stock_items_cost(stock_entry, work_order, expense_account, job_card=
 	non_stock_items = frappe.get_all(
 		"Item",
 		fields="name",
-		filters={"name": ("in", list(items.keys())), "ifnull(is_stock_item, 0)": 0},
+		filters=[
+			["name", "in", list(items.keys())],
+			[IfNull(Field("is_stock_item"), 0), "=", 0],
+		],
 		as_list=1,
 	)
 
@@ -1506,7 +1510,7 @@ def add_non_stock_items_cost(stock_entry, work_order, expense_account, job_card=
 
 
 def add_operating_cost_component_wise(
-	stock_entry, work_order=None, operating_cost_per_unit=None, op_expense_account=None, job_card=None
+	stock_entry, work_order=None, consumed_operating_cost=None, op_expense_account=None, job_card=None
 ):
 	if not work_order:
 		return False
@@ -1530,11 +1534,11 @@ def add_operating_cost_component_wise(
 				get_component_account(wc.operating_component, stock_entry.company) or op_expense_account
 			)
 			actual_cp_operating_cost = flt(
-				flt(wc.operating_cost) * flt(flt(row.actual_operation_time) / 60.0),
+				flt(wc.operating_cost) * flt(flt(row.actual_operation_time) / 60.0) - consumed_operating_cost,
 				row.precision("actual_operating_cost"),
 			)
 
-			per_unit_cost = flt(actual_cp_operating_cost) / flt(row.completed_qty)
+			per_unit_cost = flt(actual_cp_operating_cost) / flt(row.completed_qty - work_order.produced_qty)
 
 			if per_unit_cost and expense_account:
 				stock_entry.append(
@@ -1545,6 +1549,7 @@ def add_operating_cost_component_wise(
 							wc.operating_component, row.operation
 						),
 						"amount": per_unit_cost * flt(stock_entry.fg_completed_qty),
+						"has_operating_cost": 1,
 					},
 				)
 
@@ -1561,13 +1566,20 @@ def get_component_account(parent, company):
 
 
 def add_operations_cost(stock_entry, work_order=None, expense_account=None, job_card=None):
-	from erpnext.stock.doctype.stock_entry.stock_entry import get_operating_cost_per_unit
+	from erpnext.stock.doctype.stock_entry.stock_entry import (
+		get_consumed_operating_cost,
+		get_operating_cost_per_unit,
+	)
 
 	operating_cost_per_unit = get_operating_cost_per_unit(work_order, stock_entry.bom_no)
 
 	if operating_cost_per_unit:
 		cost_added = add_operating_cost_component_wise(
-			stock_entry, work_order, operating_cost_per_unit, expense_account, job_card=job_card
+			stock_entry,
+			work_order,
+			get_consumed_operating_cost(work_order.name, stock_entry.bom_no),
+			expense_account,
+			job_card=job_card,
 		)
 
 		if not cost_added:
@@ -1577,6 +1589,7 @@ def add_operations_cost(stock_entry, work_order=None, expense_account=None, job_
 					"expense_account": expense_account,
 					"description": _("Operating Cost as per Work Order / BOM"),
 					"amount": operating_cost_per_unit * flt(stock_entry.fg_completed_qty),
+					"has_operating_cost": 1,
 				},
 			)
 
@@ -1594,8 +1607,6 @@ def add_operations_cost(stock_entry, work_order=None, expense_account=None, job_
 			)
 
 	def get_max_operation_quantity():
-		from frappe.query_builder.functions import Sum
-
 		table = frappe.qb.DocType("Job Card")
 		query = (
 			frappe.qb.from_(table)
@@ -1610,8 +1621,6 @@ def add_operations_cost(stock_entry, work_order=None, expense_account=None, job_
 		return min([d.qty for d in query.run(as_dict=True)], default=0)
 
 	def get_utilised_corrective_cost():
-		from frappe.query_builder.functions import Sum
-
 		table = frappe.qb.DocType("Stock Entry")
 		subquery = (
 			frappe.qb.from_(table)
@@ -1721,7 +1730,10 @@ def item_query(doctype, txt, searchfield, start, page_len, filters):
 	if not searchfields:
 		searchfields = ["name"]
 
-	query_filters = {"disabled": 0, "ifnull(end_of_life, '3099-12-31')": (">", today())}
+	query_filters = [
+		["disabled", "=", 0],
+		[IfNull(Field("end_of_life"), "3099-12-31"), ">", today()],
+	]
 
 	or_cond_filters = {}
 	if txt:
@@ -1730,8 +1742,9 @@ def item_query(doctype, txt, searchfield, start, page_len, filters):
 
 		barcodes = frappe.get_all(
 			"Item Barcode",
-			fields=["distinct parent as item_code"],
+			fields=["parent as item_code"],
 			filters={"barcode": ("like", f"%{txt}%")},
+			distinct=True,
 		)
 
 		barcodes = [d.item_code for d in barcodes]
@@ -1741,11 +1754,11 @@ def item_query(doctype, txt, searchfield, start, page_len, filters):
 	if filters and filters.get("item_code"):
 		has_variants = frappe.get_cached_value("Item", filters.get("item_code"), "has_variants")
 		if not has_variants:
-			query_filters["has_variants"] = 0
+			query_filters.append(["has_variants", "=", 0])
 
 	if filters:
 		for fieldname, value in filters.items():
-			query_filters[fieldname] = value
+			query_filters.append([fieldname, "=", value])
 
 	return frappe.get_list(
 		"Item",

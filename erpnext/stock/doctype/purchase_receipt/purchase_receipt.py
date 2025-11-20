@@ -1333,7 +1333,7 @@ def get_item_wise_returned_qty(pr_doc):
 			"Purchase Receipt",
 			fields=[
 				"`tabPurchase Receipt Item`.purchase_receipt_item",
-				"sum(abs(`tabPurchase Receipt Item`.qty)) as qty",
+				{"SUM": [{"ABS": "`tabPurchase Receipt Item`.qty"}], "as": "qty"},
 			],
 			filters=[
 				["Purchase Receipt", "docstatus", "=", 1],

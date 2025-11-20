@@ -1,11 +1,11 @@
-# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2025, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-
+# import frappe
 from frappe.model.document import Document
 
 
-class LandedCostTaxesandCharges(Document):
+class BudgetDistribution(Document):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
 
@@ -14,17 +14,13 @@ class LandedCostTaxesandCharges(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		account_currency: DF.Link | None
 		amount: DF.Currency
-		base_amount: DF.Currency
-		description: DF.SmallText
-		exchange_rate: DF.Float
-		expense_account: DF.Link | None
-		has_corrective_cost: DF.Check
-		has_operating_cost: DF.Check
+		end_date: DF.Date | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		percent: DF.Percent
+		start_date: DF.Date | None
 	# end: auto-generated types
 
 	pass

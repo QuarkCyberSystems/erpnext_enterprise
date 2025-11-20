@@ -166,9 +166,10 @@ class WorkOrder(Document):
 		operation_details = frappe._dict(
 			frappe.get_all(
 				"Job Card",
-				fields=["operation", "for_quantity"],
+				fields=["operation", {"SUM": "for_quantity"}],
 				filters={"docstatus": ("<", 2), "work_order": self.name},
 				as_list=1,
+				group_by="operation_id",
 			)
 		)
 
@@ -717,7 +718,7 @@ class WorkOrder(Document):
 		if self.production_plan_item:
 			total_qty = frappe.get_all(
 				"Work Order",
-				fields="sum(produced_qty) as produced_qty",
+				fields=[{"SUM": "produced_qty", "as": "produced_qty"}],
 				filters={
 					"docstatus": 1,
 					"production_plan": self.production_plan,
@@ -1346,7 +1347,7 @@ class WorkOrder(Document):
 		else:
 			data = frappe.get_all(
 				"Stock Entry",
-				fields=["timestamp(posting_date, posting_time) as posting_datetime"],
+				fields=[{"TIMESTAMP": ["posting_date", "posting_time"], "as": "posting_datetime"}],
 				filters={
 					"work_order": self.name,
 					"purpose": ("in", ["Material Transfer for Manufacture", "Manufacture"]),

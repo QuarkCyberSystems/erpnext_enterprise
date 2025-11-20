@@ -1183,6 +1183,91 @@ class StockController(AccountsController):
 			self.doctype, self.name, self.docstatus, via_landed_cost_voucher=via_landed_cost_voucher
 		)
 
+		self.validate_reserved_batches()
+
+	def validate_reserved_batches(self):
+		if not frappe.db.get_single_value("Stock Settings", "enable_stock_reservation"):
+			return
+
+		if self.doctype not in ["Delivery Note", "Sales Invoice", "Stock Entry"]:
+			return
+
+		batches = frappe.get_all(
+			"Serial and Batch Entry",
+			filters={
+				"voucher_type": self.doctype,
+				"voucher_no": self.name,
+				"docstatus": 1,
+				"batch_no": ("is", "set"),
+				"qty": ("<", 0),
+			},
+			pluck="batch_no",
+		)
+
+		if not batches:
+			return
+
+		field_mapper = {
+			"Sales Invoice": [["Sales Order", "sales_order"]],
+			"Delivery Note": [["Sales Order", "against_sales_order"]],
+			"Stock Entry": [
+				["Work Order", "work_order"],
+				["Subcontracting Inward Order", "subcontracting_inward_order"],
+			],
+		}.get(self.doctype)
+
+		reserved_batches_data = self.get_reserved_batches(batches)
+		items = self.items
+		if self.doctype == "Stock Entry":
+			items = [self]
+
+		for item in items:
+			for field in field_mapper:
+				if not item.get(field[1]):
+					continue
+
+				value = item.get(field[1])
+				for row in reserved_batches_data:
+					if self.doctype in ["Sales Invoice", "Delivery Note"] and row.item_code != item.get(
+						"item_code"
+					):
+						continue
+
+					if row.voucher_no == value:
+						continue
+
+					frappe.throw(
+						_(
+							"The batch {0} is already reserved in {1} {2}. So, cannot proceed with the {3} {4}, which is created against the {5} {6}."
+						).format(
+							frappe.bold(row.batch_no),
+							frappe.bold(row.voucher_type),
+							frappe.bold(row.voucher_no),
+							frappe.bold(self.doctype),
+							frappe.bold(self.name),
+							frappe.bold(field[0]),
+							frappe.bold(value),
+						),
+						title=_("Reserved Batch Conflict"),
+					)
+
+	def get_reserved_batches(self, batches):
+		doctype = frappe.qb.DocType("Stock Reservation Entry")
+		child_doc = frappe.qb.DocType("Serial and Batch Entry")
+
+		return (
+			frappe.qb.from_(doctype)
+			.join(child_doc)
+			.on(doctype.name == child_doc.parent)
+			.select(
+				child_doc.batch_no,
+				doctype.voucher_type,
+				doctype.voucher_no,
+				doctype.item_code,
+			)
+			.where((doctype.docstatus == 1) & (child_doc.batch_no.isin(batches)))
+		).run(as_dict=True)
+
 	def make_gl_entries_on_cancel(self, from_repost=False):
 		if not from_repost:
 			cancel_exchange_gain_loss_journal(frappe._dict(doctype=self.doctype, name=self.name))
@@ -1235,7 +1320,7 @@ class StockController(AccountsController):
 				total_returned += flt(item.returned_qty * item.rate)
 
 			if total_returned < total_amount:
-				target_ref_field = "(amount - (returned_qty * rate))"
+				target_ref_field = {"SUB": ["amount", {"MUL": ["returned_qty", "rate"]}], "as": "ref_amount"}
 
 		self._update_percent_field(
 			{
