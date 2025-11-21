@@ -235,7 +235,7 @@ class Customer(TransactionBase):
 			self.update_lead_status()
 
 		if self.flags.is_new_doc:
-			self.link_lead_address_and_contact()
+			self.link_address_and_contact()
 			self.copy_communication()
 
 		self.update_customer_groups()
@@ -279,15 +279,23 @@ class Customer(TransactionBase):
 		if self.lead_name:
 			frappe.db.set_value("Lead", self.lead_name, "status", "Converted")
 
-	def link_lead_address_and_contact(self):
-		if self.lead_name:
-			# assign lead address and contact to customer (if already not set)
+	def link_address_and_contact(self):
+		linked_documents = {
+			"Lead": self.lead_name,
+			"Opportunity": self.opportunity_name,
+			"Prospect": self.prospect_name,
+		}
+		for doctype, docname in linked_documents.items():
+			# assign lead, opportunity and prospect address and contact to customer (if already not set)
+			if not docname:
+				continue
+
 			linked_contacts_and_addresses = frappe.get_all(
 				"Dynamic Link",
 				filters=[
 					["parenttype", "in", ["Contact", "Address"]],
-					["link_doctype", "=", "Lead"],
-					["link_name", "=", self.lead_name],
+					["link_doctype", "=", doctype],
+					["link_name", "=", docname],
 				],
 				fields=["parent as name", "parenttype as doctype"],
 			)
