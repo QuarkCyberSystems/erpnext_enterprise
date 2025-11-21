@@ -69,7 +69,7 @@ class TestPlaidSettings(ERPNextTestSuite):
 		}
 
 		bank = json.dumps(frappe.get_doc("Bank", "Citi").as_dict(), default=json_handler)
-		company = frappe.db.get_single_value("Global Defaults", "default_company")
+		company = self.companies[0].name
 
 		add_bank_accounts(bank_accounts, bank, company)
 
