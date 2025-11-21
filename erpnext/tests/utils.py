@@ -132,12 +132,12 @@ class ERPNextTestSuite(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
-		cls.make_presets()
-		cls.make_persistent_master_data()
-
 		# initilize global test records attribute
 		if not hasattr(cls, "globalTestRecords"):
 			cls.globalTestRecords = {}
+
+		cls.make_presets()
+		cls.make_persistent_master_data()
 
 	@classmethod
 	def load_test_records(cls, doctype):
@@ -239,6 +239,9 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_loyalty_program()
 		cls.make_shareholder()
 		cls.make_sales_taxes_template()
+		cls.make_workstation()
+		cls.make_operation()
+		cls.make_bom()
 		cls.update_selling_settings()
 		cls.update_stock_settings()
 		cls.update_system_settings()
@@ -2785,6 +2788,56 @@ class ERPNextTestSuite(unittest.TestCase):
 						},
 					)
 				)
+
+	@classmethod
+	def make_operation(cls):
+		records = [
+			{"doctype": "Operation", "name": "_Test Operation 1", "workstation": "_Test Workstation 1"}
+		]
+		cls.operation = []
+		for x in records:
+			if not frappe.db.exists("Operation", {"name": x.get("name")}):
+				cls.operation.append(frappe.get_doc(x).insert())
+			else:
+				cls.operation.append(frappe.get_doc("Operation", {"name": x.get("name")}))
+
+	@classmethod
+	def make_workstation(cls):
+		records = [
+			{
+				"doctype": "Workstation",
+				"name": "_Test Workstation 1",
+				"workstation_name": "_Test Workstation 1",
+				"warehouse": "_Test warehouse - _TC",
+				"hour_rate_labour": 25,
+				"hour_rate_electricity": 25,
+				"hour_rate_consumable": 25,
+				"hour_rate_rent": 25,
+				"holiday_list": "_Test Holiday List",
+				"working_hours": [{"start_time": "10:00:00", "end_time": "20:00:00"}],
+			}
+		]
+		cls.workstation = []
+		for x in records:
+			if not frappe.db.exists("Workstation", {"workstation_name": x.get("workstation_name")}):
+				cls.workstation.append(frappe.get_doc(x).insert())
+			else:
+				cls.workstation.append(
+					frappe.get_doc("Workstation", {"workstation_name": x.get("workstation_name")})
+				)
+
+	@classmethod
+	def make_bom(cls):
+		# TODO: replace JSON source with hardcoded data in py
+		cls.load_test_records("BOM")
+		records = cls.globalTestRecords["BOM"]
+		cls.bom = []
+		for x in records:
+			x["company"] = cls.companies[0].name
+			if not frappe.db.exists("BOM", {"item": x.get("item"), "company": x.get("company")}):
+				cls.bom.append(frappe.get_doc(x).insert())
+			else:
+				cls.bom.append(frappe.get_doc("BOM", {"item": x.get("item"), "company": x.get("company")}))
 
 	@contextmanager
 	def set_user(self, user: str):

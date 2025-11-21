@@ -16,6 +16,11 @@ from erpnext.tests.utils import ERPNextTestSuite
 class TestBOMUpdateTool(ERPNextTestSuite):
 	"Test major functions run via BOM Update Tool."
 
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.load_test_records("BOM")
+
 	def tearDown(self):
 		frappe.db.rollback()
 
