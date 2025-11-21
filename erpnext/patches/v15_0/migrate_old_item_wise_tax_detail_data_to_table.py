@@ -53,6 +53,10 @@ def execute():
 				for index in bar:
 					chunk = docnames[index : index + chunk_size]
 					doc_info = get_doc_details(chunk, doctype)
+					if not doc_info:
+						# no valid invoices found
+						continue
+
 					docs = [d.name for d in doc_info]  # valid invoices
 
 					# Delete existing item-wise tax details to avoid duplicates
