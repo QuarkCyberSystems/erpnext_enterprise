@@ -1661,23 +1661,6 @@ def get_items_for_material_requests(doc, warehouses=None, get_parent_warehouse_d
 			] += d.get("qty")
 		sub_assembly_items = {k[:2]: v for k, v in sub_assembly_items.items()}
 
-		data = []
-		for row in doc.get("po_items"):
-			get_sub_assembly_items(
-				[],
-				frappe._dict(),
-				row.get("bom_no"),
-				data,
-				row.get("planned_qty"),
-				doc.get("company"),
-				warehouse=doc.get("sub_assembly_warehouse"),
-				skip_available_sub_assembly_item=doc.get("skip_available_sub_assembly_item"),
-				fetch_phantom_items=True,
-			)
-
-		for d in data:
-			sub_assembly_items[(d.get("production_item"), d.get("bom_no"))] += d.get("stock_qty")
-
 	for data in po_items:
 		if not data.get("include_exploded_items") and doc.get("sub_assembly_items"):
 			data["include_exploded_items"] = 1
@@ -1896,9 +1879,8 @@ def get_sub_assembly_items(
 	warehouse=None,
 	indent=0,
 	skip_available_sub_assembly_item=False,
-	fetch_phantom_items=False,
 ):
-	data = get_bom_children(parent=bom_no, return_all=False, fetch_phantom_items=fetch_phantom_items)
+	data = get_bom_children(parent=bom_no)
 	for d in data:
 		if d.expandable:
 			parent_item_code = frappe.get_cached_value("BOM", bom_no, "item")
@@ -1921,31 +1903,32 @@ def get_sub_assembly_items(
 			elif warehouse:
 				bin_details.setdefault(d.item_code, get_bin_details(d, company, for_warehouse=warehouse))
 
-			bom_data.append(
-				frappe._dict(
-					{
-						"actual_qty": bin_details[d.item_code][0].get("actual_qty", 0)
-						if bin_details.get(d.item_code)
-						else 0,
-						"parent_item_code": parent_item_code,
-						"description": d.description,
-						"production_item": d.item_code,
-						"item_name": d.item_name,
-						"stock_uom": d.stock_uom,
-						"uom": d.stock_uom,
-						"bom_no": d.value,
-						"is_sub_contracted_item": d.is_sub_contracted_item,
-						"bom_level": indent,
-						"indent": indent,
-						"stock_qty": stock_qty,
-						"required_qty": required_qty,
-						"projected_qty": bin_details[d.item_code][0].get("projected_qty", 0)
-						if bin_details.get(d.item_code)
-						else 0,
-						"main_bom": bom_no,
-					}
+			if not d.is_phantom_item:
+				bom_data.append(
+					frappe._dict(
+						{
+							"actual_qty": bin_details[d.item_code][0].get("actual_qty", 0)
+							if bin_details.get(d.item_code)
+							else 0,
+							"parent_item_code": parent_item_code,
+							"description": d.description,
+							"production_item": d.item_code,
+							"item_name": d.item_name,
+							"stock_uom": d.stock_uom,
+							"uom": d.stock_uom,
+							"bom_no": d.value,
+							"is_sub_contracted_item": d.is_sub_contracted_item,
+							"bom_level": indent,
+							"indent": indent,
+							"stock_qty": stock_qty,
+							"required_qty": required_qty,
+							"projected_qty": bin_details[d.item_code][0].get("projected_qty", 0)
+							if bin_details.get(d.item_code)
+							else 0,
+							"main_bom": bom_no,
+						}
+					)
 				)
-			)
 
 			if d.value:
 				get_sub_assembly_items(
@@ -1958,7 +1941,6 @@ def get_sub_assembly_items(
 					warehouse,
 					indent=indent + 1,
 					skip_available_sub_assembly_item=skip_available_sub_assembly_item,
-					fetch_phantom_items=fetch_phantom_items,
 				)
 
 
