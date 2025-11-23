@@ -2422,9 +2422,17 @@ class TestProductionPlan(IntegrationTestCase):
 			self.assertEqual(row.ordered_qty, 10.0)
 
 	def test_phantom_bom_explosion(self):
-		from erpnext.manufacturing.doctype.bom.test_bom import create_tree_for_phantom_bom_tests
+		from erpnext.manufacturing.doctype.bom.test_bom import create_nested_bom
 
-		create_tree_for_phantom_bom_tests()
+		bom_tree_1 = {
+			"Top Level Parent": {
+				"Sub Assembly Level 1-1": {"Phantom Item Level 1-2": {"Item Level 1-3": {}}},
+				"Phantom Item Level 2-1": {"Sub Assembly Level 2-2": {"Item Level 2-3": {}}},
+				"Item Level 3-1": {},
+			}
+		}
+		phantom_list = ["Phantom Item Level 1-2", "Phantom Item Level 2-1"]
+		create_nested_bom(bom_tree_1, prefix="", phantom_items=phantom_list)
 
 		plan = create_production_plan(
 			item_code="Top Level Parent",
@@ -2442,8 +2450,13 @@ class TestProductionPlan(IntegrationTestCase):
 		for d in mr_items:
 			plan.append("mr_items", d)
 
-		self.assertEqual(plan.sub_assembly_items[0].production_item, "Sub Assembly Level 1-1")
-		self.assertEqual([item.item_code for item in plan.mr_items], ["Item Level 1-3", "Item Level 2-3"])
+		self.assertEqual(
+			[item.production_item for item in plan.sub_assembly_items],
+			["Sub Assembly Level 1-1", "Sub Assembly Level 2-2"],
+		)
+		self.assertEqual(
+			[item.item_code for item in plan.mr_items], ["Item Level 1-3", "Item Level 2-3", "Item Level 3-1"]
+		)
 
 
 def create_production_plan(**args):
