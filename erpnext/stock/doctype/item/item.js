@@ -358,6 +358,17 @@ $.extend(erpnext.item, {
 			};
 		};
 
+		frm.fields_dict["item_defaults"].grid.get_field("default_inventory_account").get_query = function (
+			doc,
+			cdt,
+			cdn
+		) {
+			const row = locals[cdt][cdn];
+			return {
+				filters: { company: row.company, account_type: "Stock", is_group: 0 },
+			};
+		};
+
 		frm.fields_dict["item_defaults"].grid.get_field("default_discount_account").get_query = function (
 			doc,
 			cdt,
@@ -508,6 +519,17 @@ $.extend(erpnext.item, {
 					},
 				};
 			});
+		});
+
+		frm.set_query("default_inventory_account", "item_defaults", (doc, cdt, cdn) => {
+			let row = locals[cdt][cdn];
+			return {
+				filters: {
+					is_group: 0,
+					company: row.company,
+					account_type: "Stock",
+				},
+			};
 		});
 	},
 
@@ -799,13 +821,11 @@ $.extend(erpnext.item, {
 			if (!row.disabled) {
 				if (row.numeric_values) {
 					fieldtype = "Float";
-					desc =
-						"Min Value: " +
-						row.from_range +
-						" , Max Value: " +
-						row.to_range +
-						", in Increments of: " +
-						row.increment;
+					desc = __("Min Value: {0}, Max Value: {1}, in Increments of: {2}", [
+						frappe.format(row.from_range, { fieldtype: "Float" }, { always_show_decimals: true }),
+						frappe.format(row.to_range, { fieldtype: "Float" }, { always_show_decimals: true }),
+						frappe.format(row.increment, { fieldtype: "Float" }, { always_show_decimals: true }),
+					]);
 				} else {
 					fieldtype = "Data";
 					desc = "";

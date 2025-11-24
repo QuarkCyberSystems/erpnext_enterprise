@@ -65,6 +65,7 @@ class SalesInvoice(SellingController):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from erpnext.accounts.doctype.item_wise_tax_detail.item_wise_tax_detail import ItemWiseTaxDetail
 		from erpnext.accounts.doctype.payment_schedule.payment_schedule import PaymentSchedule
 		from erpnext.accounts.doctype.pricing_rule_detail.pricing_rule_detail import PricingRuleDetail
 		from erpnext.accounts.doctype.sales_invoice_advance.sales_invoice_advance import SalesInvoiceAdvance
@@ -146,6 +147,7 @@ class SalesInvoice(SellingController):
 		is_opening: DF.Literal["No", "Yes"]
 		is_pos: DF.Check
 		is_return: DF.Check
+		item_wise_tax_details: DF.Table[ItemWiseTaxDetail]
 		items: DF.Table[SalesInvoiceItem]
 		language: DF.Link | None
 		letter_head: DF.Link | None
@@ -847,9 +849,10 @@ class SalesInvoice(SellingController):
 				timesheet.db_update_all()
 
 	def update_billed_qty_in_scio(self):
-		table = frappe.qb.DocType("Subcontracting Inward Order Received Item")
-		fieldname = table.returned_qty if self.is_return else table.billed_qty
+		if self.is_return:
+			return
 
+		table = frappe.qb.DocType("Subcontracting Inward Order Received Item")
 		data = frappe._dict(
 			{
 				item.scio_detail: item.stock_qty if self._action == "submit" else -item.stock_qty
@@ -861,8 +864,8 @@ class SalesInvoice(SellingController):
 		if data:
 			case_expr = Case()
 			for name, qty in data.items():
-				case_expr = case_expr.when(table.name == name, fieldname + qty)
-			frappe.qb.update(table).set(fieldname, case_expr).where(
+				case_expr = case_expr.when(table.name == name, table.billed_qty + qty)
+			frappe.qb.update(table).set(table.billed_qty, case_expr).where(
 				(table.name.isin(list(data.keys()))) & (table.docstatus == 1)
 			).run()
 
@@ -1281,23 +1284,21 @@ class SalesInvoice(SellingController):
 			table = frappe.qb.DocType("Subcontracting Inward Order Received Item")
 			query = (
 				frappe.qb.from_(table)
-				.select(
-					table.required_qty, table.consumed_qty, table.billed_qty, table.returned_qty, table.name
-				)
+				.select(table.required_qty, table.consumed_qty, table.billed_qty, table.name)
 				.where((table.docstatus == 1) & (table.name.isin([item.scio_detail for item in self_rms])))
 			)
 			result = query.run(as_dict=True)
 			data = {item.name: item for item in result}
 			for item in self_rms:
 				row = data.get(item.scio_detail)
-				max_qty = max(row.required_qty, row.consumed_qty) - row.billed_qty - row.returned_qty
+				max_qty = max(row.required_qty, row.consumed_qty) - row.billed_qty
 				if item.stock_qty > max_qty:
 					frappe.throw(
 						_("Row #{0}: Stock quantity {1} ({2}) for item {3} cannot exceed {4}").format(
 							item.idx,
 							item.stock_qty,
 							item.stock_uom,
-							frappe.bold(item.item_code),
+							get_link_to_form("Item", item.item_code),
 							frappe.bold(max_qty),
 						)
 					)
@@ -1551,7 +1552,7 @@ class SalesInvoice(SellingController):
 		elif self.docstatus == 2 and cint(self.update_stock) and cint(auto_accounting_for_stock):
 			make_reverse_gl_entries(voucher_type=self.doctype, voucher_no=self.name)
 
-	def get_gl_entries(self, warehouse_account=None):
+	def get_gl_entries(self, inventory_account_map=None):
 		from erpnext.accounts.general_ledger import merge_similar_entries
 
 		gl_entries = []
@@ -2700,6 +2701,9 @@ def make_inter_company_transaction(doctype, source_name, target_doc=None):
 		):
 			target.purchase_order = source.purchase_order
 			target.po_detail = source.purchase_order_item
+
+		if (source.get("serial_no") or source.get("batch_no")) and not source.get("serial_and_batch_bundle"):
+			target.use_serial_batch_fields = 1
 
 	item_field_map = {
 		"doctype": target_doctype + " Item",

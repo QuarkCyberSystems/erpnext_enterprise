@@ -239,6 +239,11 @@ frappe.ui.form.on("Work Order", {
 		frm.trigger("add_custom_button_to_return_components");
 		frm.trigger("allow_alternative_item");
 		frm.trigger("hide_reserve_stock_button");
+		frm.trigger("toggle_items_editable");
+	},
+
+	toggle_items_editable(frm) {
+		frm.toggle_enable("required_items", frm.doc.__onload?.allow_editing_items === 1 ? 1 : 0);
 	},
 
 	hide_reserve_stock_button(frm) {
@@ -652,7 +657,11 @@ frappe.ui.form.on("Work Order Item", {
 							required_qty: row.required_qty || 1,
 							item_name: r.message.item_name,
 							description: r.message.description,
-							source_warehouse: r.message.default_warehouse,
+							source_warehouse:
+								r.message.is_customer_provided_item &&
+								frm.doc.subcontracting_inward_order_item
+									? frm.doc.source_warehouse
+									: r.message.default_warehouse,
 							allow_alternative_item: r.message.allow_alternative_item,
 							include_item_in_manufacturing: r.message.include_item_in_manufacturing,
 						});
@@ -923,6 +932,9 @@ erpnext.work_order = {
 		if (!(frm.doc.wip_warehouse || frm.doc.fg_warehouse)) {
 			frappe.call({
 				method: "erpnext.manufacturing.doctype.work_order.work_order.get_default_warehouse",
+				args: {
+					company: frm.doc.company,
+				},
 				callback: function (r) {
 					if (!r.exe) {
 						frm.set_value("wip_warehouse", r.message.wip_warehouse);

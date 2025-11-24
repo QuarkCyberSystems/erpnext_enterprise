@@ -151,6 +151,17 @@ frappe.ui.form.on("Stock Entry", {
 		if (!check_should_not_attach_bom_items(frm.doc.bom_no)) {
 			erpnext.accounts.dimensions.update_dimension(frm, frm.doctype);
 		}
+
+		if (frm.doc.purpose == "Receive from Customer") {
+			frm.set_query("against_fg", "items", function () {
+				return {
+					query: "erpnext.controllers.subcontracting_inward_controller.get_fg_reference_names",
+					filters: {
+						parent: frm.doc.subcontracting_inward_order,
+					},
+				};
+			});
+		}
 	},
 
 	setup_quality_inspection: function (frm) {
@@ -552,7 +563,7 @@ frappe.ui.form.on("Stock Entry", {
 		const item = locals[cdt][cdn];
 		item.transfer_qty = flt(item.qty) * flt(item.conversion_factor);
 
-		const args = {
+		let args = {
 			item_code: item.item_code,
 			posting_date: frm.doc.posting_date,
 			posting_time: frm.doc.posting_time,
@@ -565,6 +576,10 @@ frappe.ui.form.on("Stock Entry", {
 			voucher_no: item.name,
 			allow_zero_valuation: 1,
 		};
+
+		if (item.batch_no && frm.doc.purpose == "Material Receipt") {
+			args.qty = Math.abs(args.qty) * -1;
+		}
 
 		if (item.item_code || item.serial_no) {
 			frappe.call({
@@ -854,6 +869,10 @@ frappe.ui.form.on("Stock Entry Detail", {
 		if (item.is_finished_item) {
 			frm.events.set_fg_completed_qty(frm);
 		}
+
+		if (frm.doc.purpose === "Receive from Customer") {
+			item.t_warehouse = frm.doc.items.find((item) => item.scio_detail).t_warehouse;
+		}
 	},
 	set_basic_rate_manually(frm, cdt, cdn) {
 		let row = locals[cdt][cdn];
@@ -957,12 +976,10 @@ frappe.ui.form.on("Stock Entry Detail", {
 							no_batch_serial_number_value = true;
 						}
 
-						if (
-							no_batch_serial_number_value &&
-							!frappe.flags.hide_serial_batch_dialog &&
-							!frappe.flags.dialog_set
-						) {
-							frappe.flags.dialog_set = true;
+						if (no_batch_serial_number_value && !frappe.flags.hide_serial_batch_dialog) {
+							if (!frappe.flags.dialog_set) {
+								frappe.flags.dialog_set = true;
+							}
 							erpnext.stock.select_batch_and_serial_no(frm, d);
 						} else {
 							frappe.flags.dialog_set = false;
@@ -1075,6 +1092,21 @@ erpnext.stock.StockEntry = class StockEntry extends erpnext.stock.StockControlle
 					docstatus: 1,
 					company: me.frm.doc.company,
 					status: ["not in", ["Completed", "Closed"]],
+				},
+			};
+		});
+
+		this.frm.set_query("uom", "items", function (doc, cdt, cdn) {
+			let row = locals[cdt][cdn];
+
+			if (!row.item_code) {
+				return;
+			}
+
+			return {
+				query: "erpnext.controllers.queries.get_item_uom_query",
+				filters: {
+					item_code: row.item_code,
 				},
 			};
 		});
@@ -1348,8 +1380,8 @@ erpnext.stock.StockEntry = class StockEntry extends erpnext.stock.StockControlle
 			this.frm.script_manager.copy_from_first_row("items", row, ["expense_account", "cost_center"]);
 		}
 
-		if (!row.s_warehouse) row.s_warehouse = this.frm.doc.from_warehouse;
-		if (!row.t_warehouse) row.t_warehouse = this.frm.doc.to_warehouse;
+		if (this.frm.doc.from_warehouse) row.s_warehouse = this.frm.doc.from_warehouse;
+		if (this.frm.doc.to_warehouse) row.t_warehouse = this.frm.doc.to_warehouse;
 
 		if (cint(frappe.user_defaults?.use_serial_batch_fields)) {
 			frappe.model.set_value(row.doctype, row.name, "use_serial_batch_fields", 1);

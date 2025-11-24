@@ -59,6 +59,7 @@ class SalesOrder(SellingController):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from erpnext.accounts.doctype.item_wise_tax_detail.item_wise_tax_detail import ItemWiseTaxDetail
 		from erpnext.accounts.doctype.payment_schedule.payment_schedule import PaymentSchedule
 		from erpnext.accounts.doctype.pricing_rule_detail.pricing_rule_detail import PricingRuleDetail
 		from erpnext.accounts.doctype.sales_taxes_and_charges.sales_taxes_and_charges import (
@@ -121,6 +122,7 @@ class SalesOrder(SellingController):
 		inter_company_order_reference: DF.Link | None
 		is_internal_customer: DF.Check
 		is_subcontracted: DF.Check
+		item_wise_tax_details: DF.Table[ItemWiseTaxDetail]
 		items: DF.Table[SalesOrderItem]
 		language: DF.Link | None
 		letter_head: DF.Link | None
@@ -481,6 +483,7 @@ class SalesOrder(SellingController):
 	def on_submit(self):
 		self.check_credit_limit()
 		self.update_reserved_qty()
+		self.delete_removed_delivery_schedule_items()
 
 		frappe.get_cached_doc("Authorization Control").validate_approving_authority(
 			self.doctype, self.company, self.base_grand_total, self
@@ -498,6 +501,13 @@ class SalesOrder(SellingController):
 
 		if self.get("reserve_stock") and not self.get("is_subcontracted"):
 			self.create_stock_reservation_entries()
+
+	def delete_removed_delivery_schedule_items(self):
+		items = [d.name for d in self.get("items")]
+		doctype = frappe.qb.DocType("Delivery Schedule Item")
+		frappe.qb.from_(doctype).delete().where(
+			(doctype.sales_order == self.name) & (doctype.sales_order_item.notin(items))
+		).run()
 
 	def on_cancel(self):
 		self.ignore_linked_doctypes = (
@@ -623,9 +633,6 @@ class SalesOrder(SellingController):
 
 		for item_code, warehouse in item_wh_list:
 			update_bin_qty(item_code, warehouse, {"reserved_qty": get_reserved_qty(item_code, warehouse)})
-
-	def on_update(self):
-		pass
 
 	def on_update_after_submit(self):
 		self.calculate_commission()
@@ -901,7 +908,7 @@ class SalesOrder(SellingController):
 			names.append(doc.name)
 
 		if names:
-			self.delete_delivery_schedule_items(names)
+			self.delete_delivery_schedule_items(child_row.name, names)
 
 		if first_delivery_date:
 			self.update_delivery_date_based_on_schedule(child_row, first_delivery_date)
@@ -915,7 +922,7 @@ class SalesOrder(SellingController):
 
 		self.save()
 
-	def delete_delivery_schedule_items(self, ignore_names=None):
+	def delete_delivery_schedule_items(self, sales_order_item=None, ignore_names=None):
 		"""Delete delivery schedule items."""
 		doctype = frappe.qb.DocType("Delivery Schedule Item")
 
@@ -923,6 +930,9 @@ class SalesOrder(SellingController):
 
 		if ignore_names:
 			query = query.where(doctype.name.notin(ignore_names))
+
+		if sales_order_item:
+			query = query.where(doctype.sales_order_item == sales_order_item)
 
 		query.run()
 
@@ -982,7 +992,11 @@ def get_requested_item_qty(sales_order):
 	for d in frappe.db.get_all(
 		"Material Request Item",
 		filters={"docstatus": 1, "sales_order": sales_order},
-		fields=["sales_order_item", "sum(qty) as qty", "sum(received_qty) as received_qty"],
+		fields=[
+			"sales_order_item",
+			{"SUM": "qty", "as": "qty"},
+			{"SUM": "received_qty", "as": "received_qty"},
+		],
 		group_by="sales_order_item",
 	):
 		result[d.sales_order_item] = frappe._dict({"qty": d.qty, "received_qty": d.received_qty})
@@ -1361,7 +1375,7 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False, a
 			.select(
 				child.required_qty,
 				child.consumed_qty,
-				(child.billed_qty - child.returned_qty).as_("qty"),
+				child.billed_qty,
 				child.rm_item_code,
 				child.stock_uom,
 				child.name,
@@ -1377,7 +1391,7 @@ def make_sales_invoice(source_name, target_doc=None, ignore_permissions=False, a
 		if result:
 			idx = len(doclist.items) + 1
 			for item in result:
-				if (qty := max(item.required_qty, item.consumed_qty) - item.qty) > 0:
+				if (qty := max(item.required_qty, item.consumed_qty) - item.billed_qty) > 0:
 					doclist.append(
 						"items",
 						{
@@ -1675,7 +1689,8 @@ def make_purchase_order_for_default_supplier(source_name, selected_items=None, t
 						"pricing_rules",
 					],
 					"postprocess": update_item_for_packed_item,
-					"condition": lambda doc: doc.parent_item in items_to_map,
+					"condition": lambda doc: doc.parent_item in items_to_map
+					and flt(doc.ordered_qty) < flt(doc.qty),
 				},
 			},
 			target_doc,
@@ -1813,7 +1828,8 @@ def make_purchase_order(source_name, selected_items=None, target_doc=None):
 					"pricing_rules",
 				],
 				"postprocess": update_item_for_packed_item,
-				"condition": lambda doc: doc.parent_item in items_to_map,
+				"condition": lambda doc: doc.parent_item in items_to_map
+				and flt(doc.ordered_qty) < flt(doc.qty),
 			},
 		},
 		target_doc,
