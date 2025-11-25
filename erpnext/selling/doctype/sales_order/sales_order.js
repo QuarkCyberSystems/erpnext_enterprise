@@ -1585,6 +1585,28 @@ erpnext.selling.SalesOrderController = class SalesOrderController extends erpnex
 			size: "large",
 			fields: [
 				{
+					fieldname: "set_supplier",
+					fieldtype: "Link",
+					label: __("Set Supplier"),
+					options: "Supplier",
+					onchange: function () {
+						let supplier = dialog.get_value("set_supplier");
+						let items_table = dialog.fields_dict.items_for_po.grid;
+						let selected_items = items_table.get_selected_children();
+
+						selected_items.forEach((item) => {
+							item.supplier = supplier;
+							items_table.refresh();
+						});
+					},
+				},
+				{
+					fieldtype: "Column Break",
+				},
+				{
+					fieldtype: "Section Break",
+				},
+				{
 					fieldname: "items_for_po",
 					fieldtype: "Table",
 					label: __("Select Items"),
