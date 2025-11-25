@@ -1612,34 +1612,27 @@ def make_purchase_order(source_name, selected_items=None, target_doc=None):
 		target.stock_qty = flt(source.stock_qty) - flt(source.ordered_qty)
 		target.project = source_parent.project
 
-	def update_item_for_packed_item(source, target, source_parent):
+	def update_item_for_packed_item(source, target, _):
 		target.qty = flt(source.qty) - flt(source.ordered_qty)
 
 	def filter_items(item, supplier):
 		if (
 			item.ordered_qty < item.stock_qty
-			and item.item_code in item_codes
 			and not is_product_bundle(item.item_code)
+			and items_to_map.get(item.item_code) == supplier
 		):
-			item_supp_comb = next(iter(d for d in items_to_map if d["item_code"] == item.item_code), None)
-			if item_supp_comb and item_supp_comb.get("supplier") == supplier:
-				items_to_map.remove(item_supp_comb)
-				return True
+			return True
 
 		return False
 
-	suppliers = [item.get("supplier") for item in selected_items if item.get("supplier")]
-	suppliers = list(dict.fromkeys(suppliers))  # remove duplicates while preserving order
-
-	item_codes = [item.get("item_code") for item in selected_items if item.get("item_code")]
-	items_to_map = [
-		{"item_code": item.get("item_code"), "supplier": item.get("supplier")}
-		for item in selected_items
-		if item.get("item_code")
-	]
+	items_to_map = {
+		item.get("item_code"): item.get("supplier") for item in selected_items if item.get("item_code")
+	}
+	item_codes = list(set(items_to_map.keys()))
+	suppliers = list(set(items_to_map.values()))
 
 	if not suppliers:
-		frappe.throw(_("Please set a Supplier against the Items to be considered in the Purchase Order."))
+		suppliers = [None]
 
 	purchase_orders = []
 	for supplier in suppliers:
@@ -1712,7 +1705,7 @@ def make_purchase_order(source_name, selected_items=None, target_doc=None):
 		)
 
 		set_delivery_date(doc.items, source_name)
-		if len(suppliers) > 1:
+		if doc.supplier:
 			doc.insert()
 		purchase_orders.append(doc)
 
