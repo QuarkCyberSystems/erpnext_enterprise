@@ -1682,7 +1682,7 @@ def make_purchase_order(source_name, selected_items=None, target_doc=None):
 						"margin_rate_or_amount",
 					],
 					"postprocess": update_item,
-					"condition": lambda doc: filter_items(doc, supplier),
+					"condition": lambda doc, s=supplier: filter_items(doc, s),
 				},
 				"Packed Item": {
 					"doctype": "Purchase Order Item",

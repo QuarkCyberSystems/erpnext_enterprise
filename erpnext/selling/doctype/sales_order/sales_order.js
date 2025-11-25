@@ -1644,7 +1644,7 @@ erpnext.selling.SalesOrderController = class SalesOrderController extends erpnex
 
 				if (selected_items.some((item) => !item.supplier)) {
 					frappe.throw({
-						message: "Supplier is required for all selected Items",
+						message: __("Supplier is required for all selected Items"),
 						title: __("Supplier Required"),
 						indicator: "blue",
 					});
