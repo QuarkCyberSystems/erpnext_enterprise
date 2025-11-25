@@ -1588,6 +1588,8 @@ erpnext.selling.SalesOrderController = class SalesOrderController extends erpnex
 					fieldname: "items_for_po",
 					fieldtype: "Table",
 					label: __("Select Items"),
+					cannot_add_rows: true,
+					cannot_delete_rows: true,
 					fields: [
 						{
 							fieldtype: "Data",
@@ -1698,7 +1700,6 @@ erpnext.selling.SalesOrderController = class SalesOrderController extends erpnex
 		}
 
 		set_po_items_data(dialog);
-		dialog.get_field("items_for_po").grid.only_sortable();
 		dialog.get_field("items_for_po").refresh();
 		dialog.wrapper.find(".grid-heading-row .grid-row-check").click();
 		dialog.show();
