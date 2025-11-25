@@ -360,6 +360,8 @@ class BOMCreator(Document):
 
 @frappe.whitelist()
 def get_children(doctype=None, parent=None, **kwargs):
+	from pypika.terms import ValueWrapper
+
 	if isinstance(kwargs, str):
 		kwargs = frappe.parse_json(kwargs)
 
@@ -373,7 +375,7 @@ def get_children(doctype=None, parent=None, **kwargs):
 		"parent as parent_id",
 		"qty",
 		"idx",
-		"'BOM Creator Item' as doctype",
+		ValueWrapper("BOM Creator Item").as_("doctype"),
 		"name",
 		"uom",
 		"rate",
