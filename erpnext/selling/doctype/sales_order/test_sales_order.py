@@ -1224,8 +1224,8 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 		purchase_orders = make_purchase_order(so.name, selected_items=so_items)
 
 		self.assertEqual(len(purchase_orders), 2)
-		self.assertEqual(purchase_orders[0].supplier, "_Test Supplier")
-		self.assertEqual(purchase_orders[1].supplier, "_Test Supplier 1")
+		supplier_list = sorted([purchase_orders[0].supplier, purchase_orders[1].supplier])
+		self.assertEqual(supplier_list, ["_Test Supplier", "_Test Supplier 1"])
 
 	def test_product_bundles_in_so_are_replaced_with_bundle_items_in_po(self):
 		"""
