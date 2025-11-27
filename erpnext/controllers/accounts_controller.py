@@ -364,6 +364,24 @@ class AccountsController(TransactionBase):
 
 		for _doctype in repost_doctypes:
 			dt = frappe.qb.DocType(_doctype)
+
+			cancelled_entries = (
+				frappe.qb.from_(dt)
+				.select(dt.parent, dt.parenttype)
+				.where((dt.voucher_type == self.doctype) & (dt.voucher_no == self.name) & (dt.docstatus == 2))
+				.run(as_dict=True)
+			)
+
+			if cancelled_entries:
+				entries = "<br>".join([get_link_to_form(d.parenttype, d.parent) for d in cancelled_entries])
+
+				frappe.throw(
+					_(
+						"The following cancelled repost entries exist for <b>{0}</b>:<br><br>{1}<br><br>"
+						"Kindly delete these entries before continuing."
+					).format(self.name, entries)
+				)
+
 			rows = (
 				frappe.qb.from_(dt)
 				.select(dt.name, dt.parent, dt.parenttype)
