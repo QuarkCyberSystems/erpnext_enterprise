@@ -5,12 +5,8 @@
 import json
 
 import frappe
-<<<<<<< HEAD
-from frappe.utils import cint, get_datetime
-=======
 from frappe.query_builder import DocType, Order
-from frappe.utils import cint
->>>>>>> dfda8e6241 (fix: item price not considering based on valid_upto)
+from frappe.utils import cint, get_datetime
 from frappe.utils.nestedset import get_root_of
 
 from erpnext.accounts.doctype.pos_invoice.pos_invoice import get_item_group, get_stock_availability
