@@ -7,6 +7,7 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, flt, sbool
+from pypika.terms import ValueWrapper
 
 from erpnext.manufacturing.doctype.bom.bom import get_bom_item_rate
 
@@ -360,8 +361,6 @@ class BOMCreator(Document):
 
 @frappe.whitelist()
 def get_children(doctype=None, parent=None, **kwargs):
-	from pypika.terms import ValueWrapper
-
 	if isinstance(kwargs, str):
 		kwargs = frappe.parse_json(kwargs)
 
