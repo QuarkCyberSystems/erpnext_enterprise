@@ -394,6 +394,7 @@ class TestBOM(ERPNextTestSuite):
 		item_code = make_item(properties={"is_stock_item": 1}).name
 
 		bom = frappe.new_doc("BOM")
+		bom.company = self.companies[0].name
 		bom.item = item_code
 		bom.append("items", frappe._dict(item_code=item_code))
 		bom.save()
@@ -407,11 +408,13 @@ class TestBOM(ERPNextTestSuite):
 		item2 = make_item(properties={"is_stock_item": 1}).name
 
 		bom1 = frappe.new_doc("BOM")
+		bom1.company = self.companies[0].name
 		bom1.item = item1
 		bom1.append("items", frappe._dict(item_code=item2))
 		bom1.save()
 
 		bom2 = frappe.new_doc("BOM")
+		bom2.company = self.companies[0].name
 		bom2.item = item2
 		bom2.append("items", frappe._dict(item_code=item1))
 		bom2.save()
@@ -569,6 +572,7 @@ class TestBOM(ERPNextTestSuite):
 	@timeout
 	def test_clear_inpection_quality(self):
 		bom = frappe.copy_doc(self.globalTestRecords["BOM"][2], ignore_no_copy=True)
+		bom.company = self.companies[0].name
 		bom.docstatus = 0
 		bom.is_default = 0
 		bom.quality_inspection_template = "_Test Quality Inspection Template"
@@ -614,6 +618,7 @@ class TestBOM(ERPNextTestSuite):
 
 		# Step 1: Create BOM
 		bom = frappe.new_doc("BOM")
+		bom.company = self.companies[0].name
 		bom.item = fg_item.item_code
 		bom.quantity = 1
 		bom.append(

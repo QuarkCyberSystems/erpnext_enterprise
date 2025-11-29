@@ -242,6 +242,8 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_workstation()
 		cls.make_operation()
 		cls.make_bom()
+		cls.make_quality_inspection_param()
+		cls.make_quality_inspection_template()
 		cls.update_selling_settings()
 		cls.update_stock_settings()
 		cls.update_system_settings()
@@ -2838,6 +2840,48 @@ class ERPNextTestSuite(unittest.TestCase):
 				cls.bom.append(frappe.get_doc(x).insert())
 			else:
 				cls.bom.append(frappe.get_doc("BOM", {"item": x.get("item"), "company": x.get("company")}))
+
+	@classmethod
+	def make_quality_inspection_param(cls):
+		records = [{"doctype": "Quality Inspection Parameter", "parameter": "_Test Param"}]
+		cls.quality_inspection_param = []
+		for x in records:
+			if not frappe.db.exists("Quality Inspection Parameter", {"parameter": x.get("parameter")}):
+				cls.quality_inspection_param.append(frappe.get_doc(x).insert())
+			else:
+				cls.quality_inspection_param.append(
+					frappe.get_doc("Quality Inspection Parameter", {"parameter": x.get("parameter")})
+				)
+
+	@classmethod
+	def make_quality_inspection_template(cls):
+		records = [
+			{
+				"quality_inspection_template_name": "_Test Quality Inspection Template",
+				"doctype": "Quality Inspection Template",
+				"item_quality_inspection_parameter": [
+					{
+						"specification": cls.quality_inspection_param[0].name,
+						"doctype": "Item Quality Inspection Parameter",
+						"parentfield": "item_quality_inspection_parameter",
+					}
+				],
+			}
+		]
+		cls.quality_inspection_template = []
+		for x in records:
+			if not frappe.db.exists(
+				"Quality Inspection Template",
+				{"quality_inspection_template_name": x.get("quality_inspection_template_name")},
+			):
+				cls.quality_inspection_template.append(frappe.get_doc(x).insert())
+			else:
+				cls.quality_inspection_template.append(
+					frappe.get_doc(
+						"Quality Inspection Template",
+						{"quality_inspection_template_name": x.get("quality_inspection_template_name")},
+					)
+				)
 
 	@contextmanager
 	def set_user(self, user: str):
