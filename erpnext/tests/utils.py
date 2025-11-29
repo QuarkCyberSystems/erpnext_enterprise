@@ -244,6 +244,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_bom()
 		cls.make_quality_inspection_param()
 		cls.make_quality_inspection_template()
+		cls.make_employees()
 		cls.update_selling_settings()
 		cls.update_stock_settings()
 		cls.update_system_settings()

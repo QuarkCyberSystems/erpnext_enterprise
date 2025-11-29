@@ -30,8 +30,6 @@ class TestJobCard(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		# used in job card time log
-		cls.make_employees()
 		cls.load_test_records("BOM")
 
 	def setUp(self):
