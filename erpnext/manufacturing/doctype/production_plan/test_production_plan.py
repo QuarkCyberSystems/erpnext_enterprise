@@ -549,7 +549,9 @@ class TestProductionPlan(ERPNextTestSuite):
 			make_rm_stock_entry(sco.name)
 			scr = make_subcontracting_receipt(sco.name)
 			scr.submit()
-			scr_make_purchase_receipt(scr.name).submit()
+			doc = scr_make_purchase_receipt(scr.name)
+			doc.currency = "INR"
+			doc.submit()
 
 		fg_item = "Test Motherboard 1"
 		bom_tree_1 = {"Test Laptop 1": {fg_item: {"Test Motherboard Wires 1": {}}}}
