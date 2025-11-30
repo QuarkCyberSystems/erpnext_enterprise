@@ -4175,7 +4175,10 @@ def get_missing_company_details(doctype, docname):
 	from frappe.contacts.doctype.address.address import get_address_display_list
 
 	company = frappe.db.get_value(doctype, docname, "company")
-	company_address = frappe.db.get_value(doctype, docname, "company_address")
+	if doctype == "Purchase Order":
+		company_address = frappe.db.get_value(doctype, docname, "billing_address")
+	else:
+		company_address = frappe.db.get_value(doctype, docname, "company_address")
 
 	company_details = frappe.get_value(
 		"Company", company, ["company_logo", "website", "phone_no", "email"], as_dict=True
@@ -4195,7 +4198,7 @@ def get_missing_company_details(doctype, docname):
 		)
 		return
 
-	if not company_address and not frappe.has_permission("Sales Invoice", "write", throw=False):
+	if not company_address and not frappe.has_permission(doctype, "write", throw=False):
 		frappe.msgprint(
 			_(
 				"Company Address is missing. You don't have permission to update it. Please contact your System Manager."
@@ -4224,7 +4227,7 @@ def get_missing_company_details(doctype, docname):
 
 
 @frappe.whitelist()
-def update_company_master_and_address(name, company, details):
+def update_company_master_and_address(current_doctype, name, company, details):
 	from frappe.utils import validate_email_address
 
 	if isinstance(details, str):
@@ -4259,18 +4262,36 @@ def update_company_master_and_address(name, company, details):
 		address_doc.insert()
 		company_address = address_doc.name
 
-	if company_address:
-		company_address_display = frappe.db.get_value("Sales Invoice", name, "company_address_display")
-		if not company_address_display or details.get("address_line1"):
-			from frappe.query_builder import DocType
+	update_doc_company_address(current_doctype, name, company_address, details)
 
-			SalesInvoice = DocType("Sales Invoice")
 
-			(
-				frappe.qb.update(SalesInvoice)
-				.set(SalesInvoice.company_address, company_address)
-				.set(SalesInvoice.company_address_display, get_address_display(company_address))
-				.where(SalesInvoice.name == name)
-			).run()
+def update_doc_company_address(current_doctype, docname, company_address, details):
+	if not company_address:
+		return
 
-	return True
+	address_field_map = {
+		"Purchase Order": ("billing_address", "billing_address_display"),
+		"Sales Invoice": ("company_address", "company_address_display"),
+		"Delivery Note": ("company_address", "company_address_display"),
+		"POS Invoice": ("company_address", "company_address_display"),
+	}
+
+	address_field, display_field = address_field_map.get(
+		current_doctype, ("company_address", "company_address_display")
+	)
+
+	current_display = frappe.db.get_value(current_doctype, docname, display_field)
+
+	if current_display and not details.get("address_line1"):
+		return
+
+	from frappe.query_builder import DocType
+
+	DocType = DocType(current_doctype)
+
+	(
+		frappe.qb.update(DocType)
+		.set(getattr(DocType, address_field), company_address)
+		.set(getattr(DocType, display_field), get_address_display(company_address))
+		.where(DocType.name == docname)
+	).run()

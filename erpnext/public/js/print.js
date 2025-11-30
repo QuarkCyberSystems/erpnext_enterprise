@@ -1,5 +1,14 @@
-const doctype_list = ["Sales Invoice"];
-const allowed_print_formats = ["Sales Invoice Standard", "Sales Invoice with Item Image"];
+const doctype_list = ["Sales Invoice", "Delivery Note", "Purchase Order", "POS Invoice"];
+const allowed_print_formats = [
+	"Sales Invoice Standard",
+	"Sales Invoice with Item Image",
+	"Delivery Note Standard",
+	"Delivery Note with Item Image",
+	"Purchase Order Standard",
+	"Purchase Order with Item Image",
+	"POS Invoice Standard",
+	"POS Invoice with Item Image",
+];
 const allowed_letterheads = ["Company Letterhead", "Company Letterhead - Grey"];
 
 handle_route_event();
@@ -25,25 +34,25 @@ function should_fetch_company_details() {
 	return allowed_print_formats.includes(print_format) || allowed_letterheads.includes(letterhead);
 }
 
-function fetch_company_details(doctype, docname) {
+function fetch_company_details(current_doctype, current_docname) {
 	frappe.call({
 		method: "erpnext.controllers.accounts_controller.get_missing_company_details",
-		args: { doctype, docname },
+		args: { doctype: current_doctype, docname: current_docname },
 		callback: function (r) {
 			if (r && r.message) {
-				open_company_details_dialog(r.message);
+				open_company_details_dialog(r.message, current_doctype);
 			}
 		},
 	});
 }
 
-function open_company_details_dialog(data) {
+function open_company_details_dialog(data, current_doctype) {
 	const dialog = new frappe.ui.Dialog({
 		title: __("Enter Company Details"),
 		fields: build_dialog_fields(data),
 		primary_action_label: __("Save"),
 		primary_action(values) {
-			save_company_details(dialog, data, values);
+			save_company_details(dialog, data, values, current_doctype);
 		},
 	});
 
@@ -117,13 +126,14 @@ function make_field(label, fieldname, fieldtype, existing_value, required_if_emp
 	};
 }
 
-function save_company_details(dialog, data, values) {
+function save_company_details(dialog, data, values, current_doctype) {
 	frappe.call({
 		method: "erpnext.controllers.accounts_controller.update_company_master_and_address",
 		args: {
 			name: data.name,
 			company: data.company,
 			details: values,
+			current_doctype: current_doctype,
 		},
 		callback() {
 			dialog.hide();
