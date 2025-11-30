@@ -39,9 +39,9 @@ function fetch_company_details(doctype, docname) {
 
 function open_company_details_dialog(data) {
 	const dialog = new frappe.ui.Dialog({
-		title: "Enter Company Details",
+		title: __("Enter Company Details"),
 		fields: build_dialog_fields(data),
-		primary_action_label: "Save",
+		primary_action_label: __("Save"),
 		primary_action(values) {
 			save_company_details(dialog, data, values);
 		},
@@ -52,11 +52,11 @@ function open_company_details_dialog(data) {
 
 function build_dialog_fields(data) {
 	return [
-		make_field("Company Logo", "company_logo", "Attach Image", data.company_logo),
-		make_field("Website", "website", "Data", data.website),
-		make_field("Phone No", "phone_no", "Data", data.phone_no),
+		make_field(__("Company Logo"), "company_logo", "Attach Image", data.company_logo),
+		make_field(__("Website"), "website", "Data", data.website),
+		make_field(__("Phone No"), "phone_no", "Data", data.phone_no),
 		{
-			label: "Email",
+			label: __("Email"),
 			fieldname: "email",
 			fieldtype: "Data",
 			options: "Email",
@@ -65,9 +65,9 @@ function build_dialog_fields(data) {
 		},
 		{ fieldtype: "Section Break" },
 
-		make_field("Address Title", "address_title", "Data", data.address_line),
+		make_field(__("Address Title"), "address_title", "Data", data.address_line),
 		{
-			label: "Address Type",
+			label: __("Address Type"),
 			fieldname: "address_type",
 			fieldtype: "Select",
 			options: ["Billing", "Shipping"],
@@ -75,22 +75,22 @@ function build_dialog_fields(data) {
 			reqd: data.address_line ? 0 : 1,
 			hidden: data.address_line ? 1 : 0,
 		},
-		make_field("Address Line 1", "address_line1", "Data", data.address_line),
-		make_field("Address Line 2", "address_line2", "Data", data.address_line, false),
-		make_field("City", "city", "Data", data.address_line),
-		make_field("State", "state", "Data", data.address_line, false),
+		make_field(__("Address Line 1"), "address_line1", "Data", data.address_line),
+		make_field(__("Address Line 2"), "address_line2", "Data", data.address_line, false),
+		make_field(__("City"), "city", "Data", data.address_line),
+		make_field(__("State"), "state", "Data", data.address_line, false),
 		{
-			label: "Country",
+			label: __("Country"),
 			fieldname: "country",
 			fieldtype: "Link",
 			options: "Country",
 			reqd: data.address_line ? 0 : 1,
 			hidden: data.address_line ? 1 : 0,
 		},
-		make_field("Postal Code", "pincode", "Data", data.address_line, false),
+		make_field(__("Postal Code"), "pincode", "Data", data.address_line, false),
 
 		{
-			label: "Select Company Address",
+			label: __("Select Company Address"),
 			fieldname: "company_address",
 			fieldtype: "Link",
 			options: "Address",
@@ -127,7 +127,7 @@ function save_company_details(dialog, data, values) {
 		},
 		callback() {
 			dialog.hide();
-			frappe.msgprint("Updating details.");
+			frappe.msgprint(__("Updating details."));
 
 			setTimeout(() => {
 				location.reload();
