@@ -56,7 +56,6 @@ class TestSalesOrder(AccountsTestMixin, ERPNextTestSuite):
 
 	def tearDown(self):
 		frappe.db.rollback()
-		frappe.set_user("Administrator")
 
 	@ERPNextTestSuite.change_settings(
 		"Stock Settings",
@@ -145,7 +144,9 @@ class TestSalesOrder(AccountsTestMixin, ERPNextTestSuite):
 		so.reload()
 		self.assertEqual(so.status, "Completed")
 
-	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_negative_rates_for_items": 1})
+	@ERPNextTestSuite.change_settings(
+		"Selling Settings", {"allow_multiple_items": 1, "allow_negative_rates_for_items": 1}
+	)
 	def test_sales_order_with_negative_rate(self):
 		"""
 		Test if negative rate is allowed in Sales Order via doc submission and update items
@@ -175,6 +176,7 @@ class TestSalesOrder(AccountsTestMixin, ERPNextTestSuite):
 		)
 		update_child_qty_rate("Sales Order", trans_item, so.name)
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": 1})
 	def test_sales_order_qty(self):
 		so = make_sales_order(qty=1, do_not_save=True)
 
@@ -823,6 +825,7 @@ class TestSalesOrder(AccountsTestMixin, ERPNextTestSuite):
 		# reserved qty in packed item should increase after changing bundle item uom
 		self.assertEqual(get_reserved_qty("_Packed Item"), existing_reserved_qty + 8)
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": 1})
 	def test_update_child_with_tax_template(self):
 		"""
 		Test Action: Create a SO with one item having its tax account head already in the SO.
@@ -1485,6 +1488,7 @@ class TestSalesOrder(AccountsTestMixin, ERPNextTestSuite):
 		si.insert()
 		self.assertTrue(si.get("payment_schedule"))
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": 1})
 	def test_make_work_order(self):
 		from erpnext.selling.doctype.sales_order.sales_order import get_work_order_items
 
@@ -1826,7 +1830,7 @@ class TestSalesOrder(AccountsTestMixin, ERPNextTestSuite):
 		from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
 
 		so = make_sales_order(uom="Nos", do_not_save=1)
-		so.items[0].rate = 0
+		so.items[0].rate = so.items[0].price_list_rate = 0
 		so.save()
 		so.submit()
 
@@ -2384,7 +2388,7 @@ class TestSalesOrder(AccountsTestMixin, ERPNextTestSuite):
 
 		frappe.db.set_single_value("Stock Settings", "auto_insert_price_list_rate_if_missing", 1)
 		so = make_sales_order(
-			item_code=item.name, currency="USD", qty=1, rate=100, price_list_rate=100, do_not_submit=True
+			item_code=item.name, currency="INR", qty=1, rate=100, price_list_rate=100, do_not_submit=True
 		)
 		so.save()
 
@@ -2392,7 +2396,7 @@ class TestSalesOrder(AccountsTestMixin, ERPNextTestSuite):
 		self.assertEqual(item_price, 100)
 
 		so = make_sales_order(
-			item_code=item.name, currency="USD", qty=1, rate=200, price_list_rate=100, do_not_submit=True
+			item_code=item.name, currency="INR", qty=1, rate=200, price_list_rate=100, do_not_submit=True
 		)
 		so.save()
 
@@ -2401,7 +2405,7 @@ class TestSalesOrder(AccountsTestMixin, ERPNextTestSuite):
 
 		frappe.db.set_single_value("Stock Settings", "update_existing_price_list_rate", 1)
 		so = make_sales_order(
-			item_code=item.name, currency="USD", qty=1, rate=200, price_list_rate=200, do_not_submit=True
+			item_code=item.name, currency="INR", qty=1, rate=200, price_list_rate=200, do_not_submit=True
 		)
 		so.save()
 

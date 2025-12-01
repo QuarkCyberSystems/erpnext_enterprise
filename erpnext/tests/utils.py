@@ -233,6 +233,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_asset_maintenance_team()
 		cls.make_asset_category()
 		cls._make_item()
+		cls.make_product_bundle()
 		cls.make_location()
 		cls.make_price_list()
 		cls.make_item_price()
@@ -2167,6 +2168,40 @@ class ERPNextTestSuite(unittest.TestCase):
 					frappe.get_doc(
 						"Item",
 						{"item_code": x.get("item_code"), "item_name": x.get("item_name")},
+					)
+				)
+
+	@classmethod
+	def make_product_bundle(cls):
+		records = [
+			{
+				"doctype": "Product Bundle",
+				"new_item_code": "_Test Product Bundle Item",
+				"items": [
+					{
+						"doctype": "Product Bundle Item",
+						"item_code": "_Test Item",
+						"parentfield": "items",
+						"qty": 5.0,
+					},
+					{
+						"doctype": "Product Bundle Item",
+						"item_code": "_Test Item Home Desktop 100",
+						"parentfield": "items",
+						"qty": 2.0,
+					},
+				],
+			}
+		]
+		cls.product_bundle = []
+		for x in records:
+			if not frappe.db.exists("Product Bundle", {"new_item_code": x.get("new_item_code")}):
+				cls.product_bundle.append(frappe.get_doc(x).insert())
+			else:
+				cls.product_bundle.append(
+					frappe.get_doc(
+						"Product Bundle",
+						{"new_item_code": x.get("new_item_code")},
 					)
 				)
 
