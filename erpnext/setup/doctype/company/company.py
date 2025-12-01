@@ -605,7 +605,7 @@ class Company(NestedSet):
 	def validate_pending_reposts(self, old_doc):
 		if old_doc and old_doc.accounts_frozen_till_date != self.accounts_frozen_till_date:
 			if self.accounts_frozen_till_date:
-				check_pending_reposting(self.accounts_frozen_till_date)
+				check_pending_reposting(self.accounts_frozen_till_date, self.name)
 
 	def set_default_accounts(self):
 		default_accounts = {

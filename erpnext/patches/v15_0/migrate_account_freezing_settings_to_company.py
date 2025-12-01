@@ -2,8 +2,20 @@ import frappe
 
 
 def execute():
-	frozen_till = frappe.db.get_single_value("Accounts Settings", "acc_frozen_upto")
-	modifier = frappe.db.get_single_value("Accounts Settings", "frozen_accounts_modifier")
+	rows = frappe.db.sql(
+		"""
+		SELECT field, value
+		FROM `tabSingles`
+		WHERE doctype='Accounts Settings'
+		AND field IN ('acc_frozen_upto', 'frozen_accounts_modifier')
+		""",
+		as_dict=True,
+	)
+
+	values = {row["field"]: row["value"] for row in rows}
+
+	frozen_till = values.get("acc_frozen_upto")
+	modifier = values.get("frozen_accounts_modifier")
 
 	if not frozen_till and not modifier:
 		return
