@@ -23,6 +23,10 @@ from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos
 from erpnext.stock.stock_ledger import is_negative_stock_allowed
 
 
+class ProductBundleStockValidationError(frappe.ValidationError):
+	pass
+
+
 class POSInvoice(SalesInvoice):
 	# begin: auto-generated types
 	# This code is auto-generated. Do not modify anything in this block.
@@ -434,6 +438,7 @@ class POSInvoice(SalesInvoice):
 								"<br>".join(error_msgs),
 							),
 							title=_("Insufficient Stock for Product Bundle Items"),
+							exc=ProductBundleStockValidationError,
 						)
 
 				else:
