@@ -329,6 +329,7 @@ class TestAssetRepair(IntegrationTestCase):
 		asset_repair = create_asset_repair(
 			asset=asset, capitalize_repair_cost=1, item="_Test Non Stock Item", submit=1
 		)
+		asset.reload()
 
 		GLEntry = qb.DocType("GL Entry")
 		res = (
