@@ -13,6 +13,11 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestQuotation(ERPNextTestSuite):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.load_test_records("Quotation")
+
 	def test_update_child_quotation_add_item(self):
 		from erpnext.stock.doctype.item.test_item import make_item
 
@@ -975,6 +980,7 @@ class TestQuotation(ERPNextTestSuite):
 		quotation.reload()
 		self.assertEqual(quotation.status, "Ordered")
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": 1})
 	def test_duplicate_items_in_quotation(self):
 		from erpnext.selling.doctype.quotation.quotation import make_sales_order
 		from erpnext.stock.doctype.item.test_item import make_item
