@@ -232,6 +232,13 @@ frappe.ui.form.on("Item", {
 		});
 
 		frm.toggle_reqd("customer", frm.doc.is_customer_provided_item ? 1 : 0);
+		frm.set_query("item_group", () => {
+			return {
+				filters: {
+					is_group: 0,
+				},
+			};
+		});
 	},
 
 	validate: function (frm) {
