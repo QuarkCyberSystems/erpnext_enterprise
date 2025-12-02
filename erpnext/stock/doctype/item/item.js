@@ -301,6 +301,14 @@ frappe.ui.form.on("Item Reorder", {
 		var type = frm.doc.default_material_request_type;
 		row.material_request_type = type == "Material Transfer" ? "Transfer" : type;
 	},
+
+	warehouse_group(frm, cdt, cdn) {
+		let row = locals[cdt][cdn];
+
+		if (!row.warehouse_group) {
+			frappe.throw(__("Please select the Warehouse first"));
+		}
+	},
 });
 
 frappe.ui.form.on("Item Customer Detail", {
@@ -474,8 +482,12 @@ $.extend(erpnext.item, {
 			cdt,
 			cdn
 		) {
+			let row = locals[cdt][cdn];
 			return {
-				filters: { is_group: 1 },
+				query: "erpnext.stock.doctype.warehouse.warehouse.get_warehouses_for_reorder",
+				filters: {
+					warehouse: row.warehouse,
+				},
 			};
 		};
 
