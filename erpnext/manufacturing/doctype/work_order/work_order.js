@@ -244,7 +244,13 @@ frappe.ui.form.on("Work Order", {
 	},
 
 	toggle_items_editable(frm) {
-		frm.toggle_enable("required_items", frm.doc.__onload?.allow_editing_items === 1 ? 1 : 0);
+		if (!frm.doc.__onload?.allow_editing_items) {
+			frm.set_df_property("required_items", "cannot_delete_rows", true);
+			frm.set_df_property("required_items", "cannot_add_rows", true);
+			frm.fields_dict["required_items"].grid.update_docfield_property("item_code", "read_only", 1);
+			frm.fields_dict["required_items"].grid.update_docfield_property("required_qty", "read_only", 1);
+			frm.fields_dict["required_items"].grid.refresh();
+		}
 	},
 
 	hide_reserve_stock_button(frm) {
