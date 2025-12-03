@@ -64,8 +64,8 @@ class AccountsSettings(Document):
 		receivable_payable_remarks_length: DF.Int
 		reconciliation_queue_size: DF.Int
 		role_allowed_to_over_bill: DF.Link | None
+		role_to_notify_on_depreciation_failure: DF.Link | None
 		role_to_override_stop_action: DF.Link | None
-		role_used_for_depreciation_failure: DF.Link | None
 		round_row_wise_tax: DF.Check
 		show_balance_in_coa: DF.Check
 		show_inclusive_tax_in_print: DF.Check
