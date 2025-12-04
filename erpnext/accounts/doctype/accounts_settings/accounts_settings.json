@@ -76,11 +76,9 @@
   "role_to_notify_on_depreciation_failure",
   "closing_settings_tab",
   "period_closing_settings_section",
-  "acc_frozen_upto",
   "ignore_account_closing_balance",
   "use_legacy_controller_for_pcv",
   "column_break_25",
-  "frozen_accounts_modifier",
   "tab_break_dpet",
   "show_balance_in_coa",
   "banking_tab",
@@ -103,21 +101,6 @@
   "use_legacy_budget_controller"
  ],
  "fields": [
-  {
-   "description": "Accounting entries are frozen up to this date. Nobody can create or modify entries except users with the role specified below",
-   "fieldname": "acc_frozen_upto",
-   "fieldtype": "Date",
-   "in_list_view": 1,
-   "label": "Accounts Frozen Till Date"
-  },
-  {
-   "description": "Users with this role are allowed to set frozen accounts and create / modify accounting entries against frozen accounts",
-   "fieldname": "frozen_accounts_modifier",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Role Allowed to Set Frozen Accounts and Edit Frozen Entries",
-   "options": "Role"
-  },
   {
    "default": "Billing Address",
    "description": "Address used to determine Tax Category in transactions",
