@@ -1747,7 +1747,10 @@ class WorkOrder(Document):
 
 		stock_entry.reload()
 		if stock_entry.purpose == "Manufacture" and (
-			self.sales_order or self.production_plan_sub_assembly_item or self.subcontracting_inward_order
+			self.sales_order
+			or self.production_plan_sub_assembly_item
+			or self.subcontracting_inward_order
+			or stock_entry.job_card
 		):
 			items = self.get_finished_goods_for_reservation(stock_entry)
 		elif stock_entry.purpose == "Material Transfer for Manufacture":
@@ -1794,6 +1797,27 @@ class WorkOrder(Document):
 			item_details = self.get_wo_details()
 		elif self.subcontracting_inward_order:
 			item_details = self.get_scio_details()
+		elif stock_entry.job_card:
+			# Reserve the final product for the job card.
+			finished_good = frappe.db.get_value("Job Card", stock_entry.job_card, "finished_good")
+
+			for row in stock_entry.items:
+				if row.item_code == finished_good:
+					item_details = [
+						frappe._dict(
+							{
+								"item_code": row.item_code,
+								"stock_qty": row.qty,
+								"stock_reserved_qty": 0,
+								"warehouse": row.t_warehouse,
+								"voucher_no": stock_entry.work_order,
+								"voucher_type": "Work Order",
+								"name": row.name,
+								"delivered_qty": 0,
+							}
+						)
+					]
+					break
 		else:
 			# Reserve the final product for the sales order.
 			item_details = self.get_so_details()
