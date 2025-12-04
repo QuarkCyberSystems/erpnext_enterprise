@@ -1920,6 +1920,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 				job_doc.set_transferred_qty(update_status=True)
 				job_doc.set_transferred_qty_in_job_card_item(self)
 			else:
+				job_doc.set_consumed_qty_in_job_card_item(self)
 				job_doc.set_manufactured_qty()
 
 		if self.work_order:
