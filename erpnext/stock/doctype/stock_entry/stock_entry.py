@@ -1953,6 +1953,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 			if (
 				self.purpose == "Manufacture"
 				and not pro_doc.sales_order
+				and not self.job_card
 				and not pro_doc.production_plan_sub_assembly_item
 				and not pro_doc.subcontracting_inward_order
 			):
