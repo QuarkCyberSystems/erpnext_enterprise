@@ -73,6 +73,7 @@
   "calculate_depr_using_total_days",
   "column_break_gjcc",
   "book_asset_depreciation_entry_automatically",
+  "role_to_notify_on_depreciation_failure",
   "closing_settings_tab",
   "period_closing_settings_section",
   "acc_frozen_upto",
@@ -658,6 +659,13 @@
    "fieldname": "use_legacy_controller_for_pcv",
    "fieldtype": "Check",
    "label": "Use Legacy Controller For Period Closing Voucher"
+  },
+  {
+   "description": "Users with this role will be notified if the asset depreciation gets failed",
+   "fieldname": "role_to_notify_on_depreciation_failure",
+   "fieldtype": "Link",
+   "label": "Role to Notify on Depreciation Failure",
+   "options": "Role"
   }
  ],
  "grid_page_length": 50,
@@ -666,7 +674,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2025-10-20 14:06:08.870427",
+ "modified": "2025-12-03 20:42:13.238050",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Accounts Settings",

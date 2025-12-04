@@ -307,7 +307,8 @@ def set_depr_entry_posting_status_for_failed_assets(failed_asset_names):
 
 
 def notify_depr_entry_posting_error(failed_asset_names, error_log_names):
-	recipients = get_users_with_role("Accounts Manager")
+	user_role = frappe.db.get_single_value("Accounts Settings", "role_to_notify_on_depreciation_failure")
+	recipients = get_users_with_role(user_role or "Accounts Manager")
 
 	if not recipients:
 		recipients = get_users_with_role("System Manager")
