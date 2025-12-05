@@ -446,12 +446,15 @@ class Asset(AccountsController):
 		Asset = frappe.qb.DocType("Asset")
 
 		if doctype == "Purchase Invoice":
-			asset_filter = (Asset.purchase_invoice == purchase_doc) & (Asset.name != self.name)
+			asset_filter = Asset.purchase_invoice == purchase_doc
 		else:
-			asset_filter = (Asset.purchase_receipt == purchase_doc) & (Asset.name != self.name)
+			asset_filter = Asset.purchase_receipt == purchase_doc
 
 		existing_asset_qty = (
-			frappe.qb.from_(Asset).select(IfNull(Sum(Asset.asset_quantity), 0)).where(asset_filter)
+			frappe.qb.from_(Asset)
+			.select(IfNull(Sum(Asset.asset_quantity), 0))
+			.where((Asset.item_code == self.item_code) & (Asset.name != self.name))
+			.where(asset_filter)
 		).run()[0][0]
 
 		PurchaseDoc = frappe.qb.DocType(doctype)
@@ -468,12 +471,17 @@ class Asset(AccountsController):
 
 		if (existing_asset_qty + self.asset_quantity) > purchased_qty:
 			frappe.throw(
-				_("Created assets {0} exceed the purchased quantity {1} for item {2} " "in {3} {4}").format(
-					(existing_asset_qty + self.asset_quantity),
+				_(
+					"<b>Cannot create asset.</b><br><br>"
+					"You're trying to create <b>{0} asset(s)</b> from {2} {3}.<br>"
+					"However, only <b>{1} item(s)</b> were purchased and <b>{4} asset(s)</b> already exist against {5}."
+				).format(
+					self.asset_quantity,
 					purchased_qty,
-					self.item_code,
 					doctype,
 					get_link_to_form(doctype, purchase_doc),
+					existing_asset_qty,
+					purchase_doc,
 				)
 			)
 
