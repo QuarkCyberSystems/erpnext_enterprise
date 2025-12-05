@@ -453,7 +453,7 @@ class Asset(AccountsController):
 		existing_asset_qty = (
 			frappe.qb.from_(Asset)
 			.select(IfNull(Sum(Asset.asset_quantity), 0))
-			.where((Asset.item_code == self.item_code) & (Asset.name != self.name))
+			.where((Asset.item_code == self.item_code) & (Asset.name != self.name) & (Asset.docstatus != 2))
 			.where(asset_filter)
 		).run()[0][0]
 
