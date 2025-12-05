@@ -502,21 +502,23 @@ class TestInventoryDimension(IntegrationTestCase):
 		item_code = "Test Negative Multi Inventory Dimension Item"
 		create_item(item_code)
 
-		create_inventory_dimension(
+		inv_dimension_1 = create_inventory_dimension(
 			apply_to_all_doctypes=1,
 			dimension_name="Inv Site",
 			reference_document="Inv Site",
 			document_type="Inv Site",
 			validate_negative_stock=1,
 		)
+		inv_dimension_1.db_set("validate_negative_stock", 1)
 
-		create_inventory_dimension(
+		inv_dimension_2 = create_inventory_dimension(
 			apply_to_all_doctypes=1,
 			dimension_name="Rack",
 			reference_document="Rack",
 			document_type="Rack",
 			validate_negative_stock=1,
 		)
+		inv_dimension_2.db_set("validate_negative_stock", 1)
 
 		pr_doc = make_purchase_receipt(qty=30, do_not_submit=True)
 		pr_doc.items[0].inv_site = "Site 1"
