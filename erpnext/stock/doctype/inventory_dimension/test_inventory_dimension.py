@@ -520,31 +520,31 @@ class TestInventoryDimension(IntegrationTestCase):
 		)
 		inv_dimension_2.db_set("validate_negative_stock", 1)
 
-		pr_doc = make_purchase_receipt(qty=30, do_not_submit=True)
+		pr_doc = make_purchase_receipt(item_code=item_code, qty=30, do_not_submit=True)
 		pr_doc.items[0].inv_site = "Site 1"
 		pr_doc.items[0].rack = "Rack 1"
 		pr_doc.save()
 		pr_doc.submit()
 
-		pr_doc = make_purchase_receipt(qty=15, do_not_submit=True)
+		pr_doc = make_purchase_receipt(item_code=item_code, qty=15, do_not_submit=True)
 		pr_doc.items[0].inv_site = "Site 1"
 		pr_doc.items[0].rack = "Rack 2"
 		pr_doc.save()
 		pr_doc.submit()
 
-		pr_doc = make_purchase_receipt(qty=30, do_not_submit=True)
+		pr_doc = make_purchase_receipt(item_code=item_code, qty=30, do_not_submit=True)
 		pr_doc.items[0].inv_site = "Site 2"
 		pr_doc.items[0].rack = "Rack 1"
 		pr_doc.save()
 		pr_doc.submit()
 
-		pr_doc = make_purchase_receipt(qty=25, do_not_submit=True)
+		pr_doc = make_purchase_receipt(item_code=item_code, qty=25, do_not_submit=True)
 		pr_doc.items[0].inv_site = "Site 2"
 		pr_doc.items[0].rack = "Rack 2"
 		pr_doc.save()
 		pr_doc.submit()
 
-		dn_doc = create_delivery_note(qty=35, do_not_submit=True)
+		dn_doc = create_delivery_note(item_code=item_code, qty=35, do_not_submit=True)
 		dn_doc.items[0].inv_site = "Site 2"
 		dn_doc.items[0].rack = "Rack 1"
 		dn_doc.save()
