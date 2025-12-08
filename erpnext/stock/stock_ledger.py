@@ -1949,8 +1949,7 @@ def get_valuation_rate(
 				& (table.warehouse == warehouse)
 				& (table.batch_no == batch_no)
 				& (table.is_cancelled == 0)
-				& (table.voucher_no != voucher_no)
-				& (table.voucher_type != voucher_type)
+				& ((table.voucher_no != voucher_no) | (table.voucher_type != voucher_type))
 			)
 		)
 
