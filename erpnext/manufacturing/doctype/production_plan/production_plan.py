@@ -364,7 +364,7 @@ class ProductionPlan(Document):
 			.where(
 				(so_item.parent.isin(so_list))
 				& (so_item.docstatus == 1)
-				& (so_item.qty > so_item.work_order_qty)
+				& ((so_item.stock_qty - so_item.stock_reserved_qty) > so_item.work_order_qty)
 			)
 		)
 
