@@ -89,6 +89,7 @@ class BuyingController(SubcontractingController):
 				)
 			)
 			and not self.get("tc_name")
+			and not self.get("terms")
 		):
 			self.tc_name = default_buying_terms
 			self.terms = frappe.get_value("Terms and Conditions", self.get("tc_name"), "terms")
