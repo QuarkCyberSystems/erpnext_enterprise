@@ -216,6 +216,11 @@ class StockEntry(StockController, SubcontractingInwardController):
 		if self.get("items") and apply_rule:
 			apply_putaway_rule(self.doctype, self.get("items"), self.company, purpose=self.purpose)
 
+		if self.project:
+			for item in self.items:
+				if not item.project:
+					item.project = self.project
+
 	def validate(self):
 		self.pro_doc = frappe._dict()
 		if self.work_order:
@@ -525,15 +530,16 @@ class StockEntry(StockController, SubcontractingInwardController):
 		):
 			return
 
-		if self.project:
+		projects = set(item.project for item in self.items if item.project)
+		for project in projects:
 			amount = frappe.db.sql(
-				""" select ifnull(sum(sed.amount), 0)
+				""" select ifnull(sum(amount), 0)
 				from
-					`tabStock Entry` se, `tabStock Entry Detail` sed
+					`tabStock Entry Detail`
 				where
-					se.docstatus = 1 and se.project = %s and sed.parent = se.name
-					and (sed.t_warehouse is null or sed.t_warehouse = '')""",
-				self.project,
+					docstatus = 1 and project = %s
+					and (t_warehouse is null or t_warehouse = '')""",
+				project,
 				as_list=1,
 			)
 
@@ -545,14 +551,14 @@ class StockEntry(StockController, SubcontractingInwardController):
 				where
 					se.docstatus = 1 and se.project = %s and sed.parent = se.name
 					and se.purpose = 'Manufacture'""",
-				self.project,
+				project,
 				as_list=1,
 			)
 
 			additional_cost_amt = additional_costs[0][0] if additional_costs else 0
 
 			amount += additional_cost_amt
-			project = frappe.get_doc("Project", self.project)
+			project = frappe.get_doc("Project", project)
 			project.total_consumed_material_cost = amount
 			project.save()
 
