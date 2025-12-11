@@ -20,6 +20,11 @@ from erpnext.controllers.accounts_controller import merge_taxes
 from erpnext.controllers.buying_controller import BuyingController
 from erpnext.stock.doctype.delivery_note.delivery_note import make_inter_company_transaction
 from erpnext.stock.doctype.stock_reservation_entry.stock_reservation_entry import StockReservation
+from erpnext.stock.serial_batch_bundle import (
+	SerialBatchCreation,
+	get_batches_from_bundle,
+	get_serial_nos_from_bundle,
+)
 
 form_grid_templates = {"items": "templates/form_grid/item_grid.html"}
 
@@ -1521,6 +1526,35 @@ def make_stock_entry(source_name, target_doc=None):
 		target.purpose = "Material Transfer"
 		target.set_missing_values()
 
+	def update_item(source_doc, target_doc, source_parent):
+		if source_doc.serial_and_batch_bundle:
+			serial_nos = get_serial_nos_from_bundle(source_doc.serial_and_batch_bundle)
+			if serial_nos:
+				serial_nos = "\n".join(serial_nos)
+
+			batches = get_batches_from_bundle(source_doc.serial_and_batch_bundle)
+			if batches:
+				if len(batches) == 1:
+					target_doc.use_serial_batch_fields = 1
+					target_doc.batch_no = next(iter(batches))
+				elif not serial_nos:
+					cls_obj = SerialBatchCreation(
+						{
+							"type_of_transaction": "Outward",
+							"serial_and_batch_bundle": source_doc.serial_and_batch_bundle,
+							"item_code": source_doc.item_code,
+							"warehouse": source_doc.warehouse,
+						}
+					)
+
+					cls_obj.duplicate_package()
+
+					target_doc.serial_and_batch_bundle = cls_obj.serial_and_batch_bundle
+
+			if serial_nos:
+				target_doc.use_serial_batch_fields = 1
+				target_doc.serial_no = serial_nos
+
 	doclist = get_mapped_doc(
 		"Purchase Receipt",
 		source_name,
@@ -1535,6 +1569,7 @@ def make_stock_entry(source_name, target_doc=None):
 					"parent": "reference_purchase_receipt",
 					"batch_no": "batch_no",
 				},
+				"postprocess": update_item,
 			},
 		},
 		target_doc,
