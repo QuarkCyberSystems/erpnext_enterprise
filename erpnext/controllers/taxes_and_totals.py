@@ -944,12 +944,11 @@ class calculate_taxes_and_totals:
 					)
 				)
 
-			if self.doc.docstatus.is_draft():
-				if self.doc.get("write_off_outstanding_amount_automatically"):
-					self.doc.write_off_amount = 0
+			if self.doc.get("write_off_outstanding_amount_automatically"):
+				self.doc.write_off_amount = 0
 
-				self.calculate_outstanding_amount()
-				self.calculate_write_off_amount()
+			self.calculate_outstanding_amount()
+			self.calculate_write_off_amount()
 
 	def is_internal_invoice(self):
 		"""
