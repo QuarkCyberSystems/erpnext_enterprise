@@ -954,6 +954,7 @@ def get_list_context(context=None):
 			"show_search": True,
 			"no_breadcrumbs": True,
 			"title": _("Orders"),
+			"list_template": "templates/includes/list/list.html",
 		}
 	)
 
