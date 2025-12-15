@@ -1459,7 +1459,7 @@ def get_batch_qty(batch_no, warehouse, item_code):
 
 @frappe.whitelist()
 @erpnext.normalize_ctx_input(ItemDetailsCtx)
-def apply_price_list(ctx: ItemDetailsCtx, as_doc=False, doc=None):
+def apply_price_list(ctx, as_doc=False, doc=None):
 	"""Apply pricelist on a document-like dict object and return as
 	{'parent': dict, 'children': list}
 
