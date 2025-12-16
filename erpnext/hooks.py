@@ -123,13 +123,13 @@ website_context = {
 website_route_rules = [
 	{"from_route": "/orders", "to_route": "Sales Order"},
 	{
-		"from_route": "/portal/orders/<path:name>",
+		"from_route": "/orders/<path:name>",
 		"to_route": "order",
 		"defaults": {"doctype": "Sales Order", "parents": [{"label": "Orders", "route": "orders"}]},
 	},
 	{"from_route": "/invoices", "to_route": "Sales Invoice"},
 	{
-		"from_route": "/portal/invoices/<path:name>",
+		"from_route": "/invoices/<path:name>",
 		"to_route": "order",
 		"defaults": {
 			"doctype": "Sales Invoice",
@@ -155,7 +155,7 @@ website_route_rules = [
 		},
 	},
 	{
-		"from_route": "/portal/purchase-orders/<path:name>",
+		"from_route": "/purchase-orders/<path:name>",
 		"to_route": "order",
 		"defaults": {
 			"doctype": "Purchase Order",
@@ -164,7 +164,7 @@ website_route_rules = [
 	},
 	{"from_route": "/purchase-invoices", "to_route": "Purchase Invoice"},
 	{
-		"from_route": "/portal/purchase-invoices/<path:name>",
+		"from_route": "/purchase-invoices/<path:name>",
 		"to_route": "order",
 		"defaults": {
 			"doctype": "Purchase Invoice",
@@ -173,7 +173,7 @@ website_route_rules = [
 	},
 	{"from_route": "/quotations", "to_route": "Quotation"},
 	{
-		"from_route": "/portal/quotations/<path:name>",
+		"from_route": "/quotations/<path:name>",
 		"to_route": "order",
 		"defaults": {
 			"doctype": "Quotation",
@@ -182,7 +182,7 @@ website_route_rules = [
 	},
 	{"from_route": "/shipments", "to_route": "Delivery Note"},
 	{
-		"from_route": "/portal/shipments/<path:name>",
+		"from_route": "/shipments/<path:name>",
 		"to_route": "order",
 		"defaults": {
 			"doctype": "Delivery Note",
@@ -191,7 +191,7 @@ website_route_rules = [
 	},
 	{"from_route": "/rfq", "to_route": "Request for Quotation"},
 	{
-		"from_route": "/portal/rfq/<path:name>",
+		"from_route": "/rfq/<path:name>",
 		"to_route": "rfq",
 		"defaults": {
 			"doctype": "Request for Quotation",
