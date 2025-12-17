@@ -995,12 +995,15 @@ def get_requested_item_qty(sales_order):
 		filters={"docstatus": 1, "sales_order": sales_order},
 		fields=[
 			"sales_order_item",
+			"packed_item",
 			{"SUM": "qty", "as": "qty"},
 			{"SUM": "received_qty", "as": "received_qty"},
 		],
-		group_by="sales_order_item",
+		group_by="sales_order_item, packed_item",
 	):
-		result[d.sales_order_item] = frappe._dict({"qty": d.qty, "received_qty": d.received_qty})
+		result[d.sales_order_item or d.packed_item] = frappe._dict(
+			{"qty": d.qty, "received_qty": d.received_qty}
+		)
 
 	return result
 
@@ -1058,7 +1061,8 @@ def make_material_request(source_name, target_doc=None):
 			"Sales Order": {"doctype": "Material Request", "validation": {"docstatus": ["=", 1]}},
 			"Packed Item": {
 				"doctype": "Material Request Item",
-				"field_map": {"parent": "sales_order", "uom": "stock_uom"},
+				"field_map": {"parent": "sales_order", "uom": "stock_uom", "name": "packed_item"},
+				"condition": lambda item: get_remaining_qty(item) > 0,
 				"postprocess": update_item,
 			},
 			"Sales Order Item": {
