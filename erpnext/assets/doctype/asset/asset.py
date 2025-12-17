@@ -187,13 +187,15 @@ class Asset(AccountsController):
 	def has_depreciation_settings_changed(self, schedule_doc, fb_row):
 		"""Check if depreciation calculation settings have changed"""
 
-		# For non-manual depreciation methods, always check for changes
-		if schedule_doc.depreciation_method != "Manual":
+		if not schedule_doc.get("depreciation_schedule"):
 			return True
 
-		# For manual depreciation, check specific parameters
+		if fb_row.depreciation_method != "Manual":
+			return True
+
 		return (
-			fb_row.total_number_of_depreciations != schedule_doc.total_number_of_depreciations
+			fb_row.depreciation_method != schedule_doc.depreciation_method
+			or fb_row.total_number_of_depreciations != schedule_doc.total_number_of_depreciations
 			or fb_row.frequency_of_depreciation != schedule_doc.frequency_of_depreciation
 			or getdate(fb_row.depreciation_start_date)
 			!= schedule_doc.get("depreciation_schedule")[0].schedule_date
