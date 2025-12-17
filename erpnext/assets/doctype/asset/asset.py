@@ -163,58 +163,48 @@ class Asset(AccountsController):
 
 		self.show_schedule_creation_message(created_schedules)
 
-	def evaluate_and_recreate_depreciation_schedule(self, schedule_doc, fb_row):
+	def evaluate_and_recreate_depreciation_schedule(self, existing_doc, fb_row):
 		"""Determine if depreciation schedule needs to be regenerated and recreate if necessary"""
 
-		asset_details_changed = self.has_asset_details_changed(schedule_doc)
-		depreciation_settings_changed = self.has_depreciation_settings_changed(schedule_doc, fb_row)
-
+		asset_details_changed = self.has_asset_details_changed(existing_doc)
+		depreciation_settings_changed = self.has_depreciation_settings_changed(existing_doc, fb_row)
 		if self.should_regenerate_depreciation_schedule(
-			schedule_doc, asset_details_changed, depreciation_settings_changed
+			existing_doc, asset_details_changed, depreciation_settings_changed
 		):
-			schedule_doc.create_depreciation_schedule(fb_row)
-			schedule_doc.save()
+			existing_doc.create_depreciation_schedule(fb_row)
+			existing_doc.save()
 
-	def has_asset_details_changed(self, schedule_doc):
+	def has_asset_details_changed(self, existing_doc):
 		"""Check if core asset details that affect depreciation have changed"""
 		return (
-			self.net_purchase_amount != schedule_doc.net_purchase_amount
-			or self.opening_accumulated_depreciation != schedule_doc.opening_accumulated_depreciation
+			self.net_purchase_amount != existing_doc.net_purchase_amount
+			or self.opening_accumulated_depreciation != existing_doc.opening_accumulated_depreciation
 			or self.opening_number_of_booked_depreciations
-			!= schedule_doc.opening_number_of_booked_depreciations
+			!= existing_doc.opening_number_of_booked_depreciations
 		)
 
-	def has_depreciation_settings_changed(self, schedule_doc, fb_row):
+	def has_depreciation_settings_changed(self, existing_doc, fb_row):
 		"""Check if depreciation calculation settings have changed"""
-
-		if not schedule_doc.get("depreciation_schedule"):
-			return True
 
 		if fb_row.depreciation_method != "Manual":
 			return True
 
 		return (
-			fb_row.depreciation_method != schedule_doc.depreciation_method
-			or fb_row.total_number_of_depreciations != schedule_doc.total_number_of_depreciations
-			or fb_row.frequency_of_depreciation != schedule_doc.frequency_of_depreciation
+			fb_row.depreciation_method != existing_doc.depreciation_method
+			or fb_row.total_number_of_depreciations != existing_doc.total_number_of_depreciations
+			or fb_row.frequency_of_depreciation != existing_doc.frequency_of_depreciation
 			or getdate(fb_row.depreciation_start_date)
-			!= schedule_doc.get("depreciation_schedule")[0].schedule_date
-			or fb_row.expected_value_after_useful_life != schedule_doc.expected_value_after_useful_life
+			!= existing_doc.get("depreciation_schedule")[0].schedule_date
+			or fb_row.expected_value_after_useful_life != existing_doc.expected_value_after_useful_life
 		)
 
 	def should_regenerate_depreciation_schedule(
-		self, schedule_doc, asset_details_changed, depreciation_settings_changed
+		self, existing_doc, asset_details_changed, depreciation_settings_changed
 	):
 		"""Check all conditions to determine if schedule regeneration is required"""
 
 		# Schedule doesn't exist yet
-		if not schedule_doc.get("depreciation_schedule"):
-			return True
-
-		previous_version = schedule_doc.get_doc_before_save()
-
-		# Schedule is already submitted and no previous version exists
-		if schedule_doc.docstatus != 0 and not previous_version:
+		if not existing_doc.get("depreciation_schedule"):
 			return True
 
 		# Either asset details or depreciation settings have changed
