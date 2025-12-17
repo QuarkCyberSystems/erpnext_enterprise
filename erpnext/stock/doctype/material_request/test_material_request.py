@@ -6,7 +6,6 @@
 
 
 import frappe
-import frappe.model
 from frappe.tests import IntegrationTestCase
 from frappe.utils import flt, today
 
@@ -1003,6 +1002,25 @@ class TestMaterialRequest(IntegrationTestCase):
 
 		pl_for_pending = create_pick_list(mr.name)
 		self.assertEqual(pl_for_pending.locations[0].qty, 5)
+
+	def test_mr_pick_list_qty_validation(self):
+		"""Test for checking pick list qty validation from Material Request"""
+
+		mr = make_material_request(material_request_type="Material Transfer")
+		pl = create_pick_list(mr.name)
+		pl.locations[0].qty = 9
+		pl.locations[0].stock_qty = 9
+		pl.submit()
+
+		mr.reload()
+		self.assertEqual(mr.items[0].picked_qty, 9)
+
+		pl = create_pick_list(mr.name)
+		self.assertEqual(pl.locations[0].qty, 1)
+
+		pl.locations[0].qty = 2
+		pl.locations[0].stock_qty = 2
+		self.assertRaises(frappe.ValidationError, pl.submit)
 
 	def test_mr_status_with_partial_and_excess_end_transit(self):
 		material_request = make_material_request(
