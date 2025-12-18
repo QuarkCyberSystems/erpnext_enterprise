@@ -257,6 +257,18 @@ class BOM(WebsiteGenerator):
 
 		return index
 
+	def before_validate(self):
+		for item in self.items:
+			if not item.conversion_factor:
+				item.conversion_factor = (
+					frappe.get_value(
+						"UOM Conversion Detail",
+						{"parent": item.item_code, "uom": item.uom},
+						"conversion_factor",
+					)
+					or 1
+				)
+
 	def validate(self):
 		self.route = frappe.scrub(self.name).replace("_", "-")
 
