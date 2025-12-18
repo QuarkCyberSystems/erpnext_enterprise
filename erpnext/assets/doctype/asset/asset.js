@@ -202,6 +202,8 @@ frappe.ui.form.on("Asset", {
 						asset: frm.doc.name,
 					},
 					callback: function (r) {
+						frm.has_active_capitalization = r.message;
+
 						if (!r.message) {
 							$(".form-message").text(__("Capitalize this asset before submitting."));
 
@@ -475,7 +477,6 @@ frappe.ui.form.on("Asset", {
 	is_composite_asset: function (frm) {
 		if (frm.doc.is_composite_asset) {
 			frm.set_value("net_purchase_amount", 0);
-			frm.set_df_property("net_purchase_amount", "read_only", 1);
 		} else {
 			frm.set_df_property("net_purchase_amount", "read_only", 0);
 		}
