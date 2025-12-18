@@ -52,6 +52,11 @@ class TestQuotation(IntegrationTestCase):
 		self.assertEqual(qo.get("items")[0].qty, 11)
 		self.assertEqual(qo.get("items")[-1].rate, 100)
 
+	def test_disallow_due_date_before_transaction_date(self):
+		qo = make_quotation(qty=3, do_not_submit=1)
+		qo.payment_schedule[0].due_date = add_days(qo.transaction_date, -2)
+		self.assertRaises(frappe.ValidationError, qo.save)
+
 	def test_update_child_disallow_rate_change(self):
 		qo = make_quotation(qty=4)
 		trans_item = json.dumps(
