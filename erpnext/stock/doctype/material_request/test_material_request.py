@@ -1011,7 +1011,7 @@ class TestMaterialRequest(IntegrationTestCase):
 		mr = make_material_request(so.name)
 
 		self.assertEqual(mr.items[0].qty, 5)
-		self.assertEqual(mr.items[0].qty, 5)
+		self.assertEqual(mr.items[1].qty, 5)
 
 	def test_pending_qty_in_pick_list(self):
 		"""Test for pick list mapped doc qty from partially received Material Request Transfer"""
