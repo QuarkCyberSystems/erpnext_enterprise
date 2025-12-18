@@ -243,6 +243,10 @@ class Asset(AccountsController):
 		self.validate_expected_value_after_useful_life()
 		self.set_total_booked_depreciations()
 
+	def before_submit(self):
+		if self.is_composite_asset and not has_active_capitalization(self.name):
+			frappe.throw(_("Please capitalize this asset before submitting."))
+
 	def on_submit(self):
 		self.validate_in_use_date()
 		self.make_asset_movement()
