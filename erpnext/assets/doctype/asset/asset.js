@@ -270,8 +270,14 @@ frappe.ui.form.on("Asset", {
 			const row = [
 				sch["idx"],
 				frappe.format(sch["schedule_date"], { fieldtype: "Date" }),
-				frappe.format(sch["depreciation_amount"], { fieldtype: "Currency" }),
-				frappe.format(sch["accumulated_depreciation_amount"], { fieldtype: "Currency" }),
+				frappe.format(sch["depreciation_amount"], {
+					fieldtype: "Currency",
+					options: "Company:company:default_currency",
+				}),
+				frappe.format(sch["accumulated_depreciation_amount"], {
+					fieldtype: "Currency",
+					options: "Company:company:default_currency",
+				}),
 				sch["journal_entry"] || "",
 			];
 
