@@ -159,8 +159,13 @@ class Batch(Document):
 	@frappe.whitelist()
 	def recalculate_batch_qty(self):
 		batches = get_batch_qty(
-			batch_no=self.name, item_code=self.item, for_stock_levels=True, consider_negative_batches=True
+			batch_no=self.name,
+			item_code=self.item,
+			for_stock_levels=True,
+			consider_negative_batches=True,
+			ignore_reserved_stock=True,
 		)
+
 		batch_qty = 0.0
 		if batches:
 			for row in batches:
@@ -241,6 +246,7 @@ def get_batch_qty(
 	for_stock_levels=False,
 	consider_negative_batches=False,
 	do_not_check_future_batches=False,
+	ignore_reserved_stock=False,
 ):
 	"""Returns batch actual qty if warehouse is passed,
 	        or returns dict of qty by warehouse if warehouse is None
@@ -269,6 +275,7 @@ def get_batch_qty(
 			"for_stock_levels": for_stock_levels,
 			"consider_negative_batches": consider_negative_batches,
 			"do_not_check_future_batches": do_not_check_future_batches,
+			"ignore_reserved_stock": ignore_reserved_stock,
 		}
 	)
 
