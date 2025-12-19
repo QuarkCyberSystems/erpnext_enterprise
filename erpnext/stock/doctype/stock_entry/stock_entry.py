@@ -2203,6 +2203,8 @@ class StockEntry(StockController, SubcontractingInwardController):
 				"`tabStock Entry Detail`.`item_code`",
 				"`tabStock Entry Detail`.`item_name`",
 				"`tabStock Entry Detail`.`description`",
+				{"SUM": "`tabStock Entry Detail`.`qty`", "as": "qty"},
+				{"SUM": "`tabStock Entry Detail`.`transfer_qty`", "as": "transfer_qty"},
 				"`tabStock Entry Detail`.`stock_uom`",
 				"`tabStock Entry Detail`.`uom`",
 				"`tabStock Entry Detail`.`basic_rate`",
