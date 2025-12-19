@@ -38,7 +38,7 @@ frappe.query_reports["Stock Qty vs Batch Qty"] = {
 				frappe.call({
 					method: "erpnext.stock.report.stock_qty_vs_batch_qty.stock_qty_vs_batch_qty.update_batch_qty",
 					args: {
-						batches: selected_rows,
+						selected_batches: selected_rows,
 					},
 					callback: function (r) {
 						if (!r.exc) {
