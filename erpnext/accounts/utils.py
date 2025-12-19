@@ -306,7 +306,7 @@ def get_balance_on(
 				f"""(gle.finance_book IN (
 						{frappe.db.escape(finance_book)},
 						{frappe.db.escape(default_finance_book)}
-					)OR gle.finance_book IS NULL
+					) OR gle.finance_book IS NULL
 				)"""
 			)
 		else:
