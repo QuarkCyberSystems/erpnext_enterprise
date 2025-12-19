@@ -2223,6 +2223,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 				["Stock Entry Detail", "docstatus", "=", 1],
 			],
 			order_by="`tabStock Entry Detail`.`idx` desc, `tabStock Entry Detail`.`is_finished_item` desc",
+			group_by="`tabStock Entry Detail`.`item_code`",
 		)
 
 	@frappe.whitelist()
