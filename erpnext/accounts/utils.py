@@ -303,14 +303,23 @@ def get_balance_on(
 	if finance_book:
 		if default_finance_book and include_default_fb_balances:
 			cond.append(
-				f"gle.finance_book IN ({frappe.db.escape(finance_book)}, {frappe.db.escape(default_finance_book)})"
+				f"""(gle.finance_book IN (
+						{frappe.db.escape(finance_book)},
+						{frappe.db.escape(default_finance_book)}
+					)OR gle.finance_book IS NULL
+				)"""
 			)
 		else:
-			cond.append(f"gle.finance_book = {frappe.db.escape(finance_book)}")
+			cond.append(f"(gle.finance_book = {frappe.db.escape(finance_book)} OR gle.finance_book IS NULL)")
 
 	elif default_finance_book and include_default_fb_balances:
 		# No finance book passed → fall back to default
-		cond.append(f"gle.finance_book = {frappe.db.escape(default_finance_book)}")
+		cond.append(
+			f"""(
+				gle.finance_book = {frappe.db.escape(default_finance_book)}
+				OR gle.finance_book IS NULL
+			)"""
+		)
 
 	if account or (party_type and party) or account_type:
 		precision = get_currency_precision()
