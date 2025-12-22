@@ -1227,26 +1227,48 @@ def create_delivery_note(source_name, target_doc=None):
 	validate_item_locations(pick_list)
 	sales_dict = dict()
 	sales_orders = []
-	delivery_note = None
+	delivery_notes = []
 	for location in pick_list.locations:
 		if location.sales_order:
 			sales_orders.append(
 				frappe.db.get_value(
-					"Sales Order", location.sales_order, ["customer", "name as sales_order"], as_dict=True
+					"Sales Order",
+					location.sales_order,
+					[
+						"customer",
+						"name as sales_order",
+						"company_address",
+						"dispatch_address_name",
+						"shipping_address_name",
+						"customer_address",
+					],
+					as_dict=True,
 				)
 			)
 
-	group_key = lambda so: so["customer"]  # noqa
-	for customer, rows in groupby(sorted(sales_orders, key=group_key), key=group_key):
-		sales_dict[customer] = {row.sales_order for row in rows}
+	group_key = lambda so: (  # noqa
+		so["customer"],
+		so["company_address"],
+		so["dispatch_address_name"],
+		so["shipping_address_name"],
+		so["customer_address"],
+	)
+	for key, rows in groupby(sorted(sales_orders, key=group_key), key=group_key):
+		sales_dict[key] = {row.sales_order for row in rows}
 
 	if sales_dict:
-		delivery_note = create_dn_with_so(sales_dict, pick_list)
+		delivery_notes.extend(create_dn_with_so(sales_dict, pick_list))
 
 	if not all(item.sales_order for item in pick_list.locations):
-		delivery_note = create_dn_wo_so(pick_list)
+		delivery_notes.append(create_dn_wo_so(pick_list))
 
-	return delivery_note
+	if len(delivery_notes) == 1:
+		return delivery_notes[0]
+	else:
+		from frappe.utils import comma_and
+
+		doc_list = [get_link_to_form("Delivery Note", p.name) for p in delivery_notes]
+		frappe.msgprint(_("{0} created").format(comma_and(doc_list)))
 
 
 def create_dn_wo_so(pick_list, delivery_note=None):
@@ -1309,17 +1331,18 @@ def create_dn_for_pick_lists(source_name, target_doc=None, kwargs=None):
 
 def create_dn_with_so(sales_dict, pick_list):
 	"""Create Delivery Note for each customer (based on SO) in a Pick List."""
-	delivery_note = None
+	delivery_notes = []
 
-	for customer in sales_dict:
-		delivery_note = create_dn_from_so(pick_list, sales_dict[customer], None)
+	for key in sales_dict:
+		delivery_note = create_dn_from_so(pick_list, sales_dict[key], None)
 		if delivery_note:
 			delivery_note.flags.ignore_mandatory = True
 			# updates packed_items on save
 			# save as multiple customers are possible
 			delivery_note.save()
+			delivery_notes.append(delivery_note)
 
-	return delivery_note
+	return delivery_notes
 
 
 def create_dn_from_so(pick_list, sales_order_list, delivery_note=None, kwargs=None):
