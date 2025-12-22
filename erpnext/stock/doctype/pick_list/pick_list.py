@@ -1248,10 +1248,10 @@ def create_delivery_note(source_name, target_doc=None):
 
 	group_key = lambda so: (  # noqa
 		so["customer"],
-		so["company_address"],
-		so["dispatch_address_name"],
-		so["shipping_address_name"],
-		so["customer_address"],
+		so["company_address"] or "",
+		so["dispatch_address_name"] or "",
+		so["shipping_address_name"] or "",
+		so["customer_address"] or "",
 	)
 	for key, rows in groupby(sorted(sales_orders, key=group_key), key=group_key):
 		sales_dict[key] = {row.sales_order for row in rows}
