@@ -3275,6 +3275,8 @@ class TestWorkOrder(IntegrationTestCase):
 		"""Test that phantom BOMs are not added to additional costs,
 		but regular non-stock items in the FG BOM are added."""
 
+		from erpnext.stock.doctype.item.test_item import make_item
+
 		# Create items:
 		# - FG Item (stock item)
 		# - Phantom sub-assembly (non-stock item to be phantom)
@@ -3399,12 +3401,19 @@ class TestWorkOrder(IntegrationTestCase):
 		fg_bom.insert()
 		fg_bom.submit()
 
-		# Ensure stock for regular RM
+		# Ensure stock
 		test_stock_entry.make_stock_entry(
 			item_code=regular_rm,
 			target="_Test Warehouse - _TC",
 			qty=10,
 			basic_rate=100,
+		)
+
+		test_stock_entry.make_stock_entry(
+			item_code=phantom_rm,
+			target="_Test Warehouse - _TC",
+			qty=10,
+			basic_rate=200,
 		)
 
 		# Create work order
