@@ -1492,6 +1492,10 @@ def add_non_stock_items_cost(stock_entry, work_order, expense_account, job_card=
 
 	items = {}
 	for d in bom.get(table):
+		# Phantom item is exploded, so its cost is considered via its components
+		if d.get("is_phantom_item"):
+			continue
+
 		items.setdefault(d.item_code, d.amount)
 
 	non_stock_items = frappe.get_all(
