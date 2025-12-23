@@ -77,7 +77,7 @@ class Subscription(Document):
 		purchase_tax_template: DF.Link | None
 		sales_tax_template: DF.Link | None
 		start_date: DF.Date | None
-		status: DF.Literal["", "Trialing", "Active", "Past Due Date", "Cancelled", "Unpaid", "Completed"]
+		status: DF.Literal["", "Trialing", "Active", "Grace Period", "Cancelled", "Unpaid", "Completed"]
 		submit_invoice: DF.Check
 		trial_period_end: DF.Date | None
 		trial_period_start: DF.Date | None
@@ -229,7 +229,7 @@ class Subscription(Document):
 			self.status = self.get_status_for_past_grace_period()
 			self.cancelation_date = getdate(posting_date) if self.status == "Cancelled" else None
 		elif self.current_invoice_is_past_due() and not self.is_past_grace_period():
-			self.status = "Past Due Date"
+			self.status = "Grace Period"
 		elif not self.has_outstanding_invoice():
 			self.status = "Active"
 
