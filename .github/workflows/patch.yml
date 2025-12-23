@@ -51,12 +51,15 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: |
+                            '3.14'
+                            '3.13'
+                            '3.11'
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 24
           check-latest: true
 
       - name: Add to Hosts
@@ -132,15 +135,15 @@ jobs:
             # Resetup env and install apps
             pgrep honcho | xargs kill
             rm -rf ~/frappe-bench/env
-            bench -v setup env
+            bench -v setup env --python python$2
             bench pip install -e ./apps/erpnext
             bench start &>> ~/frappe-bench/bench_start.log &
 
             bench --site test_site migrate
           }
 
-          update_to_version 14
-          update_to_version 15
+          update_to_version 14 3.11
+          update_to_version 15 3.13
 
           echo "Updating to latest version"
           git -C "apps/frappe" fetch --depth 1 upstream "${GITHUB_BASE_REF:-${GITHUB_REF##*/}}"
