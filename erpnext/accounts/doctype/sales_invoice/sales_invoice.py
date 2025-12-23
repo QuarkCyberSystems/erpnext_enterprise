@@ -352,10 +352,17 @@ class SalesInvoice(SellingController):
 			self.is_opening = "No"
 
 		self.set_against_income_account()
-		self.validate_time_sheets_are_submitted()
+
+		if not self.is_return:
+			self.validate_time_sheets_are_submitted()
+
 		self.validate_multiple_billing("Delivery Note", "dn_detail", "amount")
-		if self.is_return:
-			self.timesheets = []
+
+		if self.is_return and self.return_against:
+			for row in self.timesheets:
+				row.billing_hours *= -1
+				row.billing_amount *= -1
+
 		self.update_packing_list()
 		self.set_billing_hours_and_amount()
 		self.update_timesheet_billing_for_project()
@@ -484,7 +491,7 @@ class SalesInvoice(SellingController):
 		if cint(self.is_pos) != 1 and not self.is_return:
 			self.update_against_document_in_jv()
 
-		self.update_time_sheet(self.name)
+		self.update_time_sheet(None if (self.is_return and self.return_against) else self.name)
 
 		if frappe.get_single_value("Selling Settings", "sales_update_frequency") == "Each Transaction":
 			update_company_current_month_sales(self.company)
@@ -804,8 +811,19 @@ class SalesInvoice(SellingController):
 		for data in timesheet.time_logs:
 			if (
 				(self.project and args.timesheet_detail == data.name)
-				or (not self.project and not data.sales_invoice)
-				or (not sales_invoice and data.sales_invoice == self.name)
+				or (not self.project and not data.sales_invoice and args.timesheet_detail == data.name)
+				or (
+					not sales_invoice
+					and data.sales_invoice == self.name
+					and args.timesheet_detail == data.name
+				)
+				or (
+					self.is_return
+					and self.return_against
+					and data.sales_invoice
+					and not sales_invoice
+					and args.timesheet_detail == data.name
+				)
 			):
 				data.sales_invoice = sales_invoice
 
@@ -848,7 +866,7 @@ class SalesInvoice(SellingController):
 		for data in self.timesheets:
 			if data.time_sheet:
 				status = frappe.db.get_value("Timesheet", data.time_sheet, "status")
-				if status not in ["Submitted", "Payslip"]:
+				if status not in ["Submitted", "Payslip", "Partially Billed"]:
 					frappe.throw(_("Timesheet {0} is already completed or cancelled").format(data.time_sheet))
 
 	def set_pos_fields(self, for_validate=False):
@@ -1283,7 +1301,12 @@ class SalesInvoice(SellingController):
 					timesheet.billing_amount = ts_doc.total_billable_amount
 
 	def update_timesheet_billing_for_project(self):
-		if not self.timesheets and self.project and self.is_auto_fetch_timesheet_enabled():
+		if (
+			not self.is_return
+			and not self.timesheets
+			and self.project
+			and self.is_auto_fetch_timesheet_enabled()
+		):
 			self.add_timesheet_data()
 		else:
 			self.calculate_billing_amount_for_timesheet()
