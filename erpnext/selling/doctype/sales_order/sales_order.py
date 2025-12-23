@@ -1030,17 +1030,20 @@ def make_material_request(source_name, target_doc=None):
 
 	def get_remaining_packed_item_qty(so_item):
 		delivered_qty = frappe.db.get_value(
-			"Sales Order Item", {"docstatus": 1, "name": so_item.parent_detail_docname}, ["delivered_qty"]
+			"Sales Order Item", {"name": so_item.parent_detail_docname}, ["delivered_qty"]
 		)
 
-		bundle_item_qty = frappe.db.get_value("Product Bundle Item", {"parent": so_item.parent_item}, ["qty"])
+		bundle_item_qty = frappe.db.get_value(
+			"Product Bundle Item", {"parent": so_item.parent_item, "item_code": so_item.item_code}, ["qty"]
+		)
 
 		return flt(
 			(
 				flt(so_item.qty)
 				- flt(requested_item_qty.get(so_item.name, {}).get("qty"))
 				- max(
-					flt(delivered_qty) - flt(requested_item_qty.get(so_item.name, {}).get("received_qty")),
+					flt(delivered_qty) * flt(bundle_item_qty)
+					- flt(requested_item_qty.get(so_item.name, {}).get("received_qty")),
 					0,
 				)
 			)

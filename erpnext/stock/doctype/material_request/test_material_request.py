@@ -995,8 +995,7 @@ class TestMaterialRequest(IntegrationTestCase):
 			is_purchase_item=0,
 		)
 
-		pb = make_product_bundle(parent=bundle_item, items=[sub_item_a, sub_item_b])
-		pb.submit()
+		make_product_bundle(parent=bundle_item, items=[sub_item_a, sub_item_b])
 
 		so = make_sales_order(item_code=bundle_item)
 		so.submit()
