@@ -2091,9 +2091,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 		if self.purpose == "Material Issue":
 			ret["expense_account"] = item.get("expense_account") or item_group_defaults.get("expense_account")
 
-		if (self.purpose == "Manufacture" and not args.get("is_finished_item")) or not ret.get(
-			"expense_account"
-		):
+		if not ret.get("expense_account"):
 			ret["expense_account"] = frappe.get_cached_value(
 				"Company", self.company, "stock_adjustment_account"
 			)
