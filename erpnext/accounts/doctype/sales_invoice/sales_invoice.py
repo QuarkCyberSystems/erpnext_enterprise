@@ -571,7 +571,7 @@ class SalesInvoice(SellingController):
 		self.check_if_consolidated_invoice()
 
 		super().before_cancel()
-		self.update_time_sheet(None)
+		self.update_time_sheet(self.return_against if (self.is_return and self.return_against) else None)
 
 	def on_cancel(self):
 		check_if_return_invoice_linked_with_payment_entry(self)
