@@ -11,10 +11,10 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestItemPrice(ERPNextTestSuite):
-	def setUp(self):
-		super().setUp()
-		frappe.db.sql("delete from `tabItem Price`")
-		make_test_records_for_doctype("Item Price", force=True)
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.load_test_records("Item Price")
 
 	def test_template_item_price(self):
 		from erpnext.stock.doctype.item.test_item import make_item
