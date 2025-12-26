@@ -385,7 +385,9 @@ class TestTransactionDeletionRecord(ERPNextTestSuite):
 
 
 def create_company(company_name):
-	company = frappe.get_doc({"doctype": "Company", "company_name": company_name, "default_currency": "INR"})
+	company = frappe.get_doc(
+		{"doctype": "Company", "company_name": company_name, "default_currency": "INR", "country": "India"}
+	)
 	company.insert(ignore_if_duplicate=True)
 
 
