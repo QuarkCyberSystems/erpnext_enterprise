@@ -24,6 +24,11 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestMaterialRequest(ERPNextTestSuite):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.load_test_records("Material Request")
+
 	def test_material_request_qty(self):
 		mr = frappe.copy_doc(self.globalTestRecords["Material Request"][0])
 		mr.items[0].qty = 0
