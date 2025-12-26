@@ -345,7 +345,9 @@ def create_payment_entry_bts(
 	pe.mode_of_payment = mode_of_payment
 	pe.project = project
 	pe.cost_center = cost_center
-	pe.bank_account = company_bank_account
+
+	if company_bank_account:
+		pe.bank_account = company_bank_account
 
 	pe.validate()
 

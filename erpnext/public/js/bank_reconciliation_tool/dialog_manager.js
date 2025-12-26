@@ -526,7 +526,7 @@ erpnext.accounts.bank_reconciliation.DialogManager = class DialogManager {
 				mode_of_payment: values.mode_of_payment,
 				project: values.project,
 				cost_center: values.cost_center,
-				company_bank_account: values?.company_bank_account || this?.bank_account,
+				company_bank_account: values?.bank_account || this?.bank_account,
 			},
 			callback: (response) => {
 				const alert_string = __("Bank Transaction {0} added as Payment Entry", [
@@ -598,7 +598,7 @@ erpnext.accounts.bank_reconciliation.DialogManager = class DialogManager {
 					project: values.project,
 					cost_center: values.cost_center,
 					allow_edit: true,
-					company_bank_account: values?.company_bank_account || this?.bank_account,
+					company_bank_account: values?.bank_account || this?.bank_account,
 				},
 				callback: (r) => {
 					const doc = frappe.model.sync(r.message);
