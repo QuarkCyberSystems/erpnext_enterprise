@@ -16,6 +16,11 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestItem(ERPNextTestSuite):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.load_test_records("Item Group")
+
 	def test_basic_tree(self, records=None):
 		min_lft = 1
 		max_rgt = frappe.db.sql("select max(rgt) from `tabItem Group`")[0][0]
