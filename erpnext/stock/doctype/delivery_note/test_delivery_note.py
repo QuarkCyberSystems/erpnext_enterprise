@@ -45,6 +45,11 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestDeliveryNote(ERPNextTestSuite):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.load_test_records("Stock Entry")
+
 	def test_delivery_note_qty(self):
 		dn = create_delivery_note(qty=0, do_not_save=True)
 		with self.assertRaises(InvalidQtyError):
@@ -158,6 +163,7 @@ class TestDeliveryNote(ERPNextTestSuite):
 				"doctype": "Serial No",
 				"item_code": "_Test Serialized Item With Series",
 				"serial_no": make_autoname("SRDD", "Serial No"),
+				"company": self.companies[0].name,
 			}
 		)
 		serial_no.save()
@@ -222,6 +228,7 @@ class TestDeliveryNote(ERPNextTestSuite):
 						"doctype": "Serial No",
 						"item_code": sn_item,
 						"serial_no": sn,
+						"company": self.companies[0].name,
 					}
 				)
 				sn_doc.insert()
@@ -1248,6 +1255,7 @@ class TestDeliveryNote(ERPNextTestSuite):
 		si = make_sales_invoice(dn.name)
 		self.assertEqual(si.items[0].qty, 1)
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": 1})
 	def test_make_sales_invoice_from_dn_with_returned_qty_duplicate_items(self):
 		from erpnext.stock.doctype.delivery_note.delivery_note import make_sales_invoice
 
@@ -1838,6 +1846,7 @@ class TestDeliveryNote(ERPNextTestSuite):
 						"doctype": "Serial No",
 						"item_code": sn_item,
 						"serial_no": sn,
+						"company": self.companies[0].name,
 					}
 				)
 				sn_doc.insert()
@@ -2322,6 +2331,7 @@ class TestDeliveryNote(ERPNextTestSuite):
 				for d in bundle_data:
 					self.assertEqual(d.incoming_rate, serial_no_valuation[d.serial_no])
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": 1})
 	def test_delivery_note_return_valuation_with_use_serial_batch_field(self):
 		from erpnext.stock.doctype.delivery_note.delivery_note import make_sales_return
 
@@ -2612,7 +2622,7 @@ class TestDeliveryNote(ERPNextTestSuite):
 		self.assertEqual(dn.status, "To Bill")
 
 		si = make_sales_invoice(dn.name)
-		si.location = "Test Location"
+		si.location = self.location[0].name
 		si.submit()
 
 		dn_return = create_delivery_note(is_return=1, return_against=dn.name, qty=-2, do_not_submit=True)
