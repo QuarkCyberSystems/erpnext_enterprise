@@ -9,18 +9,18 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 class TestDepartment(ERPNextTestSuite):
 	def test_remove_department_data(self):
-		doc = create_department("Test Department")
+		doc = create_department("Test Department", company=self.companies[0].name)
 		frappe.delete_doc("Department", doc.name)
 
 
-def create_department(department_name, parent_department=None):
+def create_department(department_name, parent_department=None, company=None):
 	doc = frappe.get_doc(
 		{
 			"doctype": "Department",
 			"is_group": 0,
 			"parent_department": parent_department,
 			"department_name": department_name,
-			"company": frappe.defaults.get_defaults().company,
+			"company": frappe.defaults.get_defaults().company or company,
 		}
 	).insert()
 
