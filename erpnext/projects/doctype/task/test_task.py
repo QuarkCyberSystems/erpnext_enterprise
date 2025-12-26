@@ -14,6 +14,7 @@ class TestTask(ERPNextTestSuite):
 	def setUpClass(cls):
 		super().setUpClass()
 		cls.make_projects()
+		cls.make_activity_type()
 
 	def test_task_total_costing_and_billing_amount(self):
 		from erpnext.projects.doctype.project.test_project import make_project
@@ -21,7 +22,7 @@ class TestTask(ERPNextTestSuite):
 		from erpnext.setup.doctype.employee.test_employee import make_employee
 
 		project_name = "Test Project Costing"
-		employee = make_employee("employee@frappe.io")
+		employee = make_employee("employee@frappe.io", company=self.companies[0].name)
 		project = make_project({"project_name": project_name})
 		task = create_task("_Test Task 1")
 		task.project = project.name
