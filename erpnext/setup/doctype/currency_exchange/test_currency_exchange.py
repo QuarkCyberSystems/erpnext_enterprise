@@ -79,6 +79,11 @@ def patched_requests_get(*args, **kwargs):
 
 @mock.patch("requests.get", side_effect=patched_requests_get)
 class TestCurrencyExchange(ERPNextTestSuite):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.load_test_records("Currency Exchange")
+
 	def clear_cache(self):
 		cache = frappe.cache()
 		for date in test_exchange_values.keys():
