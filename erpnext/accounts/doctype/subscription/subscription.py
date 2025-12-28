@@ -223,7 +223,11 @@ class Subscription(Document):
 		"""
 		if self.is_trialling():
 			self.status = "Trialing"
-		elif self.status == "Active" and self.end_date and getdate(posting_date) > getdate(self.end_date):
+		elif (
+			not self.has_outstanding_invoice()
+			and self.end_date
+			and getdate(posting_date) > getdate(self.end_date)
+		):
 			self.status = "Completed"
 		elif self.is_past_grace_period():
 			self.status = self.get_status_for_past_grace_period()
