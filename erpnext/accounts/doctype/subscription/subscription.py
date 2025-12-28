@@ -432,7 +432,6 @@ class Subscription(Document):
 		items_list = self.get_items_from_plans(self.plans, is_prorate())
 
 		for item in items_list:
-			item["cost_center"] = self.cost_center
 			invoice.append("items", item)
 
 		# Taxes
