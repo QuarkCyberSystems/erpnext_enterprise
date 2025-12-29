@@ -58,8 +58,7 @@ def fetch_budget_accounts(filters):
 			b.company = %s
 			AND b.docstatus = 1
 			AND b.budget_against = %s
-			AND %s BETWEEN b.from_fiscal_year AND b.to_fiscal_year
-			AND %s BETWEEN b.from_fiscal_year AND b.to_fiscal_year
+			AND (%s BETWEEN b.from_fiscal_year AND b.to_fiscal_year OR %s BETWEEN b.from_fiscal_year AND b.to_fiscal_year)
 		""",
 		(filters.company, filters.budget_against, filters.from_fiscal_year, filters.to_fiscal_year),
 		as_dict=True,
@@ -86,7 +85,6 @@ def build_budget_map(budget_records, filters):
 				"actual": 0,
 			}
 			for ad in actual_amt.get(budget.account, []):
-				print("AD RECORD", ad, "\n\n\n")
 				if ad.month_name == month and ad.fiscal_year == fiscal_year:
 					budget_map[budget.dimension][budget.account][fiscal_year][month]["actual"] += flt(
 						ad.debit
