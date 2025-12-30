@@ -81,24 +81,46 @@ def build_budget_map(budget_records, filters):
 		actual_amt = get_actual_details(budget.dimension, filters)
 		budget_map.setdefault(budget.dimension, {})
 		budget_map[budget.dimension].setdefault(budget.account, {})
+
 		budget_distributions = get_budget_distributions(budget)
 
 		for row in budget_distributions:
-			fiscal_year = get_fiscal_year(row.start_date)[0]
-			month = row.start_date.strftime("%B")
-			budget_map[budget.dimension][budget.account].setdefault(fiscal_year, {})
-			budget_map[budget.dimension][budget.account][fiscal_year].setdefault(month, {})
-			budget_map[budget.dimension][budget.account][fiscal_year][month] = {
-				"budget": row.amount,
-				"actual": 0,
-			}
-			for ad in actual_amt.get(budget.account, []):
-				if ad.month_name == month and ad.fiscal_year == fiscal_year:
-					budget_map[budget.dimension][budget.account][fiscal_year][month]["actual"] += flt(
-						ad.debit
-					) - flt(ad.credit)
+			months = get_months_in_range(row.start_date, row.end_date)
+			monthly_budget = flt(row.amount) / len(months)
+
+			for month_date in months:
+				fiscal_year = get_fiscal_year(month_date)[0]
+				month = month_date.strftime("%B")
+
+				budget_map[budget.dimension][budget.account].setdefault(fiscal_year, {})
+				budget_map[budget.dimension][budget.account][fiscal_year].setdefault(
+					month,
+					{
+						"budget": 0,
+						"actual": 0,
+					},
+				)
+
+				budget_map[budget.dimension][budget.account][fiscal_year][month]["budget"] += monthly_budget
+
+				for ad in actual_amt.get(budget.account, []):
+					if ad.month_name == month and ad.fiscal_year == fiscal_year:
+						budget_map[budget.dimension][budget.account][fiscal_year][month]["actual"] += flt(
+							ad.debit
+						) - flt(ad.credit)
 
 	return budget_map
+
+
+def get_months_in_range(start_date, end_date):
+	months = []
+	current = start_date
+
+	while current <= end_date:
+		months.append(current)
+		current = add_months(current, 1)
+
+	return months
 
 
 def get_budget_distributions(budget):
