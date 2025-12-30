@@ -20,7 +20,7 @@ class ItemBarcode(Document):
 			"EAN",
 			"UPC-A",
 			"CODE-39",
-			"EAN-12",
+			"EAN-13",
 			"EAN-8",
 			"GS1",
 			"GTIN",
