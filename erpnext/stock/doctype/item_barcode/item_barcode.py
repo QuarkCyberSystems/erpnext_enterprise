@@ -24,6 +24,7 @@ class ItemBarcode(Document):
 			"EAN-8",
 			"GS1",
 			"GTIN",
+			"GTIN-14",
 			"ISBN",
 			"ISBN-10",
 			"ISBN-13",
