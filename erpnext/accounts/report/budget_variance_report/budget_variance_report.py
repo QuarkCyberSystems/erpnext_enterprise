@@ -41,11 +41,12 @@ def get_month_list(start_date, end_date):
 
 def fetch_budget_accounts(filters):
 	budget_against_field = frappe.scrub(filters["budget_against"])
-	budget_records = frappe.db.sql(
+
+	return frappe.db.sql(
 		f"""
 		SELECT
 			b.name,
-            b.account,
+			b.account,
 			b.{budget_against_field} AS dimension,
 			b.budget_amount,
 			b.from_fiscal_year,
@@ -58,12 +59,19 @@ def fetch_budget_accounts(filters):
 			b.company = %s
 			AND b.docstatus = 1
 			AND b.budget_against = %s
-			AND (%s BETWEEN b.from_fiscal_year AND b.to_fiscal_year OR %s BETWEEN b.from_fiscal_year AND b.to_fiscal_year)
+			AND (
+				b.from_fiscal_year <= %s
+				AND b.to_fiscal_year >= %s
+			)
 		""",
-		(filters.company, filters.budget_against, filters.from_fiscal_year, filters.to_fiscal_year),
+		(
+			filters.company,
+			filters.budget_against,
+			filters.to_fiscal_year,
+			filters.from_fiscal_year,
+		),
 		as_dict=True,
 	)
-	return budget_records
 
 
 def build_budget_map(budget_records, filters):
