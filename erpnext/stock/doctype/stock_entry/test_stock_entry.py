@@ -652,6 +652,7 @@ class TestStockEntry(ERPNextTestSuite):
 				doc = frappe.new_doc("Serial No")
 				doc.serial_no = serial_no
 				doc.item_code = "_Test Serialized Item"
+				doc.company = self.companies[0].name
 				doc.insert(ignore_permissions=True)
 
 		se = frappe.copy_doc(self.globalTestRecords["Stock Entry"][0])
@@ -2045,6 +2046,7 @@ class TestStockEntry(ERPNextTestSuite):
 				"abbr": "_TPC",
 				"default_currency": "INR",
 				"enable_perpetual_inventory": 0,
+				"country": "India",
 			}
 		).insert(ignore_permissions=True)
 
@@ -2404,10 +2406,14 @@ class TestStockEntry(ERPNextTestSuite):
 		rm_item1 = make_item("_Battery", properties={"is_stock_item": 1}).name
 		warehouse = "Stores - WP"
 		bom_no = make_bom(item=fg_item, raw_materials=[rm_item1]).name
-		make_stock_entry(item_code=rm_item1, target=warehouse, qty=5, rate=10, purpose="Material Receipt")
+		se = make_stock_entry(
+			item_code=rm_item1, target=warehouse, qty=5, rate=10, purpose="Material Receipt"
+		)
 
 		work_order = make_work_order(bom_no, fg_item, 5)
+		work_order.company = se.company
 		work_order.skip_transfer = 1
+		work_order.source_warehouse = warehouse
 		work_order.fg_warehouse = warehouse
 		work_order.submit()
 
