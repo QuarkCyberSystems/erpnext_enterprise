@@ -78,6 +78,7 @@ class TestPackedItem(ERPNextTestSuite):
 
 		self.assertEqual(len(so.packed_items), 0)
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": 1})
 	def test_recurring_bundle_item(self):
 		"Test impact on packed items if same bundle item is added and removed."
 		so_items = []
@@ -128,6 +129,7 @@ class TestPackedItem(ERPNextTestSuite):
 		self.assertEqual(so.items[0].rate, 700)
 		self.assertEqual(so.items[0].amount, 1400)
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": 1})
 	def test_newly_mapped_doc_packed_items(self):
 		"Test impact on packed items in newly mapped DN from SO."
 		so_items = []
