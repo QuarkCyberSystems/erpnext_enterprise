@@ -23,6 +23,11 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestSerialNo(ERPNextTestSuite):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.load_test_records("Stock Entry")
+
 	def tearDown(self):
 		frappe.db.rollback()
 
@@ -34,6 +39,7 @@ class TestSerialNo(ERPNextTestSuite):
 		sr.warehouse = "_Test Warehouse - _TC"
 		sr.serial_no = "_TCSER0001"
 		sr.purchase_rate = 10
+		sr.company = self.companies[0].name
 		self.assertRaises(SerialNoCannotCreateDirectError, sr.insert)
 
 		sr.warehouse = None
@@ -193,7 +199,12 @@ class TestSerialNo(ERPNextTestSuite):
 		for serial_no in serial_nos:
 			if not frappe.db.exists("Serial No", serial_no):
 				frappe.get_doc(
-					{"doctype": "Serial No", "item_code": item_code, "serial_no": serial_no}
+					{
+						"doctype": "Serial No",
+						"item_code": item_code,
+						"serial_no": serial_no,
+						"company": self.companies[0].name,
+					}
 				).insert()
 
 		make_stock_entry(
