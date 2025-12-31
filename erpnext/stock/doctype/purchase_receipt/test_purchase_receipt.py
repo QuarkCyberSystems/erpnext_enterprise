@@ -29,6 +29,11 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestPurchaseReceipt(ERPNextTestSuite):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.load_test_records("Purchase Receipt")
+
 	def setUp(self):
 		frappe.db.set_single_value("Buying Settings", "allow_multiple_items", 1)
 
@@ -741,7 +746,12 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 		serial_no = ["12903812901"]
 		if not frappe.db.exists("Serial No", serial_no[0]):
 			frappe.get_doc(
-				{"doctype": "Serial No", "item_code": item_code, "serial_no": serial_no[0]}
+				{
+					"doctype": "Serial No",
+					"item_code": item_code,
+					"serial_no": serial_no[0],
+					"company": self.companies[0].name,
+				}
 			).insert()
 
 		pr_doc = make_purchase_receipt(item_code=item_code, qty=1, serial_no=serial_no)
@@ -2699,6 +2709,7 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 						"doctype": "Serial No",
 						"item_code": serial_item,
 						"serial_no": serial_no,
+						"company": self.companies[0].name,
 					}
 				).insert()
 
@@ -3992,6 +4003,7 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 						"doctype": "Serial No",
 						"item_code": serial_item,
 						"serial_no": serial_no,
+						"company": self.companies[0].name,
 					}
 				).insert()
 
