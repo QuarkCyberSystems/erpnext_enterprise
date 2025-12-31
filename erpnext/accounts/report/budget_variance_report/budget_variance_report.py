@@ -27,22 +27,6 @@ def execute(filters=None):
 	return columns, data
 
 
-def get_fiscal_year_dates(fiscal_year):
-	fy = frappe.get_doc("Fiscal Year", fiscal_year)
-	return fy.year_start_date, fy.year_end_date
-
-
-def get_month_list(start_date, end_date):
-	months = []
-	current = start_date
-
-	while current <= end_date:
-		months.append(current.strftime("%Y-%m"))
-		current = add_months(current, 1)
-
-	return months
-
-
 def fetch_budget_accounts(filters, dimensions):
 	budget_against_field = frappe.scrub(filters["budget_against"])
 
@@ -118,30 +102,6 @@ def build_budget_map(budget_records, filters):
 	return budget_map
 
 
-def get_months_in_range(start_date, end_date):
-	months = []
-	current = start_date
-
-	while current <= end_date:
-		months.append(current)
-		current = add_months(current, 1)
-
-	return months
-
-
-def get_budget_distributions(budget):
-	return frappe.db.sql(
-		"""
-			SELECT start_date, end_date, amount, percent
-			FROM `tabBudget Distribution`
-			WHERE parent = %s
-			ORDER BY start_date ASC
-		  """,
-		(budget.name,),
-		as_dict=True,
-	)
-
-
 def get_actual_details(name, filters):
 	budget_against = frappe.scrub(filters.get("budget_against"))
 	cond = ""
@@ -194,6 +154,30 @@ def get_actual_details(name, filters):
 		cc_actual_details.setdefault(d.account, []).append(d)
 
 	return cc_actual_details
+
+
+def get_budget_distributions(budget):
+	return frappe.db.sql(
+		"""
+			SELECT start_date, end_date, amount, percent
+			FROM `tabBudget Distribution`
+			WHERE parent = %s
+			ORDER BY start_date ASC
+		  """,
+		(budget.name,),
+		as_dict=True,
+	)
+
+
+def get_months_in_range(start_date, end_date):
+	months = []
+	current = start_date
+
+	while current <= end_date:
+		months.append(current)
+		current = add_months(current, 1)
+
+	return months
 
 
 def get_data_from_budget_map(budget_map, filters):
@@ -276,13 +260,6 @@ def get_budget_actual(budget_map, dim, acc, fy, month):
 		return data.get("budget", 0), data.get("actual", 0)
 	except KeyError:
 		return 0, 0
-
-
-def get_fiscal_year_range_dates(from_fy, to_fy):
-	start_fy = frappe.get_doc("Fiscal Year", from_fy)
-	end_fy = frappe.get_doc("Fiscal Year", to_fy)
-
-	return start_fy.year_start_date, end_fy.year_end_date
 
 
 def get_columns(filters):
