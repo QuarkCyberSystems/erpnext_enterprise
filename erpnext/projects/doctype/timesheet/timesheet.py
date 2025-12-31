@@ -76,6 +76,10 @@ class Timesheet(Document):
 	def on_discard(self):
 		self.db_set("status", "Cancelled")
 
+	def on_update_after_submit(self):
+		self.validate_mandatory_fields()
+		self.update_task_and_project()
+
 	def calculate_hours(self):
 		for row in self.time_logs:
 			if row.to_time and row.from_time:
