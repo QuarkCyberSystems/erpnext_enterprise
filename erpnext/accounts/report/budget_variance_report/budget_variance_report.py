@@ -14,8 +14,12 @@ def execute(filters=None):
 		filters = {}
 
 	columns = get_columns(filters)
+	if filters.get("budget_against_filter"):
+		dimensions = filters.get("budget_against_filter")
+	else:
+		dimensions = get_cost_centers(filters)
 
-	budget_records = fetch_budget_accounts(filters)
+	budget_records = fetch_budget_accounts(filters, dimensions)
 	budget_map = build_budget_map(budget_records, filters)
 
 	data = get_data_from_budget_map(budget_map, filters)
@@ -39,7 +43,7 @@ def get_month_list(start_date, end_date):
 	return months
 
 
-def fetch_budget_accounts(filters):
+def fetch_budget_accounts(filters, dimensions):
 	budget_against_field = frappe.scrub(filters["budget_against"])
 
 	return frappe.db.sql(
@@ -59,6 +63,7 @@ def fetch_budget_accounts(filters):
 			b.company = %s
 			AND b.docstatus = 1
 			AND b.budget_against = %s
+			AND b.{budget_against_field} IN ({', '.join(['%s'] * len(dimensions))})
 			AND (
 				b.from_fiscal_year <= %s
 				AND b.to_fiscal_year >= %s
@@ -67,6 +72,7 @@ def fetch_budget_accounts(filters):
 		(
 			filters.company,
 			filters.budget_against,
+			*dimensions,
 			filters.to_fiscal_year,
 			filters.from_fiscal_year,
 		),
@@ -357,3 +363,32 @@ def get_fiscal_years(filters):
 	)
 
 	return fiscal_year
+
+
+def get_cost_centers(filters):
+	order_by = ""
+	if filters.get("budget_against") == "Cost Center":
+		order_by = "order by lft"
+
+	if filters.get("budget_against") in ["Cost Center", "Project"]:
+		return frappe.db.sql_list(
+			"""
+				select
+					name
+				from
+					`tab{tab}`
+				where
+					company = %s
+				{order_by}
+			""".format(tab=filters.get("budget_against"), order_by=order_by),
+			filters.get("company"),
+		)
+	else:
+		return frappe.db.sql_list(
+			"""
+				select
+					name
+				from
+					`tab{tab}`
+			""".format(tab=filters.get("budget_against"))
+		)  # nosec
