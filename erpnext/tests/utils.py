@@ -246,6 +246,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_quality_inspection_param()
 		cls.make_quality_inspection_template()
 		cls.make_employees()
+		cls.make_brand()
 		cls.update_selling_settings()
 		cls.update_stock_settings()
 		cls.update_system_settings()
@@ -2918,6 +2919,31 @@ class ERPNextTestSuite(unittest.TestCase):
 						{"quality_inspection_template_name": x.get("quality_inspection_template_name")},
 					)
 				)
+
+	@classmethod
+	def make_brand(cls):
+		records = [
+			{"brand": "_Test Brand", "doctype": "Brand"},
+			{
+				"brand": "_Test Brand With Item Defaults",
+				"doctype": "Brand",
+				"brand_defaults": [
+					{
+						"company": "_Test Company",
+						"expense_account": "_Test Account Cost for Goods Sold - _TC",
+						"income_account": "_Test Account Sales - _TC",
+						"buying_cost_center": "_Test Cost Center - _TC",
+						"selling_cost_center": "_Test Cost Center - _TC",
+					}
+				],
+			},
+		]
+		cls.brand = []
+		for x in records:
+			if not frappe.db.exists("Brand", {"brand": x.get("brand")}):
+				cls.brand.append(frappe.get_doc(x).insert())
+			else:
+				cls.brand.append(frappe.get_doc("Brand", {"Brand": x.get("brand")}))
 
 	@contextmanager
 	def set_user(self, user: str):

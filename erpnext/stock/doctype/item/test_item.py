@@ -5,8 +5,8 @@
 import json
 
 import frappe
+from frappe import qb
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-from frappe.test_runner import make_test_objects
 from frappe.utils import add_days, today
 
 from erpnext.controllers.item_variant import (
@@ -85,11 +85,25 @@ class TestItem(ERPNextTestSuite):
 			item = frappe.get_doc("Item", item_code)
 		return item
 
-	def test_get_item_details(self):
-		# delete modified item price record and make as per self.globalTestRecords["Item"]
-		frappe.db.sql("""delete from `tabItem Price`""")
-		frappe.db.sql("""delete from `tabBin`""")
+	def make_bin(self, records):
+		for x in records:
+			x = frappe._dict(x)
+			bin = qb.DocType("Bin")
+			filters = {
+				"item_code": x.get("item_code"),
+				"warehouse": x.get("warehouse"),
+				"reserved_qty": x.get("reserved_qty"),
+				"actual_qty": x.get("actual_qty"),
+				"ordered_qty": x.get("ordered_qty"),
+				"projected_qty": x.get("projected_qty"),
+			}
+			if not frappe.db.exists("Bin", filters):
+				qb.from_(bin).delete().where(
+					bin.item_code.eq(x.item_code) & bin.warehouse.eq(x.warehouse)
+				).run()
+				frappe.get_doc(x).insert()
 
+	def test_get_item_details(self):
 		to_check = {
 			"item_code": "_Test Item",
 			"item_name": "_Test Item",
@@ -114,11 +128,10 @@ class TestItem(ERPNextTestSuite):
 			"projected_qty": 14,
 		}
 
-		make_test_objects("Item Price")
-		make_test_objects(
-			"Bin",
+		self.make_bin(
 			[
 				{
+					"doctype": "Bin",
 					"item_code": "_Test Item",
 					"warehouse": "_Test Warehouse - _TC",
 					"reserved_qty": 1,
