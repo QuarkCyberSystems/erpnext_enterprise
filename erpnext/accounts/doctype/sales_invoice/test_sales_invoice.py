@@ -2510,12 +2510,14 @@ class TestSalesInvoice(ERPNextTestSuite):
 		si.submit()
 
 		pda1 = frappe.get_doc(
-			doctype="Process Deferred Accounting",
-			posting_date=nowdate(),
-			start_date="2019-01-01",
-			end_date="2019-03-31",
-			type="Income",
-			company="_Test Company",
+			dict(
+				doctype="Process Deferred Accounting",
+				posting_date=nowdate(),
+				start_date="2019-01-01",
+				end_date="2019-03-31",
+				type="Income",
+				company="_Test Company",
+			)
 		)
 
 		pda1.insert()
@@ -2566,12 +2568,14 @@ class TestSalesInvoice(ERPNextTestSuite):
 		si.submit()
 
 		pda1 = frappe.get_doc(
-			doctype="Process Deferred Accounting",
-			posting_date="2019-03-31",
-			start_date="2019-01-01",
-			end_date="2019-03-31",
-			type="Income",
-			company="_Test Company",
+			dict(
+				doctype="Process Deferred Accounting",
+				posting_date="2019-03-31",
+				start_date="2019-01-01",
+				end_date="2019-03-31",
+				type="Income",
+				company="_Test Company",
+			)
 		)
 
 		pda1.insert()
@@ -3474,12 +3478,14 @@ class TestSalesInvoice(ERPNextTestSuite):
 		frappe.db.set_value("Company", "_Test Company", "accounts_frozen_till_date", getdate("2019-01-31"))
 
 		pda1 = frappe.get_doc(
-			doctype="Process Deferred Accounting",
-			posting_date=nowdate(),
-			start_date="2019-01-01",
-			end_date="2019-03-31",
-			type="Income",
-			company="_Test Company",
+			dict(
+				doctype="Process Deferred Accounting",
+				posting_date=nowdate(),
+				start_date="2019-01-01",
+				end_date="2019-03-31",
+				type="Income",
+				company="_Test Company",
+			)
 		)
 
 		pda1.insert()

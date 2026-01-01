@@ -338,7 +338,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 			? this.dialog.get_value("serial_no").split("\n")
 			: [];
 
-		if (serial_nos.includes(serial_no)) {
+		if (in_list(serial_nos, serial_no)) {
 			frappe.throw(__("Serial No {0} already scanned", [serial_no]));
 		}
 	}
@@ -359,7 +359,7 @@ erpnext.utils.BarcodeScanner = class BarcodeScanner {
 			];
 
 			for (let key in prev_row) {
-				if (ignore_fields.includes(key)) {
+				if (in_list(ignore_fields, key)) {
 					continue;
 				}
 

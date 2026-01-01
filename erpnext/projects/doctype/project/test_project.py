@@ -255,12 +255,14 @@ class TestProject(ERPNextTestSuite):
 
 def get_project(name, template):
 	project = frappe.get_doc(
-		doctype="Project",
-		project_name=name,
-		status="Open",
-		project_template=template.name,
-		expected_start_date=nowdate(),
-		company="_Test Company",
+		dict(
+			doctype="Project",
+			project_name=name,
+			status="Open",
+			project_template=template.name,
+			expected_start_date=nowdate(),
+			company="_Test Company",
+		)
 	).insert()
 
 	return project
@@ -273,11 +275,13 @@ def make_project(args):
 		return frappe.get_doc("Project", {"project_name": args.project_name})
 
 	project = frappe.get_doc(
-		doctype="Project",
-		project_name=args.project_name,
-		status="Open",
-		expected_start_date=args.start_date,
-		company=args.company or "_Test Company",
+		dict(
+			doctype="Project",
+			project_name=args.project_name,
+			status="Open",
+			expected_start_date=args.start_date,
+			company=args.company or "_Test Company",
+		)
 	)
 
 	if args.project_template_name:

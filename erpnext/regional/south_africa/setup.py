@@ -50,7 +50,9 @@ def add_permissions():
 
 	if not frappe.db.get_value("Custom Role", dict(report="VAT Audit Report")):
 		frappe.get_doc(
-			doctype="Custom Role",
-			report="VAT Audit Report",
-			roles=[dict(role="Accounts User"), dict(role="Accounts Manager"), dict(role="Auditor")],
+			dict(
+				doctype="Custom Role",
+				report="VAT Audit Report",
+				roles=[dict(role="Accounts User"), dict(role="Accounts Manager"), dict(role="Auditor")],
+			)
 		).insert()

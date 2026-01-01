@@ -101,12 +101,14 @@ class TestDeferredRevenueAndExpense(IntegrationTestCase, AccountsTestMixin):
 		si.submit()
 
 		pda = frappe.get_doc(
-			doctype="Process Deferred Accounting",
-			posting_date=nowdate(),
-			start_date="2021-05-01",
-			end_date="2021-08-01",
-			type="Income",
-			company=self.company,
+			dict(
+				doctype="Process Deferred Accounting",
+				posting_date=nowdate(),
+				start_date="2021-05-01",
+				end_date="2021-08-01",
+				type="Income",
+				company=self.company,
+			)
 		)
 		pda.insert()
 		pda.submit()
@@ -171,12 +173,14 @@ class TestDeferredRevenueAndExpense(IntegrationTestCase, AccountsTestMixin):
 		pi.submit()
 
 		pda = frappe.get_doc(
-			doctype="Process Deferred Accounting",
-			posting_date=nowdate(),
-			start_date="2021-05-01",
-			end_date="2021-08-01",
-			type="Expense",
-			company=self.company,
+			dict(
+				doctype="Process Deferred Accounting",
+				posting_date=nowdate(),
+				start_date="2021-05-01",
+				end_date="2021-08-01",
+				type="Expense",
+				company=self.company,
+			)
 		)
 		pda.insert()
 		pda.submit()
@@ -236,12 +240,14 @@ class TestDeferredRevenueAndExpense(IntegrationTestCase, AccountsTestMixin):
 		si.submit()
 
 		pda = frappe.get_doc(
-			doctype="Process Deferred Accounting",
-			posting_date=nowdate(),
-			start_date="2021-05-01",
-			end_date="2021-08-01",
-			type="Income",
-			company=self.company,
+			dict(
+				doctype="Process Deferred Accounting",
+				posting_date=nowdate(),
+				start_date="2021-05-01",
+				end_date="2021-08-01",
+				type="Income",
+				company=self.company,
+			)
 		)
 		pda.insert()
 		pda.submit()

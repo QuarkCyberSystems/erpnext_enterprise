@@ -1249,12 +1249,14 @@ class TestPurchaseInvoice(IntegrationTestCase, StockTestMixin):
 		pi.submit()
 
 		pda1 = frappe.get_doc(
-			doctype="Process Deferred Accounting",
-			posting_date=nowdate(),
-			start_date="2019-01-01",
-			end_date="2019-03-31",
-			type="Expense",
-			company="_Test Company",
+			dict(
+				doctype="Process Deferred Accounting",
+				posting_date=nowdate(),
+				start_date="2019-01-01",
+				end_date="2019-03-31",
+				type="Expense",
+				company="_Test Company",
+			)
 		)
 
 		pda1.insert()

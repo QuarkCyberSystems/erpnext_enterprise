@@ -904,7 +904,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 	get_incoming_rate(item, posting_date, posting_time, voucher_type, company) {
 		let item_args = {
 			item_code: item.item_code,
-			warehouse: "Purchase Receipt".includes("Purchase Invoice") ? item.from_warehouse : item.warehouse,
+			warehouse: in_list("Purchase Receipt", "Purchase Invoice") ? item.from_warehouse : item.warehouse,
 			posting_date: posting_date,
 			posting_time: posting_time,
 			qty: item.qty * item.conversion_factor,
@@ -2248,7 +2248,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 							child.apply_rule_on_other_items &&
 							JSON.parse(child.apply_rule_on_other_items).length
 						) {
-							if (!JSON.parse(child.apply_rule_on_other_items).includes(child.item_code)) {
+							if (!in_list(JSON.parse(child.apply_rule_on_other_items), child.item_code)) {
 								continue;
 							}
 						}
@@ -2296,7 +2296,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 					if (JSON.parse(data.apply_rule_on_other_items).includes(d[data.apply_rule_on])) {
 						for (var k in data) {
 							if (
-								fields.includes(k) &&
+								in_list(fields, k) &&
 								data[k] &&
 								(data.price_or_product_discount === "Price" || k === "pricing_rules")
 							) {
@@ -2768,7 +2768,8 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 	}
 
 	has_discount_in_schedule() {
-		let is_eligible = ["Sales Order", "Sales Invoice", "Purchase Order", "Purchase Invoice"].includes(
+		let is_eligible = in_list(
+			["Sales Order", "Sales Invoice", "Purchase Order", "Purchase Invoice"],
 			this.frm.doctype
 		);
 		let has_payment_schedule = this.frm.doc.payment_schedule && this.frm.doc.payment_schedule.length;
@@ -3204,13 +3205,16 @@ erpnext.show_serial_batch_selector = function (frm, item_row, callback, on_close
 			}
 
 			if (
-				[
-					"Material Transfer",
-					"Send to Subcontractor",
-					"Material Issue",
-					"Material Consumption for Manufacture",
-					"Material Transfer for Manufacture",
-				].includes(frm.doc.purpose)
+				in_list(
+					[
+						"Material Transfer",
+						"Send to Subcontractor",
+						"Material Issue",
+						"Material Consumption for Manufacture",
+						"Material Transfer for Manufacture",
+					],
+					frm.doc.purpose
+				)
 			) {
 				warehouse_field = "s_warehouse";
 			} else {

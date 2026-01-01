@@ -261,9 +261,11 @@ def add_custom_roles_for_reports():
 	"""Add Access Control to UAE VAT 201."""
 	if not frappe.db.get_value("Custom Role", dict(report="UAE VAT 201")):
 		frappe.get_doc(
-			doctype="Custom Role",
-			report="UAE VAT 201",
-			roles=[dict(role="Accounts User"), dict(role="Accounts Manager"), dict(role="Auditor")],
+			dict(
+				doctype="Custom Role",
+				report="UAE VAT 201",
+				roles=[dict(role="Accounts User"), dict(role="Accounts Manager"), dict(role="Auditor")],
+			)
 		).insert()
 
 

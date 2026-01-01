@@ -182,7 +182,7 @@ frappe.ui.form.on("Payment Entry", {
 				"Dunning",
 			];
 
-			if (party_type_doctypes.includes(child.reference_doctype)) {
+			if (in_list(party_type_doctypes, child.reference_doctype)) {
 				filters[doc.party_type.toLowerCase()] = doc.party;
 			}
 
@@ -1041,7 +1041,7 @@ frappe.ui.form.on("Payment Entry", {
 						c.allocated_amount = d.allocated_amount;
 						c.account = d.account;
 
-						if (!frm.events.get_order_doctypes(frm).includes(d.voucher_type)) {
+						if (!in_list(frm.events.get_order_doctypes(frm), d.voucher_type)) {
 							if (flt(d.outstanding_amount) > 0)
 								total_positive_outstanding += flt(d.outstanding_amount);
 							else total_negative_outstanding += Math.abs(flt(d.outstanding_amount));
@@ -1057,7 +1057,7 @@ frappe.ui.form.on("Payment Entry", {
 						} else {
 							c.exchange_rate = 1;
 						}
-						if (frm.events.get_invoice_doctypes(frm).includes(d.reference_doctype)) {
+						if (in_list(frm.events.get_invoice_doctypes(frm), d.reference_doctype)) {
 							c.due_date = d.due_date;
 						}
 					});
