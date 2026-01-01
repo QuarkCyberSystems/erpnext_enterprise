@@ -460,8 +460,9 @@ class TestWorkOrder(ERPNextTestSuite):
 	@timeout(seconds=60)
 	def test_job_card(self):
 		stock_entries = []
-		bom = frappe.get_doc("BOM", {"docstatus": 1, "with_operations": 1, "company": "_Test Company"})
-
+		bom = frappe.get_doc(
+			"BOM", {"docstatus": 1, "with_operations": 1, "company": "_Test Company", "has_variants": 0}
+		)
 		work_order = make_wo_order_test_record(
 			item=bom.item, qty=1, bom_no=bom.name, source_warehouse="_Test Warehouse - _TC"
 		)
@@ -511,7 +512,9 @@ class TestWorkOrder(ERPNextTestSuite):
 
 	def test_work_order_material_transferred_qty_with_process_loss(self):
 		stock_entries = []
-		bom = frappe.get_doc("BOM", {"docstatus": 1, "with_operations": 1, "company": "_Test Company"})
+		bom = frappe.get_doc(
+			"BOM", {"docstatus": 1, "with_operations": 1, "company": "_Test Company", "has_variants": 0}
+		)
 
 		work_order = make_wo_order_test_record(
 			item=bom.item,
@@ -699,6 +702,7 @@ class TestWorkOrder(ERPNextTestSuite):
 		work_order1.save()
 		self.assertEqual(work_order1.operations[0].time_in_mins, 40.0)
 
+	@ERPNextTestSuite.change_settings("Global Defaults", {"default_company": "_Test Company"})
 	def test_batch_size_for_fg_item(self):
 		fg_item = "Test Batch Size Item For BOM 3"
 		rm1 = "Test Batch Size Item RM 1 For BOM 3"
@@ -956,7 +960,11 @@ class TestWorkOrder(ERPNextTestSuite):
 		bom_no = f"BOM-{fg_item_non_whole.item_code}-001"
 		if not frappe.db.exists("BOM", bom_no):
 			bom_doc = create_bom_with_process_loss_item(
-				fg_item_non_whole, bom_item, fg_qty=1, process_loss_percentage=10
+				fg_item_non_whole,
+				bom_item,
+				fg_qty=1,
+				process_loss_percentage=10,
+				company=self.companies[0].name,
 			)
 			bom_doc.submit()
 
@@ -1143,6 +1151,7 @@ class TestWorkOrder(ERPNextTestSuite):
 				"is_active": 1,
 				"is_default": 1,
 				"quantity": 1.0,
+				"company": self.companies[0].name,
 				"with_operations": 1,
 				"operations": [
 					{
@@ -1256,6 +1265,7 @@ class TestWorkOrder(ERPNextTestSuite):
 			self.fail("Batch generation causing failing in Work Order")
 
 	@ERPNextTestSuite.change_settings("Manufacturing Settings", {"make_serial_no_batch_from_work_order": 1})
+	@ERPNextTestSuite.change_settings("Global Defaults", {"default_company": "_Test Company"})
 	def test_auto_serial_no_creation(self):
 		from erpnext.manufacturing.doctype.bom.test_bom import create_nested_bom
 
@@ -1289,6 +1299,7 @@ class TestWorkOrder(ERPNextTestSuite):
 			self.fail("Batch generation causing failing in Work Order")
 
 	@ERPNextTestSuite.change_settings("Manufacturing Settings", {"make_serial_no_batch_from_work_order": 1})
+	@ERPNextTestSuite.change_settings("Global Defaults", {"default_company": "_Test Company"})
 	def test_auto_serial_no_batch_creation(self):
 		from erpnext.manufacturing.doctype.bom.test_bom import create_nested_bom
 
@@ -1876,6 +1887,7 @@ class TestWorkOrder(ERPNextTestSuite):
 
 		self.assertEqual(wo_doc.status, "Completed")
 		return_ste_doc = make_stock_return_entry(wo_doc.name)
+		return_ste_doc.company = wo_doc.company
 		return_ste_doc.save()
 
 		self.assertTrue(return_ste_doc.is_return)

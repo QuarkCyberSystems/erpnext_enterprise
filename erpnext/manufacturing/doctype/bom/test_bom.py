@@ -869,11 +869,12 @@ def reset_item_valuation_rate(item_code, warehouse_list=None, qty=None, rate=Non
 
 
 def create_bom_with_process_loss_item(
-	fg_item, bom_item, scrap_qty=0, scrap_rate=0, fg_qty=2, process_loss_percentage=0
+	fg_item, bom_item, scrap_qty=0, scrap_rate=0, fg_qty=2, process_loss_percentage=0, company=None
 ):
 	bom_doc = frappe.new_doc("BOM")
 	bom_doc.item = fg_item.item_code
 	bom_doc.quantity = fg_qty
+	bom_doc.company = company
 	bom_doc.append(
 		"items",
 		{
