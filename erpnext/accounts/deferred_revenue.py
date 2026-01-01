@@ -450,12 +450,14 @@ def process_deferred_accounting(posting_date=None):
 	for company in companies:
 		for record_type in ("Income", "Expense"):
 			doc = frappe.get_doc(
-				doctype="Process Deferred Accounting",
-				company=company.name,
-				posting_date=posting_date,
-				start_date=start_date,
-				end_date=end_date,
-				type=record_type,
+				dict(
+					doctype="Process Deferred Accounting",
+					company=company.name,
+					posting_date=posting_date,
+					start_date=start_date,
+					end_date=end_date,
+					type=record_type,
+				)
 			)
 
 			doc.insert()

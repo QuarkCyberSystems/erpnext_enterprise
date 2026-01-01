@@ -26,15 +26,17 @@ def send_message(sender, message, subject="Website Query"):
 		lead = frappe.db.get_value("Lead", dict(email_id=sender))
 		if not lead:
 			new_lead = frappe.get_doc(
-				doctype="Lead", email_id=sender, lead_name=sender.split("@")[0].title()
+				dict(doctype="Lead", email_id=sender, lead_name=sender.split("@")[0].title())
 			).insert(ignore_permissions=True)
 
 	opportunity = frappe.get_doc(
-		doctype="Opportunity",
-		opportunity_from="Customer" if customer else "Lead",
-		status="Open",
-		title=subject,
-		contact_email=sender,
+		dict(
+			doctype="Opportunity",
+			opportunity_from="Customer" if customer else "Lead",
+			status="Open",
+			title=subject,
+			contact_email=sender,
+		)
 	)
 
 	if customer:

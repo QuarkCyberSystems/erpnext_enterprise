@@ -1089,9 +1089,9 @@ function open_form(frm, doctype, child_doctype, parentfield) {
 		let new_child_doc = frappe.model.add_child(new_doc, child_doctype, parentfield);
 		new_child_doc.item_code = frm.doc.name;
 		new_child_doc.item_name = frm.doc.item_name;
-		if (SALES_DOCTYPES.includes(doctype) && frm.doc.sales_uom) {
+		if (in_list(SALES_DOCTYPES, doctype) && frm.doc.sales_uom) {
 			new_child_doc.uom = frm.doc.sales_uom;
-		} else if (PURCHASE_DOCTYPES.includes(doctype) && frm.doc.purchase_uom) {
+		} else if (in_list(PURCHASE_DOCTYPES, doctype) && frm.doc.purchase_uom) {
 			new_child_doc.uom = frm.doc.purchase_uom;
 		} else {
 			new_child_doc.uom = frm.doc.stock_uom;
