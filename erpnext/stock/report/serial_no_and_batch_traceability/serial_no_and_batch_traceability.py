@@ -85,7 +85,7 @@ class ReportData:
 				"reference_doctype": sabb.reference_doctype,
 				"reference_name": sabb.reference_name,
 				"item_name": sabb.item_name,
-				"posting_date": sabb.posting_date,
+				"posting_datetime": sabb.posting_datetime,
 				"indent": indent,
 				"direction": direction,
 				"batch_expiry_date": sabb.get("batch_expiry_date"),
@@ -355,7 +355,7 @@ class ReportData:
 				SABE.qty,
 				SABB.item_code,
 				SABB.item_name,
-				SABB.posting_date,
+				SABB.posting_datetime,
 				SABB.warehouse,
 			)
 			.where(
@@ -363,8 +363,7 @@ class ReportData:
 				& (SABE.docstatus == 1)
 				& (SABB.type_of_transaction == type_of_transaction)
 			)
-			.orderby(SABB.posting_date)
-			.orderby(SABB.posting_time)
+			.orderby(SABB.posting_datetime)
 		)
 
 		query = query.where((SABE.serial_no == value) | (SABE.batch_no == value))
@@ -386,7 +385,7 @@ class ReportData:
 				fg_item.update(
 					{
 						"work_order": ste.work_order,
-						"posting_date": row.posting_date,
+						"posting_datetime": row.posting_datetime,
 						"serial_no": serial_no,
 						"batch_no": batch_no,
 						"indent": 0,
