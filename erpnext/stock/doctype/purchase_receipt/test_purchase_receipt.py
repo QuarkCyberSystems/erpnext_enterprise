@@ -37,6 +37,9 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 	def setUp(self):
 		frappe.db.set_single_value("Buying Settings", "allow_multiple_items", 1)
 
+	def tearDown(self):
+		frappe.db.rollback()
+
 	def test_purchase_receipt_qty(self):
 		pr = make_purchase_receipt(qty=0, rejected_qty=0, do_not_save=True)
 		with self.assertRaises(InvalidQtyError):
@@ -131,7 +134,6 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 		template = frappe.db.get_value(
 			"Payment Terms Template", "_Test Payment Terms Template For Purchase Invoice"
 		)
-		old_template_in_supplier = frappe.db.get_value("Supplier", "_Test Supplier", "payment_terms")
 		frappe.db.set_value("Supplier", "_Test Supplier", "payment_terms", template)
 
 		pr = make_purchase_receipt(do_not_save=True)
@@ -153,12 +155,6 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 		self.assertEqual(pi.payment_schedule[0].invoice_portion, 50)
 		self.assertEqual(pi.payment_schedule[1].payment_amount, flt(pi.grand_total) / 2)
 		self.assertEqual(pi.payment_schedule[1].invoice_portion, 50)
-
-		# teardown
-		pi.delete()  # draft PI
-		pr.cancel()
-		frappe.db.set_value("Supplier", "_Test Supplier", "payment_terms", old_template_in_supplier)
-		frappe.get_doc("Payment Terms Template", "_Test Payment Terms Template For Purchase Invoice").delete()
 
 	def test_purchase_receipt_no_gl_entry(self):
 		from erpnext.stock.doctype.stock_entry.test_stock_entry import make_stock_entry
