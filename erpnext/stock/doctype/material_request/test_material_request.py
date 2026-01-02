@@ -29,6 +29,9 @@ class TestMaterialRequest(ERPNextTestSuite):
 		super().setUpClass()
 		cls.load_test_records("Material Request")
 
+	def tearDown(self):
+		frappe.db.rollback()
+
 	def test_material_request_qty(self):
 		mr = frappe.copy_doc(self.globalTestRecords["Material Request"][0])
 		mr.items[0].qty = 0
