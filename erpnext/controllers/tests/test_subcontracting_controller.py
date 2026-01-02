@@ -1512,7 +1512,7 @@ def make_subcontracted_item(**args):
 				},
 			)
 
-		args.raw_materials = ["_Test FG Item", "Test Extra Item 1"]
+		args.raw_materials = ["_Test Extra Item 1", "Test Extra Item 2"]
 
 	if not frappe.db.get_value("BOM", {"item": args.item_code}, "name"):
 		make_bom(item=args.item_code, raw_materials=args.get("raw_materials"))

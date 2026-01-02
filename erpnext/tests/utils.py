@@ -2157,6 +2157,24 @@ class ERPNextTestSuite(unittest.TestCase):
 				"valuation_rate": 10000,
 				"stock_uom": "_Test UOM",
 			},
+			{
+				"doctype": "Item",
+				"item_code": "_Test Extra Item 1",
+				"item_name": "_Test Extra Item 1",
+				"item_group": "All Item Groups",
+				"company": "_Test Company",
+				"is_stock_item": 1,
+				"stock_uom": "_Test UOM",
+			},
+			{
+				"doctype": "Item",
+				"item_code": "_Test Extra Item 2",
+				"item_name": "_Test Extra Item 2",
+				"item_group": "All Item Groups",
+				"company": "_Test Company",
+				"is_stock_item": 1,
+				"stock_uom": "_Test UOM",
+			},
 		]
 		cls.item = []
 		for x in records:

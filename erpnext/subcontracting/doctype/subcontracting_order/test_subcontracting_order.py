@@ -40,6 +40,9 @@ class TestSubcontractingOrder(ERPNextTestSuite):
 		make_service_items()
 		make_bom_for_subcontracted_items()
 
+	def tearDown(self):
+		frappe.db.rollback()
+
 	def test_set_missing_values(self):
 		sco = get_subcontracting_order()
 		before = {sco.total_qty, sco.total, sco.total_additional_costs}
@@ -460,6 +463,7 @@ class TestSubcontractingOrder(ERPNextTestSuite):
 
 		set_backflush_based_on("BOM")
 
+	@ERPNextTestSuite.change_settings("Buying Settings", {"allow_multiple_items": True})
 	def test_supplied_qty(self):
 		item_code = "_Test Subcontracted FG Item 5"
 		make_item("Sub Contracted Raw Material 4", {"is_stock_item": 1, "is_sub_contracted_item": 1})
@@ -472,7 +476,7 @@ class TestSubcontractingOrder(ERPNextTestSuite):
 		service_items = [
 			{
 				"warehouse": "_Test Warehouse - _TC",
-				"item_code": "Subcontracted Service Item 1",
+				"item_code": "Subcontracted Service Item 2",
 				"qty": order_qty,
 				"rate": 100,
 				"fg_item": item_code,
@@ -678,6 +682,7 @@ class TestSubcontractingOrder(ERPNextTestSuite):
 
 		self.assertEqual(requested_qty, new_requested_qty)
 
+	@ERPNextTestSuite.change_settings("System Settings", {"float_precision": 3})
 	def test_subcontracting_order_rm_required_items_for_precision(self):
 		item_code = "Subcontracted Item SA9"
 		raw_materials = ["Subcontracted SRM Item 9"]
