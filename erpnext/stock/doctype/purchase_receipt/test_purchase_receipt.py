@@ -35,7 +35,7 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 		cls.load_test_records("Purchase Receipt")
 
 	def setUp(self):
-		frappe.db.set_single_value("Buying Settings", "allow_multiple_items", 1)
+		frappe.local.future_sle = {}
 
 	def tearDown(self):
 		frappe.db.rollback()
@@ -2665,12 +2665,12 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 		gl_entries = get_gl_entries("Purchase Receipt", pr.name, skip_cancelled=True, as_dict=False)
 		warehouse_account = get_warehouse_account_map("_Test Company")
 		expected_gle = (
-			("Stock Received But Not Billed - _TC", 0, 10000, "Main - _TC"),
-			("Freight and Forwarding Charges - _TC", 0, 2000, "Main - _TC"),
-			("Expenses Included In Valuation - _TC", 0, 2000, "Main - _TC"),
-			(warehouse_account[pr.items[0].warehouse]["account"], 14000, 0, "Main - _TC"),
+			("Stock Received But Not Billed - _TC", 0.0, 10000.0, "Main - _TC"),
+			("Freight and Forwarding Charges - _TC", 0.0, 2000.0, "Main - _TC"),
+			("Expenses Included In Valuation - _TC", 0.0, 2000.0, "Main - _TC"),
+			(warehouse_account[pr.items[0].warehouse]["account"], 14000.0, 0.0, "Main - _TC"),
 		)
-		self.assertSequenceEqual(expected_gle, gl_entries)
+		self.assertCountEqual(expected_gle, gl_entries)
 		frappe.local.enable_perpetual_inventory["_Test Company"] = old_perpetual_inventory
 
 	def test_purchase_receipt_with_use_serial_batch_field_for_rejected_qty(self):
@@ -4179,8 +4179,6 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 			make_purchase_return,
 		)
 
-		frappe.flags.through_repost_item_valuation = False
-
 		sn_item_code = make_item(
 			"Test Serial No for Validation", {"has_serial_no": 1, "serial_no_series": "SN-TSNFVAL-.#####"}
 		).name
@@ -4212,8 +4210,6 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 		from erpnext.stock.doctype.purchase_receipt.purchase_receipt import (
 			make_purchase_return,
 		)
-
-		frappe.flags.through_repost_item_valuation = False
 
 		batch_item_code = make_item(
 			"Test Batch No for Validation",
@@ -4860,8 +4856,14 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 		self.assertRaises(NegativeStockError, pr.cancel)
 
 	@ERPNextTestSuite.change_settings(
-		"Buying Settings", {"set_landed_cost_based_on_purchase_invoice_rate": 1, "maintain_same_rate": 0}
+		"Buying Settings",
+		{
+			"set_landed_cost_based_on_purchase_invoice_rate": 1,
+			"maintain_same_rate": 0,
+			"allow_multiple_items": 1,
+		},
 	)
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"over_billing_allowance": 100})
 	def test_set_lcv_from_pi_created_against_po(self):
 		from erpnext.buying.doctype.purchase_order.purchase_order import (
 			make_purchase_invoice as make_pi_against_po,
@@ -4870,10 +4872,6 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 			make_purchase_receipt as make_pr_against_po,
 		)
 		from erpnext.buying.doctype.purchase_order.test_purchase_order import create_purchase_order
-
-		original_value = frappe.db.get_single_value("Accounts Settings", "over_billing_allowance")
-
-		frappe.db.set_single_value("Accounts Settings", "over_billing_allowance", 100)
 
 		item_code = create_item("Test Item for LCV from PI against PO").name
 
@@ -4898,8 +4896,6 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 			self.assertTrue(row.amount_difference_with_purchase_invoice)
 			amt_diff = 5000 * (row.qty / 10) - row.amount
 			self.assertEqual(row.amount_difference_with_purchase_invoice, amt_diff)
-
-		frappe.db.set_single_value("Accounts Settings", "over_billing_allowance", original_value)
 
 	def test_purchase_return_with_and_without_return_against_rejected_qty(self):
 		from erpnext.stock.doctype.purchase_receipt.purchase_receipt import (

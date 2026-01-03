@@ -1186,6 +1186,15 @@ class ERPNextTestSuite(unittest.TestCase):
 				"supplier_group": "_Test Supplier Group",
 				"tax_category": "_Test Tax Category 1",
 			},
+			{
+				"doctype": "Supplier",
+				"supplier_name": "_Test Internal Supplier 2",
+				"supplier_group": "_Test Supplier Group",
+				"is_internal_supplier": 1,
+				"territory": "_Test Territory",
+				"represents_company": cls.companies[6].name,
+				"companies": [{"company": cls.companies[6].name}],
+			},
 		]
 		cls.suppliers = []
 		for x in records:
@@ -2218,6 +2227,18 @@ class ERPNextTestSuite(unittest.TestCase):
 				"batch_number_series": "BASR.#####",
 				"create_new_batch": 1,
 			},
+			{
+				"doctype": "Item",
+				"item_code": "Test Asset Item",
+				"item_name": "Test Asset Item",
+				"is_stock_item": 0,
+				"item_group": "All Item Groups",
+				"stock_uom": "Box",
+				"is_fixed_asset": 1,
+				"auto_create_assets": 1,
+				"asset_category": cls.asset_category[0].name,
+				"asset_naming_series": "ABC.###",
+			},
 		]
 		cls.item = []
 		for x in records:
@@ -2404,6 +2425,16 @@ class ERPNextTestSuite(unittest.TestCase):
 				"customer_type": "Individual",
 				"doctype": "Customer",
 				"territory": "_Test Territory",
+			},
+			{
+				"customer_group": "_Test Customer Group",
+				"customer_name": "_Test Internal Customer 2",
+				"customer_type": "Individual",
+				"doctype": "Customer",
+				"is_internal_customer": 1,
+				"territory": "_Test Territory",
+				"represents_company": cls.companies[6].name,
+				"companies": [{"company": cls.companies[6].name}],
 			},
 		]
 		cls.customer = []
