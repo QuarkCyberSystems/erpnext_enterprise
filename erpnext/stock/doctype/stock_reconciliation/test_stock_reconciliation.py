@@ -1657,6 +1657,59 @@ class TestStockReconciliation(IntegrationTestCase, StockTestMixin):
 		batch_qty = get_batch_qty(batch_no, warehouse, item_code)
 		self.assertEqual(batch_qty, 4)
 
+	def test_sabb_cancel_on_stock_reco_cancellation(self):
+		item_code = self.make_item(
+			"Test Item for SABB Cancel on Stock Reco Cancellation",
+			{
+				"is_stock_item": 1,
+				"has_batch_no": 1,
+				"create_new_batch": 1,
+				"batch_number_series": "TEST-BATCH-SABBCANC-.###",
+			},
+		).name
+
+		warehouse = "_Test Warehouse - _TC"
+
+		sr = create_stock_reconciliation(
+			item_code=item_code,
+			warehouse=warehouse,
+			qty=10,
+			rate=100,
+			use_serial_batch_fields=1,
+		)
+
+		sr.reload()
+
+		batch_no = get_batch_from_bundle(sr.items[0].serial_and_batch_bundle)
+
+		sr1 = create_stock_reconciliation(
+			item_code=item_code,
+			warehouse=warehouse,
+			qty=20,
+			rate=100,
+			use_serial_batch_fields=1,
+			batch_no=batch_no,
+		)
+
+		sr1.reload()
+
+		current_serial_and_batch_bundle = sr1.items[0].current_serial_and_batch_bundle
+		serial_and_batch_bundle = sr1.items[0].serial_and_batch_bundle
+
+		self.assertTrue(current_serial_and_batch_bundle)
+		self.assertTrue(serial_and_batch_bundle)
+
+		sr1.cancel()
+
+		for sabb in [serial_and_batch_bundle, current_serial_and_batch_bundle]:
+			docstatus = frappe.db.get_value(
+				"Serial and Batch Bundle",
+				sabb,
+				"docstatus",
+			)
+
+			self.assertEqual(docstatus, 2)
+
 
 def create_batch_item_with_batch(item_name, batch_id):
 	batch_item_doc = create_item(item_name, is_stock_item=1)
