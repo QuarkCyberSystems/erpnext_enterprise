@@ -17,14 +17,14 @@ def execute(filters=None):
 	if filters.get("budget_against_filter"):
 		dimensions = filters.get("budget_against_filter")
 	else:
-		dimensions = get_cost_centers(filters)
+		dimensions = get_budget_dimensions(filters)
 
 	budget_records = fetch_budget_accounts(filters, dimensions)
 	budget_map = build_budget_map(budget_records, filters)
 
-	data = get_data_from_budget_map(budget_map, filters)
+	data = build_report_data(budget_map, filters)
 
-	chart_data = get_chart_data(filters, columns, data)
+	chart_data = build_comparison_chart_data(filters, columns, data)
 
 	return columns, data, None, chart_data
 
@@ -70,7 +70,7 @@ def build_budget_map(budget_records, filters):
 	budget_map = {}
 
 	for budget in budget_records:
-		actual_amt = get_actual_details(budget.dimension, filters)
+		actual_amt = get_actual_transactions(budget.dimension, filters)
 		budget_map.setdefault(budget.dimension, {})
 		budget_map[budget.dimension].setdefault(budget.account, {})
 
@@ -104,18 +104,18 @@ def build_budget_map(budget_records, filters):
 	return budget_map
 
 
-def get_actual_details(name, filters):
+def get_actual_transactions(dimension_name, filters):
 	budget_against = frappe.scrub(filters.get("budget_against"))
-	cond = ""
+	cost_center_filter = ""
 
-	if filters.get("budget_against") == "Cost Center" and name:
-		cc_lft, cc_rgt = frappe.db.get_value("Cost Center", name, ["lft", "rgt"])
-		cond = f"""
+	if filters.get("budget_against") == "Cost Center" and dimension_name:
+		cc_lft, cc_rgt = frappe.db.get_value("Cost Center", dimension_name, ["lft", "rgt"])
+		cost_center_filter = f"""
 			and lft >= "{cc_lft}"
 			and rgt <= "{cc_rgt}"
 		"""
 
-	ac_details = frappe.db.sql(
+	actual_transactions = frappe.db.sql(
 		f"""
 			select
 				gl.account,
@@ -141,21 +141,21 @@ def get_actual_details(name, filters):
 						`tab{filters.budget_against}`
 					where
 						name = gl.{budget_against}
-						{cond}
+						{cost_center_filter}
 				)
 				group by
 					gl.name
 				order by gl.fiscal_year
 		""",
-		(filters.from_fiscal_year, filters.to_fiscal_year, name),
+		(filters.from_fiscal_year, filters.to_fiscal_year, dimension_name),
 		as_dict=1,
 	)
 
-	cc_actual_details = {}
-	for d in ac_details:
-		cc_actual_details.setdefault(d.account, []).append(d)
+	actual_transactions_map = {}
+	for transaction in actual_transactions:
+		actual_transactions_map.setdefault(transaction.account, []).append(transaction)
 
-	return cc_actual_details
+	return actual_transactions_map
 
 
 def get_budget_distributions(budget):
@@ -182,7 +182,7 @@ def get_months_in_range(start_date, end_date):
 	return months
 
 
-def get_data_from_budget_map(budget_map, filters):
+def build_report_data(budget_map, filters):
 	data = []
 
 	show_cumulative = filters.get("show_cumulative") and filters.get("period") != "Yearly"
@@ -204,32 +204,34 @@ def get_data_from_budget_map(budget_map, filters):
 			total_actual = 0
 
 			for fy in fiscal_years:
-				fy_name = fy[0]
+				fiscal_year = fy[0]
 
-				for from_date, to_date in get_period_date_ranges(filters["period"], fy_name):
+				for from_date, to_date in get_period_date_ranges(filters["period"], fiscal_year):
 					months = get_months_between(from_date, to_date)
 
 					period_budget = 0
 					period_actual = 0
 
 					for month in months:
-						b, a = get_budget_actual(budget_map, dimension, account, fy_name, month)
-						period_budget += b
-						period_actual += a
+						budget_amount, actual_amount = get_budget_and_actual_values(
+							budget_map, dimension, account, fiscal_year, month
+						)
+						period_budget += budget_amount
+						period_actual += actual_amount
 
 					if filters["period"] == "Yearly":
-						budget_label = _("Budget") + " " + fy_name
-						actual_label = _("Actual") + " " + fy_name
-						variance_label = _("Variance") + " " + fy_name
+						budget_label = _("Budget") + " " + fiscal_year
+						actual_label = _("Actual") + " " + fiscal_year
+						variance_label = _("Variance") + " " + fiscal_year
 					else:
 						if group_months:
 							label_suffix = formatdate(from_date, "MMM") + "-" + formatdate(to_date, "MMM")
 						else:
 							label_suffix = formatdate(from_date, "MMM")
 
-						budget_label = _("Budget") + f" ({label_suffix}) {fy_name}"
-						actual_label = _("Actual") + f" ({label_suffix}) {fy_name}"
-						variance_label = _("Variance") + f" ({label_suffix}) {fy_name}"
+						budget_label = _("Budget") + f" ({label_suffix}) {fiscal_year}"
+						actual_label = _("Actual") + f" ({label_suffix}) {fiscal_year}"
+						variance_label = _("Variance") + f" ({label_suffix}) {fiscal_year}"
 
 					total_budget += period_budget
 					total_actual += period_actual
@@ -265,9 +267,9 @@ def get_months_between(from_date, to_date):
 	return months
 
 
-def get_budget_actual(budget_map, dim, acc, fy, month):
+def get_budget_and_actual_values(budget_map, dimension, account, fiscal_year, month):
 	try:
-		data = budget_map[dim][acc][fy].get(month)
+		data = budget_map[dimension][account][fiscal_year].get(month)
 		if not data:
 			return 0, 0
 		return data.get("budget", 0), data.get("actual", 0)
@@ -355,7 +357,7 @@ def get_fiscal_years(filters):
 	return fiscal_year
 
 
-def get_cost_centers(filters):
+def get_budget_dimensions(filters):
 	order_by = ""
 	if filters.get("budget_against") == "Cost Center":
 		order_by = "order by lft"
@@ -384,7 +386,7 @@ def get_cost_centers(filters):
 		)  # nosec
 
 
-def get_chart_data(filters, columns, data):
+def build_comparison_chart_data(filters, columns, data):
 	if not data:
 		return None
 
