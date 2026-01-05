@@ -197,14 +197,14 @@ def get_data_from_budget_map(budget_map, filters):
 				"account": account,
 			}
 
+			running_budget = 0
+			running_actual = 0
+
+			total_budget = 0
+			total_actual = 0
+
 			for fy in fiscal_years:
 				fy_name = fy[0]
-
-				running_budget = 0
-				running_actual = 0
-
-				total_budget = 0
-				total_actual = 0
 
 				for from_date, to_date in get_period_date_ranges(filters["period"], fy_name):
 					months = get_months_between(from_date, to_date)
