@@ -24,7 +24,9 @@ def execute(filters=None):
 
 	data = get_data_from_budget_map(budget_map, filters)
 
-	return columns, data
+	chart_data = get_chart_data(filters, columns, data)
+
+	return columns, data, None, chart_data
 
 
 def fetch_budget_accounts(filters, dimensions):
@@ -380,3 +382,59 @@ def get_cost_centers(filters):
 					`tab{tab}`
 			""".format(tab=filters.get("budget_against"))
 		)  # nosec
+
+
+def get_chart_data(filters, columns, data):
+	if not data:
+		return None
+
+	budget_fields = []
+	actual_fields = []
+
+	for col in columns:
+		fieldname = col.get("fieldname")
+		if not fieldname:
+			continue
+
+		if fieldname.startswith("budget_"):
+			budget_fields.append(fieldname)
+		elif fieldname.startswith("actual_"):
+			actual_fields.append(fieldname)
+
+	if not budget_fields or not actual_fields:
+		return None
+
+	labels = [
+		col["label"].replace("Budget", "").strip()
+		for col in columns
+		if col.get("fieldname", "").startswith("budget_")
+	]
+
+	budget_values = [0] * len(budget_fields)
+	actual_values = [0] * len(actual_fields)
+
+	for row in data:
+		for i, field in enumerate(budget_fields):
+			budget_values[i] += flt(row.get(field))
+
+		for i, field in enumerate(actual_fields):
+			actual_values[i] += flt(row.get(field))
+
+	return {
+		"data": {
+			"labels": labels,
+			"datasets": [
+				{
+					"name": _("Budget"),
+					"chartType": "bar",
+					"values": budget_values,
+				},
+				{
+					"name": _("Actual Expense"),
+					"chartType": "bar",
+					"values": actual_values,
+				},
+			],
+		},
+		"type": "bar",
+	}
