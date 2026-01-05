@@ -4093,6 +4093,7 @@ class TestPurchaseReceipt(IntegrationTestCase):
 		sn_return.items[0].qty = -1
 		sn_return.items[0].received_qty = -1
 		sn_return.items[0].serial_no = pr1_serial_nos[0]
+		sn_return.items[0].use_serial_batch_fields = 1
 		sn_return.save()
 		self.assertRaises(frappe.ValidationError, sn_return.submit)
 
@@ -4127,6 +4128,7 @@ class TestPurchaseReceipt(IntegrationTestCase):
 		batch_return.items[0].qty = -1
 		batch_return.items[0].received_qty = -1
 		batch_return.items[0].batch_no = batch_no
+		batch_return.items[0].use_serial_batch_fields = 1
 		batch_return.save()
 		self.assertRaises(frappe.ValidationError, batch_return.submit)
 
