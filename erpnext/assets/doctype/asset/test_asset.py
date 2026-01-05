@@ -37,10 +37,9 @@ from erpnext.stock.doctype.purchase_receipt.purchase_receipt import (
 	make_purchase_invoice as make_invoice,
 )
 from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import make_purchase_receipt
-from erpnext.tests.utils import ERPNextTestSuite
 
 
-class AssetSetup(ERPNextTestSuite):
+class AssetSetup(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
