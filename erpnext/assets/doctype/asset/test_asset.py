@@ -37,12 +37,14 @@ from erpnext.stock.doctype.purchase_receipt.purchase_receipt import (
 	make_purchase_invoice as make_invoice,
 )
 from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import make_purchase_receipt
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class AssetSetup(IntegrationTestCase):
+class AssetSetup(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		frappe.db.set_single_value("System Settings", "float_precision", 3)
 		set_depreciation_settings_in_company()
 		create_asset_data()
 		enable_cwip_accounting("Computers")

@@ -598,9 +598,7 @@ class Asset(AccountsController):
 	def set_depreciation_rate(self):
 		for d in self.get("finance_books"):
 			self.validate_asset_finance_books(d)
-			d.rate_of_depreciation = flt(
-				self.get_depreciation_rate(d, on_validate=True), d.precision("rate_of_depreciation")
-			)
+			d.rate_of_depreciation = self.get_depreciation_rate(d, on_validate=True)
 
 	def validate_asset_finance_books(self, row):
 		row.expected_value_after_useful_life = flt(
@@ -990,7 +988,7 @@ class Asset(AccountsController):
 		if isinstance(args, str):
 			args = json.loads(args)
 
-		rate_field_precision = frappe.get_precision(args.doctype, "rate_of_depreciation") or 2
+		rate_field_precision = frappe.get_single_value("System Settings", "float_precision") or 2
 
 		if args.get("depreciation_method") == "Double Declining Balance":
 			return self.get_double_declining_balance_rate(args, rate_field_precision)
