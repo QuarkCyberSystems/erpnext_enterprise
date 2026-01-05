@@ -19,7 +19,7 @@ def execute(filters=None):
 	else:
 		dimensions = get_budget_dimensions(filters)
 
-	budget_records = fetch_budget_accounts(filters, dimensions)
+	budget_records = get_budget_records(filters, dimensions)
 	budget_map = build_budget_map(budget_records, filters)
 
 	data = build_report_data(budget_map, filters)
@@ -29,7 +29,7 @@ def execute(filters=None):
 	return columns, data, None, chart_data
 
 
-def fetch_budget_accounts(filters, dimensions):
+def get_budget_records(filters, dimensions):
 	budget_against_field = frappe.scrub(filters["budget_against"])
 
 	return frappe.db.sql(
@@ -67,6 +67,11 @@ def fetch_budget_accounts(filters, dimensions):
 
 
 def build_budget_map(budget_records, filters):
+	"""
+	Builds a nested dictionary structure aggregating budget and actual amounts.
+
+	Structure: {dimension_name: {account_name: {fiscal_year: {month_name: {"budget": amount, "actual": amount}}}}}
+	"""
 	budget_map = {}
 
 	for budget in budget_records:
