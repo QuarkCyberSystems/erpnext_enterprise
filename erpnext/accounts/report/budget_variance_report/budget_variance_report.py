@@ -183,6 +183,8 @@ def get_months_in_range(start_date, end_date):
 def get_data_from_budget_map(budget_map, filters):
 	data = []
 
+	show_cumulative = filters.get("show_cumulative") and filters.get("period") != "Yearly"
+
 	fiscal_years = get_fiscal_years(filters)
 	group_months = filters["period"] != "Monthly"
 
@@ -193,11 +195,14 @@ def get_data_from_budget_map(budget_map, filters):
 				"account": account,
 			}
 
-			total_budget = 0
-			total_actual = 0
-
 			for fy in fiscal_years:
 				fy_name = fy[0]
+
+				running_budget = 0
+				running_actual = 0
+
+				total_budget = 0
+				total_actual = 0
 
 				for from_date, to_date in get_period_date_ranges(filters["period"], fy_name):
 					months = get_months_between(from_date, to_date)
@@ -224,12 +229,18 @@ def get_data_from_budget_map(budget_map, filters):
 						actual_label = _("Actual") + f" ({label_suffix}) {fy_name}"
 						variance_label = _("Variance") + f" ({label_suffix}) {fy_name}"
 
+					total_budget += period_budget
+					total_actual += period_actual
+
+					if show_cumulative:
+						running_budget += period_budget
+						running_actual += period_actual
+						period_budget = running_budget
+						period_actual = running_actual
+
 					row[frappe.scrub(budget_label)] = period_budget
 					row[frappe.scrub(actual_label)] = period_actual
 					row[frappe.scrub(variance_label)] = period_budget - period_actual
-
-					total_budget += period_budget
-					total_actual += period_actual
 
 			if filters["period"] != "Yearly":
 				row["total_budget"] = total_budget
