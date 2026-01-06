@@ -191,12 +191,10 @@ def build_report_data(budget_map, filters):
 	data = []
 
 	show_cumulative = filters.get("show_cumulative") and filters.get("period") != "Yearly"
-
-	fiscal_years = get_fiscal_years(filters)
-	group_months = filters["period"] != "Monthly"
+	periods = get_periods(filters)
 
 	for dimension, accounts in budget_map.items():
-		for account in accounts:
+		for account, fiscal_year_map in accounts.items():
 			row = {
 				"budget_against": dimension,
 				"account": account,
@@ -204,52 +202,48 @@ def build_report_data(budget_map, filters):
 
 			running_budget = 0
 			running_actual = 0
-
 			total_budget = 0
 			total_actual = 0
 
-			for fy in fiscal_years:
-				fiscal_year = fy[0]
+			for period in periods:
+				fiscal_year = period["fiscal_year"]
+				months = get_months_between(period["from_date"], period["to_date"])
 
-				for from_date, to_date in get_period_date_ranges(filters["period"], fiscal_year):
-					months = get_months_between(from_date, to_date)
+				period_budget = 0
+				period_actual = 0
 
-					period_budget = 0
-					period_actual = 0
+				month_map = fiscal_year_map.get(fiscal_year, {})
 
-					for month in months:
-						budget_amount, actual_amount = get_budget_and_actual_values(
-							budget_map, dimension, account, fiscal_year, month
-						)
-						period_budget += budget_amount
-						period_actual += actual_amount
+				for month in months:
+					values = month_map.get(month)
+					if values:
+						period_budget += values.get("budget", 0)
+						period_actual += values.get("actual", 0)
 
-					if filters["period"] == "Yearly":
-						budget_label = _("Budget") + " " + fiscal_year
-						actual_label = _("Actual") + " " + fiscal_year
-						variance_label = _("Variance") + " " + fiscal_year
-					else:
-						if group_months:
-							label_suffix = formatdate(from_date, "MMM") + "-" + formatdate(to_date, "MMM")
-						else:
-							label_suffix = formatdate(from_date, "MMM")
+				if show_cumulative:
+					running_budget += period_budget
+					running_actual += period_actual
+					display_budget = running_budget
+					display_actual = running_actual
+				else:
+					display_budget = period_budget
+					display_actual = period_actual
 
-						budget_label = _("Budget") + f" ({label_suffix}) {fiscal_year}"
-						actual_label = _("Actual") + f" ({label_suffix}) {fiscal_year}"
-						variance_label = _("Variance") + f" ({label_suffix}) {fiscal_year}"
+				total_budget += period_budget
+				total_actual += period_actual
 
-					total_budget += period_budget
-					total_actual += period_actual
+				if filters["period"] == "Yearly":
+					budget_label = _("Budget") + " " + fiscal_year
+					actual_label = _("Actual") + " " + fiscal_year
+					variance_label = _("Variance") + " " + fiscal_year
+				else:
+					budget_label = _("Budget") + f" ({period['label_suffix']}) {fiscal_year}"
+					actual_label = _("Actual") + f" ({period['label_suffix']}) {fiscal_year}"
+					variance_label = _("Variance") + f" ({period['label_suffix']}) {fiscal_year}"
 
-					if show_cumulative:
-						running_budget += period_budget
-						running_actual += period_actual
-						period_budget = running_budget
-						period_actual = running_actual
-
-					row[frappe.scrub(budget_label)] = period_budget
-					row[frappe.scrub(actual_label)] = period_actual
-					row[frappe.scrub(variance_label)] = period_budget - period_actual
+				row[frappe.scrub(budget_label)] = display_budget
+				row[frappe.scrub(actual_label)] = display_actual
+				row[frappe.scrub(variance_label)] = display_budget - display_actual
 
 			if filters["period"] != "Yearly":
 				row["total_budget"] = total_budget
@@ -261,6 +255,33 @@ def build_report_data(budget_map, filters):
 	return data
 
 
+def get_periods(filters):
+	periods = []
+
+	group_months = filters["period"] != "Monthly"
+
+	for (fiscal_year,) in get_fiscal_years(filters):
+		for from_date, to_date in get_period_date_ranges(filters["period"], fiscal_year):
+			if filters["period"] == "Yearly":
+				label_suffix = fiscal_year
+			else:
+				if group_months:
+					label_suffix = formatdate(from_date, "MMM") + "-" + formatdate(to_date, "MMM")
+				else:
+					label_suffix = formatdate(from_date, "MMM")
+
+			periods.append(
+				{
+					"fiscal_year": fiscal_year,
+					"from_date": from_date,
+					"to_date": to_date,
+					"label_suffix": label_suffix,
+				}
+			)
+
+	return periods
+
+
 def get_months_between(from_date, to_date):
 	months = []
 	current = from_date
@@ -270,16 +291,6 @@ def get_months_between(from_date, to_date):
 		current = add_months(current, 1)
 
 	return months
-
-
-def get_budget_and_actual_values(budget_map, dimension, account, fiscal_year, month):
-	try:
-		data = budget_map[dimension][account][fiscal_year].get(month)
-		if not data:
-			return 0, 0
-		return data.get("budget", 0), data.get("actual", 0)
-	except KeyError:
-		return 0, 0
 
 
 def get_columns(filters):
