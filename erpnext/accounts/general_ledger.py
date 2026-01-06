@@ -153,7 +153,7 @@ def validate_disabled_accounts(gl_map):
 def validate_accounting_period(gl_map):
 	accounting_periods = frappe.db.sql(
 		""" SELECT
-			ap.name as name
+			ap.name as name, ap.exempted_role as exempted_role
 		FROM
 			`tabAccounting Period` ap, `tabClosed Document` cd
 		WHERE
@@ -173,6 +173,10 @@ def validate_accounting_period(gl_map):
 	)
 
 	if accounting_periods:
+		if accounting_periods[0].exempted_role:
+			exempted_roles = accounting_periods[0].exempted_role
+			if exempted_roles in frappe.get_roles():
+				return
 		frappe.throw(
 			_(
 				"You cannot create or cancel any accounting entries with in the closed Accounting Period {0}"
