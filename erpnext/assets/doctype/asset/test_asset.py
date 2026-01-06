@@ -43,7 +43,6 @@ class AssetSetup(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		frappe.db.set_single_value("System Settings", "float_precision", 3)
 		set_depreciation_settings_in_company()
 		create_asset_data()
 		enable_cwip_accounting("Computers")
