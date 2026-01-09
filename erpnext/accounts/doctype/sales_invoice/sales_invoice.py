@@ -869,6 +869,16 @@ class SalesInvoice(SellingController):
 				if status not in ["Submitted", "Payslip", "Partially Billed"]:
 					frappe.throw(_("Timesheet {0} is already completed or cancelled").format(data.time_sheet))
 
+			if data.time_sheet and data.timesheet_detail:
+				if sales_invoice := frappe.db.get_value(
+					"Timesheet Detail", data.timesheet_detail, "sales_invoice"
+				):
+					frappe.throw(
+						_("Row {0}: Sales Invoice {1} is already created for {2}").format(
+							data.idx, frappe.bold(sales_invoice), frappe.bold(data.time_sheet)
+						)
+					)
+
 	def set_pos_fields(self, for_validate=False):
 		"""Set retail related fields from POS Profiles"""
 		if cint(self.is_pos) != 1:
