@@ -20,9 +20,7 @@ class Shipment(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		from erpnext.stock.doctype.shipment_delivery_note.shipment_delivery_note import (
-			ShipmentDeliveryNote,
-		)
+		from erpnext.stock.doctype.shipment_delivery_note.shipment_delivery_note import ShipmentDeliveryNote
 		from erpnext.stock.doctype.shipment_parcel.shipment_parcel import ShipmentParcel
 
 		amended_from: DF.Link | None
@@ -71,6 +69,9 @@ class Shipment(Document):
 		tracking_url: DF.SmallText | None
 		value_of_goods: DF.Currency
 	# end: auto-generated types
+
+	def on_discard(self):
+		self.db_set("status", "Cancelled")
 
 	def validate(self):
 		self.validate_weight()

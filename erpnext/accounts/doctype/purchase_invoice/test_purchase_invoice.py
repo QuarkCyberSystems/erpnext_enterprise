@@ -1249,14 +1249,12 @@ class TestPurchaseInvoice(IntegrationTestCase, StockTestMixin):
 		pi.submit()
 
 		pda1 = frappe.get_doc(
-			dict(
-				doctype="Process Deferred Accounting",
-				posting_date=nowdate(),
-				start_date="2019-01-01",
-				end_date="2019-03-31",
-				type="Expense",
-				company="_Test Company",
-			)
+			doctype="Process Deferred Accounting",
+			posting_date=nowdate(),
+			start_date="2019-01-01",
+			end_date="2019-03-31",
+			type="Expense",
+			company="_Test Company",
 		)
 
 		pda1.insert()
@@ -1499,6 +1497,8 @@ class TestPurchaseInvoice(IntegrationTestCase, StockTestMixin):
 	)
 	def test_purchase_invoice_advance_taxes(self):
 		from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
+
+		frappe.db.set_single_value("Accounts Settings", "merge_similar_account_heads", 1)
 
 		company = "_Test Company"
 

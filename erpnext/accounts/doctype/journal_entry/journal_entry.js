@@ -43,6 +43,20 @@ frappe.ui.form.on("Journal Entry", {
 				},
 			};
 		});
+
+		frm.set_query("project", "accounts", function (doc, cdt, cdn) {
+			let row = frappe.get_doc(cdt, cdn);
+			let filters = {
+				company: doc.company,
+			};
+			if (row.party_type == "Customer") {
+				filters.customer = row.party;
+			}
+			return {
+				query: "erpnext.controllers.queries.get_project_name",
+				filters,
+			};
+		});
 	},
 
 	get_balance_for_periodic_accounting(frm) {
@@ -112,9 +126,11 @@ frappe.ui.form.on("Journal Entry", {
 
 		erpnext.accounts.unreconcile_payment.add_unreconcile_btn(frm);
 
-		$.each(frm.doc.accounts || [], function (i, row) {
-			erpnext.journal_entry.set_exchange_rate(frm, row.doctype, row.name);
-		});
+		if (frm.doc.voucher_type !== "Exchange Gain Or Loss") {
+			$.each(frm.doc.accounts || [], function (i, row) {
+				erpnext.journal_entry.set_exchange_rate(frm, row.doctype, row.name);
+			});
+		}
 	},
 	before_save: function (frm) {
 		if (frm.doc.docstatus == 0 && !frm.doc.is_system_generated) {
