@@ -823,6 +823,7 @@ class SalesInvoice(SellingController):
 					self.is_return
 					and self.return_against
 					and data.sales_invoice
+					and data.sales_invoice == self.return_against
 					and not sales_invoice
 					and args.timesheet_detail == data.name
 				)
@@ -865,12 +866,10 @@ class SalesInvoice(SellingController):
 			payment.account = get_bank_cash_account(payment.mode_of_payment, self.company).get("account")
 
 	def validate_time_sheets_are_submitted(self):
+		# Note: This validation is skipped for return invoices
+		# to allow returns to reference already-billed timesheet details
 		for data in self.timesheets:
-			if data.time_sheet:
-				status = frappe.db.get_value("Timesheet", data.time_sheet, "status")
-				if status not in ["Submitted", "Payslip", "Partially Billed"]:
-					frappe.throw(_("Timesheet {0} is already completed or cancelled").format(data.time_sheet))
-
+			# Handle invoice duplication
 			if data.time_sheet and data.timesheet_detail:
 				if sales_invoice := frappe.db.get_value(
 					"Timesheet Detail", data.timesheet_detail, "sales_invoice"
@@ -880,6 +879,11 @@ class SalesInvoice(SellingController):
 							data.idx, frappe.bold(sales_invoice), frappe.bold(data.time_sheet)
 						)
 					)
+
+			if data.time_sheet:
+				status = frappe.db.get_value("Timesheet", data.time_sheet, "status")
+				if status not in ["Submitted", "Payslip", "Partially Billed"]:
+					frappe.throw(_("Timesheet {0} is already completed or cancelled").format(data.time_sheet))
 
 	def set_pos_fields(self, for_validate=False):
 		"""Set retail related fields from POS Profiles"""
