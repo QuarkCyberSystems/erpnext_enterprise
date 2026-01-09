@@ -360,8 +360,10 @@ class SalesInvoice(SellingController):
 
 		if self.is_return and self.return_against:
 			for row in self.timesheets:
-				row.billing_hours *= -1
-				row.billing_amount *= -1
+				if row.billing_hours > 0:
+					row.billing_hours *= -1
+				if row.billing_amount > 0:
+					row.billing_amount *= -1
 
 		self.update_packing_list()
 		self.set_billing_hours_and_amount()
