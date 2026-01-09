@@ -723,7 +723,7 @@ class SerialNoValuation(DeprecatedSerialNoValuation):
 			)
 			.select(
 				bundle_child.serial_no,
-				(bundle_child.incoming_rate * bundle_child.qty).as_("incoming_rate"),
+				bundle_child.incoming_rate,
 			)
 		)
 
