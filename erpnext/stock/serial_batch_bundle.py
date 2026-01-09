@@ -4,7 +4,7 @@ import frappe
 from frappe import _, bold
 from frappe.model.naming import NamingSeries, make_autoname, parse_naming_series
 from frappe.query_builder import Case
-from frappe.query_builder.functions import CombineDatetime, Sum, Timestamp
+from frappe.query_builder.functions import Sum, Timestamp
 from frappe.utils import add_days, cint, cstr, flt, get_link_to_form, getdate, now, nowtime, today
 from pypika import Order
 from pypika.terms import ExistsCriterion
