@@ -64,10 +64,6 @@
   "role_allowed_to_over_bill",
   "credit_controller",
   "make_payment_via_journal_entry",
-  "pos_tab",
-  "pos_setting_section",
-  "post_change_gl_entries",
-  "column_break_xrnd",
   "assets_tab",
   "asset_settings_section",
   "calculate_depr_using_total_days",
@@ -283,13 +279,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "default": "1",
-   "description": "If enabled, ledger entries will be posted for change amount in POS transactions",
-   "fieldname": "post_change_gl_entries",
-   "fieldtype": "Check",
-   "label": "Create Ledger Entries for Change Amount"
-  },
-  {
    "default": "0",
    "description": "Learn about <a href=\"https://docs.erpnext.com/docs/v13/user/manual/en/accounts/articles/common_party_accounting#:~:text=Common%20Party%20Accounting%20in%20ERPNext,Invoice%20against%20a%20primary%20Supplier.\">Common Party</a>",
    "fieldname": "enable_common_party_accounting",
@@ -330,11 +319,6 @@
    "label": "Accounts Closing"
   },
   {
-   "fieldname": "pos_setting_section",
-   "fieldtype": "Section Break",
-   "label": "POS Setting"
-  },
-  {
    "fieldname": "invoice_and_billing_tab",
    "fieldtype": "Tab Break",
    "label": "Invoice and Billing"
@@ -347,11 +331,6 @@
   {
    "fieldname": "column_break_17",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "pos_tab",
-   "fieldtype": "Tab Break",
-   "label": "POS"
   },
   {
    "default": "0",
@@ -537,10 +516,6 @@
    "options": "Invoice\nPayment\nReconciliation Date"
   },
   {
-   "fieldname": "column_break_xrnd",
-   "fieldtype": "Column Break"
-  },
-  {
    "default": "Buffered Cursor",
    "fieldname": "receivable_payable_fetch_method",
    "fieldtype": "Select",
@@ -665,7 +640,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-01-02 18:17:18.994348",
+ "modified": "2026-01-09 17:38:04.250917",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Accounts Settings",
