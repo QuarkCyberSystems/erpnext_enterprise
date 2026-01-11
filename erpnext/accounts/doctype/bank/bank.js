@@ -3,9 +3,6 @@
 frappe.provide("erpnext.integrations");
 
 frappe.ui.form.on("Bank", {
-	onload: function (frm) {
-		add_fields_to_mapping_table(frm);
-	},
 	refresh: function (frm) {
 		add_fields_to_mapping_table(frm);
 		frm.toggle_display(["address_html", "contact_html"], !frm.doc.__islocal);
