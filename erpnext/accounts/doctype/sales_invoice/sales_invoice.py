@@ -353,6 +353,9 @@ class SalesInvoice(SellingController):
 
 		self.set_against_income_account()
 
+		if self.is_return and not self.return_against and self.timesheets:
+			frappe.throw(_("Direct return is not allowed for Timesheet."))
+
 		if not self.is_return:
 			self.validate_time_sheets_are_submitted()
 
@@ -360,10 +363,10 @@ class SalesInvoice(SellingController):
 
 		if self.is_return and self.return_against:
 			for row in self.timesheets:
-				if row.billing_hours > 0:
-					row.billing_hours *= -1
-				if row.billing_amount > 0:
-					row.billing_amount *= -1
+				if row.billing_hours:
+					row.billing_hours = -abs(row.billing_hours)
+				if row.billing_amount:
+					row.billing_amount = -abs(row.billing_amount)
 
 		self.update_packing_list()
 		self.set_billing_hours_and_amount()
