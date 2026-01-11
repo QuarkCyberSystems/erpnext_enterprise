@@ -75,11 +75,6 @@
   "ignore_account_closing_balance",
   "use_legacy_controller_for_pcv",
   "column_break_25",
-  "tab_break_dpet",
-  "show_balance_in_coa",
-  "banking_tab",
-  "enable_party_matching",
-  "enable_fuzzy_matching",
   "reports_tab",
   "remarks_section",
   "general_ledger_remarks_length",
@@ -92,9 +87,15 @@
   "drop_ar_procedures",
   "legacy_section",
   "ignore_is_opening_check_for_reporting",
-  "payment_request_settings",
+  "tab_break_dpet",
+  "chart_of_accounts_section",
+  "show_balance_in_coa",
+  "banking_section",
+  "enable_party_matching",
+  "enable_fuzzy_matching",
+  "payment_request_section",
   "create_pr_in_draft_status",
-  "budget_settings",
+  "budget_section",
   "use_legacy_budget_controller"
  ],
  "fields": [
@@ -342,7 +343,7 @@
   {
    "fieldname": "tab_break_dpet",
    "fieldtype": "Tab Break",
-   "label": "Chart Of Accounts"
+   "label": "Others"
   },
   {
    "default": "1",
@@ -385,11 +386,6 @@
    "fieldname": "show_taxes_as_table_in_print",
    "fieldtype": "Check",
    "label": "Show Taxes as Table in Print"
-  },
-  {
-   "fieldname": "banking_tab",
-   "fieldtype": "Tab Break",
-   "label": "Banking"
   },
   {
    "default": "0",
@@ -467,13 +463,8 @@
    "label": "Calculate daily depreciation using total days in depreciation period"
   },
   {
-   "description": "Payment Request created from Sales Order or Purchase Order will be in Draft status. When disabled document will be in unsaved state.",
-   "fieldname": "payment_request_settings",
-   "fieldtype": "Tab Break",
-   "label": "Payment Request"
-  },
-  {
    "default": "1",
+   "description": "Payment Requests made from Sales / Purchase Invoice will be put in Draft explicitly",
    "fieldname": "create_pr_in_draft_status",
    "fieldtype": "Check",
    "label": "Create in Draft Status"
@@ -555,11 +546,6 @@
    "options": "Role"
   },
   {
-   "fieldname": "budget_settings",
-   "fieldtype": "Tab Break",
-   "label": "Budget"
-  },
-  {
    "default": "1",
    "description": "If enabled, user will be alerted before resetting posting date to current date in relevant transactions",
    "fieldname": "confirm_before_resetting_posting_date",
@@ -631,6 +617,26 @@
    "fieldname": "default_ageing_range",
    "fieldtype": "Data",
    "label": "Default Ageing Range"
+  },
+  {
+   "fieldname": "chart_of_accounts_section",
+   "fieldtype": "Section Break",
+   "label": "Chart Of Accounts"
+  },
+  {
+   "fieldname": "banking_section",
+   "fieldtype": "Section Break",
+   "label": "Banking"
+  },
+  {
+   "fieldname": "payment_request_section",
+   "fieldtype": "Section Break",
+   "label": "Payment Request"
+  },
+  {
+   "fieldname": "budget_section",
+   "fieldtype": "Section Break",
+   "label": "Budget"
   }
  ],
  "grid_page_length": 50,
@@ -640,7 +646,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-01-09 17:38:04.250917",
+ "modified": "2026-01-11 18:30:45.968531",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Accounts Settings",
