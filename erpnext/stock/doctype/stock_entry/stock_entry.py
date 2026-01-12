@@ -3443,10 +3443,12 @@ def move_sample_to_retention_warehouse(company, items):
 					batch_no,
 				)
 
+				sabe = next(item for item in sabb.entries if item.batch_no == batch_no)
 				if sample_quantity:
 					total_qty += sample_quantity
-					sabe = next(item for item in sabb.entries if item.batch_no == batch_no)
 					sabe.qty = -1 * sample_quantity
+				else:
+					sabb.entries.remove(sabe)
 
 			if total_qty:
 				sabb.save()
