@@ -1116,7 +1116,7 @@ class SerialBatchCreation:
 
 		id = self.serial_and_batch_bundle
 		package = frappe.get_doc("Serial and Batch Bundle", id)
-		new_package = frappe.copy_doc(package)
+		new_package = frappe.copy_doc(package, ignore_no_copy=False)
 
 		if self.get("returned_serial_nos"):
 			self.remove_returned_serial_nos(new_package)

@@ -568,10 +568,6 @@ frappe.ui.form.on("Stock Entry", {
 				if (r.message) {
 					var doc = frappe.model.sync(r.message)[0];
 					frappe.set_route("Form", doc.doctype, doc.name);
-				} else {
-					frappe.msgprint(
-						__("Retention Stock Entry already created or Sample Quantity not provided")
-					);
 				}
 			},
 		});
@@ -1054,7 +1050,7 @@ frappe.ui.form.on("Stock Entry Detail", {
 
 var validate_sample_quantity = function (frm, cdt, cdn) {
 	var d = locals[cdt][cdn];
-	if (d.sample_quantity && frm.doc.purpose == "Material Receipt") {
+	if (d.sample_quantity && d.transfer_qty && frm.doc.purpose == "Material Receipt") {
 		frappe.call({
 			method: "erpnext.stock.doctype.stock_entry.stock_entry.validate_sample_quantity",
 			args: {

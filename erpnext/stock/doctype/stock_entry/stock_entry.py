@@ -3408,10 +3408,10 @@ class StockEntry(StockController, SubcontractingInwardController):
 
 @frappe.whitelist()
 def move_sample_to_retention_warehouse(company, items):
-	from erpnext.stock.doctype.serial_and_batch_bundle.test_serial_and_batch_bundle import (
-		get_batch_from_bundle,
+	from erpnext.stock.serial_batch_bundle import (
+		SerialBatchCreation,
+		get_batch_nos,
 	)
-	from erpnext.stock.serial_batch_bundle import SerialBatchCreation
 
 	if isinstance(items, str):
 		items = json.loads(items)
@@ -3422,38 +3422,46 @@ def move_sample_to_retention_warehouse(company, items):
 	stock_entry.set_stock_entry_type()
 	for item in items:
 		if item.get("sample_quantity") and item.get("serial_and_batch_bundle"):
-			batch_no = get_batch_from_bundle(item.get("serial_and_batch_bundle"))
-			sample_quantity = validate_sample_quantity(
-				item.get("item_code"),
-				item.get("sample_quantity"),
-				item.get("transfer_qty") or item.get("qty"),
-				batch_no,
+			warehouse = item.get("t_warehouse") or item.get("warehouse")
+			total_qty = 0
+			cls_obj = SerialBatchCreation(
+				{
+					"type_of_transaction": "Outward",
+					"serial_and_batch_bundle": item.get("serial_and_batch_bundle"),
+					"item_code": item.get("item_code"),
+					"warehouse": warehouse,
+					"do_not_save": True,
+				}
 			)
-
-			if sample_quantity:
-				cls_obj = SerialBatchCreation(
-					{
-						"type_of_transaction": "Outward",
-						"serial_and_batch_bundle": item.get("serial_and_batch_bundle"),
-						"item_code": item.get("item_code"),
-						"warehouse": item.get("t_warehouse"),
-					}
+			sabb = cls_obj.duplicate_package()
+			batches = get_batch_nos(item.get("serial_and_batch_bundle"))
+			for batch_no in batches.keys():
+				sample_quantity = validate_sample_quantity(
+					item.get("item_code"),
+					item.get("sample_quantity"),
+					item.get("transfer_qty") or item.get("qty"),
+					batch_no,
 				)
 
-				cls_obj.duplicate_package()
+				if sample_quantity:
+					total_qty += sample_quantity
+					sabe = next(item for item in sabb.entries if item.batch_no == batch_no)
+					sabe.qty = -1 * sample_quantity
 
+			if total_qty:
+				sabb.save()
 				stock_entry.append(
 					"items",
 					{
 						"item_code": item.get("item_code"),
-						"s_warehouse": item.get("t_warehouse"),
+						"s_warehouse": warehouse,
 						"t_warehouse": retention_warehouse,
-						"qty": item.get("sample_quantity"),
+						"qty": total_qty,
 						"basic_rate": item.get("valuation_rate"),
 						"uom": item.get("uom"),
 						"stock_uom": item.get("stock_uom"),
 						"conversion_factor": item.get("conversion_factor") or 1.0,
-						"serial_and_batch_bundle": cls_obj.serial_and_batch_bundle,
+						"serial_and_batch_bundle": sabb.name,
 					},
 				)
 	if stock_entry.get("items"):
