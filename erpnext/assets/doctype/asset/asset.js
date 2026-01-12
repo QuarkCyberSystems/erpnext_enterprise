@@ -237,6 +237,8 @@ frappe.ui.form.on("Asset", {
 		} else if (frm.doc.is_existing_asset || frm.doc.is_composite_asset) {
 			frm.toggle_reqd("purchase_receipt", 0);
 			frm.toggle_reqd("purchase_invoice", 0);
+			frm.set_value("purchase_receipt", "");
+			frm.set_value("purchase_invoice", "");
 		} else if (frm.doc.purchase_receipt) {
 			// if purchase receipt link is set then set PI disabled
 			frm.toggle_reqd("purchase_invoice", 0);
@@ -480,7 +482,6 @@ frappe.ui.form.on("Asset", {
 		} else {
 			frm.set_df_property("net_purchase_amount", "read_only", 0);
 		}
-
 		frm.trigger("toggle_reference_doc");
 	},
 
