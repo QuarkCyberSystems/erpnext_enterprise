@@ -3435,6 +3435,7 @@ def move_sample_to_retention_warehouse(company, items):
 			)
 			sabb = cls_obj.duplicate_package()
 			batches = get_batch_nos(item.get("serial_and_batch_bundle"))
+			sabe_list = []
 			for batch_no in batches.keys():
 				sample_quantity = validate_sample_quantity(
 					item.get("item_code"),
@@ -3446,11 +3447,20 @@ def move_sample_to_retention_warehouse(company, items):
 				sabe = next(item for item in sabb.entries if item.batch_no == batch_no)
 				if sample_quantity:
 					total_qty += sample_quantity
-					sabe.qty = -1 * sample_quantity
+					if sabb.has_serial_no:
+						sabe_list.extend(
+							[entry for entry in sabb.entries if entry.batch_no == batch_no][
+								: int(sample_quantity)
+							]
+						)
+					else:
+						sabe.qty = -1 * sample_quantity
 				else:
 					sabb.entries.remove(sabe)
 
 			if total_qty:
+				if sabe_list:
+					sabb.entries = sabe_list
 				sabb.save()
 				stock_entry.append(
 					"items",
