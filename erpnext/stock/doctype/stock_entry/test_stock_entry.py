@@ -2250,6 +2250,33 @@ class TestStockEntry(IntegrationTestCase):
 		material_request.reload()
 		self.assertEqual(material_request.transfer_status, "Completed")
 
+	def test_manufacture_entry_without_wo(self):
+		from erpnext.manufacturing.doctype.production_plan.test_production_plan import make_bom
+
+		fg_item = make_item("_Mobiles", properties={"is_stock_item": 1}).name
+		rm_item1 = make_item("_Temper Glass", properties={"is_stock_item": 1}).name
+		rm_item2 = make_item("_Battery", properties={"is_stock_item": 1}).name
+		warehouse = "_Test Warehouse - _TC"
+		make_stock_entry(item_code=rm_item1, target=warehouse, qty=5, purpose="Material Receipt")
+		make_stock_entry(item_code=rm_item2, target=warehouse, qty=5, purpose="Material Receipt")
+
+		bom_no = make_bom(item=fg_item, raw_materials=[rm_item1, rm_item2]).name
+		se = make_stock_entry(item_code=fg_item, qty=1, purpose="Manufacture", do_not_save=True)
+		se.from_bom = 1
+		se.use_multi_level_bom = 1
+		se.bom_no = bom_no
+		se.fg_completed_qty = 1
+		se.from_warehouse = warehouse
+		se.to_warehouse = warehouse
+
+		se.get_items()
+		rm_items = {d.item_code: d.qty for d in se.items if d.item_code != fg_item}
+		self.assertEqual(rm_items[rm_item1], 1)
+		self.assertEqual(rm_items[rm_item2], 1)
+		se.calculate_rate_and_amount()
+		se.save()
+		se.submit()
+
 
 def make_serialized_item(self, **args):
 	args = frappe._dict(args)
