@@ -4849,6 +4849,154 @@ class TestPurchaseReceipt(IntegrationTestCase):
 		self.assertEqual(return_entry.items[0].qty, -2)
 		self.assertEqual(return_entry.items[0].rejected_qty, 0)  # 3-3=0
 
+	def test_do_not_use_batchwise_valuation_with_fifo(self):
+		from erpnext.stock.doctype.stock_entry.test_stock_entry import make_stock_entry
+
+		item_code = make_item(
+			"Test Item Do Not Use Batchwise Valuation with FIFO",
+			{
+				"is_stock_item": 1,
+				"has_batch_no": 1,
+				"batch_number_series": "BN-TESTDNUBVWF-.#####",
+				"valuation_method": "FIFO",
+			},
+		).name
+
+		doc = frappe.new_doc("Batch")
+		doc.update(
+			{
+				"batch_id": "BN-TESTDNUBVWF-00001",
+				"item": item_code,
+			}
+		).insert()
+
+		doc.db_set("use_batchwise_valuation", 0)
+		doc.reload()
+
+		self.assertTrue(doc.use_batchwise_valuation == 0)
+
+		doc = frappe.new_doc("Batch")
+		doc.update(
+			{
+				"batch_id": "BN-TESTDNUBVWF-00002",
+				"item": item_code,
+			}
+		).insert()
+
+		self.assertTrue(doc.use_batchwise_valuation == 1)
+
+		warehouse = "_Test Warehouse - _TC"
+		make_stock_entry(
+			item_code=item_code,
+			qty=10,
+			rate=100,
+			target=warehouse,
+			batch_no="BN-TESTDNUBVWF-00001",
+			use_serial_batch_fields=1,
+		)
+
+		se1 = make_stock_entry(
+			item_code=item_code,
+			qty=10,
+			rate=200,
+			target=warehouse,
+			batch_no="BN-TESTDNUBVWF-00001",
+			use_serial_batch_fields=1,
+		)
+
+		stock_queue = frappe.db.get_value(
+			"Stock Ledger Entry",
+			{
+				"item_code": item_code,
+				"warehouse": warehouse,
+				"is_cancelled": 0,
+				"voucher_type": "Stock Entry",
+				"voucher_no": se1.name,
+			},
+			"stock_queue",
+		)
+
+		stock_queue = frappe.parse_json(stock_queue)
+
+		self.assertEqual(stock_queue, [[10, 100.0], [10, 200.0]])
+
+		se2 = make_stock_entry(
+			item_code=item_code,
+			qty=10,
+			rate=2,
+			target=warehouse,
+			batch_no="BN-TESTDNUBVWF-00002",
+			use_serial_batch_fields=1,
+		)
+
+		stock_queue = frappe.db.get_value(
+			"Stock Ledger Entry",
+			{
+				"item_code": item_code,
+				"warehouse": warehouse,
+				"is_cancelled": 0,
+				"voucher_type": "Stock Entry",
+				"voucher_no": se2.name,
+			},
+			"stock_queue",
+		)
+
+		stock_queue = frappe.parse_json(stock_queue)
+		self.assertEqual(stock_queue, [[10, 100.0], [10, 200.0]])
+
+		se3 = make_stock_entry(
+			item_code=item_code,
+			qty=20,
+			source=warehouse,
+			batch_no="BN-TESTDNUBVWF-00001",
+			use_serial_batch_fields=1,
+		)
+
+		ste_details = frappe.db.get_value(
+			"Stock Ledger Entry",
+			{
+				"item_code": item_code,
+				"warehouse": warehouse,
+				"is_cancelled": 0,
+				"voucher_type": "Stock Entry",
+				"voucher_no": se3.name,
+			},
+			["stock_queue", "stock_value_difference"],
+			as_dict=1,
+		)
+
+		stock_queue = frappe.parse_json(ste_details.stock_queue)
+		self.assertEqual(stock_queue, [])
+		self.assertEqual(ste_details.stock_value_difference, 3000 * -1)
+
+		se4 = make_stock_entry(
+			item_code=item_code,
+			qty=20,
+			rate=0,
+			target=warehouse,
+			batch_no="BN-TESTDNUBVWF-00001",
+			use_serial_batch_fields=1,
+			do_not_submit=1,
+		)
+
+		se4.items[0].basic_rate = 0.0
+		se4.items[0].allow_zero_valuation_rate = 1
+		se4.submit()
+
+		stock_queue = frappe.db.get_value(
+			"Stock Ledger Entry",
+			{
+				"item_code": item_code,
+				"warehouse": warehouse,
+				"is_cancelled": 0,
+				"voucher_type": "Stock Entry",
+				"voucher_no": se4.name,
+			},
+			"stock_queue",
+		)
+
+		self.assertEqual(frappe.parse_json(stock_queue), [[20, 0.0]])
+
 
 def prepare_data_for_internal_transfer():
 	from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_internal_supplier

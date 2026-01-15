@@ -712,17 +712,16 @@ class SerialandBatchBundle(Document):
 				is_packed_item = True
 
 		stock_queue = []
-		batches = []
-		if prev_sle and prev_sle.stock_queue:
-			batches = frappe.get_all(
-				"Batch",
-				filters={
-					"name": ("in", [d.batch_no for d in self.entries if d.batch_no]),
-					"use_batchwise_valuation": 0,
-				},
-				pluck="name",
-			)
+		batches = frappe.get_all(
+			"Batch",
+			filters={
+				"name": ("in", [d.batch_no for d in self.entries if d.batch_no]),
+				"use_batchwise_valuation": 0,
+			},
+			pluck="name",
+		)
 
+		if prev_sle and prev_sle.stock_queue and parse_json(prev_sle.stock_queue):
 			if batches and valuation_method == "FIFO":
 				stock_queue = parse_json(prev_sle.stock_queue)
 
@@ -749,7 +748,7 @@ class SerialandBatchBundle(Document):
 			if d.qty:
 				d.stock_value_difference = flt(d.qty) * d.incoming_rate
 
-			if stock_queue and valuation_method == "FIFO" and d.batch_no in batches:
+			if valuation_method == "FIFO" and d.batch_no in batches and d.incoming_rate is not None:
 				stock_queue.append([d.qty, d.incoming_rate])
 				d.stock_queue = json.dumps(stock_queue)
 
