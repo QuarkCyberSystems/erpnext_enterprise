@@ -116,6 +116,11 @@ frappe.ui.form.on("Item", {
 				},
 				__("View")
 			);
+
+			frm.toggle_display(
+				["opening_stock"],
+				frappe.model.can_create("Stock Entry") && frappe.model.can_write("Stock Entry")
+			);
 		}
 
 		if (frm.doc.is_fixed_asset) {
@@ -239,6 +244,8 @@ frappe.ui.form.on("Item", {
 				},
 			};
 		});
+
+		frm.toggle_display(["standard_rate"], frappe.model.can_create("Item Price"));
 	},
 
 	validate: function (frm) {
