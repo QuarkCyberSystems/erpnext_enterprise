@@ -2570,6 +2570,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 			"expense_account": expense_account,
 			"cost_center": item.get("buying_cost_center"),
 			"is_finished_item": 1,
+			"sample_quantity": item.get("sample_quantity"),
 		}
 
 		if (
@@ -3103,6 +3104,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 			se_child.po_detail = item_row.get("po_detail")
 			se_child.sco_rm_detail = item_row.get("sco_rm_detail")
 			se_child.scio_detail = item_row.get("scio_detail")
+			se_child.sample_quantity = item_row.get("sample_quantity", 0)
 
 			for field in [
 				self.subcontract_data.rm_detail_field,
@@ -3415,6 +3417,7 @@ def move_sample_to_retention_warehouse(company, items):
 
 	if isinstance(items, str):
 		items = json.loads(items)
+
 	retention_warehouse = frappe.get_single_value("Stock Settings", "sample_retention_warehouse")
 	stock_entry = frappe.new_doc("Stock Entry")
 	stock_entry.company = company
@@ -3449,12 +3452,17 @@ def move_sample_to_retention_warehouse(company, items):
 					total_qty += sample_quantity
 					if sabb.has_serial_no:
 						sabe_list.extend(
-							[entry for entry in sabb.entries if entry.batch_no == batch_no][
-								: int(sample_quantity)
-							]
+							[
+								entry
+								for entry in sabb.entries
+								if entry.batch_no == batch_no
+								and frappe.db.exists(
+									"Serial No", {"name": entry.serial_no, "warehouse": warehouse}
+								)
+							][: int(sample_quantity)]
 						)
 					else:
-						sabe.qty = -1 * sample_quantity
+						sabe.qty = sample_quantity
 				else:
 					sabb.entries.remove(sabe)
 
@@ -3462,6 +3470,7 @@ def move_sample_to_retention_warehouse(company, items):
 				if sabe_list:
 					sabb.entries = sabe_list
 				sabb.save()
+
 				stock_entry.append(
 					"items",
 					{

@@ -440,12 +440,16 @@ frappe.ui.form.on("Stock Entry", {
 
 		if (
 			frm.doc.docstatus == 1 &&
-			frm.doc.purpose == "Material Receipt" &&
+			["Material Receipt", "Manufacture"].includes(frm.doc.purpose) &&
 			frm.get_sum("items", "sample_quantity")
 		) {
-			frm.add_custom_button(__("Create Sample Retention Stock Entry"), function () {
-				frm.trigger("make_retention_stock_entry");
-			});
+			frm.add_custom_button(
+				__("Sample Retention Stock Entry"),
+				function () {
+					frm.trigger("make_retention_stock_entry");
+				},
+				__("Create")
+			);
 		}
 
 		frm.trigger("setup_quality_inspection");
