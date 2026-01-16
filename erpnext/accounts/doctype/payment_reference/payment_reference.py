@@ -15,13 +15,12 @@ class PaymentReference(Document):
 		from frappe.types import DF
 
 		amount: DF.Currency
-		auto_selected: DF.Check
 		description: DF.SmallText | None
 		due_date: DF.Date | None
-		manually_selected: DF.Check
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data
+		payment_schedule: DF.Link | None
 		payment_term: DF.Link | None
 	# end: auto-generated types
 

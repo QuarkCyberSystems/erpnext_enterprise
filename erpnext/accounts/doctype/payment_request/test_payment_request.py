@@ -1,12 +1,14 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # See license.txt
 
+import json
 import re
 import unittest
 from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.utils import add_days, nowdate
 
 from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
 from erpnext.accounts.doctype.payment_entry.test_payment_entry import create_payment_terms_template
@@ -852,64 +854,122 @@ class TestPaymentRequest(IntegrationTestCase):
 
 		self.assertEqual(pr.grand_total, pi.outstanding_amount)
 
-	def test_payment_schedule_row_selection(self):
-		from frappe.utils import add_days, nowdate
-
-		po = create_purchase_order(do_not_save=1, currency="INR", qty=1, rate=86)
-
+	def test_payment_request_grand_total_from_selected_schedules(self):
+		po = create_purchase_order(do_not_save=1, currency="INR", qty=1, rate=100)
 		po.payment_schedule = []
 
-		po.append("payment_schedule", {"due_date": nowdate(), "payment_amount": 33})
-		po.append("payment_schedule", {"due_date": add_days(nowdate(), 1), "payment_amount": 33})
-		po.append("payment_schedule", {"due_date": add_days(nowdate(), 2), "payment_amount": 20})
+		po.append("payment_schedule", {"due_date": nowdate(), "payment_amount": 30})
+		po.append("payment_schedule", {"due_date": add_days(nowdate(), 1), "payment_amount": 30})
+		po.append("payment_schedule", {"due_date": add_days(nowdate(), 2), "payment_amount": 40})
 
 		po.save()
 		po.submit()
 
-		pr1 = make_payment_request(
+		schedules = json.dumps(
+			[
+				{
+					"payment_term": row.payment_term,
+					"name": row.name,
+					"due_date": row.due_date,
+					"payment_amount": row.payment_amount,
+					"description": row.description,
+				}
+				for row in [po.payment_schedule[0], po.payment_schedule[2]]
+			]
+		)
+		pr = make_payment_request(
 			dt="Purchase Order",
 			dn=po.name,
 			mute_email=1,
 			submit_doc=False,
 			return_doc=True,
-		)
-		pr1.payment_reference[0].manually_selected = 1
-		pr1.payment_reference[1].auto_selected = 0
-		pr1.payment_reference[2].manually_selected = 1
-		pr1.grand_total = 53
-		pr1.submit()
-
-		pr2 = make_payment_request(
-			dt="Purchase Order",
-			dn=po.name,
-			mute_email=1,
-			submit_doc=False,
-			return_doc=True,
+			schedules=schedules,
 		)
 
-		self.assertEqual(len(pr2.payment_reference), 1)
-		self.assertEqual(pr2.payment_reference[0].amount, 33)
+		pr.submit()
 
-	def test_auto_selected_rows_are_not_reused(self):
+		self.assertEqual(pr.grand_total, 70)
+		self.assertEqual(len(pr.payment_reference), 2)
+
+	def test_draft_pr_reuse_merges_payment_references(self):
 		from frappe.utils import add_days, nowdate
 
-		po = create_purchase_order(do_not_save=1, currency="INR", qty=1, rate=80)
+		po = create_purchase_order(do_not_save=1, currency="INR", qty=1, rate=100)
 		po.payment_schedule = []
-		po.append("payment_schedule", {"due_date": nowdate(), "payment_amount": 40})
-		po.append("payment_schedule", {"due_date": add_days(nowdate(), 1), "payment_amount": 10})
-		po.append("payment_schedule", {"due_date": add_days(nowdate(), 2), "payment_amount": 30})
+		po.append("payment_schedule", {"due_date": nowdate(), "payment_amount": 50})
+		po.append("payment_schedule", {"due_date": add_days(nowdate(), 1), "payment_amount": 50})
+		po.save()
+		po.submit()
+		schedules = json.dumps(
+			[
+				{
+					"payment_term": row.payment_term,
+					"name": row.name,
+					"due_date": row.due_date,
+					"payment_amount": row.payment_amount,
+					"description": row.description,
+				}
+				for row in [po.payment_schedule[0]]
+			]
+		)
+		pr = make_payment_request(
+			dt="Purchase Order",
+			dn=po.name,
+			mute_email=1,
+			submit_doc=False,
+			return_doc=True,
+			schedules=schedules,
+		)
+
+		pr.save()
+		schedules = json.dumps(
+			[
+				{
+					"payment_term": row.payment_term,
+					"name": row.name,
+					"due_date": row.due_date,
+					"payment_amount": row.payment_amount,
+					"description": row.description,
+				}
+				for row in [po.payment_schedule[1]]
+			]
+		)
+		# call make_payment_request again → reuse draft
+		pr_reused = make_payment_request(
+			dt="Purchase Order",
+			dn=po.name,
+			mute_email=1,
+			submit_doc=False,
+			return_doc=True,
+			schedules=schedules,
+		)
+
+		self.assertEqual(pr.name, pr_reused.name)
+		self.assertEqual(pr_reused.grand_total, 100)
+		self.assertEqual(len(pr_reused.payment_reference), 2)
+
+	def test_schedule_pr_not_allowed_if_payment_entry_exists(self):
+		po = create_purchase_order(do_not_save=1, currency="INR", qty=1, rate=100)
+		po.payment_schedule = []
+		row = po.append("payment_schedule", {"due_date": nowdate(), "payment_amount": 100})
 		po.save()
 		po.submit()
 
-		pr1 = make_payment_request(
-			dt="Purchase Order",
-			dn=po.name,
-			mute_email=1,
-			submit_doc=False,
-			return_doc=True,
-		)
+		# create PE first
+		pr = make_payment_request(dt="Purchase Order", dn=po.name, mute_email=1, submit_doc=1, return_doc=1)
+		pr.create_payment_entry()
 
-		pr1.submit()
+		schedules = json.dumps(
+			[
+				{
+					"name": row.name,
+					"payment_term": row.payment_term,
+					"due_date": row.due_date,
+					"payment_amount": row.payment_amount,
+					"description": row.description,
+				}
+			]
+		)
 
 		with self.assertRaises(frappe.ValidationError):
 			make_payment_request(
@@ -918,4 +978,5 @@ class TestPaymentRequest(IntegrationTestCase):
 				mute_email=1,
 				submit_doc=False,
 				return_doc=True,
+				schedules=schedules,
 			)

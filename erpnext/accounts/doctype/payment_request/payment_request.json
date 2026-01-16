@@ -21,7 +21,6 @@
   "reference_name",
   "payment_reference_section",
   "payment_reference",
-  "calculate_total_amount_by_selected_rows",
   "transaction_details",
   "grand_total",
   "currency",
@@ -160,6 +159,7 @@
    "label": "Amount",
    "non_negative": 1,
    "options": "currency",
+   "read_only_depends_on": "eval:doc.payment_reference.length>0",
    "reqd": 1
   },
   {
@@ -466,15 +466,11 @@
    "fieldtype": "Section Break"
   },
   {
-   "fieldname": "calculate_total_amount_by_selected_rows",
-   "fieldtype": "Button",
-   "label": "Calculate Total Amount by Selected Rows"
-  },
-  {
    "fieldname": "payment_reference",
    "fieldtype": "Table",
    "label": "Payment Reference",
-   "options": "Payment Reference"
+   "options": "Payment Reference",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
@@ -482,7 +478,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2025-12-05 11:27:51.406257",
+ "modified": "2026-01-13 12:53:00.963274",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Payment Request",
