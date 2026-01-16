@@ -2291,7 +2291,7 @@ class TestStockEntry(IntegrationTestCase):
 				"retain_sample": 1,
 				"sample_quantity": 2,
 				"has_batch_no": 1,
-				"has_seral_no": 1,
+				"has_serial_no": 1,
 				"create_new_batch": 1,
 				"batch_number_series": "SAMPLE-RET-.#####",
 				"serial_no_series": "SAMPLE-RET-SN-.#####",

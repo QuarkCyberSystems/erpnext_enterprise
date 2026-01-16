@@ -3449,19 +3449,19 @@ def move_sample_to_retention_warehouse(company, items):
 
 				sabe = next(item for item in sabb.entries if item.batch_no == batch_no)
 				if sample_quantity:
-					total_qty += sample_quantity
 					if sabb.has_serial_no:
-						sabe_list.extend(
-							[
-								entry
-								for entry in sabb.entries
-								if entry.batch_no == batch_no
-								and frappe.db.exists(
-									"Serial No", {"name": entry.serial_no, "warehouse": warehouse}
-								)
-							][: int(sample_quantity)]
-						)
+						new_sabe = [
+							entry
+							for entry in sabb.entries
+							if entry.batch_no == batch_no
+							and frappe.db.exists(
+								"Serial No", {"name": entry.serial_no, "warehouse": warehouse}
+							)
+						][: int(sample_quantity)]
+						sabe_list.extend(new_sabe)
+						total_qty += len(new_sabe)
 					else:
+						total_qty += sample_quantity
 						sabe.qty = sample_quantity
 				else:
 					sabb.entries.remove(sabe)
