@@ -518,7 +518,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 
 	barcode(doc, cdt, cdn) {
 		let row = locals[cdt][cdn];
-		if (row.barcode) {
+		if (row.barcode && !frappe.flags.trigger_from_barcode_scanner) {
 			erpnext.stock.utils.set_item_details_using_barcode(this.frm, row, (r) => {
 				frappe.model.set_value(cdt, cdn, {
 					item_code: r.message.item_code,
