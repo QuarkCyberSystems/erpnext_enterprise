@@ -278,8 +278,29 @@ class StockEntry(StockController, SubcontractingInwardController):
 
 		self.validate_closed_subcontracting_order()
 		self.validate_subcontract_order()
+		self.validate_raw_materials_exists()
 
 		super().validate_subcontracting_inward()
+
+	def validate_raw_materials_exists(self):
+		if self.purpose not in ["Manufacture", "Repack", "Disassemble"]:
+			return
+
+		if frappe.db.get_single_value("Manufacturing Settings", "material_consumption"):
+			return
+
+		raw_materials = []
+		for row in self.items:
+			if row.s_warehouse:
+				raw_materials.append(row.item_code)
+
+		if not raw_materials:
+			frappe.throw(
+				_(
+					"At least one raw material item must be present in the stock entry for the type {0}"
+				).format(bold(self.purpose)),
+				title=_("Raw Materials Missing"),
+			)
 
 	def set_serial_batch_for_disassembly(self):
 		if self.purpose != "Disassemble":
