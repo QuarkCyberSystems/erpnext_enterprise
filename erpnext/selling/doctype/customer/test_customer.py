@@ -5,7 +5,6 @@
 import json
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import flt
 
 from erpnext.accounts.party import get_due_date
@@ -15,10 +14,10 @@ from erpnext.selling.doctype.customer.customer import (
 	get_customer_outstanding,
 	parse_full_name,
 )
-from erpnext.tests.utils import create_test_contact_and_address
+from erpnext.tests.utils import ERPNextTestSuite, create_test_contact_and_address
 
 
-class TestCustomer(IntegrationTestCase):
+class TestCustomer(ERPNextTestSuite):
 	def tearDown(self):
 		set_credit_limit("_Test Customer", "_Test Company", 0)
 

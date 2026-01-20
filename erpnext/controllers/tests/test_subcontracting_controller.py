@@ -5,8 +5,7 @@ import copy
 from collections import defaultdict
 
 import frappe
-from frappe.tests import IntegrationTestCase
-from frappe.utils import cint
+from frappe.utils import cint, flt
 
 from erpnext.buying.doctype.purchase_order.test_purchase_order import create_purchase_order
 from erpnext.controllers.subcontracting_controller import (
@@ -23,9 +22,10 @@ from erpnext.stock.doctype.stock_entry.test_stock_entry import make_stock_entry
 from erpnext.subcontracting.doctype.subcontracting_order.subcontracting_order import (
 	make_subcontracting_receipt,
 )
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestSubcontractingController(IntegrationTestCase):
+class TestSubcontractingController(ERPNextTestSuite):
 	def setUp(self):
 		make_subcontracted_items()
 		make_raw_materials()

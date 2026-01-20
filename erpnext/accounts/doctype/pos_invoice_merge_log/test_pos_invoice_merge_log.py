@@ -3,7 +3,6 @@
 import json
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
 from erpnext.accounts.doctype.mode_of_payment.test_mode_of_payment import (
 	set_default_account_for_mode_of_payment,
@@ -19,9 +18,10 @@ from erpnext.stock.doctype.serial_and_batch_bundle.test_serial_and_batch_bundle 
 	get_serial_nos_from_bundle,
 )
 from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestPOSInvoiceMergeLog(IntegrationTestCase):
+class TestPOSInvoiceMergeLog(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -315,7 +315,7 @@ class TestPOSInvoiceMergeLog(IntegrationTestCase):
 		self.assertNotEqual(consolidated_invoice.outstanding_amount, 800)
 		self.assertEqual(consolidated_invoice.status, "Paid")
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"System Settings", {"number_format": "#,###.###", "currency_precision": 3, "float_precision": 3}
 	)
 	def test_consolidation_round_off_error_3(self):

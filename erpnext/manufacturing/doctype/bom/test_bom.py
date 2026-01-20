@@ -6,7 +6,7 @@ from collections import deque
 from functools import partial
 
 import frappe
-from frappe.tests import IntegrationTestCase, timeout
+from frappe.tests import timeout
 from frappe.utils import cstr, flt
 
 from erpnext.controllers.tests.test_subcontracting_controller import (
@@ -20,9 +20,10 @@ from erpnext.stock.doctype.item.test_item import make_item
 from erpnext.stock.doctype.stock_reconciliation.test_stock_reconciliation import (
 	create_stock_reconciliation,
 )
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestBOM(IntegrationTestCase):
+class TestBOM(ERPNextTestSuite):
 	@timeout
 	def test_get_items(self):
 		from erpnext.manufacturing.doctype.bom.bom import get_bom_items_as_dict

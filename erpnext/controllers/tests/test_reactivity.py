@@ -1,13 +1,13 @@
 import frappe
 from frappe import qb
-from frappe.tests import IntegrationTestCase
-from frappe.utils import getdate, today
+from frappe.utils import today
 
 from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import disable_dimension
 from erpnext.accounts.test.accounts_mixin import AccountsTestMixin
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestReactivity(AccountsTestMixin, IntegrationTestCase):
+class TestReactivity(AccountsTestMixin, ERPNextTestSuite):
 	def setUp(self):
 		self.create_company()
 		self.create_customer()

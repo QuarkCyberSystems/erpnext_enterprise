@@ -26,9 +26,10 @@ from erpnext.stock.doctype.serial_and_batch_bundle.test_serial_and_batch_bundle 
 	get_serial_nos_from_bundle,
 	make_serial_batch_bundle,
 )
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestAssetRepair(IntegrationTestCase):
+class TestAssetRepair(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()

@@ -1,12 +1,11 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
-from erpnext.tests.utils import ReportFilters, ReportName, execute_script_report
+from erpnext.tests.utils import ERPNextTestSuite, ReportFilters, ReportName, execute_script_report
 
 
-class TestManufacturingReports(IntegrationTestCase):
+class TestManufacturingReports(ERPNextTestSuite):
 	def setUp(self):
 		self.setup_default_filters()
 

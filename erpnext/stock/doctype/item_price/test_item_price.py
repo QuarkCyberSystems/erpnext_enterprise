@@ -3,14 +3,14 @@
 
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_records_for_doctype
 
 from erpnext.stock.doctype.item_price.item_price import ItemPriceDuplicateItem
 from erpnext.stock.get_item_details import ItemDetailsCtx, get_price_list_rate_for
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestItemPrice(IntegrationTestCase):
+class TestItemPrice(ERPNextTestSuite):
 	def setUp(self):
 		super().setUp()
 		frappe.db.sql("delete from `tabItem Price`")

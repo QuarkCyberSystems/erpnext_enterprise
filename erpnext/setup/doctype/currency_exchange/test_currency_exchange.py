@@ -4,10 +4,10 @@ import unittest
 from unittest import mock
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import cint, flt
 
 from erpnext.setup.utils import get_exchange_rate
+from erpnext.tests.utils import ERPNextTestSuite
 
 
 def save_new_records(test_records):
@@ -78,7 +78,7 @@ def patched_requests_get(*args, **kwargs):
 
 
 @mock.patch("requests.get", side_effect=patched_requests_get)
-class TestCurrencyExchange(IntegrationTestCase):
+class TestCurrencyExchange(ERPNextTestSuite):
 	def clear_cache(self):
 		cache = frappe.cache()
 		for date in test_exchange_values.keys():

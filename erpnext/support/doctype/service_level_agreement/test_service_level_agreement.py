@@ -4,16 +4,16 @@ import datetime
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import flt
 
 from erpnext.support.doctype.issue_priority.test_issue_priority import make_priorities
 from erpnext.support.doctype.service_level_agreement.service_level_agreement import (
 	get_service_level_agreement_fields,
 )
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestServiceLevelAgreement(IntegrationTestCase):
+class TestServiceLevelAgreement(ERPNextTestSuite):
 	def setUp(self):
 		self.create_company()
 		frappe.db.set_single_value("Support Settings", "track_service_level_agreement", 1)

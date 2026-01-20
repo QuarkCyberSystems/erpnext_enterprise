@@ -4,7 +4,6 @@ import json
 
 import frappe
 from frappe.model import mapper
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, nowdate, today
 
 from erpnext import get_default_cost_center
@@ -18,9 +17,10 @@ from erpnext.accounts.doctype.sales_invoice.sales_invoice import (
 from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import (
 	create_sales_invoice_against_cost_center,
 )
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestDunning(IntegrationTestCase):
+class TestDunning(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()

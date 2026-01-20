@@ -3,16 +3,16 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
 from erpnext.accounts.doctype.shipping_rule.shipping_rule import (
 	FromGreaterThanToError,
 	ManyBlankToValuesError,
 	OverlappingConditionError,
 )
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestShippingRule(IntegrationTestCase):
+class TestShippingRule(ERPNextTestSuite):
 	def test_from_greater_than_to(self):
 		shipping_rule = frappe.copy_doc(self.globalTestRecords["Shipping Rule"][0])
 		shipping_rule.name = self.globalTestRecords["Shipping Rule"][0].get("name")

@@ -4,7 +4,6 @@
 
 import frappe
 from frappe import qb
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, add_years, flt, getdate, nowdate, today
 from frappe.utils.data import getdate as convert_to_date
 
@@ -17,9 +16,10 @@ from erpnext.accounts.party import get_party_account
 from erpnext.accounts.utils import get_fiscal_year
 from erpnext.buying.doctype.purchase_order.test_purchase_order import create_purchase_order
 from erpnext.stock.doctype.item.test_item import create_item
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestPaymentReconciliation(IntegrationTestCase):
+class TestPaymentReconciliation(ERPNextTestSuite):
 	def setUp(self):
 		self.create_company()
 		self.create_item()
@@ -1233,7 +1233,7 @@ class TestPaymentReconciliation(IntegrationTestCase):
 		payment_vouchers = [x.get("reference_name") for x in pr.get("payments")]
 		self.assertCountEqual(payment_vouchers, [je2.name, pe2.name])
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{
 			"allow_multi_currency_invoices_against_single_party_account": 1,

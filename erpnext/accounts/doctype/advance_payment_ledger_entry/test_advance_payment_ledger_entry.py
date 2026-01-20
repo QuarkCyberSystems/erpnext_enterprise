@@ -2,7 +2,6 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import nowdate, today
 
 from erpnext.accounts.doctype.payment_entry.test_payment_entry import get_payment_entry
@@ -10,12 +9,13 @@ from erpnext.accounts.test.accounts_mixin import AccountsTestMixin
 from erpnext.buying.doctype.purchase_order.test_purchase_order import create_purchase_order
 from erpnext.selling.doctype.sales_order.test_sales_order import make_sales_order
 
-# On IntegrationTestCase, the doctype test records and all
+# On ERPNextTestSuite, the doctype test records and all
 # link-field test record depdendencies are recursively loaded
 # Use these module variables to add/remove to/from that list
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestAdvancePaymentLedgerEntry(AccountsTestMixin, IntegrationTestCase):
+class TestAdvancePaymentLedgerEntry(AccountsTestMixin, ERPNextTestSuite):
 	"""
 	Integration tests for AdvancePaymentLedgerEntry.
 	Use this class for testing interactions between multiple components.

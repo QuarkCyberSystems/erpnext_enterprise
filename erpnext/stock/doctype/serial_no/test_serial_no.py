@@ -7,7 +7,6 @@
 
 import frappe
 from frappe import _dict
-from frappe.tests import IntegrationTestCase
 
 from erpnext.stock.doctype.delivery_note.test_delivery_note import create_delivery_note
 from erpnext.stock.doctype.item.test_item import make_item
@@ -20,9 +19,10 @@ from erpnext.stock.doctype.serial_no.serial_no import *
 from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
 from erpnext.stock.doctype.stock_entry.test_stock_entry import make_serialized_item
 from erpnext.stock.doctype.warehouse.test_warehouse import create_warehouse
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestSerialNo(IntegrationTestCase):
+class TestSerialNo(ERPNextTestSuite):
 	def tearDown(self):
 		frappe.db.rollback()
 

@@ -1,16 +1,15 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
-from frappe.tests import IntegrationTestCase
-
 from erpnext.manufacturing.doctype.production_plan.test_production_plan import make_bom
 from erpnext.manufacturing.report.bom_stock_calculated.bom_stock_calculated import (
 	execute as bom_stock_calculated_report,
 )
 from erpnext.stock.doctype.item.test_item import make_item
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestBOMStockCalculated(IntegrationTestCase):
+class TestBOMStockCalculated(ERPNextTestSuite):
 	def setUp(self):
 		self.fg_item, self.rm_items = create_items()
 		self.boms = create_boms(self.fg_item, self.rm_items)

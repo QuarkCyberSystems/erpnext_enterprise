@@ -3,12 +3,12 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
 from erpnext.accounts.doctype.share_transfer.share_transfer import ShareDontExists
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestShareTransfer(IntegrationTestCase):
+class TestShareTransfer(ERPNextTestSuite):
 	def setUp(self):
 		frappe.db.sql("delete from `tabShare Transfer`")
 		frappe.db.sql("delete from `tabShare Balance`")

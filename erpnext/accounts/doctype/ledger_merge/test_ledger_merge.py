@@ -3,12 +3,12 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
 from erpnext.accounts.doctype.ledger_merge.ledger_merge import start_merge
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestLedgerMerge(IntegrationTestCase):
+class TestLedgerMerge(ERPNextTestSuite):
 	def test_merge_success(self):
 		if not frappe.db.exists("Account", "Indirect Expenses - _TC"):
 			acc = frappe.new_doc("Account")

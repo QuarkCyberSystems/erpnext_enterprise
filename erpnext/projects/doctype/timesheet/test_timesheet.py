@@ -4,7 +4,6 @@ import datetime
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime, nowdate
 
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_sales_return
@@ -119,7 +118,7 @@ class TestTimesheet(ERPNextTestSuite):
 		self.assertEqual(item.qty, 2.00)
 		self.assertEqual(item.rate, 50.00)
 
-	@IntegrationTestCase.change_settings("Projects Settings", {"fetch_timesheet_in_sales_invoice": 1})
+	@ERPNextTestSuite.change_settings("Projects Settings", {"fetch_timesheet_in_sales_invoice": 1})
 	def test_timesheet_billing_based_on_project(self):
 		emp = make_employee("test_employee_6@salary.com")
 		project = frappe.get_value("Project", {"project_name": "_Test Project"})

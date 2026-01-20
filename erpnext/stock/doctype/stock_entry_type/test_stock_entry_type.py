@@ -3,10 +3,11 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
+
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestStockEntryType(IntegrationTestCase):
+class TestStockEntryType(ERPNextTestSuite):
 	def test_stock_entry_type_non_standard(self):
 		stock_entry_type = "Test Manufacturing"
 

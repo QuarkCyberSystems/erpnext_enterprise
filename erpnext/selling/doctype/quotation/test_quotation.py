@@ -4,15 +4,15 @@
 import json
 
 import frappe
-from frappe.tests import IntegrationTestCase, change_settings
+from frappe.tests import change_settings
 from frappe.utils import add_days, add_months, flt, getdate, nowdate
 
 from erpnext.controllers.accounts_controller import InvalidQtyError, update_child_qty_rate
 from erpnext.selling.doctype.quotation.quotation import make_sales_order
-from erpnext.setup.utils import get_exchange_rate
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestQuotation(IntegrationTestCase):
+class TestQuotation(ERPNextTestSuite):
 	def test_update_child_quotation_add_item(self):
 		from erpnext.stock.doctype.item.test_item import make_item
 
@@ -180,7 +180,7 @@ class TestQuotation(IntegrationTestCase):
 
 		self.assertTrue(quotation.payment_schedule)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{"automatically_fetch_payment_terms": 1},
 	)
@@ -324,7 +324,7 @@ class TestQuotation(IntegrationTestCase):
 		sales_order.delivery_date = nowdate()
 		sales_order.insert()
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{
 			"add_taxes_from_item_tax_template": 0,
@@ -874,7 +874,7 @@ class TestQuotation(IntegrationTestCase):
 		quotation.items[0].conversion_factor = 2.23
 		self.assertRaises(frappe.ValidationError, quotation.save)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{"add_taxes_from_item_tax_template": 1, "add_taxes_from_taxes_and_charges_template": 0},
 	)
@@ -942,7 +942,7 @@ class TestQuotation(IntegrationTestCase):
 		self.assertEqual(quotation.rounding_adjustment, 0)
 		self.assertEqual(quotation.rounded_total, 0)
 
-	@IntegrationTestCase.change_settings("Selling Settings", {"allow_zero_qty_in_quotation": 1})
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_zero_qty_in_quotation": 1})
 	def test_so_from_zero_qty_quotation(self):
 		from erpnext.selling.doctype.quotation.quotation import make_sales_order
 		from erpnext.stock.doctype.item.test_item import make_item
@@ -1074,7 +1074,7 @@ class TestQuotation(IntegrationTestCase):
 		quotation.reload()
 		self.assertEqual(quotation.status, "Open")
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{"automatically_fetch_payment_terms": 1},
 	)

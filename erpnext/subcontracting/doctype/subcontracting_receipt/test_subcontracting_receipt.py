@@ -5,7 +5,6 @@
 import copy
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, cint, flt, nowtime, today
 
 import erpnext
@@ -41,9 +40,10 @@ from erpnext.subcontracting.doctype.subcontracting_order.subcontracting_order im
 from erpnext.subcontracting.doctype.subcontracting_receipt.subcontracting_receipt import (
 	BOMQuantityError,
 )
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestSubcontractingReceipt(IntegrationTestCase):
+class TestSubcontractingReceipt(ERPNextTestSuite):
 	def setUp(self):
 		make_subcontracted_items()
 		make_raw_materials()
@@ -497,7 +497,7 @@ class TestSubcontractingReceipt(IntegrationTestCase):
 			self.assertEqual(expected_values[gle.account][0], gle.debit)
 			self.assertEqual(expected_values[gle.account][1], gle.credit)
 
-	@IntegrationTestCase.change_settings("Stock Settings", {"use_serial_batch_fields": 0})
+	@ERPNextTestSuite.change_settings("Stock Settings", {"use_serial_batch_fields": 0})
 	def test_subcontracting_receipt_with_zero_service_cost(self):
 		warehouse = "Stores - TCP1"
 		service_items = [
@@ -1439,7 +1439,7 @@ class TestSubcontractingReceipt(IntegrationTestCase):
 		sr.reload()
 		self.assertEqual(sr.items[0].rejected_qty, 2)  # Should remain the same
 
-	@IntegrationTestCase.change_settings("Buying Settings", {"auto_create_purchase_receipt": 1})
+	@ERPNextTestSuite.change_settings("Buying Settings", {"auto_create_purchase_receipt": 1})
 	def test_auto_create_purchase_receipt(self):
 		from erpnext.buying.doctype.purchase_order.test_purchase_order import create_purchase_order
 
@@ -1503,7 +1503,7 @@ class TestSubcontractingReceipt(IntegrationTestCase):
 
 		self.assertEqual(pr_details[0]["total_taxes_and_charges"], 60)
 
-	@IntegrationTestCase.change_settings("Buying Settings", {"auto_create_purchase_receipt": 1})
+	@ERPNextTestSuite.change_settings("Buying Settings", {"auto_create_purchase_receipt": 1})
 	def test_auto_create_purchase_receipt_with_no_reference_of_po_item(self):
 		from erpnext.buying.doctype.purchase_order.test_purchase_order import create_purchase_order
 
@@ -2001,8 +2001,8 @@ class TestSubcontractingReceipt(IntegrationTestCase):
 
 		self.assertRaises(BOMQuantityError, scr.submit)
 
-	@IntegrationTestCase.change_settings("Buying Settings", {"over_transfer_allowance": 20})
-	@IntegrationTestCase.change_settings("Stock Settings", {"over_delivery_receipt_allowance": 20})
+	@ERPNextTestSuite.change_settings("Buying Settings", {"over_transfer_allowance": 20})
+	@ERPNextTestSuite.change_settings("Stock Settings", {"over_delivery_receipt_allowance": 20})
 	def test_over_receipt(self):
 		from erpnext.controllers.subcontracting_controller import make_rm_stock_entry
 

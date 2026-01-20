@@ -5,14 +5,14 @@ import unittest
 import frappe
 import frappe.utils
 from frappe.query_builder import Criterion
-from frappe.tests import IntegrationTestCase
 
 import erpnext
 from erpnext.accounts.utils import build_qb_match_conditions
 from erpnext.setup.doctype.employee.employee import InactiveEmployeeStatusError
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestEmployee(IntegrationTestCase):
+class TestEmployee(ERPNextTestSuite):
 	def test_employee_status_left(self):
 		employee1 = make_employee("test_employee_1@company.com")
 		employee2 = make_employee("test_employee_2@company.com")

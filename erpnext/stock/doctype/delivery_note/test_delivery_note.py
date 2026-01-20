@@ -6,7 +6,6 @@ import json
 from collections import defaultdict
 
 import frappe
-from frappe.tests import IntegrationTestCase, change_settings
 from frappe.utils import add_days, cstr, flt, getdate, nowdate, nowtime, today
 
 from erpnext.accounts.doctype.account.test_account import get_inventory_account
@@ -42,9 +41,10 @@ from erpnext.stock.doctype.stock_reconciliation.test_stock_reconciliation import
 )
 from erpnext.stock.doctype.warehouse.test_warehouse import get_warehouse
 from erpnext.stock.stock_ledger import get_previous_sle
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestDeliveryNote(IntegrationTestCase):
+class TestDeliveryNote(ERPNextTestSuite):
 	def test_delivery_note_qty(self):
 		dn = create_delivery_note(qty=0, do_not_save=True)
 		with self.assertRaises(InvalidQtyError):
@@ -1022,7 +1022,7 @@ class TestDeliveryNote(IntegrationTestCase):
 		self.assertEqual(dn2.per_billed, 100)
 		self.assertEqual(dn2.status, "Completed")
 
-	@change_settings("Accounts Settings", {"delete_linked_ledger_entries": True})
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"delete_linked_ledger_entries": True})
 	def test_sales_invoice_qty_after_return(self):
 		from erpnext.stock.doctype.delivery_note.delivery_note import make_sales_return
 
@@ -1323,7 +1323,7 @@ class TestDeliveryNote(IntegrationTestCase):
 		frappe.db.set_single_value("Stock Settings", "use_serial_batch_fields", 1)
 		frappe.db.set_single_value("Accounts Settings", "delete_linked_ledger_entries", 0)
 
-	@change_settings("Accounts Settings", {"automatically_fetch_payment_terms": 1})
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"automatically_fetch_payment_terms": 1})
 	def test_payment_terms_are_fetched_when_creating_sales_invoice(self):
 		from erpnext.accounts.doctype.payment_entry.test_payment_entry import (
 			create_payment_terms_template,
@@ -2865,7 +2865,7 @@ class TestDeliveryNote(IntegrationTestCase):
 		for entry in sabb.entries:
 			self.assertEqual(entry.incoming_rate, 200)
 
-	@IntegrationTestCase.change_settings("Selling Settings", {"validate_selling_price": 1})
+	@ERPNextTestSuite.change_settings("Selling Settings", {"validate_selling_price": 1})
 	def test_validate_selling_price(self):
 		item_code = make_item("VSP Item", properties={"is_stock_item": 1}).name
 		make_stock_entry(item_code=item_code, target="_Test Warehouse - _TC", qty=1, basic_rate=10)

@@ -3,14 +3,14 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import today
 
 from erpnext.accounts.doctype.loyalty_program.test_loyalty_program import create_records
 from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_sales_invoice
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestLoyaltyPointEntry(IntegrationTestCase):
+class TestLoyaltyPointEntry(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()

@@ -3,12 +3,12 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
 from erpnext.regional.report.irs_1099.irs_1099 import execute as execute_1099_report
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestUnitedStates(IntegrationTestCase):
+class TestUnitedStates(ERPNextTestSuite):
 	def test_irs_1099_custom_field(self):
 		if not frappe.db.exists("Supplier", "_US 1099 Test Supplier"):
 			doc = frappe.new_doc("Supplier")

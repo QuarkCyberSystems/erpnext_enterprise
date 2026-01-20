@@ -1,12 +1,12 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
 from erpnext.crm.report.sales_pipeline_analytics.sales_pipeline_analytics import execute
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestSalesPipelineAnalytics(IntegrationTestCase):
+class TestSalesPipelineAnalytics(ERPNextTestSuite):
 	def setUp(self):
 		create_company()
 		create_customer()

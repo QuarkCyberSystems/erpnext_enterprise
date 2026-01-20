@@ -1,8 +1,3 @@
-import unittest
-
-import frappe
-from frappe.tests import IntegrationTestCase
-
 from erpnext.crm.report.opportunity_summary_by_sales_stage.opportunity_summary_by_sales_stage import (
 	execute,
 )
@@ -11,9 +6,10 @@ from erpnext.crm.report.sales_pipeline_analytics.test_sales_pipeline_analytics i
 	create_customer,
 	create_opportunity,
 )
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestOpportunitySummaryBySalesStage(IntegrationTestCase):
+class TestOpportunitySummaryBySalesStage(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()

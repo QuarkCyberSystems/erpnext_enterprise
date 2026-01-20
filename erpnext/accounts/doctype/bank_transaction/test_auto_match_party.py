@@ -2,16 +2,16 @@
 # License: GNU General Public License v3. See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import nowdate
 
 from erpnext.accounts.doctype.bank_transaction.test_bank_transaction import create_bank_account
+from erpnext.tests.utils import ERPNextTestSuite
 
 IBAN_1 = "DE02000000003716541159"
 IBAN_2 = "DE02500105170137075030"
 
 
-class TestAutoMatchParty(IntegrationTestCase):
+class TestAutoMatchParty(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		create_bank_account()

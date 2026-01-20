@@ -3,10 +3,11 @@
 
 
 import frappe
-from frappe.tests import IntegrationTestCase
+
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestTransactionDeletionRecord(IntegrationTestCase):
+class TestTransactionDeletionRecord(ERPNextTestSuite):
 	def setUp(self):
 		# Clear all deletion cache flags from previous tests
 		self._clear_all_deletion_cache_flags()

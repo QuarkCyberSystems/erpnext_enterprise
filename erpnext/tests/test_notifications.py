@@ -4,10 +4,11 @@ import unittest
 
 import frappe
 from frappe.desk import notifications
-from frappe.tests import IntegrationTestCase
+
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestNotifications(IntegrationTestCase):
+class TestNotifications(ERPNextTestSuite):
 	def test_get_notifications_for_targets(self):
 		"""
 		Test notification config entries for targets as percentages

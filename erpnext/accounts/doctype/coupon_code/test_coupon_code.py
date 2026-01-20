@@ -3,9 +3,9 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
 from erpnext.selling.doctype.sales_order.test_sales_order import make_sales_order
+from erpnext.tests.utils import ERPNextTestSuite
 
 
 def test_create_test_data():
@@ -108,7 +108,7 @@ def test_create_test_data():
 		coupon_code.insert()
 
 
-class TestCouponCode(IntegrationTestCase):
+class TestCouponCode(ERPNextTestSuite):
 	def setUp(self):
 		test_create_test_data()
 

@@ -1,6 +1,5 @@
 import frappe
 from frappe import qb
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, flt, get_first_day, get_last_day, nowdate
 
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import make_delivery_note, make_sales_return
@@ -10,9 +9,10 @@ from erpnext.stock.doctype.delivery_note.delivery_note import make_sales_invoice
 from erpnext.stock.doctype.delivery_note.test_delivery_note import create_delivery_note
 from erpnext.stock.doctype.item.test_item import create_item
 from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestGrossProfit(IntegrationTestCase):
+class TestGrossProfit(ERPNextTestSuite):
 	def setUp(self):
 		self.create_company()
 		self.create_item()

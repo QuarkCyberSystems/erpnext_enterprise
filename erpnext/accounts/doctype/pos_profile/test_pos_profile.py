@@ -3,16 +3,16 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import cint
 
 from erpnext.accounts.doctype.pos_profile.pos_profile import (
 	get_child_nodes,
 )
 from erpnext.stock.get_item_details import get_pos_profile
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestPOSProfile(IntegrationTestCase):
+class TestPOSProfile(ERPNextTestSuite):
 	def test_pos_profile(self):
 		make_pos_profile()
 

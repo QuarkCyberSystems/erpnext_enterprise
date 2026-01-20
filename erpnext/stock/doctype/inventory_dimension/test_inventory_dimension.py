@@ -3,7 +3,6 @@
 
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
-from frappe.tests import IntegrationTestCase, change_settings
 from frappe.utils import nowdate, nowtime
 
 from erpnext.stock.doctype.delivery_note.test_delivery_note import create_delivery_note
@@ -19,9 +18,10 @@ from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import make_pu
 from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
 from erpnext.stock.doctype.stock_ledger_entry.stock_ledger_entry import InventoryDimensionNegativeStockError
 from erpnext.stock.doctype.warehouse.test_warehouse import create_warehouse
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestInventoryDimension(IntegrationTestCase):
+class TestInventoryDimension(ERPNextTestSuite):
 	def setUp(self):
 		prepare_test_data()
 		create_store_dimension()
@@ -497,7 +497,7 @@ class TestInventoryDimension(IntegrationTestCase):
 
 		self.assertEqual(site_name, "Site 1")
 
-	@change_settings("Stock Settings", {"allow_negative_stock": 0})
+	@ERPNextTestSuite.change_settings("Stock Settings", {"allow_negative_stock": 0})
 	def test_validate_negative_stock_with_multiple_dimension(self):
 		item_code = "Test Negative Multi Inventory Dimension Item"
 		create_item(item_code)

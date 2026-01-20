@@ -5,7 +5,7 @@
 from collections import defaultdict
 
 import frappe
-from frappe.tests import IntegrationTestCase, timeout
+from frappe.tests import timeout
 from frappe.utils import add_days, add_months, add_to_date, cint, flt, now, today
 
 from erpnext.manufacturing.doctype.job_card.job_card import JobCardCancelError
@@ -33,9 +33,10 @@ from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos
 from erpnext.stock.doctype.stock_entry import test_stock_entry
 from erpnext.stock.doctype.warehouse.test_warehouse import create_warehouse
 from erpnext.stock.utils import get_bin
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestWorkOrder(IntegrationTestCase):
+class TestWorkOrder(ERPNextTestSuite):
 	def setUp(self):
 		self.warehouse = "_Test Warehouse 2 - _TC"
 		self.item = "_Test Item"
@@ -1233,9 +1234,7 @@ class TestWorkOrder(IntegrationTestCase):
 
 		frappe.db.set_single_value("Manufacturing Settings", "backflush_raw_materials_based_on", "BOM")
 
-	@IntegrationTestCase.change_settings(
-		"Manufacturing Settings", {"make_serial_no_batch_from_work_order": 1}
-	)
+	@ERPNextTestSuite.change_settings("Manufacturing Settings", {"make_serial_no_batch_from_work_order": 1})
 	def test_auto_batch_creation(self):
 		from erpnext.manufacturing.doctype.bom.test_bom import create_nested_bom
 
@@ -1256,9 +1255,7 @@ class TestWorkOrder(IntegrationTestCase):
 		except frappe.MandatoryError:
 			self.fail("Batch generation causing failing in Work Order")
 
-	@IntegrationTestCase.change_settings(
-		"Manufacturing Settings", {"make_serial_no_batch_from_work_order": 1}
-	)
+	@ERPNextTestSuite.change_settings("Manufacturing Settings", {"make_serial_no_batch_from_work_order": 1})
 	def test_auto_serial_no_creation(self):
 		from erpnext.manufacturing.doctype.bom.test_bom import create_nested_bom
 
@@ -1291,9 +1288,7 @@ class TestWorkOrder(IntegrationTestCase):
 		except frappe.MandatoryError:
 			self.fail("Batch generation causing failing in Work Order")
 
-	@IntegrationTestCase.change_settings(
-		"Manufacturing Settings", {"make_serial_no_batch_from_work_order": 1}
-	)
+	@ERPNextTestSuite.change_settings("Manufacturing Settings", {"make_serial_no_batch_from_work_order": 1})
 	def test_auto_serial_no_batch_creation(self):
 		from erpnext.manufacturing.doctype.bom.test_bom import create_nested_bom
 
@@ -1345,7 +1340,7 @@ class TestWorkOrder(IntegrationTestCase):
 
 		return serial_nos
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Manufacturing Settings",
 		{"backflush_raw_materials_based_on": "Material Transferred for Manufacture"},
 	)
@@ -1375,7 +1370,7 @@ class TestWorkOrder(IntegrationTestCase):
 		for index, row in enumerate(ste_manu.get("items"), start=1):
 			self.assertEqual(index, row.idx)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Manufacturing Settings",
 		{"backflush_raw_materials_based_on": "Material Transferred for Manufacture"},
 	)
@@ -2159,7 +2154,7 @@ class TestWorkOrder(IntegrationTestCase):
 
 		frappe.db.set_single_value("Manufacturing Settings", "set_op_cost_and_scrap_from_sub_assemblies", 0)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Manufacturing Settings", {"material_consumption": 1, "get_rm_cost_from_consumption_entry": 1}
 	)
 	def test_get_rm_cost_from_consumption_entry(self):

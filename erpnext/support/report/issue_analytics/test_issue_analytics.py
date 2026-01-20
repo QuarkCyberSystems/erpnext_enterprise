@@ -2,7 +2,6 @@ import unittest
 
 import frappe
 from frappe.desk.form.assign_to import add as add_assignment
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_months, getdate
 
 from erpnext.support.doctype.issue.test_issue import create_customer, make_issue
@@ -10,11 +9,12 @@ from erpnext.support.doctype.service_level_agreement.test_service_level_agreemen
 	create_service_level_agreements_for_issues,
 )
 from erpnext.support.report.issue_analytics.issue_analytics import execute
+from erpnext.tests.utils import ERPNextTestSuite
 
 months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 
-class TestIssueAnalytics(IntegrationTestCase):
+class TestIssueAnalytics(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()

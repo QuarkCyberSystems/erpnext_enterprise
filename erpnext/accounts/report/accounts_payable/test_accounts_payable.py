@@ -1,13 +1,13 @@
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, today
 
 from erpnext.accounts.doctype.purchase_invoice.test_purchase_invoice import make_purchase_invoice
 from erpnext.accounts.report.accounts_payable.accounts_payable import execute
 from erpnext.accounts.test.accounts_mixin import AccountsTestMixin
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestAccountsPayable(AccountsTestMixin, IntegrationTestCase):
+class TestAccountsPayable(AccountsTestMixin, ERPNextTestSuite):
 	def setUp(self):
 		self.create_company()
 		self.create_customer()

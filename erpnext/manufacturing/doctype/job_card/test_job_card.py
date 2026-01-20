@@ -5,8 +5,7 @@
 from typing import Literal
 
 import frappe
-from frappe.tests import IntegrationTestCase
-from frappe.utils import random_string
+from frappe.utils import flt, random_string
 from frappe.utils.data import add_to_date, now, today
 
 from erpnext.manufacturing.doctype.job_card.job_card import (
@@ -282,7 +281,7 @@ class TestJobCard(ERPNextTestSuite):
 		# transfer was made for 2 fg qty in first transfer Stock Entry
 		self.assertEqual(transfer_entry_2.fg_completed_qty, 0)
 
-	@IntegrationTestCase.change_settings("Manufacturing Settings", {"job_card_excess_transfer": 1})
+	@ERPNextTestSuite.change_settings("Manufacturing Settings", {"job_card_excess_transfer": 1})
 	def test_job_card_excess_material_transfer(self):
 		"Test transferring more than required RM against Job Card."
 		self.transfer_material_against = "Job Card"
@@ -325,7 +324,7 @@ class TestJobCard(ERPNextTestSuite):
 		# JC is Completed with excess transfer
 		self.assertEqual(job_card.status, "Completed")
 
-	@IntegrationTestCase.change_settings("Manufacturing Settings", {"job_card_excess_transfer": 0})
+	@ERPNextTestSuite.change_settings("Manufacturing Settings", {"job_card_excess_transfer": 0})
 	def test_job_card_excess_material_transfer_block(self):
 		self.transfer_material_against = "Job Card"
 		self.source_warehouse = "Stores - _TC"
@@ -348,7 +347,7 @@ class TestJobCard(ERPNextTestSuite):
 		transfer_entry_2.insert()
 		self.assertRaises(JobCardOverTransferError, transfer_entry_2.submit)
 
-	@IntegrationTestCase.change_settings("Manufacturing Settings", {"job_card_excess_transfer": 0})
+	@ERPNextTestSuite.change_settings("Manufacturing Settings", {"job_card_excess_transfer": 0})
 	def test_job_card_excess_material_transfer_with_no_reference(self):
 		self.transfer_material_against = "Job Card"
 		self.source_warehouse = "Stores - _TC"
@@ -456,7 +455,7 @@ class TestJobCard(ERPNextTestSuite):
 		self.assertEqual(transfer_entry.items[0].item_code, "_Test Item")
 		self.assertEqual(transfer_entry.items[0].qty, 2)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Manufacturing Settings", {"add_corrective_operation_cost_in_finished_good_valuation": 1}
 	)
 	def test_corrective_costing(self):
@@ -500,7 +499,7 @@ class TestJobCard(ERPNextTestSuite):
 		cost_after_cancel = self.work_order.total_operating_cost
 		self.assertEqual(cost_after_cancel, original_cost)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Manufacturing Settings", {"add_corrective_operation_cost_in_finished_good_valuation": 1}
 	)
 	def test_if_corrective_jc_ops_cost_is_added_to_manufacture_stock_entry(self):

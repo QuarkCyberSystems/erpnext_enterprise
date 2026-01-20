@@ -7,8 +7,8 @@ from unittest.mock import patch
 import frappe
 import frappe.permissions
 from frappe.core.doctype.user_permission.test_user_permission import create_user
-from frappe.tests import IntegrationTestCase, change_settings
-from frappe.utils import add_days, flt, getdate, nowdate, today
+from frappe.tests import change_settings
+from frappe.utils import add_days, flt, nowdate, today
 
 from erpnext.accounts.test.accounts_mixin import AccountsTestMixin
 from erpnext.controllers.accounts_controller import InvalidQtyError, get_due_date, update_child_qty_rate
@@ -32,9 +32,10 @@ from erpnext.selling.doctype.sales_order.sales_order import (
 from erpnext.stock.doctype.item.test_item import make_item
 from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
 from erpnext.stock.get_item_details import get_bin_details
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
+class TestSalesOrder(AccountsTestMixin, ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -57,7 +58,7 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 		frappe.db.rollback()
 		frappe.set_user("Administrator")
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Stock Settings",
 		{
 			"auto_insert_price_list_rate_if_missing": 1,
@@ -144,7 +145,7 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 		so.reload()
 		self.assertEqual(so.status, "Completed")
 
-	@IntegrationTestCase.change_settings("Selling Settings", {"allow_negative_rates_for_items": 1})
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_negative_rates_for_items": 1})
 	def test_sales_order_with_negative_rate(self):
 		"""
 		Test if negative rate is allowed in Sales Order via doc submission and update items
@@ -265,7 +266,7 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 		so.load_from_db()
 		self.assertEqual(so.per_billed, 0)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings", {"automatically_fetch_payment_terms": 1}
 	)  # Enable auto fetch
 	def test_make_sales_invoice_with_terms(self):
@@ -296,7 +297,7 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 		si1 = make_sales_invoice(so.name)
 		self.assertEqual(len(si1.get("items")), 0)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings", {"automatically_fetch_payment_terms": 1}
 	)  # Enable auto fetch
 	def test_auto_fetch_terms_enable(self):
@@ -312,7 +313,7 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 		si.insert()
 		si.submit()
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings", {"automatically_fetch_payment_terms": 0}
 	)  # Disable auto fetch
 	def test_auto_fetch_terms_disable(self):
@@ -1544,7 +1545,7 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 
 		self.assertRaises(frappe.LinkExistsError, so_doc.cancel)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings", {"unlink_advance_payment_on_cancelation_of_order": 1}
 	)
 	def test_advance_paid_upon_payment_cancellation(self):
@@ -1801,7 +1802,7 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 		so.load_from_db()
 		self.assertRaises(frappe.LinkExistsError, so.cancel)
 
-	@IntegrationTestCase.change_settings("Accounts Settings", {"automatically_fetch_payment_terms": 1})
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"automatically_fetch_payment_terms": 1})
 	def test_payment_terms_are_fetched_when_creating_sales_invoice(self):
 		from erpnext.accounts.doctype.payment_entry.test_payment_entry import (
 			create_payment_terms_template,
@@ -2133,7 +2134,7 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 		self.assertEqual(len(dn.packed_items), 1)
 		self.assertEqual(dn.items[0].item_code, "_Test Product Bundle Item Partial 2")
 
-	@IntegrationTestCase.change_settings("Selling Settings", {"editable_bundle_item_rates": 1})
+	@ERPNextTestSuite.change_settings("Selling Settings", {"editable_bundle_item_rates": 1})
 	def test_expired_rate_for_packed_item(self):
 		bundle = "_Test Product Bundle 1"
 		packed_item = "_Packed Item 1"
@@ -2471,7 +2472,7 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 
 		self.assertRaises(frappe.ValidationError, so1.update_status, "Draft")
 
-	@IntegrationTestCase.change_settings("Stock Settings", {"enable_stock_reservation": True})
+	@ERPNextTestSuite.change_settings("Stock Settings", {"enable_stock_reservation": True})
 	def test_warehouse_mapping_based_on_stock_reservation(self):
 		self.create_company(company_name="Glass Ceiling", abbr="GC")
 		self.create_item("Lamy Safari 2", True, self.warehouse_stores, self.company, 2000)
@@ -2585,7 +2586,7 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 		sre_doc.reload()
 		self.assertTrue(sre_doc.status == "Delivered")
 
-	@IntegrationTestCase.change_settings("Selling Settings", {"allow_zero_qty_in_sales_order": 1})
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_zero_qty_in_sales_order": 1})
 	def test_deliver_zero_qty_purchase_order(self):
 		"""
 		Test the flow of a Unit Price SO and DN creation against it until completion.
@@ -2633,7 +2634,7 @@ class TestSalesOrder(AccountsTestMixin, IntegrationTestCase):
 		self.assertEqual(so.per_delivered, 100.0)
 		self.assertEqual(so.status, "To Bill")
 
-	@IntegrationTestCase.change_settings("Selling Settings", {"allow_zero_qty_in_sales_order": 1})
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_zero_qty_in_sales_order": 1})
 	def test_bill_zero_qty_sales_order(self):
 		so = make_sales_order(qty=0)
 

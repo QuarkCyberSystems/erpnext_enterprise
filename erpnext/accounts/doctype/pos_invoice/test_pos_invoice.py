@@ -5,7 +5,6 @@ import unittest
 
 import frappe
 from frappe import _
-from frappe.tests import IntegrationTestCase
 
 from erpnext.accounts.doctype.mode_of_payment.test_mode_of_payment import (
 	set_default_account_for_mode_of_payment,
@@ -22,9 +21,10 @@ from erpnext.stock.doctype.serial_and_batch_bundle.test_serial_and_batch_bundle 
 	make_serial_batch_bundle,
 )
 from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestPOSInvoice(IntegrationTestCase):
+class TestPOSInvoice(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()

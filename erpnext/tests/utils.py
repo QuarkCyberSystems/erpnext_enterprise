@@ -7,7 +7,6 @@ from typing import Any, NewType
 import frappe
 from frappe import _
 from frappe.core.doctype.report.report import get_report_module_dotted_path
-from frappe.tests import IntegrationTestCase
 from frappe.utils import now_datetime
 
 ReportFilters = dict[str, Any]

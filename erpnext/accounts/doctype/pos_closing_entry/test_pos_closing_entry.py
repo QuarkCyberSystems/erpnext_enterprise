@@ -3,7 +3,6 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
 from erpnext.accounts.doctype.accounting_dimension.test_accounting_dimension import (
 	create_dimension,
@@ -22,9 +21,10 @@ from erpnext.stock.doctype.serial_and_batch_bundle.test_serial_and_batch_bundle 
 	get_batch_from_bundle,
 )
 from erpnext.stock.doctype.stock_entry.test_stock_entry import make_stock_entry
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestPOSClosingEntry(IntegrationTestCase):
+class TestPOSClosingEntry(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		frappe.db.sql("delete from `tabPOS Opening Entry`")
@@ -302,7 +302,7 @@ class TestPOSClosingEntry(IntegrationTestCase):
 		batch_qty_with_pos = get_batch_qty(batch_no, "_Test Warehouse - _TC", item_code)
 		self.assertEqual(batch_qty_with_pos, 10.0)
 
-	@IntegrationTestCase.change_settings("POS Settings", {"invoice_type": "Sales Invoice"})
+	@ERPNextTestSuite.change_settings("POS Settings", {"invoice_type": "Sales Invoice"})
 	def test_closing_entries_with_sales_invoice(self):
 		test_user, pos_profile = init_user_and_profile()
 		opening_entry = create_opening_entry(pos_profile, test_user.name)

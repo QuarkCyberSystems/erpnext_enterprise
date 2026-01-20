@@ -7,7 +7,6 @@ import json
 import frappe
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.test_runner import make_test_objects
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, today
 
 from erpnext.controllers.item_variant import (
@@ -27,6 +26,7 @@ from erpnext.stock.doctype.item.item import (
 )
 from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
 from erpnext.stock.get_item_details import ItemDetailsCtx, get_item_details
+from erpnext.tests.utils import ERPNextTestSuite
 
 
 def make_item(item_code=None, properties=None, uoms=None, barcode=None):
@@ -71,7 +71,7 @@ def make_item(item_code=None, properties=None, uoms=None, barcode=None):
 	return item
 
 
-class TestItem(IntegrationTestCase):
+class TestItem(ERPNextTestSuite):
 	def setUp(self):
 		super().setUp()
 		frappe.flags.attribute_values = None
@@ -738,13 +738,13 @@ class TestItem(IntegrationTestCase):
 		except frappe.ValidationError as e:
 			self.fail(f"stock item considered non-stock item: {e}")
 
-	@IntegrationTestCase.change_settings("Stock Settings", {"item_naming_by": "Naming Series"})
+	@ERPNextTestSuite.change_settings("Stock Settings", {"item_naming_by": "Naming Series"})
 	def test_autoname_series(self):
 		item = frappe.new_doc("Item")
 		item.item_group = "All Item Groups"
 		item.save()  # if item code saved without item_code then series worked
 
-	@IntegrationTestCase.change_settings("Stock Settings", {"allow_negative_stock": 0})
+	@ERPNextTestSuite.change_settings("Stock Settings", {"allow_negative_stock": 0})
 	def test_item_wise_negative_stock(self):
 		"""When global settings are disabled check that item that allows
 		negative stock can still consume material in all known stock
@@ -756,7 +756,7 @@ class TestItem(IntegrationTestCase):
 
 		self.consume_item_code_with_differet_stock_transactions(item_code=item.name)
 
-	@IntegrationTestCase.change_settings("Stock Settings", {"allow_negative_stock": 0})
+	@ERPNextTestSuite.change_settings("Stock Settings", {"allow_negative_stock": 0})
 	def test_backdated_negative_stock(self):
 		"""same as test above but backdated entries"""
 		from erpnext.stock.doctype.stock_entry.stock_entry_utils import make_stock_entry
@@ -769,7 +769,7 @@ class TestItem(IntegrationTestCase):
 		)
 		self.consume_item_code_with_differet_stock_transactions(item_code=item.name)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Stock Settings", {"sample_retention_warehouse": "_Test Warehouse - _TC"}
 	)
 	def test_retain_sample(self):

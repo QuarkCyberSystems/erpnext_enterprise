@@ -3,14 +3,14 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import random_string
 
 from erpnext.crm.doctype.lead.lead import add_lead_to_prospect
 from erpnext.crm.doctype.lead.test_lead import make_lead
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestProspect(IntegrationTestCase):
+class TestProspect(ERPNextTestSuite):
 	def test_add_lead_to_prospect_and_address_linking(self):
 		lead_doc = make_lead()
 		address_doc = make_address(address_title=lead_doc.name)

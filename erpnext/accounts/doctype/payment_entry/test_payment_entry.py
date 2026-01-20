@@ -4,7 +4,6 @@
 
 import frappe
 from frappe import qb
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, flt, nowdate
 
 from erpnext.accounts.doctype.account.test_account import create_account
@@ -24,9 +23,10 @@ from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import (
 )
 from erpnext.selling.doctype.sales_order.test_sales_order import make_sales_order
 from erpnext.setup.doctype.employee.test_employee import make_employee
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestPaymentEntry(IntegrationTestCase):
+class TestPaymentEntry(ERPNextTestSuite):
 	def tearDown(self):
 		frappe.db.rollback()
 
@@ -425,7 +425,7 @@ class TestPaymentEntry(IntegrationTestCase):
 		self.assertEqual(si.payment_schedule[0].outstanding, 0)
 		self.assertEqual(si.payment_schedule[0].discounted_amount, 50)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{
 			"allow_multi_currency_invoices_against_single_party_account": 1,
@@ -1156,7 +1156,7 @@ class TestPaymentEntry(IntegrationTestCase):
 		}
 		self.assertDictEqual(ref_details, expected_response)
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{
 			"unlink_payment_on_cancellation_of_invoice": 1,
@@ -1251,7 +1251,7 @@ class TestPaymentEntry(IntegrationTestCase):
 		si3.cancel()
 		si3.delete()
 
-	@IntegrationTestCase.change_settings(
+	@ERPNextTestSuite.change_settings(
 		"Accounts Settings",
 		{
 			"unlink_payment_on_cancellation_of_invoice": 1,
@@ -1947,7 +1947,7 @@ class TestPaymentEntry(IntegrationTestCase):
 		# 'Is Opening' should always be 'No' for normal advance payments
 		self.assertEqual(gl_with_opening_set, [])
 
-	@IntegrationTestCase.change_settings("Accounts Settings", {"delete_linked_ledger_entries": 1})
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"delete_linked_ledger_entries": 1})
 	def test_delete_linked_exchange_gain_loss_journal(self):
 		from erpnext.accounts.doctype.account.test_account import create_account
 		from erpnext.accounts.doctype.opening_invoice_creation_tool.test_opening_invoice_creation_tool import (

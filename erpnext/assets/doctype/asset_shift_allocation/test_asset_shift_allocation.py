@@ -2,16 +2,16 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import cstr
 
 from erpnext.assets.doctype.asset.test_asset import create_asset
 from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_schedule import (
 	get_depr_schedule,
 )
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestAssetShiftAllocation(IntegrationTestCase):
+class TestAssetShiftAllocation(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()

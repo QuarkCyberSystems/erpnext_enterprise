@@ -2,8 +2,8 @@
 # See license.txt
 import unittest
 
-from frappe.tests import IntegrationTestCase
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestIssueType(IntegrationTestCase):
+class TestIssueType(ERPNextTestSuite):
 	pass

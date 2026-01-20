@@ -5,15 +5,15 @@ import datetime
 
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, add_months, today
 
 from erpnext.accounts.doctype.payment_entry.payment_entry import get_payment_entry
 from erpnext.accounts.utils import get_fiscal_year
 from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_invoice
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestTaxWithholdingCategory(IntegrationTestCase):
+class TestTaxWithholdingCategory(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -2047,7 +2047,7 @@ class TestTaxWithholdingCategory(IntegrationTestCase):
 		self.assertEqual(pi2.taxes, [])
 		self.assertEqual(payment.taxes[0].tax_amount, 6000)
 
-	@IntegrationTestCase.change_settings("Accounts Settings", {"delete_linked_ledger_entries": 1})
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"delete_linked_ledger_entries": 1})
 	def test_tds_payment_entry_cancellation(self):
 		"""
 		Test payment entry cancellation clears withholding references from matched entries
@@ -2225,7 +2225,7 @@ class TestTaxWithholdingCategory(IntegrationTestCase):
 		self.validate_tax_withholding_entries("Purchase Invoice", pi1.name, expected_entries)
 		self.cleanup_invoices(invoices)
 
-	@IntegrationTestCase.change_settings("Accounts Settings", {"delete_linked_ledger_entries": 1})
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"delete_linked_ledger_entries": 1})
 	def test_tds_purchase_invoice_cancellation(self):
 		"""
 		Test that after cancellation, new documents get automatically adjusted against remaining entries

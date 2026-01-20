@@ -3,7 +3,6 @@
 
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import getdate
 
 from erpnext.accounts.doctype.bank_transaction.test_bank_transaction import (
@@ -15,9 +14,10 @@ from erpnext.accounts.doctype.payment_entry.payment_entry import (
 	make_payment_order,
 )
 from erpnext.accounts.doctype.purchase_invoice.test_purchase_invoice import make_purchase_invoice
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestPaymentOrder(IntegrationTestCase):
+class TestPaymentOrder(ERPNextTestSuite):
 	def setUp(self):
 		# generate and use a uniq hash identifier for 'Bank Account' and it's linked GL 'Account' to avoid validation error
 		uniq_identifier = frappe.generate_hash(length=10)

@@ -2,7 +2,6 @@
 # See license.txt
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, today
 
 from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_receipt
@@ -11,9 +10,10 @@ from erpnext.buying.report.requested_items_to_order_and_receive.requested_items_
 )
 from erpnext.stock.doctype.item.test_item import create_item
 from erpnext.stock.doctype.material_request.material_request import make_purchase_order
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestRequestedItemsToOrderAndReceive(IntegrationTestCase):
+class TestRequestedItemsToOrderAndReceive(ERPNextTestSuite):
 	def setUp(self) -> None:
 		create_item("Test MR Report Item")
 		self.setup_material_request()  # to order and receive

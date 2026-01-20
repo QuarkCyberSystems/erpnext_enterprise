@@ -3,7 +3,6 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import cint, flt, getdate, today
 
 from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
@@ -11,9 +10,10 @@ from erpnext.accounts.doctype.loyalty_program.loyalty_program import (
 	get_loyalty_program_details_with_points,
 )
 from erpnext.accounts.party import get_dashboard_info
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestLoyaltyProgram(IntegrationTestCase):
+class TestLoyaltyProgram(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()

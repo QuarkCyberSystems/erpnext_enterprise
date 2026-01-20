@@ -3,10 +3,11 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
+
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestCostCenter(IntegrationTestCase):
+class TestCostCenter(ERPNextTestSuite):
 	def test_cost_center_creation_against_child_node(self):
 		cost_center = frappe.get_doc(
 			{

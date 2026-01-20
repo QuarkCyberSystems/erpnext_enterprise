@@ -2,14 +2,15 @@
 # See license.txt
 
 # import frappe
-from frappe.tests import IntegrationTestCase
 
-# On IntegrationTestCase, the doctype test records and all
+from erpnext.tests.utils import ERPNextTestSuite
+
+# On ERPNextTestSuite, the doctype test records and all
 # link-field test record depdendencies are recursively loaded
 # Use these module variables to add/remove to/from that list
 
 
-class IntegrationTestStockClosingEntry(IntegrationTestCase):
+class TestStockClosingEntry(ERPNextTestSuite):
 	"""
 	Integration tests for StockClosingEntry.
 	Use this class for testing interactions between multiple components.

@@ -4,11 +4,12 @@ import unittest
 import frappe
 import frappe.utils
 from frappe.model import mapper
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_months, nowdate
 
+from erpnext.tests.utils import ERPNextTestSuite
 
-class TestMapper(IntegrationTestCase):
+
+class TestMapper(ERPNextTestSuite):
 	def test_map_docs(self):
 		"""Test mapping of multiple source docs on a single target doc"""
 

@@ -4,21 +4,23 @@ import unittest
 
 import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
-from frappe.tests import IntegrationTestCase
 
 from erpnext.accounts.doctype.pos_invoice.test_pos_invoice import create_pos_invoice
 from erpnext.accounts.doctype.pos_profile.test_pos_profile import make_pos_profile
 from erpnext.stock.doctype.stock_entry.test_stock_entry import make_stock_entry
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestPOSOpeningEntry(IntegrationTestCase):
+class TestPOSOpeningEntry(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
+		super().setUpClass()
 		frappe.db.sql("delete from `tabPOS Opening Entry`")
 		cls.enterClassContext(cls.change_settings("POS Settings", {"invoice_type": "POS Invoice"}))
 
 	@classmethod
 	def tearDownClass(cls):
+		super().tearDownClass()
 		frappe.db.sql("delete from `tabPOS Opening Entry`")
 
 	def setUp(self):

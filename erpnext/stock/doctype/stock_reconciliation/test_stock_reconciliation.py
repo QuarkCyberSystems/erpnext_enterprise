@@ -7,7 +7,6 @@
 import json
 
 import frappe
-from frappe.tests import IntegrationTestCase
 from frappe.utils import add_days, cstr, flt, nowdate, nowtime
 
 from erpnext.accounts.utils import get_stock_and_account_balance
@@ -31,9 +30,10 @@ from erpnext.stock.utils import (
 	get_stock_value_on,
 	get_valuation_method,
 )
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestStockReconciliation(IntegrationTestCase, StockTestMixin):
+class TestStockReconciliation(ERPNextTestSuite, StockTestMixin):
 	@classmethod
 	def setUpClass(cls):
 		create_batch_or_serial_no_items()
@@ -50,7 +50,7 @@ class TestStockReconciliation(IntegrationTestCase, StockTestMixin):
 	def test_reco_for_moving_average(self):
 		self._test_reco_sle_gle("Moving Average")
 
-	@IntegrationTestCase.change_settings("Stock Settings", {"allow_negative_stock": 1})
+	@ERPNextTestSuite.change_settings("Stock Settings", {"allow_negative_stock": 1})
 	def _test_reco_sle_gle(self, valuation_method):
 		item_code = self.make_item(properties={"valuation_method": valuation_method}).name
 
@@ -423,7 +423,7 @@ class TestStockReconciliation(IntegrationTestCase, StockTestMixin):
 		assertBalance(pr2, 11)
 		assertBalance(sr4, 6)  # check if future stock reco is unaffected
 
-	@IntegrationTestCase.change_settings("Stock Settings", {"allow_negative_stock": 0})
+	@ERPNextTestSuite.change_settings("Stock Settings", {"allow_negative_stock": 0})
 	def test_backdated_stock_reco_future_negative_stock(self):
 		"""
 		Test if a backdated stock reco causes future negative stock and is blocked.
@@ -472,7 +472,7 @@ class TestStockReconciliation(IntegrationTestCase, StockTestMixin):
 		dn2.cancel()
 		pr1.cancel()
 
-	@IntegrationTestCase.change_settings("Stock Settings", {"allow_negative_stock": 0})
+	@ERPNextTestSuite.change_settings("Stock Settings", {"allow_negative_stock": 0})
 	def test_backdated_stock_reco_cancellation_future_negative_stock(self):
 		"""
 		Test if a backdated stock reco cancellation that causes future negative stock is blocked.
@@ -678,7 +678,7 @@ class TestStockReconciliation(IntegrationTestCase, StockTestMixin):
 		self.assertEqual(flt(sl_entry.actual_qty), 1.0)
 		self.assertEqual(flt(sl_entry.qty_after_transaction), 1.0)
 
-	@IntegrationTestCase.change_settings("Stock Reposting Settings", {"item_based_reposting": 0})
+	@ERPNextTestSuite.change_settings("Stock Reposting Settings", {"item_based_reposting": 0})
 	def test_backdated_stock_reco_entry(self):
 		from erpnext.stock.doctype.stock_entry.test_stock_entry import make_stock_entry
 
