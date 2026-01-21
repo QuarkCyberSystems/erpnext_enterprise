@@ -666,6 +666,16 @@ class StockReconciliation(StockController):
 			validate_is_stock_item,
 		)
 
+		def validate_serial_batch_items():
+			has_batch_no, has_serial_no = frappe.get_value(
+				"Item", item_code, ["has_batch_no", "has_serial_no"]
+			)
+			if row.use_serial_batch_fields:
+				if has_batch_no and not row.batch_no:
+					raise frappe.ValidationError(_("Please enter Batch No"))
+				if has_serial_no and not row.serial_no:
+					raise frappe.ValidationError(_("Please enter Serial No"))
+
 		# using try except to catch all validation msgs and display together
 
 		try:
@@ -674,12 +684,13 @@ class StockReconciliation(StockController):
 			# end of life and stock item
 			validate_end_of_life(item_code, item.end_of_life, item.disabled)
 			validate_is_stock_item(item_code, item.is_stock_item)
+			validate_serial_batch_items()
 
 			# docstatus should be < 2
 			validate_cancelled_item(item_code, item.docstatus)
 
 		except Exception as e:
-			self.validation_messages.append(_("Row #") + " " + ("%d: " % (row.idx)) + cstr(e))
+			self.validation_messages.append(_("Row #") + ("%d: " % (row.idx)) + cstr(e))
 
 	def validate_reserved_stock(self) -> None:
 		"""Raises an exception if there is any reserved stock for the items in the Stock Reconciliation."""
