@@ -670,7 +670,7 @@ class StockReconciliation(StockController):
 			has_batch_no, has_serial_no = frappe.get_value(
 				"Item", item_code, ["has_batch_no", "has_serial_no"]
 			)
-			if row.use_serial_batch_fields:
+			if row.use_serial_batch_fields and self.purpose == "Stock Reconciliation":
 				if has_batch_no and not row.batch_no:
 					raise frappe.ValidationError(_("Please enter Batch No"))
 				if has_serial_no and not row.serial_no:
