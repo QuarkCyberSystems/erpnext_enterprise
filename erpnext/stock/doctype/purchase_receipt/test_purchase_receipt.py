@@ -4997,6 +4997,45 @@ class TestPurchaseReceipt(IntegrationTestCase):
 
 		self.assertEqual(frappe.parse_json(stock_queue), [[20, 0.0]])
 
+	def test_negative_stock_error_for_purchase_return(self):
+		from erpnext.controllers.sales_and_purchase_return import make_return_doc
+		from erpnext.stock.doctype.stock_entry.test_stock_entry import make_stock_entry
+
+		item_code = make_item(
+			"Test Negative Stock for Purchase Return Item",
+			{"has_batch_no": 1, "create_new_batch": 1, "batch_number_series": "TNSFPRI.#####"},
+		).name
+
+		pr = make_purchase_receipt(
+			item_code=item_code,
+			posting_date=add_days(today(), -3),
+			qty=10,
+			rate=100,
+			warehouse="_Test Warehouse - _TC",
+		)
+
+		batch_no = get_batch_from_bundle(pr.items[0].serial_and_batch_bundle)
+
+		make_purchase_receipt(
+			item_code=item_code,
+			posting_date=add_days(today(), -4),
+			qty=10,
+			rate=100,
+			warehouse="_Test Warehouse - _TC",
+		)
+
+		make_stock_entry(
+			item_code=item_code,
+			qty=10,
+			source="_Test Warehouse - _TC",
+			target="_Test Warehouse 1 - _TC",
+			batch_no=batch_no,
+			use_serial_batch_fields=1,
+		)
+
+		return_pr = make_return_doc("Purchase Receipt", pr.name)
+		self.assertRaises(frappe.ValidationError, return_pr.submit)
+
 
 def prepare_data_for_internal_transfer():
 	from erpnext.accounts.doctype.sales_invoice.test_sales_invoice import create_internal_supplier
