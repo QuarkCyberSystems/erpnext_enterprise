@@ -113,7 +113,7 @@ erpnext.integrations.refreshPlaidLink = class refreshPlaidLink {
 				"There was an issue connecting to Plaid's authentication server. Check browser console for more information"
 			)
 		);
-		console.log(error);
+		console.error(error);
 	}
 
 	plaid_success(token, response) {
