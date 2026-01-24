@@ -3131,10 +3131,16 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 
 	set_warehouse() {
 		this.autofill_warehouse(this.frm.doc.items, "warehouse", this.frm.doc.set_warehouse);
+		this.autofill_warehouse(this.frm.doc.packed_items, "warehouse", this.frm.doc.set_warehouse);
 	}
 
 	set_target_warehouse() {
 		this.autofill_warehouse(this.frm.doc.items, "target_warehouse", this.frm.doc.set_target_warehouse);
+		this.autofill_warehouse(
+			this.frm.doc.packed_items,
+			"target_warehouse",
+			this.frm.doc.set_target_warehouse
+		);
 	}
 
 	set_from_warehouse() {
