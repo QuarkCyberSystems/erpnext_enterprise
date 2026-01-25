@@ -36,13 +36,15 @@ from erpnext.tests.utils import ERPNextTestSuite
 class TestStockReconciliation(ERPNextTestSuite, StockTestMixin):
 	@classmethod
 	def setUpClass(cls):
-		create_batch_or_serial_no_items()
 		super().setUpClass()
-		frappe.db.set_single_value("Stock Settings", "allow_negative_stock", 1)
 
-	def tearDown(self):
+	def setUp(self):
+		frappe.db.set_single_value("Stock Settings", "allow_negative_stock", 1)
 		frappe.local.future_sle = {}
 		frappe.flags.pop("dont_execute_stock_reposts", None)
+
+	def tearDown(self):
+		frappe.db.rollback()
 
 	def test_reco_for_fifo(self):
 		self._test_reco_sle_gle("FIFO")
@@ -525,8 +527,6 @@ class TestStockReconciliation(ERPNextTestSuite, StockTestMixin):
 		"""
 		from erpnext.stock.doctype.delivery_note.test_delivery_note import create_delivery_note
 
-		frappe.db.rollback()
-
 		# repost will make this test useless, qty should update in realtime without reposts
 		frappe.flags.dont_execute_stock_reposts = True
 
@@ -552,7 +552,6 @@ class TestStockReconciliation(ERPNextTestSuite, StockTestMixin):
 		)
 
 		self.assertEqual(old_bin_qty + 1, new_bin_qty)
-		frappe.db.rollback()
 
 	def test_valid_batch(self):
 		create_batch_item_with_batch("Testing Batch Item 1", "001")
@@ -620,6 +619,7 @@ class TestStockReconciliation(ERPNextTestSuite, StockTestMixin):
 					"doctype": "Serial No",
 					"item_code": item_code,
 					"serial_no": "SR-CREATED-SR-NO",
+					"company": self.companies[0].name,
 				}
 			).insert()
 
@@ -1849,37 +1849,6 @@ def insert_existing_sle(warehouse, item_code="_Test Item"):
 	)
 
 	return se1, se2, se3
-
-
-def create_batch_or_serial_no_items():
-	create_warehouse(
-		"_Test Warehouse for Stock Reco1",
-		{"is_group": 0, "parent_warehouse": "_Test Warehouse Group - _TC"},
-	)
-
-	create_warehouse(
-		"_Test Warehouse for Stock Reco2",
-		{"is_group": 0, "parent_warehouse": "_Test Warehouse Group - _TC"},
-	)
-
-	serial_item_doc = create_item("Stock-Reco-Serial-Item-1", is_stock_item=1)
-	if not serial_item_doc.has_serial_no:
-		serial_item_doc.has_serial_no = 1
-		serial_item_doc.serial_no_series = "SRSI.####"
-		serial_item_doc.save(ignore_permissions=True)
-
-	serial_item_doc = create_item("Stock-Reco-Serial-Item-2", is_stock_item=1)
-	if not serial_item_doc.has_serial_no:
-		serial_item_doc.has_serial_no = 1
-		serial_item_doc.serial_no_series = "SRSII.####"
-		serial_item_doc.save(ignore_permissions=True)
-
-	batch_item_doc = create_item("Stock-Reco-batch-Item-1", is_stock_item=1)
-	if not batch_item_doc.has_batch_no:
-		batch_item_doc.has_batch_no = 1
-		batch_item_doc.create_new_batch = 1
-		serial_item_doc.batch_number_series = "BASR.#####"
-		batch_item_doc.save(ignore_permissions=True)
 
 
 def create_stock_reconciliation(**args):

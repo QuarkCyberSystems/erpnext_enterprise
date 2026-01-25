@@ -1369,6 +1369,18 @@ class ERPNextTestSuite(unittest.TestCase):
 				"is_group": 0,
 				"parent_warehouse": "_Test Warehouse Group - _TC",
 			},
+			{
+				"company": "_Test Company",
+				"doctype": "Warehouse",
+				"warehouse_name": "_Test Warehouse for Stock Reco1",
+				"is_group": 0,
+			},
+			{
+				"company": "_Test Company",
+				"doctype": "Warehouse",
+				"warehouse_name": "_Test Warehouse for Stock Reco2",
+				"is_group": 0,
+			},
 		]
 		cls.warehouse = []
 		for x in records:
@@ -2174,6 +2186,37 @@ class ERPNextTestSuite(unittest.TestCase):
 				"company": "_Test Company",
 				"is_stock_item": 1,
 				"stock_uom": "_Test UOM",
+			},
+			{
+				"doctype": "Item",
+				"item_code": "Stock-Reco-Serial-Item-1",
+				"item_name": "Stock-Reco-Serial-Item-1",
+				"is_stock_item": 1,
+				"item_group": "All Item Groups",
+				"stock_uom": "Nos",
+				"has_serial_no": 1,
+				"serial_no_series": "SRSI.#####",
+			},
+			{
+				"doctype": "Item",
+				"item_code": "Stock-Reco-Serial-Item-2",
+				"item_name": "Stock-Reco-Serial-Item-2",
+				"is_stock_item": 1,
+				"item_group": "All Item Groups",
+				"stock_uom": "Nos",
+				"has_serial_no": 1,
+				"serial_no_series": "SRSII.#####",
+			},
+			{
+				"doctype": "Item",
+				"item_code": "Stock-Reco-batch-Item-1",
+				"item_name": "Stock-Reco-batch-Item-1",
+				"is_stock_item": 1,
+				"item_group": "All Item Groups",
+				"stock_uom": "Nos",
+				"has_batch_no": 1,
+				"batch_number_series": "BASR.#####",
+				"create_new_batch": 1,
 			},
 		]
 		cls.item = []
