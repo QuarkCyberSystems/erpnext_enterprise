@@ -207,7 +207,7 @@ class TestSubcontractingReceipt(ERPNextTestSuite):
 
 		# stock raw materials in a warehouse before transfer
 		make_stock_entry(
-			target="_Test Warehouse - _TC", item_code="Test Extra Item 1", qty=10, basic_rate=100
+			target="_Test Warehouse - _TC", item_code="_Test Extra Item 1", qty=10, basic_rate=100
 		)
 		make_stock_entry(target="_Test Warehouse - _TC", item_code="_Test FG Item", qty=1, basic_rate=100)
 		make_stock_entry(target="_Test Warehouse - _TC", item_code="Test Extra Item 2", qty=1, basic_rate=100)
@@ -503,7 +503,7 @@ class TestSubcontractingReceipt(ERPNextTestSuite):
 		service_items = [
 			{
 				"warehouse": warehouse,
-				"item_code": "Subcontracted Service Item 7",
+				"item_code": "Subcontracted Service Item 6",
 				"qty": 10,
 				"rate": 0,
 				"fg_item": "Subcontracted Item SA7",
@@ -617,6 +617,7 @@ class TestSubcontractingReceipt(ERPNextTestSuite):
 		for item in scr.supplied_items:
 			self.assertFalse(item.available_qty_for_consumption)
 
+	@ERPNextTestSuite.change_settings("Buying Settings", {"allow_multiple_items": True})
 	def test_supplied_items_consumed_qty_for_similar_finished_goods(self):
 		"""
 		Test that supplied raw material consumption is calculated correctly
@@ -1289,6 +1290,7 @@ class TestSubcontractingReceipt(ERPNextTestSuite):
 		serial_batch_bundle = frappe.get_doc(
 			{
 				"doctype": "Serial and Batch Bundle",
+				"company": sco.company,
 				"item_code": fg_item,
 				"warehouse": sco.items[0].warehouse,
 				"has_batch_no": 1,
