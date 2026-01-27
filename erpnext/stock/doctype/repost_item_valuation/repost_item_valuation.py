@@ -435,7 +435,7 @@ def repost_sl_entries(doc):
 		)
 	else:
 		repost_future_sle(
-			args=[
+			item_wh_to_repost=[
 				frappe._dict(
 					{
 						"item_code": doc.item_code,
