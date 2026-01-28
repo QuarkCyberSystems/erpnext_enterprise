@@ -576,14 +576,12 @@ class SerialandBatchBundle(Document):
 					d.incoming_rate = abs(flt(sn_obj.batch_avg_rate.get(d.batch_no)))
 
 				precision = d.precision("qty")
-				for field in ["available_qty", "total_qty"]:
-					value = getattr(sn_obj, field)
-					available_qty = flt(value.get(d.batch_no), precision)
-					if self.docstatus == 1:
-						available_qty += flt(d.qty, precision)
+				available_qty = flt(sn_obj.available_qty.get(d.batch_no), precision)
+				if self.docstatus == 1:
+					available_qty += flt(d.qty, precision)
 
-					if not allow_negative_stock:
-						self.validate_negative_batch(d.batch_no, available_qty, field)
+				if not allow_negative_stock:
+					self.validate_negative_batch(d.batch_no, available_qty)
 
 			d.stock_value_difference = flt(d.qty) * flt(d.incoming_rate)
 
@@ -596,8 +594,8 @@ class SerialandBatchBundle(Document):
 					}
 				)
 
-	def validate_negative_batch(self, batch_no, available_qty, field=None):
-		if available_qty < 0 and not self.is_stock_reco_for_valuation_adjustment(available_qty, field=field):
+	def validate_negative_batch(self, batch_no, available_qty):
+		if available_qty < 0 and not self.is_stock_reco_for_valuation_adjustment(available_qty):
 			msg = f"""Batch No {bold(batch_no)} of an Item {bold(self.item_code)}
 				has negative stock
 				of quantity {bold(available_qty)} in the
@@ -605,7 +603,7 @@ class SerialandBatchBundle(Document):
 
 			frappe.throw(_(msg), BatchNegativeStockError)
 
-	def is_stock_reco_for_valuation_adjustment(self, available_qty, field=None):
+	def is_stock_reco_for_valuation_adjustment(self, available_qty):
 		if (
 			self.voucher_type == "Stock Reconciliation"
 			and self.type_of_transaction == "Outward"
@@ -613,7 +611,6 @@ class SerialandBatchBundle(Document):
 			and (
 				abs(frappe.db.get_value("Stock Reconciliation Item", self.voucher_detail_no, "qty"))
 				== abs(available_qty)
-				or field == "total_qty"
 			)
 		):
 			return True
@@ -1344,6 +1341,7 @@ class SerialandBatchBundle(Document):
 	def on_submit(self):
 		self.validate_docstatus()
 		self.validate_serial_nos_inventory()
+		self.validate_batch_quantity()
 
 	def validate_docstatus(self):
 		for row in self.entries:
@@ -1437,6 +1435,106 @@ class SerialandBatchBundle(Document):
 
 	def on_cancel(self):
 		self.validate_voucher_no_docstatus()
+		self.validate_batch_quantity()
+
+	def validate_batch_quantity(self):
+		if not self.has_batch_no:
+			return
+
+		if self.type_of_transaction != "Outward" or (
+			self.voucher_type == "Stock Reconciliation" and self.type_of_transaction == "Outward"
+		):
+			return
+
+		batch_wise_available_qty = self.get_batchwise_available_qty()
+		precision = frappe.get_precision("Serial and Batch Entry", "qty")
+
+		for d in self.entries:
+			available_qty = batch_wise_available_qty.get(d.batch_no, 0)
+			if flt(available_qty, precision) < 0:
+				frappe.throw(
+					_(
+						"""
+					The Batch {0} of an item {1} has negative stock in the warehouse {2}. Please add a stock quantity of {3} to proceed with this entry."""
+					).format(
+						bold(d.batch_no),
+						bold(self.item_code),
+						bold(self.warehouse),
+						bold(abs(flt(available_qty, precision))),
+					),
+					title=_("Negative Stock Error"),
+				)
+
+	def get_batchwise_available_qty(self):
+		available_qty = self.get_available_qty_from_sabb()
+		available_qty_from_ledger = self.get_available_qty_from_stock_ledger()
+
+		if not available_qty_from_ledger:
+			return available_qty
+
+		for batch_no, qty in available_qty_from_ledger.items():
+			if batch_no in available_qty:
+				available_qty[batch_no] += qty
+			else:
+				available_qty[batch_no] = qty
+
+		return available_qty
+
+	def get_available_qty_from_stock_ledger(self):
+		batches = [d.batch_no for d in self.entries if d.batch_no]
+
+		sle = frappe.qb.DocType("Stock Ledger Entry")
+
+		query = (
+			frappe.qb.from_(sle)
+			.select(
+				sle.batch_no,
+				Sum(sle.actual_qty).as_("available_qty"),
+			)
+			.where(
+				(sle.item_code == self.item_code)
+				& (sle.warehouse == self.warehouse)
+				& (sle.is_cancelled == 0)
+				& (sle.batch_no.isin(batches))
+				& (sle.docstatus == 1)
+				& (sle.serial_and_batch_bundle.isnull())
+				& (sle.batch_no.isnotnull())
+			)
+			.for_update()
+			.groupby(sle.batch_no)
+		)
+
+		res = query.run(as_list=True)
+
+		return frappe._dict(res) if res else frappe._dict()
+
+	def get_available_qty_from_sabb(self):
+		batches = [d.batch_no for d in self.entries if d.batch_no]
+
+		child = frappe.qb.DocType("Serial and Batch Entry")
+
+		query = (
+			frappe.qb.from_(child)
+			.select(
+				child.batch_no,
+				Sum(child.qty).as_("available_qty"),
+			)
+			.where(
+				(child.item_code == self.item_code)
+				& (child.warehouse == self.warehouse)
+				& (child.is_cancelled == 0)
+				& (child.batch_no.isin(batches))
+				& (child.docstatus == 1)
+				& (child.type_of_transaction.isin(["Inward", "Outward"]))
+			)
+			.for_update()
+			.groupby(child.batch_no)
+		)
+		query = query.where(child.voucher_type != "Pick List")
+
+		res = query.run(as_list=True)
+
+		return frappe._dict(res) if res else frappe._dict()
 
 	def validate_voucher_no_docstatus(self):
 		if self.voucher_type == "POS Invoice":
