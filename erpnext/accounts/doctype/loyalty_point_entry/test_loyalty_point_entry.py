@@ -10,22 +10,13 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestLoyaltyPointEntry(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
 		# Create test records
-		cls.loyalty_program_name = "Test Single Loyalty"
-		cls.customer_name = "Test Loyalty Customer"
-		customer = frappe.get_doc("Customer", cls.customer_name)
-		customer.db_set("loyalty_program", cls.loyalty_program_name)
-
-	@classmethod
-	def tearDownClass(cls):
-		# Delete all Loyalty Point Entries
-		frappe.db.sql("DELETE FROM `tabLoyalty Point Entry` WHERE customer = %s", cls.customer_name)
-		frappe.db.sql("DELETE FROM `tabSales Invoice` WHERE customer = %s", cls.customer_name)
-		frappe.db.commit()
-		# cls.customer.delete()
+		self.loyalty_program_name = "Test Single Loyalty"
+		self.customer_name = "Test Loyalty Customer"
+		customer = frappe.get_doc("Customer", self.customer_name)
+		customer.loyalty_program = self.loyalty_program_name
+		customer.save()
 
 	def create_test_invoice(self, redeem=None):
 		if redeem:
@@ -67,9 +58,10 @@ class TestLoyaltyPointEntry(ERPNextTestSuite):
 		self.assertEqual(entry.discretionary_reason, "Customer Appreciation")
 
 	def test_redeem_loyalty_points(self):
-		self.create_test_invoice(redeem=10)
+		self.create_test_invoice()
+		self.create_test_invoice(redeem=7)
 		doc = frappe.get_last_doc("Loyalty Point Entry")
-		self.assertEqual(doc.loyalty_points, -10)
+		self.assertEqual(doc.loyalty_points, -7)
 
 		# Check balance
 		balance = frappe.db.sql(
@@ -81,4 +73,4 @@ class TestLoyaltyPointEntry(ERPNextTestSuite):
 			(self.customer_name,),
 		)[0][0]
 
-		self.assertEqual(balance, 75)  # 85 added, 10 redeemed
+		self.assertEqual(balance, 3)  # 10 added, 7 redeemed
