@@ -827,7 +827,6 @@ class update_entries_after:
 			if not self.validate_negative_stock(sle):
 				self.wh_data.qty_after_transaction += flt(sle.actual_qty)
 				return
-
 		# Get dynamic incoming/outgoing rate
 		if not self.args.get("sle_id"):
 			self.get_dynamic_incoming_outgoing_rate(sle)
