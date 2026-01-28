@@ -139,6 +139,9 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_presets()
 		cls.make_persistent_master_data()
 
+	def tearDown(self):
+		frappe.db.rollback()
+
 	@classmethod
 	def load_test_records(cls, doctype):
 		if doctype not in cls.globalTestRecords:
