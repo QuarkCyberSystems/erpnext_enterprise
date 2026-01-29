@@ -15,15 +15,6 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestTimesheet(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.make_projects()
-		cls.make_activity_type()
-
-	def setUp(self):
-		frappe.db.delete("Timesheet")
-
 	def test_timesheet_post_update(self):
 		frappe.get_doc(
 			{
@@ -74,7 +65,7 @@ class TestTimesheet(ERPNextTestSuite):
 		)
 
 	def test_timesheet_base_amount(self):
-		emp = make_employee("test_employee_6@salary.com")
+		emp = make_employee("test_employee_6@salary.com", company=self.companies[0].name)
 		timesheet = make_timesheet(emp, simulate=True, is_billable=1)
 
 		self.assertEqual(timesheet.time_logs[0].base_billing_rate, 50)
@@ -83,7 +74,7 @@ class TestTimesheet(ERPNextTestSuite):
 		self.assertEqual(timesheet.time_logs[0].base_costing_amount, 40)
 
 	def test_timesheet_billing_amount(self):
-		emp = make_employee("test_employee_6@salary.com")
+		emp = make_employee("test_employee_6@salary.com", company=self.companies[0].name)
 		timesheet = make_timesheet(emp, simulate=True, is_billable=1)
 
 		self.assertEqual(timesheet.total_hours, 2)
@@ -93,7 +84,7 @@ class TestTimesheet(ERPNextTestSuite):
 		self.assertEqual(timesheet.total_billable_amount, 100)
 
 	def test_timesheet_billing_amount_not_billable(self):
-		emp = make_employee("test_employee_6@salary.com")
+		emp = make_employee("test_employee_6@salary.com", company=self.companies[0].name)
 		timesheet = make_timesheet(emp, simulate=True, is_billable=0)
 
 		self.assertEqual(timesheet.total_hours, 2)
@@ -121,7 +112,7 @@ class TestTimesheet(ERPNextTestSuite):
 
 	@ERPNextTestSuite.change_settings("Projects Settings", {"fetch_timesheet_in_sales_invoice": 1})
 	def test_timesheet_billing_based_on_project(self):
-		emp = make_employee("test_employee_6@salary.com")
+		emp = make_employee("test_employee_6@salary.com", company=self.companies[0].name)
 		project = frappe.get_value("Project", {"project_name": "_Test Project"})
 
 		timesheet = make_timesheet(
@@ -137,7 +128,7 @@ class TestTimesheet(ERPNextTestSuite):
 		self.assertEqual(ts.time_logs[0].sales_invoice, sales_invoice.name)
 
 	def test_timesheet_time_overlap(self):
-		emp = make_employee("test_employee_6@salary.com")
+		emp = make_employee("test_employee_6@salary.com", company=self.companies[0].name)
 
 		settings = frappe.get_single("Projects Settings")
 		initial_setting = settings.ignore_employee_time_overlap
@@ -193,7 +184,7 @@ class TestTimesheet(ERPNextTestSuite):
 		settings.save()
 
 	def test_timesheet_not_overlapping_with_continuous_timelogs(self):
-		emp = make_employee("test_employee_6@salary.com")
+		emp = make_employee("test_employee_6@salary.com", company=self.companies[0].name)
 
 		update_activity_type("_Test Activity Type")
 		timesheet = frappe.new_doc("Timesheet")
@@ -222,7 +213,7 @@ class TestTimesheet(ERPNextTestSuite):
 		timesheet.save()  # should not throw an error
 
 	def test_to_time(self):
-		emp = make_employee("test_employee_6@salary.com")
+		emp = make_employee("test_employee_6@salary.com", company=self.companies[0].name)
 		from_time = now_datetime()
 
 		timesheet = frappe.new_doc("Timesheet")
