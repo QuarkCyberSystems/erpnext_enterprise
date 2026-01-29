@@ -28,13 +28,10 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestAssetRepair(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.load_test_records("Stock Entry")
+	def setUp(self):
+		self.load_test_records("Stock Entry")
 		set_depreciation_settings_in_company()
 		create_item("_Test Stock Item")
-		frappe.db.sql("delete from `tabTax Rule`")
 
 	def test_asset_status(self):
 		date = nowdate()

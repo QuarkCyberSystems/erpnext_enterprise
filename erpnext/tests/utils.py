@@ -2260,6 +2260,14 @@ class ERPNextTestSuite(unittest.TestCase):
 				"is_grouped_asset": 0,
 				"asset_naming_series": "ACC-ASS-.YYYY.-",
 			},
+			{
+				"doctype": "Item",
+				"item_code": "_Test Stock Item",
+				"item_name": "Test Stock Item",
+				"is_stock_item": 1,
+				"item_group": "All Item Groups",
+				"stock_uom": "Nos",
+			},
 		]
 		cls.item = []
 		for x in records:
