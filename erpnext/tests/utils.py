@@ -263,6 +263,10 @@ class ERPNextTestSuite(unittest.TestCase):
 
 		frappe.db.commit()
 
+		# custom doctype
+		# DDL commands have implicit commit
+		cls.make_custom_doctype()
+
 	@classmethod
 	def update_system_settings(cls):
 		system_settings = frappe.get_doc("System Settings")
@@ -3163,6 +3167,123 @@ class ERPNextTestSuite(unittest.TestCase):
 				cls.finance_book.append(
 					frappe.get_doc("Finance Book", {"finance_book_name": x.get("finance_book_name")})
 				)
+
+	@classmethod
+	def make_custom_doctype(cls):
+		if not frappe.db.exists("DocType", "Shelf"):
+			frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"name": "Shelf",
+					"module": "Stock",
+					"custom": 1,
+					"naming_rule": "By fieldname",
+					"autoname": "field:shelf_name",
+					"fields": [{"label": "Shelf Name", "fieldname": "shelf_name", "fieldtype": "Data"}],
+					"permissions": [
+						{
+							"role": "System Manager",
+							"permlevel": 0,
+							"read": 1,
+							"write": 1,
+							"create": 1,
+							"delete": 1,
+						}
+					],
+				}
+			).insert(ignore_permissions=True)
+
+		if not frappe.db.exists("DocType", "Rack"):
+			frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"name": "Rack",
+					"module": "Stock",
+					"custom": 1,
+					"naming_rule": "By fieldname",
+					"autoname": "field:rack_name",
+					"fields": [{"label": "Rack Name", "fieldname": "rack_name", "fieldtype": "Data"}],
+					"permissions": [
+						{
+							"role": "System Manager",
+							"permlevel": 0,
+							"read": 1,
+							"write": 1,
+							"create": 1,
+							"delete": 1,
+						}
+					],
+				}
+			).insert(ignore_permissions=True)
+
+		if not frappe.db.exists("DocType", "Pallet"):
+			frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"name": "Pallet",
+					"module": "Stock",
+					"custom": 1,
+					"naming_rule": "By fieldname",
+					"autoname": "field:pallet_name",
+					"fields": [{"label": "Pallet Name", "fieldname": "pallet_name", "fieldtype": "Data"}],
+					"permissions": [
+						{
+							"role": "System Manager",
+							"permlevel": 0,
+							"read": 1,
+							"write": 1,
+							"create": 1,
+							"delete": 1,
+						}
+					],
+				}
+			).insert(ignore_permissions=True)
+
+		if not frappe.db.exists("DocType", "Inv Site"):
+			frappe.get_doc(
+				{
+					"doctype": "DocType",
+					"name": "Inv Site",
+					"module": "Stock",
+					"custom": 1,
+					"naming_rule": "By fieldname",
+					"autoname": "field:site_name",
+					"fields": [{"label": "Site Name", "fieldname": "site_name", "fieldtype": "Data"}],
+					"permissions": [
+						{
+							"role": "System Manager",
+							"permlevel": 0,
+							"read": 1,
+							"write": 1,
+							"create": 1,
+							"delete": 1,
+						}
+					],
+				}
+			).insert(ignore_permissions=True)
+
+			if not frappe.db.exists("DocType", "Store"):
+				frappe.get_doc(
+					{
+						"doctype": "DocType",
+						"name": "Store",
+						"module": "Stock",
+						"custom": 1,
+						"naming_rule": "By fieldname",
+						"autoname": "field:store_name",
+						"fields": [{"label": "Store Name", "fieldname": "store_name", "fieldtype": "Data"}],
+						"permissions": [
+							{
+								"role": "System Manager",
+								"permlevel": 0,
+								"read": 1,
+								"write": 1,
+								"create": 1,
+								"delete": 1,
+							}
+						],
+					}
+				).insert(ignore_permissions=True)
 
 	@contextmanager
 	def set_user(self, user: str):
