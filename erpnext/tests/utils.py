@@ -250,6 +250,8 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_quality_inspection_template()
 		cls.make_employees()
 		cls.make_brand()
+		cls.make_monthly_distribution()
+		cls.make_projects()
 		cls.update_selling_settings()
 		cls.update_stock_settings()
 		cls.update_system_settings()
