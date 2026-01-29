@@ -12,11 +12,6 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestLead(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.make_leads()
-
 	def test_make_customer(self):
 		from erpnext.crm.doctype.lead.lead import make_customer
 
