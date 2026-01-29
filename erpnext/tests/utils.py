@@ -1273,6 +1273,7 @@ class ERPNextTestSuite(unittest.TestCase):
 	@classmethod
 	def make_location(cls):
 		records = [
+			{"doctype": "Location", "location_name": "Test Location"},
 			{"doctype": "Location", "location_name": "Test Location Area", "is_group": 1, "is_container": 1},
 			{
 				"doctype": "Location",
