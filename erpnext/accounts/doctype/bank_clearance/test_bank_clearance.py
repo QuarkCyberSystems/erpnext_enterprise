@@ -29,6 +29,7 @@ class TestBankClearance(ERPNextTestSuite):
 		create_item("_Test Item")
 		create_cost_center(cost_center_name="_Test Cost Center", company="_Test Company")
 
+	def setUp(self):
 		make_bank_account()
 		add_transactions()
 
