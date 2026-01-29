@@ -30,6 +30,7 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestPurchaseOrder(ERPNextTestSuite):
+	@ERPNextTestSuite.change_settings("Buying Settings", {"allow_multiple_items": 1})
 	def test_purchase_order_qty(self):
 		po = create_purchase_order(qty=1, do_not_save=True)
 
@@ -851,6 +852,7 @@ class TestPurchaseOrder(ERPNextTestSuite):
 		self.assertEqual(po_doc.advance_paid, 0)
 		self.assertEqual(po_doc.party_account_currency, "USD")
 
+	@ERPNextTestSuite.change_settings("Buying Settings", {"allow_multiple_items": 1})
 	def test_schedule_date(self):
 		po = create_purchase_order(do_not_submit=True)
 		po.schedule_date = None
