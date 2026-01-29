@@ -252,6 +252,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_brand()
 		cls.make_monthly_distribution()
 		cls.make_projects()
+		cls.make_dunning_type()
 		cls.update_selling_settings()
 		cls.update_stock_settings()
 		cls.update_system_settings()
@@ -3041,6 +3042,53 @@ class ERPNextTestSuite(unittest.TestCase):
 				cls.brand.append(frappe.get_doc(x).insert())
 			else:
 				cls.brand.append(frappe.get_doc("Brand", {"Brand": x.get("brand")}))
+
+	@classmethod
+	def make_dunning_type(cls):
+		records = [
+			{
+				"doctype": "Dunning Type",
+				"dunning_type": "First Notice",
+				"company": cls.companies[0].name,
+				"is_default": 1,
+				"dunning_fee": 0,
+				"rate_of_interest": 0,
+				"income_account": "Sales - _TC",
+				"cost_center": "Main - _TC",
+				"dunning_letter_text": [
+					{
+						"language": "en",
+						"body_text": "We have still not received payment for our invoice",
+						"closing_text": "We kindly request that you pay the outstanding amount immediately, including interest and late fees.",
+					},
+				],
+			},
+			{
+				"doctype": "Dunning Type",
+				"dunning_type": "Second Notice",
+				"company": cls.companies[0].name,
+				"is_default": 0,
+				"dunning_fee": 10,
+				"rate_of_interest": 10,
+				"income_account": "Sales - _TC",
+				"cost_center": "Main - _TC",
+				"dunning_letter_text": [
+					{
+						"language": "en",
+						"body_text": "We have still not received payment for our invoice",
+						"closing_text": "We kindly request that you pay the outstanding amount immediately, including interest and late fees.",
+					},
+				],
+			},
+		]
+		cls.dunning_type = []
+		for x in records:
+			if not frappe.db.exists("Dunning Type", {"dunning_type": x.get("dunning_type")}):
+				cls.dunning_type.append(frappe.get_doc(x).insert())
+			else:
+				cls.dunning_type.append(
+					frappe.get_doc("Dunning Type", {"dunning_type": x.get("dunning_type")})
+				)
 
 	@contextmanager
 	def set_user(self, user: str):
