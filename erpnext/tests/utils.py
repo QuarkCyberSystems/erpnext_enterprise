@@ -255,6 +255,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_dunning_type()
 		cls.make_finance_book()
 		cls.make_leads()
+		cls.make_sales_person()
 		cls.update_selling_settings()
 		cls.update_stock_settings()
 		cls.update_system_settings()

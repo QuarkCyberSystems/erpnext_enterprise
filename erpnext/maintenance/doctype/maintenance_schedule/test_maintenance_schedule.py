@@ -16,11 +16,8 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestMaintenanceSchedule(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.load_test_records("Stock Entry")
-		cls.make_sales_person()
+	def setUp(self):
+		self.load_test_records("Stock Entry")
 
 	@classmethod
 	def make_sales_person(cls):
