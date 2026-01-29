@@ -253,6 +253,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_monthly_distribution()
 		cls.make_projects()
 		cls.make_dunning_type()
+		cls.make_finance_book()
 		cls.update_selling_settings()
 		cls.update_stock_settings()
 		cls.update_system_settings()
@@ -2245,6 +2246,20 @@ class ERPNextTestSuite(unittest.TestCase):
 				"asset_category": cls.asset_category[0].name,
 				"asset_naming_series": "ABC.###",
 			},
+			{
+				"doctype": "Item",
+				"item_code": "Macbook Pro",
+				"item_name": "Macbook Pro",
+				"description": "Macbook Pro Retina Display",
+				"asset_category": "Computers",
+				"item_group": "All Item Groups",
+				"stock_uom": "Nos",
+				"is_stock_item": 0,
+				"is_fixed_asset": 1,
+				"auto_create_assets": 1,
+				"is_grouped_asset": 0,
+				"asset_naming_series": "ACC-ASS-.YYYY.-",
+			},
 		]
 		cls.item = []
 		for x in records:
@@ -2716,7 +2731,29 @@ class ERPNextTestSuite(unittest.TestCase):
 						"depreciation_expense_account": "_Test Depreciations - _TC",
 					}
 				],
-			}
+			},
+			{
+				"doctype": "Asset Category",
+				"asset_category_name": "Computers",
+				"total_number_of_depreciations": 3,
+				"frequency_of_depreciation": 3,
+				"enable_cwip_accounting": True,
+				"accounts": [
+					{
+						"company_name": "_Test Company",
+						"fixed_asset_account": "_Test Fixed Asset - _TC",
+						"accumulated_depreciation_account": "_Test Accumulated Depreciations - _TC",
+						"depreciation_expense_account": "_Test Depreciations - _TC",
+						"capital_work_in_progress_account": "CWIP Account - _TC",
+					},
+					{
+						"company_name": "_Test Company with perpetual inventory",
+						"fixed_asset_account": "_Test Fixed Asset - TCP1",
+						"accumulated_depreciation_account": "_Test Accumulated Depreciations - TCP1",
+						"depreciation_expense_account": "_Test Depreciations - TCP1",
+					},
+				],
+			},
 		]
 		cls.asset_category = []
 		for x in records:
@@ -3088,6 +3125,31 @@ class ERPNextTestSuite(unittest.TestCase):
 			else:
 				cls.dunning_type.append(
 					frappe.get_doc("Dunning Type", {"dunning_type": x.get("dunning_type")})
+				)
+
+	@classmethod
+	def make_finance_book(cls):
+		records = [
+			{
+				"doctype": "Finance Book",
+				"finance_book_name": "Test Finance Book 1",
+			},
+			{
+				"doctype": "Finance Book",
+				"finance_book_name": "Test Finance Book 2",
+			},
+			{
+				"doctype": "Finance Book",
+				"finance_book_name": "Test Finance Book 3",
+			},
+		]
+		cls.finance_book = []
+		for x in records:
+			if not frappe.db.exists("Finance Book", {"finance_book_name": x.get("finance_book_name")}):
+				cls.finance_book.append(frappe.get_doc(x).insert())
+			else:
+				cls.finance_book.append(
+					frappe.get_doc("Finance Book", {"finance_book_name": x.get("finance_book_name")})
 				)
 
 	@contextmanager

@@ -40,18 +40,10 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class AssetSetup(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
 		set_depreciation_settings_in_company()
-		create_asset_data()
 		enable_cwip_accounting("Computers")
 		make_purchase_receipt(item_code="Macbook Pro", qty=1, rate=100000.0, location="Test Location")
-		frappe.db.sql("delete from `tabTax Rule`")
-
-	@classmethod
-	def tearDownClass(cls):
-		frappe.db.rollback()
 
 
 class TestAsset(AssetSetup):
@@ -1906,30 +1898,8 @@ def get_gl_entries(doctype, docname):
 	)
 
 
-def create_asset_data():
-	if not frappe.db.exists("Asset Category", "Computers"):
-		create_asset_category()
-
-	if not frappe.db.exists("Item", "Macbook Pro"):
-		create_fixed_asset_item()
-
-	if not frappe.db.exists("Location", "Test Location"):
-		frappe.get_doc({"doctype": "Location", "location_name": "Test Location"}).insert()
-
-	if not frappe.db.exists("Finance Book", "Test Finance Book 1"):
-		frappe.get_doc({"doctype": "Finance Book", "finance_book_name": "Test Finance Book 1"}).insert()
-
-	if not frappe.db.exists("Finance Book", "Test Finance Book 2"):
-		frappe.get_doc({"doctype": "Finance Book", "finance_book_name": "Test Finance Book 2"}).insert()
-
-	if not frappe.db.exists("Finance Book", "Test Finance Book 3"):
-		frappe.get_doc({"doctype": "Finance Book", "finance_book_name": "Test Finance Book 3"}).insert()
-
-
 def create_asset(**args):
 	args = frappe._dict(args)
-
-	create_asset_data()
 
 	asset = frappe.get_doc(
 		{

@@ -8,7 +8,6 @@ from frappe.utils import cint, flt, now_datetime
 from erpnext.assets.doctype.asset.depreciation import post_depreciation_entries
 from erpnext.assets.doctype.asset.test_asset import (
 	create_asset,
-	create_asset_data,
 	create_fixed_asset_item,
 	set_depreciation_settings_in_company,
 )
@@ -26,7 +25,6 @@ from erpnext.tests.utils import ERPNextTestSuite
 class TestAssetCapitalization(ERPNextTestSuite):
 	def setUp(self):
 		set_depreciation_settings_in_company()
-		create_asset_data()
 		create_asset_capitalization_data()
 		frappe.db.sql("delete from `tabTax Rule`")
 

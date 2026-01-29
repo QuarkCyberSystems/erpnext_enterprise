@@ -14,7 +14,6 @@ from erpnext.assets.doctype.asset.asset import (
 )
 from erpnext.assets.doctype.asset.test_asset import (
 	create_asset,
-	create_asset_data,
 	set_depreciation_settings_in_company,
 )
 from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_schedule import (
@@ -34,7 +33,6 @@ class TestAssetRepair(ERPNextTestSuite):
 		super().setUpClass()
 		cls.load_test_records("Stock Entry")
 		set_depreciation_settings_in_company()
-		create_asset_data()
 		create_item("_Test Stock Item")
 		frappe.db.sql("delete from `tabTax Rule`")
 
