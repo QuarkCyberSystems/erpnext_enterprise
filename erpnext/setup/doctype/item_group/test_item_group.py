@@ -16,10 +16,8 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestItem(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.load_test_records("Item Group")
+	def setUp(self):
+		self.load_test_records("Item Group")
 
 	def test_basic_tree(self, records=None):
 		min_lft = 1
