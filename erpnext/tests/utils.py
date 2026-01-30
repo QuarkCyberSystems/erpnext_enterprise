@@ -2312,6 +2312,15 @@ class ERPNextTestSuite(unittest.TestCase):
 				"item_group": "All Item Groups",
 				"stock_uom": "Nos",
 			},
+			{
+				"doctype": "Item",
+				"item_code": "Consulting",
+				"item_name": "Consulting",
+				"is_stock_item": 0,
+				"item_group": "All Item Groups",
+				"stock_uom": "Nos",
+				"company": "_Test Company",
+			},
 		]
 		cls.item = []
 		for x in records:
@@ -2508,6 +2517,13 @@ class ERPNextTestSuite(unittest.TestCase):
 				"territory": "_Test Territory",
 				"represents_company": cls.companies[6].name,
 				"companies": [{"company": cls.companies[6].name}],
+			},
+			{
+				"customer_group": "_Test Customer Group",
+				"customer_name": "Prestiga-Biz",
+				"customer_type": "Company",
+				"doctype": "Customer",
+				"territory": "_Test Territory",
 			},
 		]
 		cls.customer = []
@@ -2989,6 +3005,12 @@ class ERPNextTestSuite(unittest.TestCase):
 				"doctype": "Item Price",
 				"price_list": _("Standard Selling"),
 				"item_code": "Loyal Item",
+				"price_list_rate": 10000,
+			},
+			{
+				"doctype": "Item Price",
+				"item_code": "Consulting",
+				"price_list": "Standard Selling",
 				"price_list_rate": 10000,
 			},
 		]
