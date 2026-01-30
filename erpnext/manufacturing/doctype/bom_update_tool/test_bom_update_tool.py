@@ -21,9 +21,6 @@ class TestBOMUpdateTool(ERPNextTestSuite):
 		super().setUpClass()
 		cls.load_test_records("BOM")
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	@timeout
 	def test_replace_bom(self):
 		current_bom = "BOM-_Test Item Home Desktop Manufactured-001"

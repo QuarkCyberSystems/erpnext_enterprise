@@ -34,11 +34,6 @@ class TestPOSInvoiceMergeLog(ERPNextTestSuite):
 	def setUp(self):
 		frappe.db.sql("delete from `tabPOS Invoice`")
 
-	def tearDown(self):
-		frappe.set_user("Administrator")
-		frappe.db.sql("delete from `tabPOS Profile`")
-		frappe.db.sql("delete from `tabPOS Invoice`")
-
 	def test_consolidated_invoice_creation(self):
 		test_user, pos_profile = init_user_and_profile()
 		opening_entry = create_opening_entry(pos_profile, test_user.name)

@@ -43,7 +43,3 @@ class TestDelayedTasksSummary(ERPNextTestSuite):
 
 		for key in ["subject", "status", "priority", "delay"]:
 			self.assertEqual(expected_data[1].get(key), data.get(key))
-
-	def tearDown(self):
-		for task in ["_Test Task 98", "_Test Task 99"]:
-			frappe.get_doc("Task", {"subject": task}).delete()

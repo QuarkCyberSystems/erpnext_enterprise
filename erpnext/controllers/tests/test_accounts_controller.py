@@ -73,9 +73,6 @@ class TestAccountsController(ERPNextTestSuite):
 		self.create_parties()
 		self.clear_old_entries()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def create_company(self):
 		company_name = "_Test Company"
 		self.company_abbr = abbr = "_TC"

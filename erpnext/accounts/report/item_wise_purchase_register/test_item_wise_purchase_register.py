@@ -13,9 +13,6 @@ class TestItemWisePurchaseRegister(AccountsTestMixin, ERPNextTestSuite):
 		self.create_supplier()
 		self.create_item()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def create_purchase_invoice(self, do_not_submit=False):
 		pi = make_purchase_invoice(
 			item=self.item,

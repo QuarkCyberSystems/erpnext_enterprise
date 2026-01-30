@@ -19,6 +19,3 @@ class TestStockLedgerReeport(ERPNextTestSuite):
 			to_date=add_days(today(), 30),
 			item_code=["_Test Stock Report Serial Item"],
 		)
-
-	def tearDown(self) -> None:
-		frappe.db.rollback()

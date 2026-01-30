@@ -40,9 +40,6 @@ class TestSubcontractingOrder(ERPNextTestSuite):
 		make_service_items()
 		make_bom_for_subcontracted_items()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_set_missing_values(self):
 		sco = get_subcontracting_order()
 		before = {sco.total_qty, sco.total, sco.total_additional_costs}

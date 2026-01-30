@@ -13,11 +13,6 @@ class TestTransactionDeletionRecord(ERPNextTestSuite):
 		self._clear_all_deletion_cache_flags()
 		create_company("Dunder Mifflin Paper Co")
 
-	def tearDown(self):
-		# Clean up all deletion cache flags after each test
-		self._clear_all_deletion_cache_flags()
-		frappe.db.rollback()
-
 	def _clear_all_deletion_cache_flags(self):
 		"""Clear all deletion_running_doctype:* cache keys"""
 		# Get all keys matching the pattern

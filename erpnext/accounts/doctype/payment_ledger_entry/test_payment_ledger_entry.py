@@ -21,9 +21,6 @@ class TestPaymentLedgerEntry(ERPNextTestSuite):
 		self.create_customer()
 		self.clear_old_entries()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def create_company(self):
 		company_name = "_Test Payment Ledger"
 		company = None

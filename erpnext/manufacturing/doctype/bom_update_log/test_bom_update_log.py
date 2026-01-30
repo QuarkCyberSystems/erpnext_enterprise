@@ -34,9 +34,6 @@ class TestBOMUpdateLog(ERPNextTestSuite):
 
 		self.new_bom_doc = bom_doc
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_bom_update_log_validate(self):
 		"""
 		1) Test if BOM presence is validated.

@@ -18,9 +18,6 @@ class TestAccountsReceivable(AccountsTestMixin, ERPNextTestSuite):
 		self.create_usd_receivable_account()
 		self.clear_old_entries()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def create_sales_invoice(self, no_payment_schedule=False, do_not_submit=False, **args):
 		frappe.set_user("Administrator")
 		si = create_sales_invoice(

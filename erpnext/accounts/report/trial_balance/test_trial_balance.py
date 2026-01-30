@@ -62,10 +62,6 @@ class TestTrialBalance(ERPNextTestSuite):
 		total_row = execute(filters)[1][-1]
 		self.assertEqual(total_row["debit"], total_row["credit"])
 
-	def tearDown(self):
-		clear_dimension_defaults("Branch")
-		disable_dimension()
-
 
 def create_company(**args):
 	args = frappe._dict(args)

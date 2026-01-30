@@ -23,10 +23,6 @@ class TestPOSInvoiceMerging(POSInvoiceTestMixin):
 
 		self.opening_entry = create_opening_entry(self.pos_profile, self.test_user.name)
 
-	def tearDown(self):
-		self.clear_pos_data()
-		frappe.db.commit()
-
 	def test_merging_into_sales_invoice_with_discount(self):
 		from erpnext.accounts.doctype.pos_closing_entry.pos_closing_entry import (
 			make_closing_entry_from_opening,

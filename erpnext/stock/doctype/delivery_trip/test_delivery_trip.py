@@ -24,9 +24,6 @@ class TestDeliveryTrip(ERPNextTestSuite):
 
 		self.delivery_trip = create_delivery_trip(driver, address, company=self.companies[0].name)
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_delivery_trip_notify_customers(self):
 		# set default outgoing
 		outgoing = frappe.get_doc(

@@ -29,9 +29,6 @@ class TestStockBalance(ERPNextTestSuite):
 			}
 		)
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def assertPartialDictEq(self, expected: dict[str, Any], actual: dict[str, Any]):
 		for k, v in expected.items():
 			self.assertEqual(v, actual[k], msg=f"{expected=}\n{actual=}")

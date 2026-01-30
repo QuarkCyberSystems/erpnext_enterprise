@@ -24,9 +24,6 @@ class TestBankReconciliationTool(AccountsTestMixin, ERPNextTestSuite):
 		qb.from_(bank_dt).delete().where(bank_dt.name == "HDFC").run()
 		self.create_bank_account()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def create_bank_account(self):
 		bank = frappe.get_doc(
 			{

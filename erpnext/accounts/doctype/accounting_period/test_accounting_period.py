@@ -88,10 +88,6 @@ class TestAccountingPeriod(ERPNextTestSuite):
 		doc.submit()  # Should not raise
 		self.assertEqual(doc.docstatus, 1)
 
-	def tearDown(self):
-		for d in frappe.get_all("Accounting Period"):
-			frappe.delete_doc("Accounting Period", d.name)
-
 
 def create_accounting_period(**args):
 	args = frappe._dict(args)

@@ -22,9 +22,6 @@ class TestTaxWithholdingCategory(ERPNextTestSuite):
 		create_tax_withholding_category_records()
 		make_pan_no_field()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def validate_tax_withholding_entries(self, doctype, docname, expected_entries):
 		"""Validate tax withholding entries for a document"""
 		entries = frappe.get_all(

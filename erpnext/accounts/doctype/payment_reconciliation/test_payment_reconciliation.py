@@ -28,9 +28,6 @@ class TestPaymentReconciliation(ERPNextTestSuite):
 		self.create_cost_center()
 		self.clear_old_entries()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def create_company(self):
 		company = None
 		if frappe.db.exists("Company", "_Test Payment Reconciliation"):

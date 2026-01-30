@@ -43,17 +43,6 @@ class TestAccountingDimensionFilter(ERPNextTestSuite):
 		self.assertRaises(MandatoryAccountDimensionError, si.submit)
 		self.invoice_list.append(si)
 
-	def tearDown(self):
-		disable_dimension_filter()
-		disable_dimension()
-		frappe.flags.accounting_dimensions_details = None
-		frappe.flags.dimension_filter_map = None
-
-		for si in self.invoice_list:
-			si.load_from_db()
-			if si.docstatus == 1:
-				si.cancel()
-
 
 def create_accounting_dimension_filter():
 	if not frappe.db.get_value("Accounting Dimension Filter", {"accounting_dimension": "Cost Center"}):

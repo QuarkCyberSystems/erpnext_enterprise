@@ -90,10 +90,6 @@ class TestCurrencyExchange(ERPNextTestSuite):
 			key = "currency_exchange_rate_{}:{}:{}".format(date, "USD", "INR")
 			cache.delete(key)
 
-	def tearDown(self):
-		frappe.db.set_single_value("Accounts Settings", "allow_stale", 1)
-		self.clear_cache()
-
 	def test_exchange_rate(self, mock_get):
 		save_new_records(self.globalTestRecords["Currency Exchange"])
 

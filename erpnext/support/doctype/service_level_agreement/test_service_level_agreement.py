@@ -359,10 +359,6 @@ class TestServiceLevelAgreement(ERPNextTestSuite):
 		applied_sla = frappe.db.get_value("Lead", lead.name, "service_level_agreement")
 		self.assertFalse(applied_sla)
 
-	def tearDown(self):
-		for d in frappe.get_all("Service Level Agreement"):
-			frappe.delete_doc("Service Level Agreement", d.name, force=1)
-
 
 def get_service_level_agreement(
 	default_service_level_agreement=None, entity_type=None, entity=None, doctype="Issue"

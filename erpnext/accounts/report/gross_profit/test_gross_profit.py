@@ -21,9 +21,6 @@ class TestGrossProfit(ERPNextTestSuite):
 		self.create_sales_invoice()
 		self.clear_old_entries()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def create_company(self):
 		company_name = "_Test Gross Profit"
 		abbr = "_GP"

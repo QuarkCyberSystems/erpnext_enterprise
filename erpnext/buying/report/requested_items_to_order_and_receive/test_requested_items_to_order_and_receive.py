@@ -27,9 +27,6 @@ class TestRequestedItemsToOrderAndReceive(ERPNextTestSuite):
 			item_code="Test MR Report Item",
 		)
 
-	def tearDown(self) -> None:
-		frappe.db.rollback()
-
 	def test_date_range(self):
 		data = get_data(self.filters)
 		self.assertEqual(len(data), 2)  # MRs today should be fetched

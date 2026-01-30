@@ -78,11 +78,6 @@ class TestAccountingDimension(ERPNextTestSuite):
 		si.save()
 		self.assertRaises(frappe.ValidationError, si.submit)
 
-	def tearDown(self):
-		disable_dimension()
-		frappe.flags.accounting_dimensions_details = None
-		frappe.flags.dimension_filter_map = None
-
 
 def create_dimension():
 	frappe.set_user("Administrator")

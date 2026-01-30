@@ -24,9 +24,6 @@ class TestStockLedgerReeport(ERPNextTestSuite):
 			item_code="_Test Item With Serial No",
 		)
 
-	def tearDown(self) -> None:
-		frappe.db.rollback()
-
 	def test_available_serial_no(self):
 		report = frappe.get_doc("Report", "Available Serial No")
 

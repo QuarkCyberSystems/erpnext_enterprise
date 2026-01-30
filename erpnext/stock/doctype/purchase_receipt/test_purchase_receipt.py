@@ -37,9 +37,6 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 	def setUp(self):
 		frappe.local.future_sle = {}
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_purchase_receipt_qty(self):
 		pr = make_purchase_receipt(qty=0, rejected_qty=0, do_not_save=True)
 		with self.assertRaises(InvalidQtyError):

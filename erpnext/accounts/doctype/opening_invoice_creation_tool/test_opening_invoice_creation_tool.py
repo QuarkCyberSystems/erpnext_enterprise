@@ -147,9 +147,6 @@ class TestOpeningInvoiceCreationTool(ERPNextTestSuite):
 		}
 		self.check_expected_values(invoices, expected_value, invoice_type="Sales")
 
-	def tearDown(self):
-		disable_dimension()
-
 
 def get_opening_invoice_creation_dict(**args):
 	party = "Customer" if args.get("invoice_type", "Sales") == "Sales" else "Supplier"

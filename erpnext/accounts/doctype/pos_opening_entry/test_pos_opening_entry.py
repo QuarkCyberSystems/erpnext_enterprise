@@ -31,10 +31,6 @@ class TestPOSOpeningEntry(ERPNextTestSuite):
 
 		self.init_user_and_profile = init_user_and_profile
 
-	def tearDown(self):
-		frappe.set_user("Administrator")
-		frappe.db.sql("delete from `tabPOS Profile`")
-
 	def test_pos_opening_entry(self):
 		test_user, pos_profile = self.init_user_and_profile()
 		opening_entry = create_opening_entry(pos_profile, test_user.name)

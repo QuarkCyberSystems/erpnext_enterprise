@@ -23,9 +23,6 @@ class TestUnreconcilePayment(AccountsTestMixin, ERPNextTestSuite):
 		self.create_item()
 		self.clear_old_entries()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def create_sales_invoice(self, do_not_submit=False):
 		si = create_sales_invoice(
 			item=self.item,

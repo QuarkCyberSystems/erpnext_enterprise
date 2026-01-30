@@ -15,9 +15,6 @@ class TestAccountsPayable(AccountsTestMixin, ERPNextTestSuite):
 		self.create_supplier(currency="USD", supplier_name="Test Supplier2")
 		self.create_usd_payable_account()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_accounts_payable_for_foreign_currency_supplier(self):
 		pi = self.create_purchase_invoice(do_not_submit=True)
 		pi.currency = "USD"

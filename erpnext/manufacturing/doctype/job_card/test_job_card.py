@@ -69,9 +69,6 @@ class TestJobCard(ERPNextTestSuite):
 				basic_rate=100,
 			)
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_quality_inspection_mandatory_check(self):
 		from erpnext.manufacturing.doctype.operation.test_operation import make_operation
 

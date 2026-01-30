@@ -45,9 +45,6 @@ class TestStockLedgerEntry(ERPNextTestSuite, StockTestMixin):
 			"delete from `tabBin` where item_code in (%s)" % (", ".join(["%s"] * len(items))), items
 		)
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_item_cost_reposting(self):
 		company = "_Test Company"
 

@@ -26,9 +26,6 @@ class TestPaymentOrder(ERPNextTestSuite):
 			gl_account=self.gl_account, bank_account_name="Checking Account " + uniq_identifier
 		)
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_payment_order_creation_against_payment_entry(self):
 		purchase_invoice = make_purchase_invoice()
 		payment_entry = get_payment_entry(

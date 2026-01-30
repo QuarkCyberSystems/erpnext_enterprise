@@ -697,10 +697,6 @@ class TestStockReservationEntry(ERPNextTestSuite):
 		# Test - 1: ValidationError should be thrown as the inwarded stock is reserved.
 		self.assertRaises(frappe.ValidationError, se.cancel)
 
-	def tearDown(self) -> None:
-		cancel_all_stock_reservation_entries()
-		return super().tearDown()
-
 
 def create_items() -> dict:
 	items_properties = [

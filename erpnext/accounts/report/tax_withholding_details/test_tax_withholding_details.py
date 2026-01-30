@@ -126,9 +126,6 @@ class TestTaxWithholdingDetails(AccountsTestMixin, ERPNextTestSuite):
 			)
 			self.assertSequenceEqual(voucher_actual_values, voucher_expected_values)
 
-	def tearDown(self):
-		self.clear_old_entries()
-
 
 def create_tax_accounts():
 	account_names = ["TCS", "TDS"]

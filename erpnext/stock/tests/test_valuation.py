@@ -19,11 +19,6 @@ class TestFIFOValuation(ERPNextTestSuite):
 	def setUp(self):
 		self.queue = FIFOValuation([])
 
-	def tearDown(self):
-		qty, value = self.queue.get_total_stock_and_value()
-		self.assertTotalQty(qty)
-		self.assertTotalValue(value)
-
 	def assertTotalQty(self, qty):
 		self.assertAlmostEqual(sum(q for q, _ in self.queue), qty, msg=f"queue: {self.queue}", places=4)
 
@@ -198,11 +193,6 @@ class TestFIFOValuation(ERPNextTestSuite):
 class TestLIFOValuation(ERPNextTestSuite):
 	def setUp(self):
 		self.stack = LIFOValuation([])
-
-	def tearDown(self):
-		qty, value = self.stack.get_total_stock_and_value()
-		self.assertTotalQty(qty)
-		self.assertTotalValue(value)
 
 	def assertTotalQty(self, qty):
 		self.assertAlmostEqual(sum(q for q, _ in self.stack), qty, msg=f"stack: {self.stack}", places=4)

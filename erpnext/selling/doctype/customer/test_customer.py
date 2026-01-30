@@ -18,9 +18,6 @@ from erpnext.tests.utils import ERPNextTestSuite, create_test_contact_and_addres
 
 
 class TestCustomer(ERPNextTestSuite):
-	def tearDown(self):
-		set_credit_limit("_Test Customer", "_Test Company", 0)
-
 	def test_get_customer_group_details(self):
 		doc = frappe.new_doc("Customer Group")
 		doc.customer_group_name = "_Testing Customer Group"
@@ -179,8 +176,6 @@ class TestCustomer(ERPNextTestSuite):
 
 		# rename back to original
 		frappe.rename_doc("Customer", new_name, "_Test Customer 1")
-
-		frappe.db.rollback()
 
 	def test_freezed_customer(self):
 		frappe.db.set_value("Customer", "_Test Customer", "is_frozen", 1)

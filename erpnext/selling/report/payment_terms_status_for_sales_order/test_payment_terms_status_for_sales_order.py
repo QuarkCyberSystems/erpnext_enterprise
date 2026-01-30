@@ -13,9 +13,6 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestPaymentTermsStatusForSalesOrder(ERPNextTestSuite):
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def create_payment_terms_template(self):
 		# create template for 50-50 payments
 		template = None

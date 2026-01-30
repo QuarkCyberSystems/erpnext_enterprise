@@ -16,9 +16,6 @@ class TestReactivity(AccountsTestMixin, ERPNextTestSuite):
 		self.create_price_list()
 		self.clear_old_entries()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def disable_dimensions(self):
 		res = frappe.db.get_all("Accounting Dimension", filters={"disabled": False})
 		for x in res:

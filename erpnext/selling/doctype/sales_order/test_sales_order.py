@@ -54,9 +54,6 @@ class TestSalesOrder(AccountsTestMixin, ERPNextTestSuite):
 	def setUp(self):
 		self.create_customer("_Test Customer Credit")
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	@ERPNextTestSuite.change_settings(
 		"Stock Settings",
 		{

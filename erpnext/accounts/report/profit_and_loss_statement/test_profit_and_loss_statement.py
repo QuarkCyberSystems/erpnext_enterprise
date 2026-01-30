@@ -18,9 +18,6 @@ class TestProfitAndLossStatement(AccountsTestMixin, ERPNextTestSuite):
 		self.create_customer()
 		self.create_item()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def create_sales_invoice(self, qty=1, rate=150, no_payment_schedule=False, do_not_submit=False):
 		frappe.set_user("Administrator")
 		si = create_sales_invoice(

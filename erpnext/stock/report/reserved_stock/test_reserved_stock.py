@@ -20,10 +20,6 @@ class TestReservedStock(ERPNextTestSuite):
 		self.stock_qty = 100
 		self.warehouse = "_Test Warehouse - _TC"
 
-	def tearDown(self) -> None:
-		cancel_all_stock_reservation_entries()
-		return super().tearDown()
-
 	@ERPNextTestSuite.change_settings(
 		"Stock Settings",
 		{

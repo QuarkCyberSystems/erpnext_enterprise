@@ -86,9 +86,6 @@ class TestSalesInvoice(ERPNextTestSuite):
 			pi.submit()
 		self.assertIn("Rate must be same", str(e.exception))
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def make(self):
 		w = frappe.copy_doc(self.globalTestRecords["Sales Invoice"][0])
 		w.is_pos = 0

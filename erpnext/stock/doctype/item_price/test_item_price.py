@@ -195,6 +195,5 @@ class TestItemPrice(ERPNextTestSuite):
 		)
 
 		price = get_price_list_rate_for(ctx, doc.item_code)
-		frappe.db.rollback()
 
 		self.assertEqual(price, 21)

@@ -16,9 +16,6 @@ class TestAccountsReceivable(AccountsTestMixin, ERPNextTestSuite):
 		self.create_item()
 		self.clear_old_entries()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_01_receivable_summary_output(self):
 		"""
 		Test for Invoices, Paid, Advance and Outstanding

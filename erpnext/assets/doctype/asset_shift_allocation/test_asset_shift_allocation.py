@@ -17,10 +17,6 @@ class TestAssetShiftAllocation(ERPNextTestSuite):
 		super().setUpClass()
 		create_asset_shift_factors()
 
-	@classmethod
-	def tearDownClass(cls):
-		frappe.db.rollback()
-
 	def test_asset_shift_allocation(self):
 		asset = create_asset(
 			calculate_depreciation=1,

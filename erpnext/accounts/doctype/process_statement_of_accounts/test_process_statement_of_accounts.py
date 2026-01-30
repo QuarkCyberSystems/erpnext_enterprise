@@ -101,9 +101,6 @@ class TestProcessStatementOfAccounts(AccountsTestMixin, ERPNextTestSuite):
 		for age_range in expected_ageing:
 			self.assertEqual(expected_ageing[age_range], ageing.get(age_range))
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 
 def create_process_soa(**args):
 	args = frappe._dict(args)

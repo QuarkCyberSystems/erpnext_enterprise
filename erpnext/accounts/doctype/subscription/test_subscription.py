@@ -28,9 +28,6 @@ class TestSubscription(ERPNextTestSuite):
 		reset_settings()
 		frappe.db.set_value("Company", "_Test Company", "accounts_frozen_till_date", None)
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_create_subscription_with_trial_with_correct_period(self):
 		subscription = create_subscription(
 			trial_period_start=nowdate(), trial_period_end=add_months(nowdate(), 1)

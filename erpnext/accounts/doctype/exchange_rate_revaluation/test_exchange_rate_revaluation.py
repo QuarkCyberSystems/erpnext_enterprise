@@ -22,9 +22,6 @@ class TestExchangeRateRevaluation(AccountsTestMixin, ERPNextTestSuite):
 		self.clear_old_entries()
 		self.set_system_and_company_settings()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def set_system_and_company_settings(self):
 		# set number and currency precision
 		system_settings = frappe.get_doc("System Settings")

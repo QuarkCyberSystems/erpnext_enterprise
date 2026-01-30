@@ -60,10 +60,6 @@ class TestStockEntry(ERPNextTestSuite):
 	def setUp(self):
 		self.load_test_records("Stock Entry")
 
-	def tearDown(self):
-		frappe.db.rollback()
-		frappe.set_user("Administrator")
-
 	def test_stock_entry_qty(self):
 		item_code = "_Test Item 2"
 		warehouse = "_Test Warehouse - _TC"

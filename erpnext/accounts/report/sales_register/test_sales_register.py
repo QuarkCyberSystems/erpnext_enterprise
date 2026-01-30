@@ -14,9 +14,6 @@ class TestItemWiseSalesRegister(AccountsTestMixin, ERPNextTestSuite):
 		self.create_item()
 		self.create_child_cost_center()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def create_child_cost_center(self):
 		cc_name = "South Wing"
 		if frappe.db.exists("Cost Center", cc_name):

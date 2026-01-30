@@ -99,9 +99,6 @@ class TestPaymentRequest(ERPNextTestSuite):
 		self._get_payment_gateway_controller = _get_payment_gateway_controller.start()
 		self.addCleanup(_get_payment_gateway_controller.stop)
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_payment_request_linkings(self):
 		so_inr = make_sales_order(currency="INR", do_not_save=True)
 		so_inr.disable_rounded_total = 1

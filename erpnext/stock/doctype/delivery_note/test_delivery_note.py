@@ -930,9 +930,6 @@ class TestDeliveryNote(ERPNextTestSuite):
 		for _i, gle in enumerate(gl_entries):
 			self.assertEqual([gle.debit, gle.credit], expected_values.get(gle.account))
 
-		# tear down
-		frappe.db.rollback()
-
 	def test_closed_delivery_note(self):
 		from erpnext.stock.doctype.delivery_note.delivery_note import update_delivery_note_status
 
@@ -1579,10 +1576,6 @@ class TestDeliveryNote(ERPNextTestSuite):
 
 		# Test that item qty is not reserved on sales return, if selling setting don't reserve qty is checked.
 		self.assertEqual(get_reserved_qty(item, warehouse), 0 if dont_reserve_qty else qty_to_reserve)
-
-	def tearDown(self):
-		frappe.db.rollback()
-		frappe.db.set_single_value("Selling Settings", "dont_reserve_sales_order_qty_on_sales_return", 0)
 
 	def test_non_internal_transfer_delivery_note(self):
 		from erpnext.stock.doctype.warehouse.test_warehouse import create_warehouse

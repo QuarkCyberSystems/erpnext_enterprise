@@ -64,9 +64,6 @@ class TestEmployee(ERPNextTestSuite):
 		self.assertEqual(qb_employee_list, employee_list)
 		frappe.set_user("Administrator")
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 
 def make_employee(user, company=None, **kwargs):
 	if not frappe.db.get_value("User", user):

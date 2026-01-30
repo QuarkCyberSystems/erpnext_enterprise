@@ -40,10 +40,6 @@ class TestPOSClosingEntry(ERPNextTestSuite):
 		frappe.db.sql("delete from `tabPOS Opening Entry`")
 		make_stock_entry(target="_Test Warehouse - _TC", qty=2, basic_rate=100)
 
-	def tearDown(self):
-		frappe.set_user("Administrator")
-		frappe.db.sql("delete from `tabPOS Profile`")
-
 	def test_pos_closing_entry(self):
 		test_user, pos_profile = init_user_and_profile()
 		opening_entry = create_opening_entry(pos_profile, test_user.name)

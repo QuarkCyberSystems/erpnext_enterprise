@@ -17,19 +17,6 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestPlaidSettings(ERPNextTestSuite):
-	def setUp(self):
-		pass
-
-	def tearDown(self):
-		for bt in frappe.get_all("Bank Transaction"):
-			doc = frappe.get_doc("Bank Transaction", bt.name)
-			doc.cancel()
-			doc.delete()
-
-		for doctype in ("Bank Account", "Bank Account Type", "Bank Account Subtype"):
-			for d in frappe.get_all(doctype):
-				frappe.delete_doc(doctype, d.name, force=True)
-
 	def test_plaid_disabled(self):
 		frappe.db.set_single_value("Plaid Settings", "enabled", 0)
 		self.assertTrue(get_plaid_configuration() == "disabled")

@@ -28,9 +28,6 @@ class TestRepostAccountingLedger(AccountsTestMixin, ERPNextTestSuite):
 		self.create_item()
 		update_repost_settings()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_01_basic_functions(self):
 		si = create_sales_invoice(
 			item=self.item,

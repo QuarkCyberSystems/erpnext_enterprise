@@ -8,9 +8,6 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestPaymentTermsTemplate(ERPNextTestSuite):
-	def tearDown(self):
-		frappe.delete_doc("Payment Terms Template", "_Test Payment Terms Template For Test", force=1)
-
 	def test_create_template(self):
 		template = frappe.get_doc(
 			{

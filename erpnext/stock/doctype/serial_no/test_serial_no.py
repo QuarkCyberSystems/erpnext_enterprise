@@ -28,9 +28,6 @@ class TestSerialNo(ERPNextTestSuite):
 		super().setUpClass()
 		cls.load_test_records("Stock Entry")
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_cannot_create_direct(self):
 		frappe.delete_doc_if_exists("Serial No", "_TCSER0001")
 

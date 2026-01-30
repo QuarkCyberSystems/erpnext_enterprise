@@ -9,9 +9,6 @@ class TestManufacturingReports(ERPNextTestSuite):
 	def setUp(self):
 		self.setup_default_filters()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def setup_default_filters(self):
 		self.last_bom = frappe.get_last_doc("BOM").name
 		self.DEFAULT_FILTERS = {

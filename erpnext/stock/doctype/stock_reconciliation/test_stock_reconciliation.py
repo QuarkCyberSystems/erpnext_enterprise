@@ -43,9 +43,6 @@ class TestStockReconciliation(ERPNextTestSuite, StockTestMixin):
 		frappe.local.future_sle = {}
 		frappe.flags.pop("dont_execute_stock_reposts", None)
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_reco_for_fifo(self):
 		self._test_reco_sle_gle("FIFO")
 

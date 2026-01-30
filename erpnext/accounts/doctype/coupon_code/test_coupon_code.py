@@ -113,9 +113,6 @@ class TestCouponCode(ERPNextTestSuite):
 	def setUp(self):
 		test_create_test_data()
 
-	def tearDown(self):
-		frappe.set_user("Administrator")
-
 	def test_sales_order_with_coupon_code(self):
 		frappe.db.set_value("Coupon Code", "SAVE30", "used", 0)
 

@@ -126,12 +126,3 @@ class TestTaxes(ERPNextTestSuite):
 			doc.insert()
 			self.assertEqual(doc.taxes[0].tax_amount, 600)
 			self.created_docs.append(doc)
-
-	def tearDown(self):
-		for doc in self.created_docs:
-			doc.delete()
-		self.item.delete()
-		self.item_group.delete()
-		self.item_tax_template.delete()
-		self.account.delete()
-		self.company.delete()

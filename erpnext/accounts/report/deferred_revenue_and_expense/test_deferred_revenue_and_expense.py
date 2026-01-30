@@ -67,9 +67,6 @@ class TestDeferredRevenueAndExpense(ERPNextTestSuite, AccountsTestMixin):
 		self.setup_deferred_accounts_and_items()
 		self.clear_old_entries()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	@ERPNextTestSuite.change_settings("Accounts Settings", {"book_deferred_entries_based_on": "Months"})
 	def test_deferred_revenue(self):
 		self.create_item("_Test Internet Subscription", 0, self.warehouse, self.company)

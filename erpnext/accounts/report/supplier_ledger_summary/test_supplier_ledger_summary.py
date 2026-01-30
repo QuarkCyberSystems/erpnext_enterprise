@@ -14,9 +14,6 @@ class TestSupplierLedgerSummary(AccountsTestMixin, ERPNextTestSuite):
 		self.create_item()
 		self.clear_old_entries()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def create_purchase_invoice(self, do_not_submit=False):
 		frappe.set_user("Administrator")
 		pi = make_purchase_invoice(

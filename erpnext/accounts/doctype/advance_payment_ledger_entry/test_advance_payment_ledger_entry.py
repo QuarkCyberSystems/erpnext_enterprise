@@ -28,9 +28,6 @@ class TestAdvancePaymentLedgerEntry(AccountsTestMixin, ERPNextTestSuite):
 		self.create_item()
 		self.clear_old_entries()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def create_sales_order(self, qty=1, rate=100, currency="INR", do_not_submit=False):
 		"""
 		Helper method

@@ -150,7 +150,6 @@ class TestJournalEntry(ERPNextTestSuite):
 
 		if account_bal == stock_bal:
 			self.assertRaises(StockAccountInvalidTransaction, jv.save)
-			frappe.db.rollback()
 		else:
 			jv.submit()
 			jv.cancel()

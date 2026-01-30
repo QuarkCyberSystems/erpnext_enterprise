@@ -15,9 +15,6 @@ class TestGeneralAndPaymentLedger(ERPNextTestSuite, AccountsTestMixin):
 		self.create_company()
 		self.cleanup()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def cleanup(self):
 		doctypes = []
 		doctypes.append(qb.DocType("GL Entry"))

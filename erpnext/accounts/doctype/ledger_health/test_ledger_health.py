@@ -17,9 +17,6 @@ class TestLedgerHealth(AccountsTestMixin, ERPNextTestSuite):
 		self.configure_monitoring_tool()
 		self.clear_old_entries()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def configure_monitoring_tool(self):
 		monitor_settings = frappe.get_doc("Ledger Health Monitor")
 		monitor_settings.enable_health_monitor = True

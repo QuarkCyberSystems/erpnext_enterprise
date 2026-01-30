@@ -42,10 +42,6 @@ class TestWorkOrder(ERPNextTestSuite):
 		self.item = "_Test Item"
 		prepare_data_for_backflush_based_on_materials_transferred()
 
-	def tearDown(self):
-		frappe.local.future_sle = {}
-		frappe.db.rollback()
-
 	def check_planned_qty(self):
 		planned0 = (
 			frappe.db.get_value(

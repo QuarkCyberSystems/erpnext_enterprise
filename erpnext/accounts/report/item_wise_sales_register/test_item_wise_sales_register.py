@@ -13,9 +13,6 @@ class TestItemWiseSalesRegister(AccountsTestMixin, ERPNextTestSuite):
 		self.create_customer()
 		self.create_item()
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def create_sales_invoice(self, item=None, taxes=None, do_not_submit=False):
 		si = create_sales_invoice(
 			item=item or self.item,

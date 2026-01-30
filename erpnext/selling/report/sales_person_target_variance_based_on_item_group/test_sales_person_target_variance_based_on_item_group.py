@@ -13,9 +13,6 @@ class TestSalesPersonTargetVarianceBasedOnItemGroup(ERPNextTestSuite):
 	def setUp(self):
 		self.fiscal_year = get_fiscal_year(nowdate())[0]
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 	def test_achieved_target_and_variance(self):
 		# Create a Target Distribution
 		distribution = create_target_distribution(self.fiscal_year)

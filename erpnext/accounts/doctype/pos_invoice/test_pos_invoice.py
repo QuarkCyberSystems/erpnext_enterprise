@@ -46,9 +46,6 @@ class POSInvoiceTestMixin(ERPNextTestSuite):
 		mode_of_payment = frappe.get_doc("Mode of Payment", "Bank Draft")
 		set_default_account_for_mode_of_payment(mode_of_payment, "_Test Company", "_Test Bank - _TC")
 
-	def tearDown(self):
-		frappe.db.rollback()
-
 
 class TestPOSInvoice(POSInvoiceTestMixin):
 	def setUp(self):

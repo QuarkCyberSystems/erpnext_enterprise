@@ -24,10 +24,6 @@ class TestUtils(ERPNextTestSuite):
 		super().setUpClass()
 		make_test_objects("Address", ADDRESS_RECORDS)
 
-	@classmethod
-	def tearDownClass(cls):
-		frappe.db.rollback()
-
 	def test_get_party_shipping_address(self):
 		address = get_party_shipping_address("Customer", "_Test Customer 1")
 		self.assertEqual(address, "_Test Billing Address 2 Title-Billing")
