@@ -887,7 +887,7 @@ class TestItem(ERPNextTestSuite):
 		item.reload()
 		self.assertEqual(item.is_stock_item, 1)
 
-	def test_serach_fields_for_item(self):
+	def test_search_fields_for_item(self):
 		from erpnext.controllers.queries import item_query
 
 		make_property_setter("Item", None, "search_fields", "item_name", "Data", for_doctype="Doctype")

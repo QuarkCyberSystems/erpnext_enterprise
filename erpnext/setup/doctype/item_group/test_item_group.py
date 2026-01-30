@@ -15,7 +15,7 @@ from frappe.utils.nestedset import (
 from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestItem(ERPNextTestSuite):
+class TestItemGroup(ERPNextTestSuite):
 	def setUp(self):
 		self.load_test_records("Item Group")
 
