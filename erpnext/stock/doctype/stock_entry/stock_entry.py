@@ -258,6 +258,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 		self.validate_job_card_item()
 		self.set_purpose_for_stock_entry()
 		self.clean_serial_nos()
+		self.validate_repack_entry()
 
 		if not self.from_bom:
 			self.fg_completed_qty = 0.0
@@ -281,6 +282,20 @@ class StockEntry(StockController, SubcontractingInwardController):
 		self.validate_raw_materials_exists()
 
 		super().validate_subcontracting_inward()
+
+	def validate_repack_entry(self):
+		if self.purpose != "Repack":
+			return
+
+		fg_items = {row.item_code: row for row in self.items if row.is_finished_item}
+
+		if len(fg_items) > 1 and not all(row.set_basic_rate_manually for row in fg_items.values()):
+			frappe.throw(
+				_(
+					"When there are multiple finished goods ({0}) in a Repack stock entry, the basic rate for all finished goods must be set manually. To set rate manually, enable the checkbox 'Set Basic Rate Manually' in the respective finished good row."
+				).format(", ".join(fg_items)),
+				title=_("Set Basic Rate Manually"),
+			)
 
 	def validate_raw_materials_exists(self):
 		if self.purpose not in ["Manufacture", "Repack", "Disassemble"]:
