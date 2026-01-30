@@ -10,7 +10,7 @@ from frappe.utils import add_days, add_to_date, flt, now, nowtime, today
 from erpnext.accounts.doctype.account.test_account import create_account, get_inventory_account
 from erpnext.accounts.doctype.purchase_invoice.test_purchase_invoice import make_purchase_invoice
 from erpnext.accounts.utils import update_gl_entries_after
-from erpnext.assets.doctype.asset.test_asset import create_asset_category, create_fixed_asset_item
+from erpnext.assets.doctype.asset.test_asset import create_fixed_asset_item
 from erpnext.stock.doctype.delivery_note.test_delivery_note import create_delivery_note
 from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import (
 	get_gl_entries,
@@ -603,9 +603,6 @@ class TestLandedCostVoucher(ERPNextTestSuite):
 		frappe.db.set_value(
 			"Company", "_Test Company", "capital_work_in_progress_account", "CWIP Account - _TC"
 		)
-
-		if not frappe.db.exists("Asset Category", "Computers"):
-			create_asset_category()
 
 		if not frappe.db.exists("Item", "Macbook Pro"):
 			create_fixed_asset_item()

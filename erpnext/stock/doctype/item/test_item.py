@@ -169,9 +169,9 @@ class TestItem(ERPNextTestSuite):
 			self.assertEqual(value, details.get(key), key)
 
 	def test_get_asset_item_details(self):
-		from erpnext.assets.doctype.asset.test_asset import create_asset_category, create_fixed_asset_item
+		from erpnext.assets.doctype.asset.test_asset import create_fixed_asset_item
 
-		create_asset_category(0)
+		frappe.db.set_value("Asset Category", "Computers", "enable_cwip_accounting", 0)
 		create_fixed_asset_item()
 
 		details = get_item_details(
