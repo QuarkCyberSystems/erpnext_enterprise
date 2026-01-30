@@ -11,6 +11,7 @@ import frappe.defaults
 from frappe import _, qb, throw
 from frappe.desk.reportview import build_match_conditions
 from frappe.model.meta import get_field_precision
+from frappe.model.naming import determine_consecutive_week_number
 from frappe.query_builder import AliasedQuery, Case, Criterion, Field, Table
 from frappe.query_builder.functions import Count, IfNull, Max, Round, Sum
 from frappe.query_builder.utils import DocType
@@ -25,6 +26,7 @@ from frappe.utils import (
 	get_number_format_info,
 	getdate,
 	now,
+	now_datetime,
 	nowdate,
 )
 from frappe.utils.caching import site_cache
@@ -66,6 +68,7 @@ def get_fiscal_year(
 	as_dict=False,
 	boolean=None,
 	raise_on_missing=True,
+	truncate=False,
 ):
 	if isinstance(raise_on_missing, str):
 		raise_on_missing = loads(raise_on_missing)
@@ -79,7 +82,14 @@ def get_fiscal_year(
 	fiscal_years = get_fiscal_years(
 		date, fiscal_year, label, verbose, company, as_dict=as_dict, raise_on_missing=raise_on_missing
 	)
-	return False if not fiscal_years else fiscal_years[0]
+
+	if fiscal_years:
+		fiscal_year = fiscal_years[0]
+		if truncate:
+			return ("-".join(y[-2:] for y in fiscal_year[0].split("-")), fiscal_year[1], fiscal_year[2])
+		return fiscal_year
+
+	return False
 
 
 def get_fiscal_years(
@@ -1501,14 +1511,14 @@ def get_autoname_with_number(number_value, doc_title, company):
 
 
 def parse_naming_series_variable(doc, variable):
-	if variable == "FY":
+	if variable in ["FY", "TFY"]:
 		if doc:
 			date = doc.get("posting_date") or doc.get("transaction_date") or getdate()
 			company = doc.get("company")
 		else:
 			date = getdate()
 			company = None
-		return get_fiscal_year(date=date, company=company)[0]
+		return get_fiscal_year(date=date, company=company, truncate=variable == "TFY")[0]
 
 	elif variable == "ABBR":
 		if doc:
@@ -1517,6 +1527,18 @@ def parse_naming_series_variable(doc, variable):
 			company = frappe.db.get_default("company")
 
 		return frappe.db.get_value("Company", company, "abbr") if company else ""
+
+	else:
+		data = {"YY": "%y", "YYYY": "%Y", "MM": "%m", "DD": "%d", "JJJ": "%j"}
+		date = (
+			(
+				getdate(doc.get("posting_date") or doc.get("transaction_date") or doc.get("posting_datetime"))
+				or now_datetime()
+			)
+			if frappe.get_single_value("Global Defaults", "use_posting_datetime_for_naming_documents")
+			else now_datetime()
+		)
+		return date.strftime(data[variable]) if variable in data else determine_consecutive_week_number(date)
 
 
 @frappe.whitelist()
