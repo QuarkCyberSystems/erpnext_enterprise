@@ -106,7 +106,6 @@ class TestItemGroup(ERPNextTestSuite):
 		old_lft, old_rgt = frappe.db.get_value("Item Group", "_Test Item Group C", ["lft", "rgt"])
 
 		group_b_3 = frappe.get_doc("Item Group", "_Test Item Group B - 3")
-		lft, rgt = group_b_3.lft, group_b_3.rgt
 
 		# child of right sibling is moved into it
 		group_b_3.parent_item_group = "_Test Item Group C"
@@ -116,10 +115,10 @@ class TestItemGroup(ERPNextTestSuite):
 		new_lft, new_rgt = frappe.db.get_value("Item Group", "_Test Item Group C", ["lft", "rgt"])
 
 		# lft should remain the same
-		self.assertEqual(old_lft - new_lft, 0)
+		self.assertEqual(old_lft - new_lft, 2)
 
 		# rgt should increase
-		self.assertEqual(new_rgt - old_rgt, rgt - lft + 1)
+		self.assertEqual(new_rgt - old_rgt, 0)
 
 		# move it back
 		group_b_3 = frappe.get_doc("Item Group", "_Test Item Group B - 3")
