@@ -43,15 +43,13 @@ def create_product_bundle(
 class TestPackedItem(ERPNextTestSuite):
 	"Test impact on Packed Items table in various scenarios."
 
-	@classmethod
-	def setUpClass(cls) -> None:
-		super().setUpClass()
-		cls.warehouse = "_Test Warehouse - _TC"
+	def setUp(self) -> None:
+		self.warehouse = "_Test Warehouse - _TC"
 
-		cls.bundle, cls.bundle_items = create_product_bundle(warehouse=cls.warehouse)
-		cls.bundle2, cls.bundle2_items = create_product_bundle(warehouse=cls.warehouse)
+		self.bundle, self.bundle_items = create_product_bundle(warehouse=self.warehouse)
+		self.bundle2, self.bundle2_items = create_product_bundle(warehouse=self.warehouse)
 
-		cls.normal_item = make_item().name
+		self.normal_item = make_item().name
 
 	def test_adding_bundle_item(self):
 		"Test impact on packed items if bundle item row is added."
