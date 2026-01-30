@@ -934,7 +934,7 @@ class TestQuotation(IntegrationTestCase):
 		# item code same but description different
 		make_item("_Test Item 2", {"is_stock_item": 1})
 
-		quotation = make_quotation(qty=1, rate=100, do_not_submit=1)
+		quotation = make_quotation(qty=10, rate=100, do_not_submit=1)
 
 		# duplicate items
 		for qty in [1, 1, 2, 3]:
@@ -948,7 +948,7 @@ class TestQuotation(IntegrationTestCase):
 		sales_order.delivery_date = nowdate()
 
 		self.assertEqual(len(sales_order.items), 6)
-		self.assertEqual(sales_order.items[0].qty, 1)
+		self.assertEqual(sales_order.items[0].qty, 10)
 		self.assertEqual(sales_order.items[-1].qty, 5)
 
 		# Row 1: 10, Row 4: 1, Row 5: 1
