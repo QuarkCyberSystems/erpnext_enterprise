@@ -388,6 +388,7 @@ class TestGrossProfit(ERPNextTestSuite):
 		report_output = {k: v for k, v in gp_entry[0].items() if k in expected_entry}
 		self.assertEqual(report_output, expected_entry)
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": True})
 	def test_crnote_against_invoice_with_multiple_instances_of_same_item(self):
 		"""
 		Item Qty for Sales Invoices with multiple instances of same item go in the -ve. Ideally, the credit noteshould cancel out the invoice items.
