@@ -1070,7 +1070,7 @@ frappe.form.link_formatters["Project"] = function (value, doc, df) {
  */
 function add_link_title(value, doc, df, title_field) {
 	if (doc.doctype != df.parent) {
-		return "";
+		return value;
 	} else if (
 		doc &&
 		value &&
