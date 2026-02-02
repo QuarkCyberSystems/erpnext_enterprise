@@ -75,6 +75,7 @@ class TestSubcontractingController(ERPNextTestSuite):
 		sco.create_raw_materials_supplied_or_received()
 		self.assertIsNotNone(sco.supplied_items)
 
+	@ERPNextTestSuite.change_settings("Buying Settings", {"allow_multiple_items": 1})
 	def test_sco_with_bom(self):
 		"""
 		- Set backflush based on BOM.
@@ -741,6 +742,7 @@ class TestSubcontractingController(ERPNextTestSuite):
 					"doctype": "Serial No",
 					"item_code": "Subcontracted SRM Item 2",
 					"serial_no": serial_no,
+					"company": self.companies[0].name,
 				}
 			).insert()
 
