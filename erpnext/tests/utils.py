@@ -257,6 +257,7 @@ class ERPNextTestSuite(unittest.TestCase):
 		cls.make_leads()
 		cls.make_sales_person()
 		cls.make_activity_type()
+		cls.make_address()
 		cls.update_selling_settings()
 		cls.update_stock_settings()
 		cls.update_system_settings()
@@ -3342,6 +3343,75 @@ class ERPNextTestSuite(unittest.TestCase):
 						],
 					}
 				).insert(ignore_permissions=True)
+
+	@classmethod
+	def make_address(cls):
+		records = [
+			{
+				"doctype": "Address",
+				"address_type": "Billing",
+				"address_line1": "Address line 1",
+				"address_title": "_Test Billing Address Title",
+				"city": "Lagos",
+				"country": "Nigeria",
+				"links": [
+					{"link_doctype": "Customer", "link_name": "_Test Customer 2", "doctype": "Dynamic Link"}
+				],
+			},
+			{
+				"doctype": "Address",
+				"address_type": "Shipping",
+				"address_line1": "Address line 2",
+				"address_title": "_Test Shipping Address 1 Title",
+				"city": "Lagos",
+				"country": "Nigeria",
+				"links": [
+					{"link_doctype": "Customer", "link_name": "_Test Customer 2", "doctype": "Dynamic Link"}
+				],
+			},
+			{
+				"doctype": "Address",
+				"address_type": "Shipping",
+				"address_line1": "Address line 3",
+				"address_title": "_Test Shipping Address 2 Title",
+				"city": "Lagos",
+				"country": "Nigeria",
+				"is_shipping_address": "1",
+				"links": [
+					{"link_doctype": "Customer", "link_name": "_Test Customer 2", "doctype": "Dynamic Link"}
+				],
+			},
+			{
+				"doctype": "Address",
+				"address_type": "Billing",
+				"address_line1": "Address line 4",
+				"address_title": "_Test Billing Address 2 Title",
+				"city": "Lagos",
+				"country": "Nigeria",
+				"is_shipping_address": "1",
+				"links": [
+					{"link_doctype": "Customer", "link_name": "_Test Customer 1", "doctype": "Dynamic Link"}
+				],
+			},
+		]
+		cls.address = []
+		for x in records:
+			if not frappe.db.exists(
+				"Address",
+				{
+					"address_title": x.get("address_title"),
+				},
+			):
+				cls.address.append(frappe.get_doc(x).insert())
+			else:
+				cls.address.append(
+					frappe.get_doc(
+						"Address",
+						{
+							"address_title": x.get("address_title"),
+						},
+					)
+				)
 
 	@contextmanager
 	def set_user(self, user: str):
