@@ -16,6 +16,8 @@ from erpnext.tests.utils import ERPNextTestSuite
 class TestRequestedItemsToOrderAndReceive(ERPNextTestSuite):
 	def setUp(self) -> None:
 		create_item("Test MR Report Item")
+		self.load_test_records("Material Request")
+		frappe.db.set_single_value("Buying Settings", "allow_multiple_items", 1)
 		self.setup_material_request()  # to order and receive
 		self.setup_material_request(order=True, days=1)  # to receive (ordered)
 		self.setup_material_request(order=True, receive=True, days=2)  # complete (ordered & received)
