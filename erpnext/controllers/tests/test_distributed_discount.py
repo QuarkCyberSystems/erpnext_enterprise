@@ -5,6 +5,7 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestTaxesAndTotals(AccountsTestMixin, ERPNextTestSuite):
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": 1})
 	def test_distributed_discount_amount(self):
 		so = make_sales_order(do_not_save=1)
 		so.apply_discount_on = "Net Total"
@@ -26,6 +27,7 @@ class TestTaxesAndTotals(AccountsTestMixin, ERPNextTestSuite):
 		self.assertEqual(so.net_total, 1400)
 		self.assertEqual(so.grand_total, 1400)
 
+	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": 1})
 	def test_distributed_discount_amount_with_taxes(self):
 		so = make_sales_order(do_not_save=1)
 		so.apply_discount_on = "Grand Total"
