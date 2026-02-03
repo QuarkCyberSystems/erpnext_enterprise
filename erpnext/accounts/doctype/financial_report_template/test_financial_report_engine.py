@@ -1939,6 +1939,8 @@ class TestFinancialQueryBuilder(FinancialReportTemplateTestCase):
 				"April opening should equal March closing balance",
 			)
 
+			self.assertEqual(apr_cash.closing, apr_cash.opening, "April closing = opening when no movement")
+
 		finally:
 			# Clean up
 			frappe.db.set_single_value(
@@ -1954,3 +1956,77 @@ class TestFinancialQueryBuilder(FinancialReportTemplateTestCase):
 					pcv.cancel()
 
 			jv_2023.cancel()
+
+	def test_account_with_gl_entries_but_no_prior_closing_balance(self):
+		company = "_Test Company"
+		cash_account = "_Test Cash - _TC"
+		bank_account = "_Test Bank - _TC"
+
+		# Create journal entries WITHOUT any prior Period Closing Voucher
+		# This ensures the account exists in gl_dict but NOT in balances_data
+		jv = make_journal_entry(
+			account1=cash_account,
+			account2=bank_account,
+			amount=2500,
+			posting_date="2024-07-15",
+			company=company,
+			submit=True,
+		)
+
+		try:
+			# Set up filters - use a period with no prior PCV
+			filters = {
+				"company": company,
+				"from_fiscal_year": "2024",
+				"to_fiscal_year": "2024",
+				"period_start_date": "2024-07-01",
+				"period_end_date": "2024-09-30",
+				"filter_based_on": "Date Range",
+				"periodicity": "Monthly",
+			}
+
+			periods = [
+				{"key": "2024_jul", "from_date": "2024-07-01", "to_date": "2024-07-31"},
+				{"key": "2024_aug", "from_date": "2024-08-01", "to_date": "2024-08-31"},
+				{"key": "2024_sep", "from_date": "2024-09-01", "to_date": "2024-09-30"},
+			]
+
+			query_builder = FinancialQueryBuilder(filters, periods)
+
+			# Use accounts that have GL entries but may not have Account Closing Balance
+			accounts = [
+				frappe._dict({"name": cash_account, "account_name": "Cash", "account_number": "1001"}),
+				frappe._dict({"name": bank_account, "account_name": "Bank", "account_number": "1002"}),
+			]
+
+			balances_data = query_builder.fetch_account_balances(accounts)
+
+			# Verify accounts are present in results even without prior closing balance
+			cash_data = balances_data.get(cash_account)
+			self.assertIsNotNone(cash_data, "Cash account should exist in results")
+
+			bank_data = balances_data.get(bank_account)
+			self.assertIsNotNone(bank_data, "Bank account should exist in results")
+
+			# Verify July has the movement from journal entry
+			jul_cash = cash_data.get_period("2024_jul")
+			self.assertIsNotNone(jul_cash, "July period should exist for cash")
+			self.assertEqual(jul_cash.movement, 2500.0, "July cash movement should be 2500")
+
+			jul_bank = bank_data.get_period("2024_jul")
+			self.assertIsNotNone(jul_bank, "July period should exist for bank")
+			self.assertEqual(jul_bank.movement, -2500.0, "July bank movement should be -2500")
+
+			# Verify subsequent periods exist with zero movement
+			aug_cash = cash_data.get_period("2024_aug")
+			self.assertIsNotNone(aug_cash, "August period should exist for cash")
+			self.assertEqual(aug_cash.movement, 0.0, "August cash movement should be 0")
+			self.assertEqual(aug_cash.opening, jul_cash.closing, "August opening = July closing")
+
+			sep_cash = cash_data.get_period("2024_sep")
+			self.assertIsNotNone(sep_cash, "September period should exist for cash")
+			self.assertEqual(sep_cash.movement, 0.0, "September cash movement should be 0")
+			self.assertEqual(sep_cash.opening, aug_cash.closing, "September opening = August closing")
+
+		finally:
+			jv.cancel()
