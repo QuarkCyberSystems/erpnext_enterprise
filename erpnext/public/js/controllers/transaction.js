@@ -1733,13 +1733,11 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 
 		this.frm.set_currency_labels(
 			[
+				"advance_paid",
 				"base_total",
 				"base_net_total",
 				"base_total_taxes_and_charges",
 				"base_discount_amount",
-				"base_grand_total",
-				"base_rounded_total",
-				"base_in_words",
 				"base_taxes_and_charges_added",
 				"base_taxes_and_charges_deducted",
 				"total_amount_to_pay",
@@ -1750,7 +1748,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 				"base_raw_material_cost",
 				"base_total_cost",
 				"base_scrap_material_cost",
-				"base_rounding_adjustment",
+				"base_totals_section",
 			],
 			company_currency
 		);
@@ -1761,19 +1759,16 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 				"net_total",
 				"total_taxes_and_charges",
 				"discount_amount",
-				"grand_total",
 				"taxes_and_charges_added",
 				"taxes_and_charges_deducted",
 				"tax_withholding_net_total",
-				"rounded_total",
-				"in_words",
 				"paid_amount",
 				"write_off_amount",
 				"operating_cost",
 				"scrap_material_cost",
-				"rounding_adjustment",
 				"raw_material_cost",
 				"total_cost",
+				"totals_section",
 			],
 			this.frm.doc.currency
 		);
@@ -1826,6 +1821,19 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 			["plc_conversion_rate", "price_list_currency"],
 			this.frm.doc.price_list_currency != company_currency
 		);
+
+		let taxes_fields = [
+			"total_taxes_and_charges",
+			"taxes_and_charges_deducted",
+			"taxes_and_charges_added",
+			"base_taxes_and_charges_added",
+			"base_taxes_and_charges_deducted",
+			"base_total_taxes_and_charges",
+		];
+
+		taxes_fields.forEach((field) => {
+			this.frm.toggle_display(field, this.frm.doc[field] !== 0 || this.frm.doc.docstatus !== 1);
+		});
 
 		let show =
 			cint(this.frm.doc.discount_amount) ||
