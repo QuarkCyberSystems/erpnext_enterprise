@@ -81,13 +81,13 @@ frappe.ui.form.on("Asset", {
 	},
 
 	before_submit: function (frm) {
-		if (frm.doc.is_composite_asset && !frm.has_active_capitalization) {
+		if (frm.doc.asset_type == "Composite Asset" && !frm.has_active_capitalization) {
 			frappe.throw(__("Please capitalize this asset before submitting."));
 		}
 	},
 
 	refresh: function (frm) {
-		frappe.ui.form.trigger("Asset", "is_existing_asset");
+		frappe.ui.form.trigger("Asset", "asset_type");
 		frm.toggle_display("next_depreciation_date", frm.doc.docstatus < 1);
 
 		if (frm.doc.docstatus == 1) {
@@ -167,7 +167,7 @@ frappe.ui.form.on("Asset", {
 				);
 			}
 
-			if (frm.doc.purchase_receipt || !frm.doc.is_existing_asset) {
+			if (frm.doc.purchase_receipt || !frm.doc.asset_type == "Existing Asset") {
 				frm.add_custom_button(
 					__("View General Ledger"),
 					function () {
@@ -195,7 +195,7 @@ frappe.ui.form.on("Asset", {
 		if (frm.doc.docstatus == 0) {
 			frm.toggle_reqd("finance_books", frm.doc.calculate_depreciation);
 
-			if (frm.doc.is_composite_asset) {
+			if (frm.doc.asset_type == "Composite Asset") {
 				frappe.call({
 					method: "erpnext.assets.doctype.asset.asset.has_active_capitalization",
 					args: {
@@ -232,7 +232,8 @@ frappe.ui.form.on("Asset", {
 
 	toggle_reference_doc: function (frm) {
 		const is_submitted = frm.doc.docstatus === 1;
-		const is_special_asset = frm.doc.is_existing_asset || frm.doc.is_composite_asset;
+		const is_special_asset =
+			frm.doc.asset_type == "Existing Asset" || frm.doc.asset_type == "Composite Asset";
 
 		const clear_field = (field) => {
 			if (frm.doc[field]) {
@@ -508,18 +509,13 @@ frappe.ui.form.on("Asset", {
 		});
 	},
 
-	is_existing_asset: function (frm) {
-		frm.trigger("toggle_reference_doc");
-	},
-
-	is_composite_asset: function (frm) {
+	asset_type: function (frm) {
 		if (frm.doc.docstatus == 0) {
-			if (frm.doc.is_composite_asset) {
+			if (frm.doc.asset_type == "Composite Asset") {
 				frm.set_value("net_purchase_amount", 0);
 			} else {
 				frm.set_df_property("net_purchase_amount", "read_only", 0);
 			}
-			frm.trigger("toggle_reference_doc");
 		}
 	},
 

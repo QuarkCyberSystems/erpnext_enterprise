@@ -61,7 +61,7 @@ class TestAssetCapitalization(IntegrationTestCase):
 
 		wip_composite_asset = create_asset(
 			asset_name="Asset Capitalization WIP Composite Asset",
-			is_composite_asset=1,
+			asset_type="Composite Asset",
 			warehouse="Stores - TCP1",
 			company=company,
 		)
@@ -156,7 +156,7 @@ class TestAssetCapitalization(IntegrationTestCase):
 
 		wip_composite_asset = create_asset(
 			asset_name="Asset Capitalization WIP Composite Asset",
-			is_composite_asset=1,
+			asset_type="Composite Asset",
 			warehouse="Stores - TCP1",
 			company=company,
 		)
@@ -245,7 +245,7 @@ class TestAssetCapitalization(IntegrationTestCase):
 
 		wip_composite_asset = create_asset(
 			asset_name="Asset Capitalization WIP Composite Asset",
-			is_composite_asset=1,
+			asset_type="Composite Asset",
 			warehouse="Stores - TCP1",
 			company=company,
 		)
@@ -313,7 +313,7 @@ class TestAssetCapitalization(IntegrationTestCase):
 
 		wip_composite_asset = create_asset(
 			asset_name="Asset Capitalization WIP Composite Asset",
-			is_composite_asset=1,
+			asset_type="Composite Asset",
 			warehouse="Stores - TCP1",
 			company=company,
 		)
@@ -361,7 +361,7 @@ class TestAssetCapitalization(IntegrationTestCase):
 
 		wip_composite_asset = create_asset(
 			asset_name="Asset Capitalization WIP Composite Asset",
-			is_composite_asset=1,
+			asset_type="Composite Asset",
 			warehouse="Stores - TCP1",
 			company=company,
 		)
@@ -373,7 +373,7 @@ class TestAssetCapitalization(IntegrationTestCase):
 			asset_value=consumed_asset_value,
 			submit=1,
 			warehouse="Stores - _TC",
-			is_composite_component=1,
+			asset_type="Composite Component",
 			company=company,
 		)
 
@@ -516,7 +516,7 @@ def create_depreciation_asset(**args):
 	args = frappe._dict(args)
 
 	asset = frappe.new_doc("Asset")
-	asset.is_existing_asset = 1
+	asset.asset_type = args.asset_type or "Existing Asset"
 	asset.calculate_depreciation = 1
 	asset.asset_owner = "Company"
 

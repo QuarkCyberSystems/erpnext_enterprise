@@ -41,7 +41,7 @@ erpnext.assets.AssetCapitalization = class AssetCapitalization extends erpnext.s
 
 		me.frm.set_query("target_asset", function () {
 			return {
-				filters: { is_composite_asset: 1, docstatus: 0 },
+				filters: { asset_type: "Composite Asset", docstatus: 0 },
 			};
 		});
 

@@ -205,7 +205,7 @@ class AssetCapitalization(StockController):
 		if self.target_asset:
 			target_asset = self.get_asset_for_validation(self.target_asset)
 
-			if not target_asset.is_composite_asset:
+			if not target_asset.asset_type == "Composite Asset":
 				frappe.throw(_("Target Asset {0} needs to be composite asset").format(target_asset.name))
 
 			if target_asset.item_code != self.target_item_code:
@@ -314,7 +314,7 @@ class AssetCapitalization(StockController):
 		return frappe.db.get_value(
 			"Asset",
 			asset,
-			["name", "item_code", "company", "status", "docstatus", "is_composite_asset"],
+			["name", "item_code", "company", "status", "docstatus", "asset_type"],
 			as_dict=1,
 		)
 
@@ -489,7 +489,7 @@ class AssetCapitalization(StockController):
 		for item in self.asset_items:
 			asset = frappe.get_doc("Asset", item.asset)
 
-			if not asset.is_composite_component:
+			if asset.asset_type != "Composite Component":
 				if asset.calculate_depreciation:
 					notes = _(
 						"This schedule was created when Asset {0} was consumed through Asset Capitalization {1}."
@@ -542,8 +542,8 @@ class AssetCapitalization(StockController):
 	def get_composite_component_value(self):
 		composite_component_value = 0
 		for item in self.asset_items:
-			asset = frappe.db.get_value("Asset", item.asset, ["is_composite_component"], as_dict=True)
-			if asset and asset.is_composite_component:
+			asset = frappe.db.get_value("Asset", item.asset, ["asset_type"], as_dict=True)
+			if asset and asset.asset_type == "Composite Component":
 				composite_component_value += flt(item.asset_value, item.precision("asset_value"))
 		return composite_component_value
 
