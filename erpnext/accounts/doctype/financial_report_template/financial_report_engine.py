@@ -541,7 +541,7 @@ class FinancialQueryBuilder:
 			.where(acb_table.period_closing_voucher == closing_voucher)
 		)
 
-		query = self._apply_standard_filters(query, acb_table)
+		query = self._apply_standard_filters(query, acb_table, "Account Closing Balance")
 		results = self._execute_with_permissions(query, "Account Closing Balance")
 
 		for row in results:
@@ -679,12 +679,12 @@ class FinancialQueryBuilder:
 			else:
 				account_data.unaccumulate_values()
 
-	def _apply_standard_filters(self, query, table):
+	def _apply_standard_filters(self, query, table, doctype: str = "GL Entry"):
 		if self.filters.get("ignore_closing_entries"):
-			if hasattr(table, "is_period_closing_voucher_entry"):
-				query = query.where(table.is_period_closing_voucher_entry == 0)
-			else:
+			if doctype == "GL Entry":
 				query = query.where(table.voucher_type != "Period Closing Voucher")
+			else:
+				query = query.where(table.is_period_closing_voucher_entry == 0)
 
 		if self.filters.get("project"):
 			projects = self.filters.get("project")
