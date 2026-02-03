@@ -440,6 +440,8 @@ class SerialandBatchBundle(Document):
 			)
 
 	def get_valuation_rate_for_return_entry(self, return_against):
+		from erpnext.controllers.sales_and_purchase_return import get_warehouses_for_return
+
 		if not self.voucher_detail_no:
 			return {}
 
@@ -469,9 +471,11 @@ class SerialandBatchBundle(Document):
 			["Serial and Batch Bundle", "voucher_detail_no", "=", return_against_voucher_detail_no],
 		]
 
+		# Added to handle rejected warehouse case
 		if self.voucher_type in ["Purchase Receipt", "Purchase Invoice"]:
-			# Added to handle rejected warehouse case
-			filters.append(["Serial and Batch Entry", "warehouse", "=", self.warehouse])
+			warehouses = get_warehouses_for_return(self.voucher_type, return_against_voucher_detail_no)
+			if self.warehouse in warehouses:
+				filters.append(["Serial and Batch Entry", "warehouse", "=", self.warehouse])
 
 		bundle_data = frappe.get_all(
 			"Serial and Batch Bundle",
