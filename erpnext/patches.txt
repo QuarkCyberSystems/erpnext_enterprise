@@ -458,9 +458,6 @@ erpnext.patches.v16_0.update_corrected_cancelled_status
 erpnext.patches.v16_0.fix_barcode_typo
 erpnext.patches.v16_0.set_post_change_gl_entries_on_pos_settings
 execute:frappe.delete_doc_if_exists("Workspace Sidebar", "Opening & Closing")
-<<<<<<< HEAD
 erpnext.patches.v15_0.create_accounting_dimensions_in_advance_taxes_and_charges
 erpnext.patches.v16_0.set_ordered_qty_in_quotation_item
-=======
 erpnext.patches.v16_0.migrate_transaction_deletion_task_flags_to_status # 2
->>>>>>> 0fb37ad792 (feat(Transaction Deletion Record): Editable "DocTypes To Delete" List with CSV import/export (#50592))
