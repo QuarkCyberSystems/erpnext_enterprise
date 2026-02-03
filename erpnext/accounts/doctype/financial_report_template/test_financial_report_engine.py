@@ -1882,7 +1882,7 @@ class TestFinancialQueryBuilder(FinancialReportTemplateTestCase):
 			self.assertEqual(
 				jan_cash.opening,
 				5000.0,
-				"January opening should include balance from 2023 (5000 or more)",
+				"January opening should equal to balance from 2023 (5000)",
 			)
 
 			# Verify running balance logic
