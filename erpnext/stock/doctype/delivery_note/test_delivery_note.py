@@ -1101,7 +1101,8 @@ class TestDeliveryNote(IntegrationTestCase):
 
 		self.assertEqual(dn2.get("items")[0].billed_amt, 400)
 		self.assertEqual(dn2.per_billed, 80)
-		self.assertEqual(dn2.status, "To Bill")
+		# Since 20% of DN2 is yet to be billed, it should be classified as partially billed.
+		self.assertEqual(dn2.status, "Partially Billed")
 
 	def test_dn_billing_status_case4(self):
 		# SO -> SI -> DN
