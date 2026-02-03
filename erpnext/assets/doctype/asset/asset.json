@@ -10,16 +10,16 @@
  "field_order": [
   "naming_series",
   "item_code",
-  "item_name",
   "asset_name",
   "asset_category",
   "location",
   "image",
   "column_break_3",
-  "status",
   "company",
   "asset_owner",
   "asset_owner_company",
+  "customer",
+  "supplier",
   "is_existing_asset",
   "is_composite_asset",
   "is_composite_component",
@@ -30,13 +30,13 @@
   "purchase_invoice_item",
   "purchase_date",
   "available_for_use_date",
+  "disposal_date",
   "column_break_23",
   "net_purchase_amount",
   "purchase_amount",
   "asset_quantity",
   "additional_asset_cost",
   "total_asset_cost",
-  "disposal_date",
   "depreciation_tab",
   "calculate_depreciation",
   "column_break_33",
@@ -66,12 +66,11 @@
   "accounting_dimensions_section",
   "cost_center",
   "section_break_jtou",
+  "status",
   "custodian",
   "default_finance_book",
   "depr_entry_posting_status",
   "booked_fixed_asset",
-  "customer",
-  "supplier",
   "column_break_51",
   "department",
   "split_from",
@@ -105,13 +104,6 @@
    "label": "Item Code",
    "options": "Item",
    "reqd": 1
-  },
-  {
-   "depends_on": "item_code",
-   "fetch_from": "item_code.item_name",
-   "fieldname": "item_name",
-   "fieldtype": "Read Only",
-   "label": "Item Name"
   },
   {
    "depends_on": "item_code",
@@ -229,7 +221,7 @@
   {
    "fieldname": "available_for_use_date",
    "fieldtype": "Date",
-   "label": "Available-for-use Date",
+   "label": "Available for Use Date",
    "mandatory_depends_on": "eval:(!(doc.is_composite_component || doc.is_composite_asset) || doc.docstatus==1)"
   },
   {
@@ -257,6 +249,7 @@
    "columns": 10,
    "fieldname": "finance_books",
    "fieldtype": "Table",
+   "label": "Finance Books",
    "options": "Asset Finance Book"
   },
   {
@@ -415,8 +408,7 @@
   {
    "depends_on": "calculate_depreciation",
    "fieldname": "section_break_36",
-   "fieldtype": "Section Break",
-   "label": "Finance Books"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "split_from",
@@ -601,7 +593,7 @@
    "link_fieldname": "target_asset"
   }
  ],
- "modified": "2025-12-18 16:36:40.904246",
+ "modified": "2026-02-03 15:29:21.504376",
  "modified_by": "Administrator",
  "module": "Assets",
  "name": "Asset",

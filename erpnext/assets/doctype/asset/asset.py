@@ -81,7 +81,6 @@ class Asset(AccountsController):
 		is_existing_asset: DF.Check
 		is_fully_depreciated: DF.Check
 		item_code: DF.Link
-		item_name: DF.ReadOnly | None
 		journal_entry_for_scrap: DF.Link | None
 		location: DF.Link
 		maintenance_required: DF.Check
