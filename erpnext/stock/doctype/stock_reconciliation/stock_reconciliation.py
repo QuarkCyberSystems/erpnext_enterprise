@@ -525,7 +525,7 @@ class StockReconciliation(StockController):
 
 			float_precision = frappe.db.get_default("float_precision") or 3
 			item_dict["rate"] = flt(item_dict.get("rate"), float_precision)
-			item.valuation_rate = flt(item.valuation_rate, float_precision)
+			item.valuation_rate = flt(item.valuation_rate, float_precision) if item.valuation_rate else None
 			if (
 				(item.qty is None or item.qty == item_dict.get("qty"))
 				and (item.valuation_rate is None or item.valuation_rate == item_dict.get("rate"))
