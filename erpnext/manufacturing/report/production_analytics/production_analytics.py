@@ -51,7 +51,7 @@ def get_work_orders(filters):
 
 def get_data(filters, columns):
 	ranges = build_ranges(filters)
-	period_labels = [pd for _fd, _td, pd in ranges]
+	period_labels = [scrub(pd) for _fd, _td, pd in ranges]
 	periodic_data = {status: {pd: 0 for pd in period_labels} for status in WORK_ORDER_STATUS_LIST}
 	entries = get_work_orders(filters)
 
@@ -60,12 +60,12 @@ def get_data(filters, columns):
 			if not d.actual_end_date:
 				continue
 
-			if period := get_period_for_date(getdate(d.actual_end_date), ranges):
+			if period := scrub(get_period_for_date(getdate(d.actual_end_date), ranges)):
 				periodic_data["Completed"][period] += 1
 			continue
 
 		creation_date = getdate(d.creation)
-		period = get_period_for_date(creation_date, ranges)
+		period = scrub(get_period_for_date(creation_date, ranges))
 		if not period:
 			continue
 
@@ -80,8 +80,8 @@ def get_data(filters, columns):
 	data = []
 	for status in WORK_ORDER_STATUS_LIST:
 		row = {"status": _(status)}
-		for _fd, _td, pd in ranges:
-			row[scrub(pd)] = periodic_data[status].get(pd, 0)
+		for _fd, _td, period in ranges:
+			row[scrub(period)] = periodic_data[status].get(scrub(period), 0)
 		data.append(row)
 
 	chart = get_chart_data(periodic_data, columns)
@@ -104,11 +104,12 @@ def build_ranges(filters):
 
 
 def get_chart_data(periodic_data, columns):
-	labels = [d.get("label") for d in columns[1:]]
+	period_labels = [d.get("label") for d in columns[1:]]
+	period_fieldnames = [d.get("fieldname") for d in columns[1:]]
 
 	datasets = []
 	for status in WORK_ORDER_STATUS_LIST:
-		values = [periodic_data.get(status, {}).get(label, 0) for label in labels]
+		values = [periodic_data.get(status, {}).get(fieldname, 0) for fieldname in period_fieldnames]
 		datasets.append({"name": _(status), "values": values})
 
-	return {"data": {"labels": labels, "datasets": datasets}, "type": "line"}
+	return {"data": {"labels": period_labels, "datasets": datasets}, "type": "line"}
