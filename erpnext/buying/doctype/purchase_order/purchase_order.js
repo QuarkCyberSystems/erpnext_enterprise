@@ -803,7 +803,7 @@ frappe.ui.form.on("Purchase Order", "is_subcontracted", function (frm) {
 
 function prevent_past_schedule_dates(frm) {
 	if (frm.doc.transaction_date) {
-		frm.fields_dict["schedule_date"].datepicker.update({
+		frm.fields_dict["schedule_date"].datepicker?.update({
 			minDate: new Date(frm.doc.transaction_date),
 		});
 	}

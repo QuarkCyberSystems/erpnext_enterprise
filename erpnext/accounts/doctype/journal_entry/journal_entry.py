@@ -1691,6 +1691,10 @@ def get_exchange_rate(
 	credit=None,
 	exchange_rate=None,
 ):
+	# Ensure exchange_rate is always numeric to avoid calculation errors
+	if isinstance(exchange_rate, str):
+		exchange_rate = flt(exchange_rate) or 1
+
 	account_details = frappe.get_cached_value(
 		"Account", account, ["account_type", "root_type", "account_currency", "company"], as_dict=1
 	)
