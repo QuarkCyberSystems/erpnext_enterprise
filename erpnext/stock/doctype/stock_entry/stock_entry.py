@@ -971,6 +971,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 
 		precision = frappe.get_precision("Stock Entry Detail", "qty")
 		for item_code, details in raw_materials.items():
+			item_code = item_code[0] if type(item_code) == tuple else item_code
 			if matched_item := self.get_matched_items(item_code):
 				if flt(details.get("qty"), precision) != flt(matched_item.qty, precision):
 					frappe.throw(
