@@ -704,6 +704,7 @@
   },
   {
    "default": "0",
+   "depends_on": "eval:doc.items.every((item) => !item.dn_detail)",
    "fieldname": "update_stock",
    "fieldtype": "Check",
    "hide_days": 1,
@@ -2306,7 +2307,11 @@
    "link_fieldname": "consolidated_invoice"
   }
  ],
+<<<<<<< HEAD
  "modified": "2026-02-03 14:09:44.347133",
+=======
+ "modified": "2026-02-05 20:43:44.732805",
+>>>>>>> 5fb5b7b30e (fix: do not show update stock flag unneccessarily)
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Sales Invoice",
