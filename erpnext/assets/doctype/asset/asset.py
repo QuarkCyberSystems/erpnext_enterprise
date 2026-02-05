@@ -68,7 +68,9 @@ class Asset(AccountsController):
 		default_finance_book: DF.Link | None
 		department: DF.Link | None
 		depr_entry_posting_status: DF.Literal["", "Successful", "Failed"]
-		depreciation_method: DF.Literal["", "Straight Line", "Double Declining Balance", "Manual"]
+		depreciation_method: DF.Literal[
+			"", "Straight Line", "Double Declining Balance", "Written Down Value", "Manual"
+		]
 		disposal_date: DF.Date | None
 		finance_books: DF.Table[AssetFinanceBook]
 		frequency_of_depreciation: DF.Int
@@ -79,6 +81,7 @@ class Asset(AccountsController):
 		insurer: DF.Data | None
 		is_fully_depreciated: DF.Check
 		item_code: DF.Link
+		item_name: DF.ReadOnly | None
 		journal_entry_for_scrap: DF.Link | None
 		location: DF.Link
 		maintenance_required: DF.Check
