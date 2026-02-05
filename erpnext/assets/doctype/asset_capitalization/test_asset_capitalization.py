@@ -10,12 +10,14 @@ from erpnext.assets.doctype.asset.depreciation import post_depreciation_entries
 from erpnext.assets.doctype.asset.test_asset import (
 	create_asset,
 	create_asset_data,
+	create_fixed_asset_item,
 	set_depreciation_settings_in_company,
 )
 from erpnext.assets.doctype.asset_depreciation_schedule.asset_depreciation_schedule import (
 	get_asset_depr_schedule_doc,
 )
 from erpnext.stock.doctype.item.test_item import create_item
+from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import make_purchase_receipt
 from erpnext.stock.doctype.serial_and_batch_bundle.test_serial_and_batch_bundle import (
 	make_serial_batch_bundle,
 )
@@ -368,20 +370,33 @@ class TestAssetCapitalization(IntegrationTestCase):
 
 		consumed_asset_value = 100000
 
-		consumed_asset = create_asset(
-			asset_name="Asset Capitalization Consumable Asset",
-			asset_value=consumed_asset_value,
-			submit=1,
-			warehouse="Stores - _TC",
-			asset_type="Composite Component",
+		item = create_fixed_asset_item("Asset Capitalization Consumable Asset")
+
+		pr = make_purchase_receipt(
+			item_code=item.item_code,
+			qty=1,
+			rate=consumed_asset_value,
 			company=company,
+			warehouse="Stores - TCP1",
 		)
+		consumed_asset_name = frappe.db.get_value("Asset", {"purchase_receipt": pr.name}, "name")
+		consumed_asset_doc = frappe.get_doc("Asset", consumed_asset_name)
+
+		consumed_asset_doc.update(
+			{
+				"asset_type": "Composite Component",
+				"purchase_date": pr.posting_date,
+				"available_for_use_date": pr.posting_date,
+			}
+		)
+		consumed_asset_doc.save()
+		consumed_asset_doc.submit()
 
 		# Create and submit Asset Captitalization
 		asset_capitalization = create_asset_capitalization(
 			target_asset=wip_composite_asset.name,
 			target_asset_location="Test Location",
-			consumed_asset=consumed_asset.name,
+			consumed_asset=consumed_asset_doc.name,
 			company=company,
 			submit=1,
 		)
