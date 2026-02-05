@@ -123,7 +123,7 @@ frappe.ui.form.on("Asset", {
 			}
 
 			if (has_create_buttons) {
-				cur_frm.page.set_inner_btn_group_as_primary(__("Create"));
+				frm.page.set_inner_btn_group_as_primary(__("Create"));
 			}
 
 			if (frm.doc.maintenance_required && !frm.doc.maintenance_schedule) {

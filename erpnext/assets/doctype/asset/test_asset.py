@@ -1937,7 +1937,7 @@ def create_asset(**args):
 			"available_for_use_date": args.available_for_use_date or "2020-06-06",
 			"location": args.location or "Test Location",
 			"asset_owner": args.asset_owner or "Company",
-			"asset_type": args.asset_type or "",
+			"asset_type": args.asset_type or "Existing Asset",
 			"asset_quantity": args.get("asset_quantity") or 1,
 			"depr_entry_posting_status": args.depr_entry_posting_status or "",
 		}

@@ -786,7 +786,11 @@ def get_disposal_account_and_cost_center(company):
 
 
 @frappe.whitelist()
-def get_value_after_depreciation_on_disposal_date(asset, disposal_date, finance_book=None):
+def get_value_after_depreciation_on_disposal_date(
+	asset: str,
+	disposal_date: str,
+	finance_book: str | None = None,
+) -> float:
 	asset_doc = frappe.get_doc("Asset", asset)
 
 	if asset_doc.asset_type == "Composite Component":
