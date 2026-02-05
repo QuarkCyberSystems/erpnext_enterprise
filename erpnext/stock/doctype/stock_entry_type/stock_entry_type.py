@@ -77,7 +77,6 @@ class ManufactureEntry:
 		self.stock_entry.fg_completed_qty = self.for_quantity
 		self.stock_entry.project = self.project
 		self.stock_entry.job_card = self.job_card
-		self.stock_entry.work_order = self.work_order
 		self.stock_entry.set_stock_entry_type()
 
 		self.prepare_source_warehouse()
