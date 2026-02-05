@@ -83,7 +83,6 @@ class TestAssetCapitalization(IntegrationTestCase):
 		)
 
 		# Test Asset Capitalization values
-		self.assertEqual(asset_capitalization.target_qty, 1)
 
 		self.assertEqual(asset_capitalization.stock_items[0].valuation_rate, stock_rate)
 		self.assertEqual(asset_capitalization.stock_items[0].amount, stock_amount)
@@ -178,8 +177,6 @@ class TestAssetCapitalization(IntegrationTestCase):
 		)
 
 		# Test Asset Capitalization values
-		self.assertEqual(asset_capitalization.target_qty, 1)
-
 		self.assertEqual(asset_capitalization.stock_items[0].valuation_rate, stock_rate)
 		self.assertEqual(asset_capitalization.stock_items[0].amount, stock_amount)
 		self.assertEqual(asset_capitalization.stock_items_total, stock_amount)
@@ -264,8 +261,6 @@ class TestAssetCapitalization(IntegrationTestCase):
 		)
 
 		# Test Asset Capitalization values
-		self.assertEqual(asset_capitalization.target_qty, 1)
-
 		self.assertEqual(asset_capitalization.stock_items[0].valuation_rate, stock_rate)
 		self.assertEqual(asset_capitalization.stock_items[0].amount, stock_amount)
 		self.assertEqual(asset_capitalization.stock_items_total, stock_amount)
@@ -402,7 +397,6 @@ class TestAssetCapitalization(IntegrationTestCase):
 		)
 
 		# Test Asset Capitalization values
-		self.assertEqual(asset_capitalization.target_qty, 1)
 		self.assertEqual(asset_capitalization.asset_items[0].asset_value, consumed_asset_value)
 
 		actual_gle = get_actual_gle_dict(asset_capitalization.name)
@@ -436,9 +430,6 @@ def create_asset_capitalization(**args):
 			"target_item_code": target_item_code,
 			"target_asset": target_asset.name,
 			"target_asset_location": "Test Location",
-			"target_qty": flt(args.target_qty) or 1,
-			"target_batch_no": args.target_batch_no,
-			"target_serial_no": args.target_serial_no,
 			"finance_book": args.finance_book,
 		}
 	)
