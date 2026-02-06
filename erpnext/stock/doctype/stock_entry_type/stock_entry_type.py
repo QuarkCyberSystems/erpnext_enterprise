@@ -9,10 +9,9 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.utils import cint, flt
 
+from erpnext.manufacturing.doctype.bom.bom import get_bom_items_as_dict
 from erpnext.stock.serial_batch_bundle import SerialBatchCreation
 from erpnext.stock.utils import get_combine_datetime
-
-from erpnext.manufacturing.doctype.bom.bom import get_bom_items_as_dict
 
 
 class StockEntryType(Document):
