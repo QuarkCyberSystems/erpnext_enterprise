@@ -234,6 +234,7 @@ frappe.ui.form.on("Asset", {
 
 		if (
 			!frm.doc.purchase_receipt &&
+			!frm.doc.purchase_invoice &&
 			["Existing Asset", "Composite Component"].includes(frm.doc.asset_type)
 		) {
 			return false;
