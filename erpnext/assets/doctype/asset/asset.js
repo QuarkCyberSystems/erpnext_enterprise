@@ -513,12 +513,14 @@ frappe.ui.form.on("Asset", {
 	},
 
 	is_composite_asset: function (frm) {
-		if (frm.doc.is_composite_asset) {
-			frm.set_value("net_purchase_amount", 0);
-		} else {
-			frm.set_df_property("net_purchase_amount", "read_only", 0);
+		if (frm.doc.docstatus == 0) {
+			if (frm.doc.is_composite_asset) {
+				frm.set_value("net_purchase_amount", 0);
+			} else {
+				frm.set_df_property("net_purchase_amount", "read_only", 0);
+			}
+			frm.trigger("toggle_reference_doc");
 		}
-		frm.trigger("toggle_reference_doc");
 	},
 
 	make_sales_invoice: function (frm) {
