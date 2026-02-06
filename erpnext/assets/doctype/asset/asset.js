@@ -111,7 +111,10 @@ frappe.ui.form.on("Asset", {
 				has_create_buttons = true;
 			}
 
-			if (!frm.doc.calculate_depreciation) {
+			if (
+				!frm.doc.calculate_depreciation &&
+				["Submitted", "Partially Depreciated", "Fully Depreciated"].includes(frm.doc.status)
+			) {
 				frm.add_custom_button(
 					__("Depreciation Entry"),
 					function () {
@@ -126,17 +129,17 @@ frappe.ui.form.on("Asset", {
 				frm.page.set_inner_btn_group_as_primary(__("Create"));
 			}
 
-			if (frm.doc.maintenance_required && !frm.doc.maintenance_schedule) {
-				frm.add_custom_button(
-					__("Maintain Asset"),
-					function () {
-						frm.trigger("create_asset_maintenance");
-					},
-					__("Actions")
-				);
-			}
-
 			if (["Submitted", "Partially Depreciated", "Fully Depreciated"].includes(frm.doc.status)) {
+				if (frm.doc.maintenance_required && !frm.doc.maintenance_schedule) {
+					frm.add_custom_button(
+						__("Maintain Asset"),
+						function () {
+							frm.trigger("create_asset_maintenance");
+						},
+						__("Actions")
+					);
+				}
+
 				frm.add_custom_button(
 					__("Split Asset"),
 					function () {
