@@ -90,21 +90,39 @@ class TestJobCard(ERPNextTestSuite):
 
 		cut_bom = create_semi_fg_bom(cut_fg.name, raw.name, inspection_required=1)
 		stitch_bom = create_semi_fg_bom(stitch_fg.name, cut_fg.name, inspection_required=0)
-		final_bom = frappe.new_doc("BOM")
-		final_bom.item = final.name
-		final_bom.quantity = 1
-		final_bom.with_operations = 1
-		final_bom.track_semi_finished_goods = 1
+		final_bom = frappe.new_doc(
+			"BOM", item=final.name, quantity=1, with_operations=1, track_semi_finished_goods=1
+		)
 		final_bom.append("items", {"item_code": raw.name, "qty": 1})
 		final_bom.append(
-			"operations", {"operation": cutting.name, "workstation": "_Test Workstation 1", "bom_no": cut_bom}
+			"operations",
+			{
+				"operation": cutting.name,
+				"workstation": "_Test Workstation 1",
+				"bom_no": cut_bom,
+				"skip_material_transfer": 1,
+			},
 		)
 		final_bom.append(
 			"operations",
-			{"operation": stitching.name, "workstation": "_Test Workstation 1", "bom_no": stitch_bom},
+			{
+				"operation": stitching.name,
+				"workstation": "_Test Workstation 1",
+				"bom_no": stitch_bom,
+				"skip_material_transfer": 1,
+			},
 		)
-		final_bom.append("operations", {"operation": ironing.name, "workstation": "_Test Workstation 1"})
-		final_bom.insert()
+		final_bom.append(
+			"operations",
+			{
+				"operation": ironing.name,
+				"workstation": "_Test Workstation 1",
+				"is_final_finished_good": 1,
+				"bom_no": final_bom.name,
+				"skip_material_transfer": 1,
+			},
+		)
+		final_bom.append("items", {"item_code": stitch_fg.name, "qty": 1, "operation_row_id": 3})
 		final_bom.submit()
 		work_order = make_work_order(final_bom.name, final.name, 1, variant_items=[], use_multi_level_bom=0)
 		work_order.wip_warehouse = "Work In Progress - WP"

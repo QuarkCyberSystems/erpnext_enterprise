@@ -333,7 +333,7 @@ class BOM(WebsiteGenerator):
 			if row.bom_no:
 				continue
 
-			operation_idx_with_no_rm[row.idx] = row.operation
+			operation_idx_with_no_rm[row.idx] = row
 
 		for row in self.items:
 			if row.operation_row_id and row.operation_row_id in operation_idx_with_no_rm:
