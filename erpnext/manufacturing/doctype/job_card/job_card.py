@@ -166,7 +166,9 @@ class JobCard(Document):
 
 		self.validate_work_order()
 		self.set_employees()
-		self.validate_semi_finished_goods()
+
+		if self.docstatus == 1:
+			self.validate_semi_finished_goods()
 
 	def validate_semi_finished_goods(self):
 		if not self.track_semi_finished_goods:

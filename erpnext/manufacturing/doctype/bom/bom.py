@@ -297,7 +297,9 @@ class BOM(WebsiteGenerator):
 		self.validate_scrap_items()
 		self.set_default_uom()
 		self.validate_semi_finished_goods()
-		self.validate_raw_materials_of_operation()
+
+		if self.docstatus == 1:
+			self.validate_raw_materials_of_operation()
 
 	def validate_semi_finished_goods(self):
 		if not self.track_semi_finished_goods or not self.operations:
@@ -333,7 +335,7 @@ class BOM(WebsiteGenerator):
 			if row.bom_no:
 				continue
 
-			operation_idx_with_no_rm[row.idx] = row.operation
+			operation_idx_with_no_rm[row.idx] = row
 
 		for row in self.items:
 			if row.operation_row_id and row.operation_row_id in operation_idx_with_no_rm:
