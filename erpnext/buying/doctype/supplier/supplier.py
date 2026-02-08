@@ -161,8 +161,6 @@ class Supplier(TransactionBase):
 		if doc.payment_terms:
 			self.payment_terms = doc.payment_terms
 
-		self.save()
-
 	def validate_internal_supplier(self):
 		if not self.is_internal_supplier:
 			self.represents_company = ""

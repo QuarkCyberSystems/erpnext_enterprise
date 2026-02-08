@@ -73,6 +73,12 @@ frappe.ui.form.on("Supplier", {
 		};
 	},
 
+	supplier_group(frm) {
+		if (frm.doc.supplier_group) {
+			frm.trigger("get_supplier_group_details");
+		}
+	},
+
 	refresh: function (frm) {
 		if (frappe.defaults.get_default("supp_master_name") != "Naming Series") {
 			frm.toggle_display("naming_series", false);
@@ -109,14 +115,6 @@ frappe.ui.form.on("Supplier", {
 					});
 				},
 				__("View")
-			);
-
-			frm.add_custom_button(
-				__("Get Supplier Group Details"),
-				function () {
-					frm.trigger("get_supplier_group_details");
-				},
-				__("Actions")
 			);
 
 			if (
