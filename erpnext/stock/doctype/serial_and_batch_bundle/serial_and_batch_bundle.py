@@ -2693,7 +2693,10 @@ def get_auto_batch_nos(kwargs):
 
 	available_batches = get_available_batches(kwargs)
 	stock_ledgers_batches = get_stock_ledgers_batches(kwargs)
-	pos_invoice_batches = get_reserved_batches_for_pos(kwargs)
+
+	pos_invoice_batches = frappe._dict()
+	if not kwargs.for_stock_levels:
+		pos_invoice_batches = get_reserved_batches_for_pos(kwargs)
 
 	sre_reserved_batches = frappe._dict()
 	if not kwargs.ignore_reserved_stock:
