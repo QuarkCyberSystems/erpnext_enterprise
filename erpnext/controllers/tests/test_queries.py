@@ -15,15 +15,6 @@ def add_default_params(func, doctype):
 
 
 class TestQueries(ERPNextTestSuite):
-	# All tests are based on self.globalTestRecords[doctype]
-
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.make_employees()
-		cls.make_leads()
-		cls.make_projects()
-
 	def assert_nested_in(self, item, container):
 		self.assertIn(item, [vals for tuples in container for vals in tuples])
 
@@ -116,7 +107,7 @@ class TestQueries(ERPNextTestSuite):
 			}
 		)
 
-		with ERPNextTestSuite.set_user(user.name):
+		with ERPNextTestSuite.set_user(self, user.name):
 			params = {
 				"doctype": "Employee",
 				"txt": "",
