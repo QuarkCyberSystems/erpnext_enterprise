@@ -1,12 +1,12 @@
 import json
 
 import frappe
-from frappe.tests.utils import FrappeTestCase
 
 from erpnext.controllers.taxes_and_totals import calculate_taxes_and_totals
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestTaxesAndTotals(FrappeTestCase):
+class TestTaxesAndTotals(ERPNextTestSuite):
 	def setUp(self):
 		self.doc = frappe.get_doc(
 			{
