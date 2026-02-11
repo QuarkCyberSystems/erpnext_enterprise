@@ -191,6 +191,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 				tax.item_wise_tax_detail = {};
 			}
 			var tax_fields = [
+				"net_amount",
 				"total",
 				"tax_amount_after_discount_amount",
 				"tax_amount_for_current_item",
@@ -400,7 +401,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 			var item_tax_map = me._load_item_tax_rate(item.item_tax_rate);
 			$.each(doc.taxes, function (i, tax) {
 				// tax_amount represents the amount of tax for the current step
-				var current_tax_amount = me.get_current_tax_amount(item, tax, item_tax_map);
+				var [current_net_amount, current_tax_amount] = me.get_current_tax_amount(item, tax, item_tax_map);
 				if (frappe.flags.round_row_wise_tax) {
 					current_tax_amount = flt(current_tax_amount, precision("tax_amount", tax));
 				}
@@ -419,6 +420,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 					!(me.discount_amount_applied && me.frm.doc.apply_discount_on == "Grand Total")
 				) {
 					tax.tax_amount += current_tax_amount;
+					tax.net_amount += current_net_amount;
 				}
 
 				// store tax_amount for current item as it will be used for
@@ -555,7 +557,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 			current_tax_amount = tax_rate * item.qty;
 		}
 
-		return current_tax_amount;
+		return [current_net_amount, current_tax_amount];
 	}
 
 	round_off_totals(tax) {
@@ -565,6 +567,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 		}
 
 		tax.tax_amount = flt(tax.tax_amount, precision("tax_amount", tax));
+		tax.net_amount = flt(tax.net_amount, precision("net_amount", tax));
 		tax.tax_amount_after_discount_amount = flt(
 			tax.tax_amount_after_discount_amount,
 			precision("tax_amount", tax)
