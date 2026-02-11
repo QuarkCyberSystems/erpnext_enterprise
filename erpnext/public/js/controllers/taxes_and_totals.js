@@ -401,7 +401,11 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 			var item_tax_map = me._load_item_tax_rate(item.item_tax_rate);
 			$.each(doc.taxes, function (i, tax) {
 				// tax_amount represents the amount of tax for the current step
-				var [current_net_amount, current_tax_amount] = me.get_current_tax_amount(item, tax, item_tax_map);
+				var [current_net_amount, current_tax_amount] = me.get_current_tax_amount(
+					item,
+					tax,
+					item_tax_map
+				);
 				if (frappe.flags.round_row_wise_tax) {
 					current_tax_amount = flt(current_tax_amount, precision("tax_amount", tax));
 				}
