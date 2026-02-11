@@ -72,6 +72,7 @@ class TestAccountsController(ERPNextTestSuite):
 		self.create_item()
 		self.create_parties()
 		self.clear_old_entries()
+		frappe.flags.is_reverse_depr_entry = False
 
 	def create_company(self):
 		company_name = "_Test Company"
@@ -931,7 +932,10 @@ class TestAccountsController(ERPNextTestSuite):
 		self.assertEqual(exc_je_for_si, [])
 		self.assertEqual(exc_je_for_pe, [])
 
-	@ERPNextTestSuite.change_settings("Accounts Settings", {"add_taxes_from_item_tax_template": 1})
+	@ERPNextTestSuite.change_settings(
+		"Accounts Settings",
+		{"add_taxes_from_taxes_and_charges_template": 1, "add_taxes_from_item_tax_template": 0},
+	)
 	def test_18_fetch_taxes_based_on_taxes_and_charges_template(self):
 		# Create a Sales Taxes and Charges Template
 		if not frappe.db.exists("Sales Taxes and Charges Template", "_Test Tax - _TC"):
