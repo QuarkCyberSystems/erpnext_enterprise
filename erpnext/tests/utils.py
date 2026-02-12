@@ -991,7 +991,14 @@ class ERPNextTestSuite(unittest.TestCase):
 				"country": "United Arab Emirates",
 				"default_currency": "AED",
 				"doctype": "Company",
-				"domain": "Manufacturing",
+				"create_chart_of_accounts_based_on": "Standard Template",
+			},
+			{
+				"abbr": "_TCSV",
+				"company_name": "_Test Company SA VAT",
+				"country": "South Africa",
+				"default_currency": "ZAR",
+				"doctype": "Company",
 				"create_chart_of_accounts_based_on": "Standard Template",
 			},
 		]
