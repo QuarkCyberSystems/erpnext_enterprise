@@ -8,8 +8,6 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 class TestSalesPipelineAnalytics(ERPNextTestSuite):
 	def setUp(self):
-		create_company()
-		create_customer()
 		create_opportunity()
 
 	def test_sales_pipeline_analytics(self):
@@ -179,23 +177,6 @@ class TestSalesPipelineAnalytics(ERPNextTestSuite):
 		expected_data = [{"opportunity_owner": "Not Assigned", "August": 1}]
 
 		self.assertEqual(expected_data, report[1])
-
-
-def create_company():
-	doc = frappe.db.exists("Company", "Best Test")
-	if not doc:
-		doc = frappe.new_doc("Company")
-		doc.company_name = "Best Test"
-		doc.default_currency = "INR"
-		doc.insert()
-
-
-def create_customer():
-	doc = frappe.db.exists("Customer", "_Test NC")
-	if not doc:
-		doc = frappe.new_doc("Customer")
-		doc.customer_name = "_Test NC"
-		doc.insert()
 
 
 def create_opportunity():

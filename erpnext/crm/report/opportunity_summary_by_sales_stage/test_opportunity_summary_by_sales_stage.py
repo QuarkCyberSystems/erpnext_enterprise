@@ -2,8 +2,6 @@ from erpnext.crm.report.opportunity_summary_by_sales_stage.opportunity_summary_b
 	execute,
 )
 from erpnext.crm.report.sales_pipeline_analytics.test_sales_pipeline_analytics import (
-	create_company,
-	create_customer,
 	create_opportunity,
 )
 from erpnext.tests.utils import ERPNextTestSuite
@@ -13,8 +11,6 @@ class TestOpportunitySummaryBySalesStage(ERPNextTestSuite):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		create_company()
-		create_customer()
 		create_opportunity()
 
 	def test_opportunity_summary_by_sales_stage(self):

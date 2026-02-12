@@ -162,6 +162,12 @@ class ERPNextTestSuite(unittest.TestCase):
 		update_salutations()
 
 		records = get_preset_records("India")
+
+		from erpnext.setup.setup_wizard.operations.install_fixtures import read_lines
+
+		for doctype, title_field, filename in (("UTM Source", "name", "marketing_source.txt"),):
+			records += [{"doctype": doctype, title_field: title} for title in read_lines(filename)]
+
 		presets_primary_key_map = {
 			"Address Template": "country",
 			"Item Group": "item_group_name",
@@ -972,6 +978,14 @@ class ERPNextTestSuite(unittest.TestCase):
 				"default_holiday_list": cls.holiday_list[0].name,
 				"enable_perpetual_inventory": 0,
 				"parent_company": "Parent Group Company India",
+			},
+			{
+				"abbr": "BT",
+				"company_name": "Best Test",
+				"country": "India",
+				"default_currency": "INR",
+				"doctype": "Company",
+				"chart_of_accounts": "Standard",
 			},
 		]
 		cls.companies = []
@@ -2523,6 +2537,13 @@ class ERPNextTestSuite(unittest.TestCase):
 				"customer_group": "_Test Customer Group",
 				"customer_name": "Prestiga-Biz",
 				"customer_type": "Company",
+				"doctype": "Customer",
+				"territory": "_Test Territory",
+			},
+			{
+				"customer_group": "_Test Customer Group",
+				"customer_name": "_Test NC",
+				"customer_type": "Individual",
 				"doctype": "Customer",
 				"territory": "_Test Territory",
 			},
