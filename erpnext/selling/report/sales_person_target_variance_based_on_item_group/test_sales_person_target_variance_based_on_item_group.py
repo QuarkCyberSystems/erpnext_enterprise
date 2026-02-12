@@ -79,6 +79,7 @@ def create_sales_target_doc(
 ):
 	sales_target_doc = frappe.new_doc(sales_field_dt)
 	sales_target_doc.set(sales_field_name, sales_field_value)
+	sales_target_doc.territory = "_Test Territory"
 	sales_target_doc.append(
 		"targets",
 		{
