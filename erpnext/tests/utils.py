@@ -985,6 +985,15 @@ class ERPNextTestSuite(unittest.TestCase):
 				"doctype": "Company",
 				"chart_of_accounts": "Standard",
 			},
+			{
+				"abbr": "_TCUV",
+				"company_name": "_Test Company UAE VAT",
+				"country": "United Arab Emirates",
+				"default_currency": "AED",
+				"doctype": "Company",
+				"domain": "Manufacturing",
+				"create_chart_of_accounts_based_on": "Standard Template",
+			},
 		]
 		cls.companies = []
 		for x in records:
