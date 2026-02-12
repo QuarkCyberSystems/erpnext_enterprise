@@ -79,10 +79,9 @@ def patched_requests_get(*args, **kwargs):
 
 @mock.patch("requests.get", side_effect=patched_requests_get)
 class TestCurrencyExchange(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.load_test_records("Currency Exchange")
+	def setUp(self):
+		self.load_test_records("Currency Exchange")
+		save_new_records(self.globalTestRecords["Currency Exchange"])
 
 	def clear_cache(self):
 		cache = frappe.cache()
@@ -91,8 +90,6 @@ class TestCurrencyExchange(ERPNextTestSuite):
 			cache.delete(key)
 
 	def test_exchange_rate(self, mock_get):
-		save_new_records(self.globalTestRecords["Currency Exchange"])
-
 		frappe.db.set_single_value("Accounts Settings", "allow_stale", 1)
 
 		# Start with allow_stale is True
@@ -116,8 +113,6 @@ class TestCurrencyExchange(ERPNextTestSuite):
 		self.assertEqual(flt(exchange_rate, 3), 65.1)
 
 	def test_exchange_rate_via_exchangerate_host(self, mock_get):
-		save_new_records(self.globalTestRecords["Currency Exchange"])
-
 		# Update Currency Exchange Rate
 		settings = frappe.get_single("Currency Exchange Settings")
 		settings.service_provider = "exchangerate.host"
