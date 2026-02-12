@@ -935,8 +935,6 @@ class ERPNextTestSuite(unittest.TestCase):
 				"abbr": "WP",
 				"industry": "Manufacturing",
 				"country": "United States",
-				# "fy_start_date": f"{current_year}-01-01",
-				# "fy_end_date": f"{current_year}-12-31",
 				"language": "english",
 				"company_tagline": "Testing",
 				"email": "test@erpnext.com",
