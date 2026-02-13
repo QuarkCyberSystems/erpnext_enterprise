@@ -25,20 +25,10 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestPOSClosingEntry(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		frappe.db.sql("delete from `tabPOS Opening Entry`")
-		cls.enterClassContext(cls.change_settings("POS Settings", {"invoice_type": "POS Invoice"}))
-
-	@classmethod
-	def tearDownClass(cls):
-		frappe.db.sql("delete from `tabPOS Opening Entry`")
-
 	def setUp(self):
-		# Make stock available for POS Sales
-		frappe.db.sql("delete from `tabPOS Opening Entry`")
+		init_user_and_profile()
 		make_stock_entry(target="_Test Warehouse - _TC", qty=2, basic_rate=100)
+		frappe.db.set_single_value("POS Settings", "invoice_type", "POS Invoice")
 
 	def test_pos_closing_entry(self):
 		test_user, pos_profile = init_user_and_profile()
@@ -55,6 +45,7 @@ class TestPOSClosingEntry(ERPNextTestSuite):
 		pos_inv2.submit()
 
 		pcv_doc = make_closing_entry_from_opening(opening_entry)
+		pcv_doc.flags.in_test = True
 		payment = pcv_doc.payment_reconciliation[0]
 
 		self.assertEqual(payment.mode_of_payment, "Cash")
@@ -63,6 +54,7 @@ class TestPOSClosingEntry(ERPNextTestSuite):
 			if d.mode_of_payment == "Cash":
 				d.closing_amount = 6700
 
+		pcv_doc.flags.in_test = True
 		pcv_doc.submit()
 
 		self.assertEqual(pcv_doc.total_quantity, 2)
@@ -81,6 +73,7 @@ class TestPOSClosingEntry(ERPNextTestSuite):
 		pos_inv.submit()
 
 		pcv_doc = make_closing_entry_from_opening(opening_entry)
+		pcv_doc.flags.in_test = True
 		pcv_doc.submit()
 
 		self.assertTrue(pcv_doc.name)
@@ -113,6 +106,7 @@ class TestPOSClosingEntry(ERPNextTestSuite):
 		pos_return.submit()
 
 		pcv_doc = make_closing_entry_from_opening(opening_entry)
+		pcv_doc.flags.in_test = True
 		pcv_doc.submit()
 
 		opening_entry = create_opening_entry(pos_profile, test_user.name)
@@ -142,6 +136,7 @@ class TestPOSClosingEntry(ERPNextTestSuite):
 			if d.mode_of_payment == "Cash":
 				d.closing_amount = 6700
 
+		pcv_doc.flags.in_test = True
 		pcv_doc.submit()
 
 		pos_inv1.load_from_db()
@@ -195,6 +190,7 @@ class TestPOSClosingEntry(ERPNextTestSuite):
 
 		pcv_doc = make_closing_entry_from_opening(opening_entry)
 		# will assert coz the new mandatory accounting dimension bank is not set in POS Profile
+		pcv_doc.flags.in_test = True
 		self.assertRaises(frappe.ValidationError, pcv_doc.submit)
 
 		accounting_dimension_department = frappe.get_doc(
@@ -262,6 +258,7 @@ class TestPOSClosingEntry(ERPNextTestSuite):
 		self.assertEqual(batch_qty_with_pos, 0.0)
 
 		pcv_doc = make_closing_entry_from_opening(opening_entry)
+		pcv_doc.flags.in_test = True
 		pcv_doc.submit()
 
 		piv_merge = frappe.db.get_value("POS Invoice Merge Log", {"pos_closing_entry": pcv_doc.name}, "name")
@@ -285,6 +282,7 @@ class TestPOSClosingEntry(ERPNextTestSuite):
 		frappe.flags.print_message = True
 
 		pcv_doc.reload()
+		pcv_doc.flags.in_test = True
 		pcv_doc.cancel()
 
 		batch_qty_with_pos = get_batch_qty(batch_no, "_Test Warehouse - _TC", item_code)
@@ -327,6 +325,7 @@ class TestPOSClosingEntry(ERPNextTestSuite):
 			if d.mode_of_payment == "Cash":
 				d.closing_amount = 1500
 
+		pcv_doc.flags.in_test = True
 		pcv_doc.submit()
 
 		self.assertEqual(pcv_doc.total_quantity, 15)
@@ -470,7 +469,7 @@ def init_user_and_profile(**args):
 	user = "test@example.com"
 	test_user = frappe.get_doc("User", user)
 
-	roles = ("Accounts Manager", "Accounts User", "Sales Manager")
+	roles = ("Accounts Manager", "Accounts User", "Sales Manager", "Stock User", "Item Manager")
 	test_user.add_roles(*roles)
 	frappe.set_user(user)
 
