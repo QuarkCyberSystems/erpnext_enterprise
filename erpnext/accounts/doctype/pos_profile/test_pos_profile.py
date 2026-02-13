@@ -14,6 +14,7 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 class TestPOSProfile(ERPNextTestSuite):
 	def test_pos_profile(self):
+		frappe.set_user("Administrator")
 		make_pos_profile()
 
 		pos_profile = get_pos_profile("_Test Company") or {}
@@ -34,8 +35,6 @@ class TestPOSProfile(ERPNextTestSuite):
 
 			self.assertEqual(len(items), products_count[0][0])
 			self.assertEqual(len(customers), customers_count[0][0])
-
-		frappe.db.sql("delete from `tabPOS Profile`")
 
 	def test_disabled_pos_profile_creation(self):
 		make_pos_profile(name="_Test POS Profile 001", disabled=1)
