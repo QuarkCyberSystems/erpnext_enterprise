@@ -304,6 +304,27 @@ class ERPNextTestSuite(unittest.TestCase):
 		stock_settings.save()
 
 	@classmethod
+	def make_records(cls, key, records, attr):
+		doctype = records[0].get("doctype")
+		data = []
+
+		def get_filters(record):
+			filters = {}
+			for x in key:
+				filters[x] = record.get(x)
+			return filters
+
+		for x in records:
+			filters = get_filters(x)
+			if not frappe.db.exists(doctype, filters):
+				data.append(frappe.get_doc(x).insert())
+			else:
+				data.append(frappe.get_doc(doctype, filters))
+
+		if not hasattr(cls, attr):
+			setattr(cls, attr, data)
+
+	@classmethod
 	def make_price_list(cls):
 		records = [
 			{
@@ -372,32 +393,9 @@ class ERPNextTestSuite(unittest.TestCase):
 				"selling": 0,
 			},
 		]
-		cls.price_list = []
-		for x in records:
-			if not frappe.db.exists(
-				"Price List",
-				{
-					"price_list_name": x.get("price_list_name"),
-					"enabled": x.get("enabled"),
-					"selling": x.get("selling"),
-					"buying": x.get("buying"),
-					"currency": x.get("currency"),
-				},
-			):
-				cls.price_list.append(frappe.get_doc(x).insert())
-			else:
-				cls.price_list.append(
-					frappe.get_doc(
-						"Price List",
-						{
-							"price_list_name": x.get("price_list_name"),
-							"enabled": x.get("enabled"),
-							"selling": x.get("selling"),
-							"buying": x.get("buying"),
-							"currency": x.get("currency"),
-						},
-					)
-				)
+		cls.make_records(
+			["price_list_name", "enabled", "selling", "buying", "currency"], records, "price_list"
+		)
 
 	@classmethod
 	def make_monthly_distribution(cls):
@@ -422,14 +420,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				],
 			}
 		]
-		cls.monthly_distribution = []
-		for x in records:
-			if not frappe.db.exists("Monthly Distribution", {"distribution_id": x.get("distribution_id")}):
-				cls.monthly_distribution.append(frappe.get_doc(x).insert())
-			else:
-				cls.monthly_distribution.append(
-					frappe.get_doc("Monthly Distribution", {"distribution_id": x.get("distribution_id")})
-				)
+		cls.make_records(["distribution_id"], records, "monthly_distribution")
 
 	@classmethod
 	def make_projects(cls):
@@ -441,13 +432,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"status": "Open",
 			}
 		]
-
-		cls.projects = []
-		for x in records:
-			if not frappe.db.exists("Project", {"project_name": x.get("project_name")}):
-				cls.projects.append(frappe.get_doc(x).insert())
-			else:
-				cls.projects.append(frappe.get_doc("Project", {"project_name": x.get("project_name")}))
+		cls.make_records(["project_name"], records, "projects")
 
 	@classmethod
 	def make_customer_group(cls):
@@ -465,14 +450,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"parent_customer_group": "All Customer Groups",
 			},
 		]
-		cls.customer_group = []
-		for x in records:
-			if not frappe.db.exists("Customer Group", {"customer_group_name": x.get("customer_group_name")}):
-				cls.customer_group.append(frappe.get_doc(x).insert())
-			else:
-				cls.customer_group.append(
-					frappe.get_doc("Customer Group", {"customer_group_name": x.get("customer_group_name")})
-				)
+		cls.make_records(["customer_group_name"], records, "customer_group")
 
 	@classmethod
 	def make_territory(cls):
@@ -508,14 +486,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"territory_name": "_Test Territory United States",
 			},
 		]
-		cls.territories = []
-		for x in records:
-			if not frappe.db.exists("Territory", {"territory_name": x.get("territory_name")}):
-				cls.territories.append(frappe.get_doc(x).insert())
-			else:
-				cls.territories.append(
-					frappe.get_doc("Territory", {"territory_name": x.get("territory_name")})
-				)
+		cls.make_records(["territory_name"], records, "territories")
 
 	@classmethod
 	def make_department(cls):
@@ -533,14 +504,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"parent_department": "All Departments",
 			},
 		]
-		cls.department = []
-		for x in records:
-			if not frappe.db.exists("Department", {"department_name": x.get("department_name")}):
-				cls.department.append(frappe.get_doc(x).insert())
-			else:
-				cls.department.append(
-					frappe.get_doc("Department", {"department_name": x.get("department_name")})
-				)
+		cls.make_records(["department_name"], records, "department")
 
 	@classmethod
 	def make_role(cls):
@@ -551,12 +515,7 @@ class ERPNextTestSuite(unittest.TestCase):
 			{"doctype": "Role", "role_name": "_Test Role 4", "desk_access": 0},
 			{"doctype": "Role", "role_name": "Technician"},
 		]
-		cls.roles = []
-		for x in records:
-			if not frappe.db.exists("Role", {"role_name": x.get("role_name")}):
-				cls.roles.append(frappe.get_doc(x).insert())
-			else:
-				cls.roles.append(frappe.get_doc("Role", {"role_name": x.get("role_name")}))
+		cls.make_records(["role_name"], records, "roles")
 
 	@classmethod
 	def make_user(cls):
@@ -654,14 +613,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"roles": [{"doctype": "Has Role", "role": "Technician"}],
 			},
 		]
-		cls.users = []
-		for x in records:
-			if not frappe.db.exists("User", {"email": x.get("email")}):
-				user = frappe.get_doc(x)
-				user.flags.no_welcome_mail = True
-				cls.users.append(user.insert())
-			else:
-				cls.users.append(frappe.get_doc("User", {"email": x.get("email")}))
+		cls.make_records(["email"], records, "users")
 
 	@classmethod
 	def make_employees(cls):
@@ -703,12 +655,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"user_id": "test2@example.com",
 			},
 		]
-		cls.employees = []
-		for x in records:
-			if not frappe.db.exists("Employee", {"first_name": x.get("first_name")}):
-				cls.employees.append(frappe.get_doc(x).insert())
-			else:
-				cls.employees.append(frappe.get_doc("Employee", {"first_name": x.get("first_name")}))
+		cls.make_records(["first_name"], records, "employees")
 
 	@classmethod
 	def make_sales_person(cls):
@@ -735,14 +682,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"sales_person_name": "_Test Sales Person 2",
 			},
 		]
-		cls.sales_person = []
-		for x in records:
-			if not frappe.db.exists("Sales Person", {"sales_person_name": x.get("sales_person_name")}):
-				cls.sales_person.append(frappe.get_doc(x).insert())
-			else:
-				cls.sales_person.append(
-					frappe.get_doc("Sales Person", {"sales_person_name": x.get("sales_person_name")})
-				)
+		cls.make_records(["sales_person_name"], records, "sales_person")
 
 	@classmethod
 	def make_leads(cls):
@@ -785,12 +725,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"naming_series": "_T-Lead-",
 			},
 		]
-		cls.leads = []
-		for x in records:
-			if not frappe.db.exists("Lead", {"email_id": x.get("email_id")}):
-				cls.leads.append(frappe.get_doc(x).insert())
-			else:
-				cls.leads.append(frappe.get_doc("Lead", {"email_id": x.get("email_id")}))
+		cls.make_records(["email_id"], records, "leads")
 
 	@classmethod
 	def make_holiday_list(cls):
@@ -807,14 +742,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"holiday_list_name": "_Test Holiday List",
 			}
 		]
-		cls.holiday_list = []
-		for x in records:
-			if not frappe.db.exists("Holiday List", {"holiday_list_name": x.get("holiday_list_name")}):
-				cls.holiday_list.append(frappe.get_doc(x).insert())
-			else:
-				cls.holiday_list.append(
-					frappe.get_doc("Holiday List", {"holiday_list_name": x.get("holiday_list_name")})
-				)
+		cls.make_records(["holiday_list_name"], records, "holiday_list")
 
 	@classmethod
 	def make_company(cls):
@@ -1002,12 +930,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"create_chart_of_accounts_based_on": "Standard Template",
 			},
 		]
-		cls.companies = []
-		for x in records:
-			if not frappe.db.exists("Company", {"company_name": x.get("company_name")}):
-				cls.companies.append(frappe.get_doc(x).insert())
-			else:
-				cls.companies.append(frappe.get_doc("Company", {"company_name": x.get("company_name")}))
+		cls.make_records(["company_name"], records, "companies")
 
 	@classmethod
 	def make_fiscal_year(cls):
@@ -1033,23 +956,8 @@ class ERPNextTestSuite(unittest.TestCase):
 				}
 			)
 
-		cls.fiscal_year = []
-		for x in records:
-			if not frappe.db.exists(
-				"Fiscal Year",
-				{"year_start_date": x.get("year_start_date"), "year_end_date": x.get("year_end_date")},
-			):
-				cls.fiscal_year.append(frappe.get_doc(x).insert())
-			else:
-				cls.fiscal_year.append(
-					frappe.get_doc(
-						"Fiscal Year",
-						{
-							"year_start_date": x.get("year_start_date"),
-							"year_end_date": x.get("year_end_date"),
-						},
-					)
-				)
+		key = ["year_start_date", "year_end_date"]
+		cls.make_records(key, records, "fiscal_year")
 
 	@classmethod
 	def make_payment_term(cls):
@@ -1087,14 +995,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"credit_days": 30,
 			},
 		]
-		cls.payment_terms = []
-		for x in records:
-			if not frappe.db.exists("Payment Term", {"payment_term_name": x.get("payment_term_name")}):
-				cls.payment_terms.append(frappe.get_doc(x).insert())
-			else:
-				cls.payment_terms.append(
-					frappe.get_doc("Payment Term", {"payment_term_name": x.get("payment_term_name")})
-				)
+		cls.make_records(["payment_term_name"], records, "payment_terms")
 
 	@classmethod
 	def make_payment_terms_template(cls):
@@ -1158,28 +1059,16 @@ class ERPNextTestSuite(unittest.TestCase):
 				"template_name": "_Test Payment Term Template 3",
 			},
 		]
-		cls.payment_terms_template = []
-		for x in records:
-			if not frappe.db.exists("Payment Terms Template", {"template_name": x.get("template_name")}):
-				cls.payment_terms_template.append(frappe.get_doc(x).insert())
-			else:
-				cls.payment_terms_template.append(
-					frappe.get_doc("Payment Terms Template", {"template_name": x.get("template_name")})
-				)
+		cls.make_records(["template_name"], records, "payment_terms_template")
 
 	@classmethod
 	def make_tax_category(cls):
 		records = [
-			{"doctype": "Tax Category", "title": "_Test Tax Category 1"},
-			{"doctype": "Tax Category", "title": "_Test Tax Category 2"},
-			{"doctype": "Tax Category", "title": "_Test Tax Category 3"},
+			{"doctype": "Tax Category", "name": "_Test Tax Category 1", "title": "_Test Tax Category 1"},
+			{"doctype": "Tax Category", "name": "_Test Tax Category 2", "title": "_Test Tax Category 2"},
+			{"doctype": "Tax Category", "name": "_Test Tax Category 3", "title": "_Test Tax Category 3"},
 		]
-		cls.tax_category = []
-		for x in records:
-			if not frappe.db.exists("Tax Category", {"name": x.get("title")}):
-				cls.tax_category.append(frappe.get_doc(x).insert())
-			else:
-				cls.tax_category.append(frappe.get_doc("Tax Category", {"name": x.get("title")}))
+		cls.make_records(["title"], records, "tax_category")
 
 	@classmethod
 	def make_account(cls):
@@ -1204,18 +1093,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"company": "_Test Company with perpetual inventory",
 			},
 		]
-		cls.accounts = []
-		for x in records:
-			if not frappe.db.exists(
-				"Account", {"account_name": x.get("account_name"), "company": x.get("company")}
-			):
-				cls.accounts.append(frappe.get_doc(x).insert())
-			else:
-				cls.accounts.append(
-					frappe.get_doc(
-						"Account", {"account_name": x.get("account_name"), "company": x.get("company")}
-					)
-				)
+		cls.make_records(["account_name", "company"], records, "accounts")
 
 	@classmethod
 	def make_supplier(cls):
@@ -1275,12 +1153,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"companies": [{"company": cls.companies[6].name}],
 			},
 		]
-		cls.suppliers = []
-		for x in records:
-			if not frappe.db.exists("Supplier", {"supplier_name": x.get("supplier_name")}):
-				cls.suppliers.append(frappe.get_doc(x).insert())
-			else:
-				cls.suppliers.append(frappe.get_doc("Supplier", {"supplier_name": x.get("supplier_name")}))
+		cls.make_records(["supplier_name"], records, "suppliers")
 
 	@classmethod
 	def make_supplier_group(cls):
@@ -1291,14 +1164,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"parent_supplier_group": "All Supplier Groups",
 			}
 		]
-		cls.supplier_groups = []
-		for x in records:
-			if not frappe.db.exists("Supplier Group", {"supplier_group_name": x.get("supplier_group_name")}):
-				cls.supplier_groups.append(frappe.get_doc(x).insert())
-			else:
-				cls.supplier_groups.append(
-					frappe.get_doc("Supplier Group", {"supplier_group_name": x.get("supplier_group_name")})
-				)
+		cls.make_records(["supplier_group_name"], records, "supplier_groups")
 
 	@classmethod
 	def make_cost_center(cls):
@@ -1325,19 +1191,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"parent_cost_center": "_Test Company - _TC",
 			},
 		]
-		cls.cost_center = []
-		for x in records:
-			if not frappe.db.exists(
-				"Cost Center", {"cost_center_name": x.get("cost_center_name"), "company": x.get("company")}
-			):
-				cls.cost_center.append(frappe.get_doc(x).insert())
-			else:
-				cls.cost_center.append(
-					frappe.get_doc(
-						"Cost Center",
-						{"cost_center_name": x.get("cost_center_name"), "company": x.get("company")},
-					)
-				)
+		cls.make_records(["cost_center_name", "company"], records, "cost_center")
 
 	@classmethod
 	def make_location(cls):
@@ -1381,17 +1235,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"is_container": 1,
 			},
 		]
-		cls.location = []
-		for x in records:
-			if not frappe.db.exists("Location", {"location_name": x.get("location_name")}):
-				cls.location.append(frappe.get_doc(x).insert())
-			else:
-				cls.location.append(
-					frappe.get_doc(
-						"Location",
-						{"location_name": x.get("location_name")},
-					)
-				)
+		cls.make_records(["location_name"], records, "location")
 
 	@classmethod
 	def make_warehouse(cls):
@@ -1471,19 +1315,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"is_group": 0,
 			},
 		]
-		cls.warehouse = []
-		for x in records:
-			if not frappe.db.exists(
-				"Warehouse", {"warehouse_name": x.get("warehouse_name"), "company": x.get("company")}
-			):
-				cls.warehouse.append(frappe.get_doc(x).insert())
-			else:
-				cls.warehouse.append(
-					frappe.get_doc(
-						"Warehouse",
-						{"warehouse_name": x.get("warehouse_name"), "company": x.get("company")},
-					)
-				)
+		cls.make_records(["warehouse_name", "company"], records, "warehouse")
 
 	@classmethod
 	def make_uom(cls):
@@ -1491,17 +1323,7 @@ class ERPNextTestSuite(unittest.TestCase):
 			{"doctype": "UOM", "must_be_whole_number": 1, "uom_name": "_Test UOM"},
 			{"doctype": "UOM", "uom_name": "_Test UOM 1"},
 		]
-		cls.uom = []
-		for x in records:
-			if not frappe.db.exists("UOM", {"uom_name": x.get("uom_name")}):
-				cls.uom.append(frappe.get_doc(x).insert())
-			else:
-				cls.uom.append(
-					frappe.get_doc(
-						"UOM",
-						{"uom_name": x.get("uom_name")},
-					)
-				)
+		cls.make_records(["uom_name"], records, "uom")
 
 	@classmethod
 	def make_item_attribute(cls):
@@ -1530,17 +1352,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				],
 			},
 		]
-		cls.item_attribute = []
-		for x in records:
-			if not frappe.db.exists("Item Attribute", {"attribute_name": x.get("attribute_name")}):
-				cls.item_attribute.append(frappe.get_doc(x).insert())
-			else:
-				cls.item_attribute.append(
-					frappe.get_doc(
-						"Item Attribute",
-						{"attribute_name": x.get("attribute_name")},
-					)
-				)
+		cls.make_records(["attribute_name"], records, "item_attribute")
 
 	@classmethod
 	def make_item_tax_template(cls):
@@ -1623,19 +1435,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				],
 			},
 		]
-		cls.item_tax_template = []
-		for x in records:
-			if not frappe.db.exists(
-				"Item Tax Template", {"title": x.get("title"), "company": x.get("company")}
-			):
-				cls.item_tax_template.append(frappe.get_doc(x).insert())
-			else:
-				cls.item_tax_template.append(
-					frappe.get_doc(
-						"Item Tax Template",
-						{"title": x.get("title"), "company": x.get("company")},
-					)
-				)
+		cls.make_records(["title", "company"], records, "item_tax_template")
 
 	@classmethod
 	def make_item_group(cls):
@@ -1749,14 +1549,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				],
 			},
 		]
-		cls.item_group = []
-		for x in records:
-			if not frappe.db.exists("Item Group", {"item_group_name": x.get("item_group_name")}):
-				cls.item_group.append(frappe.get_doc(x).insert())
-			else:
-				cls.item_group.append(
-					frappe.get_doc("Item Group", {"item_group_name": x.get("item_group_name")})
-				)
+		cls.make_records(["item_group_name"], records, "item_group")
 
 	@classmethod
 	def _make_item(cls):
@@ -2351,19 +2144,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"company": "_Test Company",
 			},
 		]
-		cls.item = []
-		for x in records:
-			if not frappe.db.exists(
-				"Item", {"item_code": x.get("item_code"), "item_name": x.get("item_name")}
-			):
-				cls.item.append(frappe.get_doc(x).insert())
-			else:
-				cls.item.append(
-					frappe.get_doc(
-						"Item",
-						{"item_code": x.get("item_code"), "item_name": x.get("item_name")},
-					)
-				)
+		cls.make_records(["item_code", "item_name"], records, "item")
 
 	@classmethod
 	def make_product_bundle(cls):
@@ -2387,17 +2168,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				],
 			}
 		]
-		cls.product_bundle = []
-		for x in records:
-			if not frappe.db.exists("Product Bundle", {"new_item_code": x.get("new_item_code")}):
-				cls.product_bundle.append(frappe.get_doc(x).insert())
-			else:
-				cls.product_bundle.append(
-					frappe.get_doc(
-						"Product Bundle",
-						{"new_item_code": x.get("new_item_code")},
-					)
-				)
+		cls.make_records(["new_item_code"], records, "product_bundle")
 
 	@classmethod
 	def make_test_account(cls):
@@ -2562,12 +2333,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"territory": "_Test Territory",
 			},
 		]
-		cls.customer = []
-		for x in records:
-			if not frappe.db.exists("Customer", {"customer_name": x.get("customer_name")}):
-				cls.customer.append(frappe.get_doc(x).insert())
-			else:
-				cls.customer.append(frappe.get_doc("Customer", {"customer_name": x.get("customer_name")}))
+		cls.make_records(["customer_name"], records, "customer")
 
 	@classmethod
 	def make_shareholder(cls):
@@ -2581,14 +2347,7 @@ class ERPNextTestSuite(unittest.TestCase):
 			{"doctype": "Shareholder", "naming_series": "SH-", "title": "Thor", "company": "_Test Company"},
 			{"doctype": "Shareholder", "naming_series": "SH-", "title": "Hulk", "company": "_Test Company"},
 		]
-		cls.shareholder = []
-		for x in records:
-			if not frappe.db.exists("Shareholder", {"title": x.get("title"), "company": x.get("company")}):
-				cls.shareholder.append(frappe.get_doc(x).insert())
-			else:
-				cls.shareholder.append(
-					frappe.get_doc("Shareholder", {"title": x.get("title"), "company": x.get("company")})
-				)
+		cls.make_records(["title", "company"], records, "shareholder")
 
 	@classmethod
 	def make_sales_taxes_template(cls):
@@ -2805,19 +2564,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				],
 			},
 		]
-		cls.sales_taxes_and_template = []
-		for x in records:
-			if not frappe.db.exists(
-				"Sales Taxes and Charges Template", {"title": x.get("title"), "company": x.get("company")}
-			):
-				cls.sales_taxes_and_template.append(frappe.get_doc(x).insert())
-			else:
-				cls.sales_taxes_and_template.append(
-					frappe.get_doc(
-						"Sales Taxes and Charges Template",
-						{"title": x.get("title"), "company": x.get("company")},
-					)
-				)
+		cls.make_records(["title", "company"], records, "sales_taxes_and_template")
 
 	@classmethod
 	def make_asset_category(cls):
@@ -2859,17 +2606,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				],
 			},
 		]
-		cls.asset_category = []
-		for x in records:
-			if not frappe.db.exists("Asset Category", {"asset_category_name": x.get("asset_category_name")}):
-				cls.asset_category.append(frappe.get_doc(x).insert())
-			else:
-				cls.asset_category.append(
-					frappe.get_doc(
-						"Asset Category",
-						{"asset_category_name": x.get("asset_category_name")},
-					)
-				)
+		cls.make_records(["asset_category_name"], records, "asset_category")
 
 	@classmethod
 	def make_asset_maintenance_team(cls):
@@ -2898,19 +2635,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				],
 			}
 		]
-		cls.asset_maintenance_team = []
-		for x in records:
-			if not frappe.db.exists(
-				"Asset Maintenance Team", {"maintenance_team_name": x.get("maintenance_team_name")}
-			):
-				cls.asset_maintenance_team.append(frappe.get_doc(x).insert())
-			else:
-				cls.asset_maintenance_team.append(
-					frappe.get_doc(
-						"Asset Maintenance Team",
-						{"maintenance_team_name": x.get("maintenance_team_name")},
-					)
-				)
+		cls.make_records(["maintenance_team_name"], records, "asset_maintenance_team")
 
 	@classmethod
 	def make_activity_type(cls):
@@ -2926,14 +2651,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"activity_type": "_Test Activity Type 1",
 			},
 		]
-		cls.activity_type = []
-		for x in records:
-			if not frappe.db.exists("Activity Type", {"activity_type": x.get("activity_type")}):
-				cls.activity_type.append(frappe.get_doc(x).insert())
-			else:
-				cls.activity_type.append(
-					frappe.get_doc("Activity Type", {"activity_type": x.get("activity_type")})
-				)
+		cls.make_records(["activity_type"], records, "activity_type")
 
 	@classmethod
 	def make_loyalty_program(cls):
@@ -2969,16 +2687,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				],
 			},
 		]
-		cls.loyalty_program = []
-		for x in records:
-			if not frappe.db.exists(
-				"Loyalty Program", {"loyalty_program_name": x.get("loyalty_program_name")}
-			):
-				cls.loyalty_program.append(frappe.get_doc(x).insert())
-			else:
-				cls.loyalty_program.append(
-					frappe.get_doc("Loyalty Program", {"loyalty_program_name": x.get("loyalty_program_name")})
-				)
+		cls.make_records(["loyalty_program_name"], records, "loyalty_program")
 
 	@classmethod
 	def make_item_price(cls):
@@ -3050,40 +2759,14 @@ class ERPNextTestSuite(unittest.TestCase):
 				"price_list_rate": 10000,
 			},
 		]
-		cls.item_price = []
-		for x in records:
-			if not frappe.db.exists(
-				"Item Price",
-				{
-					"item_code": x.get("item_code"),
-					"price_list": x.get("price_list"),
-					"price_list_rate": x.get("price_list_rate"),
-				},
-			):
-				cls.item_price.append(frappe.get_doc(x).insert())
-			else:
-				cls.item_price.append(
-					frappe.get_doc(
-						"Item Price",
-						{
-							"item_code": x.get("item_code"),
-							"price_list": x.get("price_list"),
-							"price_list_rate": x.get("price_list_rate"),
-						},
-					)
-				)
+		cls.make_records(["item_code", "price_list", "price_list_rate"], records, "item_price")
 
 	@classmethod
 	def make_operation(cls):
 		records = [
 			{"doctype": "Operation", "name": "_Test Operation 1", "workstation": "_Test Workstation 1"}
 		]
-		cls.operation = []
-		for x in records:
-			if not frappe.db.exists("Operation", {"name": x.get("name")}):
-				cls.operation.append(frappe.get_doc(x).insert())
-			else:
-				cls.operation.append(frappe.get_doc("Operation", {"name": x.get("name")}))
+		cls.make_records(["name"], records, "operation")
 
 	@classmethod
 	def make_workstation(cls):
@@ -3101,39 +2784,19 @@ class ERPNextTestSuite(unittest.TestCase):
 				"working_hours": [{"start_time": "10:00:00", "end_time": "20:00:00"}],
 			}
 		]
-		cls.workstation = []
-		for x in records:
-			if not frappe.db.exists("Workstation", {"workstation_name": x.get("workstation_name")}):
-				cls.workstation.append(frappe.get_doc(x).insert())
-			else:
-				cls.workstation.append(
-					frappe.get_doc("Workstation", {"workstation_name": x.get("workstation_name")})
-				)
+		cls.make_records(["workstation_name"], records, "workstation")
 
 	@classmethod
 	def make_bom(cls):
 		# TODO: replace JSON source with hardcoded data in py
 		cls.load_test_records("BOM")
 		records = cls.globalTestRecords["BOM"]
-		cls.bom = []
-		for x in records:
-			x["company"] = cls.companies[0].name
-			if not frappe.db.exists("BOM", {"item": x.get("item"), "company": x.get("company")}):
-				cls.bom.append(frappe.get_doc(x).insert())
-			else:
-				cls.bom.append(frappe.get_doc("BOM", {"item": x.get("item"), "company": x.get("company")}))
+		cls.make_records(["item", "company"], records, "bom")
 
 	@classmethod
 	def make_quality_inspection_param(cls):
 		records = [{"doctype": "Quality Inspection Parameter", "parameter": "_Test Param"}]
-		cls.quality_inspection_param = []
-		for x in records:
-			if not frappe.db.exists("Quality Inspection Parameter", {"parameter": x.get("parameter")}):
-				cls.quality_inspection_param.append(frappe.get_doc(x).insert())
-			else:
-				cls.quality_inspection_param.append(
-					frappe.get_doc("Quality Inspection Parameter", {"parameter": x.get("parameter")})
-				)
+		cls.make_records(["parameter"], records, "quality_inspection_param")
 
 	@classmethod
 	def make_quality_inspection_template(cls):
@@ -3150,20 +2813,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				],
 			}
 		]
-		cls.quality_inspection_template = []
-		for x in records:
-			if not frappe.db.exists(
-				"Quality Inspection Template",
-				{"quality_inspection_template_name": x.get("quality_inspection_template_name")},
-			):
-				cls.quality_inspection_template.append(frappe.get_doc(x).insert())
-			else:
-				cls.quality_inspection_template.append(
-					frappe.get_doc(
-						"Quality Inspection Template",
-						{"quality_inspection_template_name": x.get("quality_inspection_template_name")},
-					)
-				)
+		cls.make_records(["quality_inspection_template_name"], records, "quality_inspection_template")
 
 	@classmethod
 	def make_brand(cls):
@@ -3183,12 +2833,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				],
 			},
 		]
-		cls.brand = []
-		for x in records:
-			if not frappe.db.exists("Brand", {"brand": x.get("brand")}):
-				cls.brand.append(frappe.get_doc(x).insert())
-			else:
-				cls.brand.append(frappe.get_doc("Brand", {"Brand": x.get("brand")}))
+		cls.make_records(["brand"], records, "brand")
 
 	@classmethod
 	def make_dunning_type(cls):
@@ -3228,14 +2873,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				],
 			},
 		]
-		cls.dunning_type = []
-		for x in records:
-			if not frappe.db.exists("Dunning Type", {"dunning_type": x.get("dunning_type")}):
-				cls.dunning_type.append(frappe.get_doc(x).insert())
-			else:
-				cls.dunning_type.append(
-					frappe.get_doc("Dunning Type", {"dunning_type": x.get("dunning_type")})
-				)
+		cls.make_records(["dunning_type"], records, "dunning_type")
 
 	@classmethod
 	def make_finance_book(cls):
@@ -3253,14 +2891,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				"finance_book_name": "Test Finance Book 3",
 			},
 		]
-		cls.finance_book = []
-		for x in records:
-			if not frappe.db.exists("Finance Book", {"finance_book_name": x.get("finance_book_name")}):
-				cls.finance_book.append(frappe.get_doc(x).insert())
-			else:
-				cls.finance_book.append(
-					frappe.get_doc("Finance Book", {"finance_book_name": x.get("finance_book_name")})
-				)
+		cls.make_records(["finance_book_name"], records, "finance_book")
 
 	@classmethod
 	def make_custom_doctype(cls):
@@ -3429,24 +3060,7 @@ class ERPNextTestSuite(unittest.TestCase):
 				],
 			},
 		]
-		cls.address = []
-		for x in records:
-			if not frappe.db.exists(
-				"Address",
-				{
-					"address_title": x.get("address_title"),
-				},
-			):
-				cls.address.append(frappe.get_doc(x).insert())
-			else:
-				cls.address.append(
-					frappe.get_doc(
-						"Address",
-						{
-							"address_title": x.get("address_title"),
-						},
-					)
-				)
+		cls.make_records(["address_title", "address_type"], records, "address")
 
 	@contextmanager
 	def set_user(self, user: str):
