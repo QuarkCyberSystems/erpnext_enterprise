@@ -1545,10 +1545,13 @@ class SerialandBatchBundle(Document):
 	def get_available_qty_from_sabb(self):
 		batches = [d.batch_no for d in self.entries if d.batch_no]
 
+		sle = frappe.qb.DocType("Stock Ledger Entry")
 		child = frappe.qb.DocType("Serial and Batch Entry")
 
 		query = (
 			frappe.qb.from_(child)
+			.inner_join(sle)
+			.on(child.parent == sle.serial_and_batch_bundle)
 			.select(
 				child.batch_no,
 				child.qty,
@@ -1557,6 +1560,7 @@ class SerialandBatchBundle(Document):
 			)
 			.where(
 				(child.item_code == self.item_code)
+				& (sle.is_cancelled == 0)
 				& (child.warehouse == self.warehouse)
 				& (child.is_cancelled == 0)
 				& (child.batch_no.isin(batches))
