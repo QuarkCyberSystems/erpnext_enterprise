@@ -16,10 +16,8 @@ from erpnext.tests.utils import ERPNextTestSuite
 class TestBOMUpdateTool(ERPNextTestSuite):
 	"Test major functions run via BOM Update Tool."
 
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.load_test_records("BOM")
+	def setUp(self):
+		self.load_test_records("BOM")
 
 	@timeout
 	def test_replace_bom(self):

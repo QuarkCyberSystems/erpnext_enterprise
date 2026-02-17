@@ -311,10 +311,8 @@ class TestLIFOValuationSLE(ERPNextTestSuite):
 	ITEM_CODE = "_Test LIFO item"
 	WAREHOUSE = "_Test Warehouse - _TC"
 
-	@classmethod
-	def setUpClass(cls) -> None:
-		super().setUpClass()
-		make_item(cls.ITEM_CODE, {"valuation_method": "LIFO"})
+	def setUp(self) -> None:
+		make_item(self.ITEM_CODE, {"valuation_method": "LIFO"})
 
 	def _make_stock_entry(self, qty, rate=None):
 		kwargs = {

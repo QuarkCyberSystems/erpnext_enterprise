@@ -45,10 +45,8 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestDeliveryNote(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.load_test_records("Stock Entry")
+	def setUp(self):
+		self.load_test_records("Stock Entry")
 
 	def test_delivery_note_qty(self):
 		dn = create_delivery_note(qty=0, do_not_save=True)

@@ -18,9 +18,7 @@ from erpnext.tests.utils import ERPNextTestSuite, if_lending_app_installed, if_l
 
 
 class TestBankClearance(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
 		create_warehouse(
 			warehouse_name="_Test Warehouse",
 			properties={"parent_warehouse": "All Warehouses - _TC"},
@@ -29,7 +27,6 @@ class TestBankClearance(ERPNextTestSuite):
 		create_item("_Test Item")
 		create_cost_center(cost_center_name="_Test Cost Center", company="_Test Company")
 
-	def setUp(self):
 		make_bank_account()
 		add_transactions()
 

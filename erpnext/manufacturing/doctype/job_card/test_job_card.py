@@ -27,12 +27,8 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestJobCard(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.load_test_records("BOM")
-
 	def setUp(self):
+		self.load_test_records("BOM")
 		self.make_employees()  # used in job card time log
 		self.make_bom_for_jc_tests()
 		self.transfer_material_against: Literal["Work Order", "Job Card"] = "Work Order"

@@ -29,13 +29,9 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestPurchaseReceipt(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.load_test_records("Purchase Receipt")
-
 	def setUp(self):
 		frappe.local.future_sle = {}
+		self.load_test_records("Purchase Receipt")
 
 	def test_purchase_receipt_qty(self):
 		pr = make_purchase_receipt(qty=0, rejected_qty=0, do_not_save=True)

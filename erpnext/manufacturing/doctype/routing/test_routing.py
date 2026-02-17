@@ -9,14 +9,8 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestRouting(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.item_code = "Test Routing Item - A"
-
-	@classmethod
-	def tearDownClass(cls):
-		frappe.db.sql("delete from tabBOM where item=%s", cls.item_code)
+	def setUp(self):
+		self.item_code = "Test Routing Item - A"
 
 	def test_sequence_id(self):
 		operations = [

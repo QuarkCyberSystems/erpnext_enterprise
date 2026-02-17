@@ -11,10 +11,8 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestItemPrice(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.load_test_records("Item Price")
+	def setUp(self):
+		self.load_test_records("Item Price")
 
 	def test_template_item_price(self):
 		from erpnext.stock.doctype.item.test_item import make_item

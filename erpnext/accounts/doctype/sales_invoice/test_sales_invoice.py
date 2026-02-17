@@ -52,6 +52,13 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 class TestSalesInvoice(ERPNextTestSuite):
 	def setUp(self):
+		self.make_employees()
+		self.make_sales_person()
+		self.load_test_records("Journal Entry")
+		self.load_test_records("Stock Entry")
+		self.load_test_records("Sales Invoice")
+		unlink_payment_on_cancel_of_invoice()
+
 		from erpnext.stock.doctype.stock_ledger_entry.test_stock_ledger_entry import create_items
 
 		create_items(["_Test Internal Transfer Item"], uoms=[{"uom": "Box", "conversion_factor": 10}])
@@ -92,21 +99,6 @@ class TestSalesInvoice(ERPNextTestSuite):
 		w.insert()
 		w.submit()
 		return w
-
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.enterClassContext(cls.change_settings("Selling Settings", validate_selling_price=0))
-		cls.make_employees()
-		cls.make_sales_person()
-		cls.load_test_records("Journal Entry")
-		cls.load_test_records("Stock Entry")
-		cls.load_test_records("Sales Invoice")
-		unlink_payment_on_cancel_of_invoice()
-
-	@classmethod
-	def tearDownClass(self):
-		unlink_payment_on_cancel_of_invoice(0)
 
 	def test_sales_invoice_qty(self):
 		si = create_sales_invoice(qty=0, do_not_save=True)

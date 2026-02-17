@@ -23,10 +23,8 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestSerialNo(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.load_test_records("Stock Entry")
+	def setUp(self):
+		self.load_test_records("Stock Entry")
 
 	def test_cannot_create_direct(self):
 		frappe.delete_doc_if_exists("Serial No", "_TCSER0001")

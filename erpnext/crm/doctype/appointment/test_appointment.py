@@ -28,12 +28,8 @@ def create_test_appointment():
 
 
 class TestAppointment(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		frappe.db.delete("Lead", {"email_id": LEAD_EMAIL})
-
 	def setUp(self):
+		frappe.db.delete("Lead", {"email_id": LEAD_EMAIL})
 		self.test_appointment = create_test_appointment()
 		self.test_appointment.set_verified(self.test_appointment.customer_email)
 

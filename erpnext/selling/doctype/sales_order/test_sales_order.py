@@ -36,21 +36,6 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestSalesOrder(AccountsTestMixin, ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.unlink_setting = int(
-			frappe.db.get_single_value("Accounts Settings", "unlink_advance_payment_on_cancelation_of_order")
-		)
-
-	@classmethod
-	def tearDownClass(cls) -> None:
-		# reset config to previous state
-		frappe.db.set_single_value(
-			"Accounts Settings", "unlink_advance_payment_on_cancelation_of_order", cls.unlink_setting
-		)
-		super().tearDownClass()
-
 	def setUp(self):
 		self.create_customer("_Test Customer Credit")
 

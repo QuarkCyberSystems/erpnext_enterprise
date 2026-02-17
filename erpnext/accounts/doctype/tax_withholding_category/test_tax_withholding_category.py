@@ -14,9 +14,7 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestTaxWithholdingCategory(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
 		# create relevant supplier, etc
 		create_records()
 		create_tax_withholding_category_records()

@@ -24,10 +24,8 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestLandedCostVoucher(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.load_test_records("Currency Exchange")
+	def setUp(self):
+		self.load_test_records("Currency Exchange")
 
 	def test_landed_cost_voucher(self):
 		frappe.db.set_single_value("Buying Settings", "allow_multiple_items", 1)

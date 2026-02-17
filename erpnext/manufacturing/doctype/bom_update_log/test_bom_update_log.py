@@ -17,12 +17,8 @@ from erpnext.tests.utils import ERPNextTestSuite
 class TestBOMUpdateLog(ERPNextTestSuite):
 	"Test BOM Update Tool Operations via BOM Update Log."
 
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.load_test_records("BOM")
-
 	def setUp(self):
+		self.load_test_records("BOM")
 		bom_doc = frappe.copy_doc(self.globalTestRecords["BOM"][0])
 		bom_doc.items[1].item_code = "_Test Item"
 		bom_doc.insert()

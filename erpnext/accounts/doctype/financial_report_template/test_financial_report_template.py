@@ -9,11 +9,9 @@ from erpnext.tests.utils import ERPNextTestSuite
 class FinancialReportTemplateTestCase(ERPNextTestSuite):
 	"""Utility class with common setup and helper methods for all test classes"""
 
-	@classmethod
-	def setUpClass(cls):
+	def setUp(self):
 		"""Set up test data"""
-		super().setUpClass()
-		cls.create_test_template()
+		self.create_test_template()
 
 	@classmethod
 	def create_test_template(cls):

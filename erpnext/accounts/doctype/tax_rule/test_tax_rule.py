@@ -11,17 +11,8 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestTaxRule(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		frappe.db.set_single_value("Shopping Cart Settings", "enabled", 0)
-
-	@classmethod
-	def tearDownClass(cls):
-		frappe.db.sql("delete from `tabTax Rule`")
-
 	def setUp(self):
-		frappe.db.sql("delete from `tabTax Rule`")
+		frappe.db.set_single_value("Shopping Cart Settings", "enabled", 0)
 
 	def test_conflict(self):
 		tax_rule1 = make_tax_rule(

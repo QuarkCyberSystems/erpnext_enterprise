@@ -12,9 +12,7 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestAssetShiftAllocation(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
 		create_asset_shift_factors()
 
 	def test_asset_shift_allocation(self):

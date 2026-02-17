@@ -818,17 +818,8 @@ class TestAsset(AssetSetup):
 
 
 class TestDepreciationMethods(AssetSetup):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-
-		cls._old_float_precision = frappe.db.get_single_value("System Settings", "float_precision")
+	def setUp(self):
 		frappe.db.set_single_value("System Settings", "float_precision", 2)
-
-	@classmethod
-	def tearDownClass(cls):
-		frappe.db.set_single_value("System Settings", "float_precision", cls._old_float_precision)
-		super().tearDownClass()
 
 	def test_schedule_for_straight_line_method(self):
 		asset = create_asset(

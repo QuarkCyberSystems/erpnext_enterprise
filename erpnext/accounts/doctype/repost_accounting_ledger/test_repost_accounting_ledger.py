@@ -17,15 +17,11 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestRepostAccountingLedger(AccountsTestMixin, ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.enterClassContext(cls.change_settings("Selling Settings", validate_selling_price=0))
-
 	def setUp(self):
 		self.create_company()
 		self.create_customer()
 		self.create_item()
+		frappe.db.set_single_value("Selling Settings", "validate_selling_price", 0)
 		update_repost_settings()
 
 	def test_01_basic_functions(self):

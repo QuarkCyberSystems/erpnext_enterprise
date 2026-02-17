@@ -8,9 +8,7 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestOpportunitySummaryBySalesStage(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
 		create_opportunity()
 
 	def test_opportunity_summary_by_sales_stage(self):

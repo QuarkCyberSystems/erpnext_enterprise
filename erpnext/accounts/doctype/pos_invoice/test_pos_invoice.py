@@ -25,14 +25,10 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class POSInvoiceTestMixin(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.load_test_records("Stock Entry")
-
 	def setUp(self):
 		from erpnext.accounts.doctype.pos_closing_entry.test_pos_closing_entry import init_user_and_profile
 
+		self.load_test_records("Stock Entry")
 		self.test_user, self.pos_profile = init_user_and_profile()
 
 		if frappe.session.user != "Administrator":

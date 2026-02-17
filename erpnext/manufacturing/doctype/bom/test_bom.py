@@ -24,10 +24,8 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestBOM(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.load_test_records("BOM")
+	def setUp(self):
+		self.load_test_records("BOM")
 
 	@timeout
 	def test_get_items(self):

@@ -10,12 +10,10 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestActivityCost(ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
 		# TODO: only 1 employee is required
-		cls.make_employees()
-		cls.make_activity_type()
+		self.make_employees()
+		self.make_activity_type()
 
 	def test_duplication(self):
 		frappe.db.sql("delete from `tabActivity Cost`")

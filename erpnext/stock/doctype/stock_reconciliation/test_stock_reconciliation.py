@@ -34,10 +34,6 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestStockReconciliation(ERPNextTestSuite, StockTestMixin):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-
 	def setUp(self):
 		frappe.db.set_single_value("Stock Settings", "allow_negative_stock", 1)
 		frappe.local.future_sle = {}

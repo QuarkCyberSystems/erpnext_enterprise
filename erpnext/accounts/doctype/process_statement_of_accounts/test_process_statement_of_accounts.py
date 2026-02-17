@@ -15,23 +15,12 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestProcessStatementOfAccounts(AccountsTestMixin, ERPNextTestSuite):
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
+	def setUp(self):
+		frappe.db.set_single_value("Selling Settings", "validate_selling_price", 0)
 		letterhead = frappe.get_doc("Letter Head", "Company Letterhead - Grey")
 		letterhead.is_default = 0
 		letterhead.save()
-		cls.enterClassContext(cls.change_settings("Selling Settings", validate_selling_price=0))
 
-	@classmethod
-	def tearDownClass(cls):
-		super().tearDownClass()
-		letterhead = frappe.get_doc("Letter Head", "Company Letterhead - Grey")
-		letterhead.is_default = 1
-		letterhead.save()
-		frappe.db.commit()  # nosemgrep
-
-	def setUp(self):
 		self.create_company()
 		self.create_customer()
 		self.create_customer(customer_name="Other Customer")
