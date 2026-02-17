@@ -28,7 +28,6 @@
   "status",
   "erpnext_user",
   "user_id",
-  "create_user",
   "create_user_permission",
   "company_details_section",
   "company",
@@ -284,12 +283,6 @@
    "ignore_user_permissions": 1,
    "label": "User ID",
    "options": "User"
-  },
-  {
-   "depends_on": "eval:(!doc.user_id)",
-   "fieldname": "create_user",
-   "fieldtype": "Button",
-   "label": "Create User"
   },
   {
    "default": "1",
@@ -823,7 +816,7 @@
  "image_field": "image",
  "is_tree": 1,
  "links": [],
- "modified": "2025-08-29 11:52:12.819878",
+ "modified": "2026-02-16 13:06:01.752904",
  "modified_by": "Administrator",
  "module": "Setup",
  "name": "Employee",
