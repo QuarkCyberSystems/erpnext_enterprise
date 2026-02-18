@@ -408,6 +408,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 				);
 				if (frappe.flags.round_row_wise_tax) {
 					current_tax_amount = flt(current_tax_amount, precision("tax_amount", tax));
+					current_net_amount = flt(current_net_amount, precision("net_amount", tax));
 				}
 
 				// Adjust divisional loss to the last item
@@ -486,7 +487,7 @@ erpnext.taxes_and_totals = class TaxesAndTotals extends erpnext.payments {
 
 		for (const [i, tax] of doc.taxes.entries()) {
 			me.round_off_totals(tax);
-			me.set_in_company_currency(tax, ["tax_amount", "tax_amount_after_discount_amount"]);
+			me.set_in_company_currency(tax, ["tax_amount", "tax_amount_after_discount_amount", "net_amount"]);
 
 			me.round_off_base_values(tax);
 
