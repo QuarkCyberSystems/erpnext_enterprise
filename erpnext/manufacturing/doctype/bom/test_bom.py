@@ -654,7 +654,7 @@ class TestBOM(ERPNextTestSuite):
 
 		from erpnext.manufacturing.doctype.production_plan.test_production_plan import make_bom
 
-		bom = make_bom(item=fg_item, raw_materials=[rm_item], do_not_save=True)
+		bom = make_bom(item=fg_item, raw_materials=[rm_item], currency="INR", do_not_save=True)
 
 		bom.rm_cost_as_per = "Last Purchase Rate"
 		bom.save()
