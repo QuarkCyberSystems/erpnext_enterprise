@@ -29,6 +29,8 @@
   "erpnext_user",
   "user_id",
   "create_user_permission",
+  "column_break_xwnm",
+  "create_user_automatically",
   "company_details_section",
   "company",
   "department",
@@ -286,11 +288,19 @@
   },
   {
    "default": "1",
-   "depends_on": "user_id",
+   "depends_on": "eval:doc.user_id || doc.create_user_automatically",
    "description": "This will restrict user access to other employee records",
    "fieldname": "create_user_permission",
    "fieldtype": "Check",
    "label": "Create User Permission"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.__islocal",
+   "description": "This will create User for this employee depending on the Company Email.",
+   "fieldname": "create_user_automatically",
+   "fieldtype": "Check",
+   "label": "Create User Automatically"
   },
   {
    "allow_in_quick_entry": 1,
@@ -447,6 +457,7 @@
    "fieldname": "company_email",
    "fieldtype": "Data",
    "label": "Company Email",
+   "mandatory_depends_on": "create_user_automatically",
    "oldfieldname": "company_email",
    "oldfieldtype": "Data",
    "options": "Email"
@@ -809,6 +820,10 @@
    "fieldtype": "Data",
    "label": "IBAN",
    "options": "IBAN"
+  },
+  {
+   "fieldname": "column_break_xwnm",
+   "fieldtype": "Column Break"
   }
  ],
  "icon": "fa fa-user",
@@ -816,7 +831,7 @@
  "image_field": "image",
  "is_tree": 1,
  "links": [],
- "modified": "2026-02-16 13:06:01.752904",
+ "modified": "2026-02-19 12:48:22.080419",
  "modified_by": "Administrator",
  "module": "Setup",
  "name": "Employee",

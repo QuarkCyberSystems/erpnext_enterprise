@@ -49,6 +49,7 @@ class Employee(NestedSet):
 		company: DF.Link
 		company_email: DF.Data | None
 		contract_end_date: DF.Date | None
+		create_user_automatically: DF.Check
 		create_user_permission: DF.Check
 		ctc: DF.Currency
 		current_accommodation_type: DF.Literal["", "Rented", "Owned"]
@@ -125,6 +126,7 @@ class Employee(NestedSet):
 		self.set_employee_name()
 		self.validate_date()
 		self.validate_email()
+		self.validate_auto_user_creation()
 		self.validate_status()
 		self.validate_reports_to()
 		self.set_preferred_email()
@@ -159,6 +161,10 @@ class Employee(NestedSet):
 			self.validate_for_enabled_user_id(data.get("enabled", 0))
 			self.validate_duplicate_user_id()
 
+	def validate_auto_user_creation(self):
+		if self.create_user_automatically and not self.company_email:
+			frappe.throw(_("Email is mandatory when Create User Automatically is enabled"))
+
 	def update_nsm_model(self):
 		frappe.utils.nestedset.update_nsm(self)
 
@@ -169,6 +175,19 @@ class Employee(NestedSet):
 			self.update_user()
 			self.update_user_permissions()
 		self.reset_employee_emails_cache()
+
+	def after_insert(self):
+		if not self.create_user_automatically:
+			return
+
+		if self.user_id:
+			return
+
+		create_user(
+			employee=self.name,
+			email=self.company_email,
+			create_user_permission=self.create_user_permission,
+		)
 
 	def update_user_permissions(self):
 		if not self.has_value_changed("user_id") and not self.has_value_changed("create_user_permission"):
@@ -406,7 +425,7 @@ def create_user(employee, user=None, email=None, create_user_permission=0):
 	if email:
 		email = cstr(email).strip().lower()
 	else:
-		email = emp.prefered_email
+		email = emp.company_email
 
 	if not email:
 		frappe.throw(_("Email is required to create a user"))
@@ -436,7 +455,7 @@ def create_user(employee, user=None, email=None, create_user_permission=0):
 	user = frappe.new_doc("User")
 	user.update(
 		{
-			"name": emp.employee_name,
+			"name": email,
 			"email": email,
 			"enabled": 1,
 			"first_name": first_name,
@@ -446,7 +465,6 @@ def create_user(employee, user=None, email=None, create_user_permission=0):
 			"birth_date": emp.date_of_birth,
 			"phone": emp.cell_number,
 			"bio": emp.bio,
-			"send_welcome_email": 1,
 		}
 	)
 	user.append_roles("Employee")
