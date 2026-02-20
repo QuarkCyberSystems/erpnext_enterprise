@@ -1260,6 +1260,7 @@ def make_landed_cost_voucher(**args):
 	lcv = frappe.new_doc("Landed Cost Voucher")
 	lcv.company = args.company or "_Test Company"
 	lcv.distribute_charges_based_on = args.distribute_charges_based_on or "Amount"
+	expense_account = get_expense_account(args.company or "_Test Company")
 
 	lcv.set(
 		"purchase_receipts",
@@ -1280,7 +1281,7 @@ def make_landed_cost_voucher(**args):
 			[
 				{
 					"description": "Shipping Charges",
-					"expense_account": args.expense_account or "Expenses Included In Valuation - TCP1",
+					"expense_account": args.expense_account or expense_account,
 					"amount": args.charges,
 				}
 			],
@@ -1300,6 +1301,7 @@ def create_landed_cost_voucher(receipt_document_type, receipt_document, company,
 	lcv = frappe.new_doc("Landed Cost Voucher")
 	lcv.company = company
 	lcv.distribute_charges_based_on = "Amount"
+	expense_account = get_expense_account(company)
 
 	lcv.set(
 		"purchase_receipts",
@@ -1319,7 +1321,7 @@ def create_landed_cost_voucher(receipt_document_type, receipt_document, company,
 		[
 			{
 				"description": "Insurance Charges",
-				"expense_account": "Expenses Included In Valuation - TCP1",
+				"expense_account": expense_account,
 				"amount": charges,
 			}
 		],
@@ -1332,6 +1334,11 @@ def create_landed_cost_voucher(receipt_document_type, receipt_document, company,
 	lcv.submit()
 
 	return lcv
+
+
+def get_expense_account(company):
+	company_abbr = frappe.get_cached_value("Company", company, "abbr")
+	return f"Expenses Included In Valuation - {company_abbr}"
 
 
 def distribute_landed_cost_on_items(lcv):
