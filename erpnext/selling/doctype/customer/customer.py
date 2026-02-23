@@ -87,7 +87,6 @@ class Customer(TransactionBase):
 		prospect_name: DF.Link | None
 		represents_company: DF.Link | None
 		sales_team: DF.Table[SalesTeam]
-		salutation: DF.Link | None
 		so_required: DF.Check
 		supplier_numbers: DF.Table[SupplierNumberAtCustomer]
 		tax_category: DF.Link | None

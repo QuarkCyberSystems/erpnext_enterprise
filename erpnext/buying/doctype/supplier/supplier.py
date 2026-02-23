@@ -49,6 +49,7 @@ class Supplier(TransactionBase):
 		default_price_list: DF.Link | None
 		disabled: DF.Check
 		email_id: DF.ReadOnly | None
+		gender: DF.Link | None
 		hold_type: DF.Literal["", "All", "Invoices", "Payments"]
 		image: DF.AttachImage | None
 		is_frozen: DF.Check
