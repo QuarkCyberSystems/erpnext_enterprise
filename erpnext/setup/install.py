@@ -322,6 +322,7 @@ def set_default_print_formats():
 				"doctype_or_field": "DocType",
 				"property": "default_print_format",
 				"value": print_format,
+				"property_type": "Link",
 			},
 			validate_fields_for_doctype=False,
 		)
