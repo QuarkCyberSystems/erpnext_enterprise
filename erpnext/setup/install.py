@@ -345,7 +345,7 @@ def create_letter_head():
 					"letter_head_name": name,
 					"source": "HTML",
 					"content": content,
-					"is_default": 1 if name == "Company Letterhead - Grey" else 0,
+					"is_default": 1 if name == "Company Letterhead" else 0,
 				}
 			)
 			doc.insert(ignore_permissions=True)
