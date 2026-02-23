@@ -11,16 +11,12 @@
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
-<<<<<<< HEAD
-  "supplier_name",
-  "country",
-=======
   "supplier_type",
   "supplier_name",
   "gender",
->>>>>>> bd521d9089 (refactor: supplier form cleanup)
   "column_break0",
   "supplier_group",
+  "country",
   "supplier_type",
   "is_transporter",
   "image",
@@ -68,11 +64,8 @@
   "allow_purchase_invoice_creation_without_purchase_receipt",
   "column_break_54",
   "is_frozen",
-<<<<<<< HEAD
   "disabled",
-=======
   "rfq_and_purchase_order_settings_section",
->>>>>>> bd521d9089 (refactor: supplier form cleanup)
   "warn_rfqs",
   "prevent_rfqs",
   "column_break_oxjw",
@@ -85,11 +78,7 @@
   "release_date",
   "portal_users_tab",
   "portal_users",
-<<<<<<< HEAD
-  "column_break_1mqv"
-=======
   "dashboard_tab"
->>>>>>> bd521d9089 (refactor: supplier form cleanup)
  ],
  "fields": [
   {
@@ -502,8 +491,6 @@
    "fieldtype": "Link",
    "label": "Tax Withholding Group",
    "options": "Tax Withholding Group"
-<<<<<<< HEAD
-=======
   },
   {
    "depends_on": "eval:doc.supplier_type == 'Individual'",
@@ -520,7 +507,6 @@
   {
    "fieldname": "column_break_oxjw",
    "fieldtype": "Column Break"
->>>>>>> bd521d9089 (refactor: supplier form cleanup)
   }
  ],
  "grid_page_length": 50,
@@ -534,7 +520,7 @@
    "link_fieldname": "party"
   }
  ],
- "modified": "2026-02-08 20:28:01.101808",
+ "modified": "2026-02-08 21:28:01.101808",
  "modified_by": "Administrator",
  "module": "Buying",
  "name": "Supplier",
