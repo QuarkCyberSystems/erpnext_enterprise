@@ -316,6 +316,9 @@ def set_default_print_formats():
 		if frappe.get_meta(doctype).default_print_format:
 			continue
 
+		if not frappe.db.exists("Print Format", print_format):
+			continue
+
 		frappe.make_property_setter(
 			{
 				"doctype": doctype,
@@ -345,7 +348,7 @@ def create_letter_head():
 					"letter_head_name": name,
 					"source": "HTML",
 					"content": content,
-					"is_default": 1 if name == "Company Letterhead" else 0,
+					"is_default": 1 if name == "Company Letterhead - Grey" else 0,
 				}
 			)
 			doc.insert(ignore_permissions=True)
