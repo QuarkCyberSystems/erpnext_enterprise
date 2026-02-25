@@ -12,9 +12,6 @@
   "disabled",
   "column_break_9",
   "warehouse",
-  "utm_source",
-  "utm_campaign",
-  "utm_medium",
   "company_address",
   "section_break_15",
   "applicable_for_users",
@@ -61,7 +58,13 @@
   "accounting_dimensions_section",
   "cost_center",
   "dimension_col_break",
-  "project"
+  "project",
+  "utm_analytics_section",
+  "utm_source",
+  "column_break_tvls",
+  "utm_campaign",
+  "column_break_xygw",
+  "utm_medium"
  ],
  "fields": [
   {
@@ -430,6 +433,20 @@
    "fieldname": "allow_partial_payment",
    "fieldtype": "Check",
    "label": "Allow Partial Payment"
+  },
+  {
+   "fieldname": "column_break_tvls",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_xygw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "utm_analytics_section",
+   "fieldtype": "Section Break",
+   "label": "Campaign"
   }
  ],
  "grid_page_length": 50,
@@ -458,7 +475,7 @@
    "link_fieldname": "pos_profile"
   }
  ],
- "modified": "2025-06-24 11:19:19.834905",
+ "modified": "2026-02-10 14:24:48.597412",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "POS Profile",
