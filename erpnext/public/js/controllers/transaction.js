@@ -450,7 +450,106 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 			},
 		});
 	}
+	make_payment_request_with_schedule = async function () {
+		let frm = this.frm;
+		const { message: schedules } = await frappe.call({
+			method: "erpnext.accounts.doctype.payment_request.payment_request.get_available_payment_schedules",
+			args: {
+				reference_doctype: frm.doctype,
+				reference_name: frm.doc.name,
+			},
+		});
 
+		if (!schedules.length) {
+			this.make_payment_request();
+			return;
+		}
+		if (!schedules || !schedules.length) {
+			frappe.msgprint(__("No pending payment schedules available."));
+			return;
+		}
+
+		const dialog = new frappe.ui.Dialog({
+			title: __("Select Payment Schedule"),
+			fields: [
+				{
+					fieldtype: "Table",
+					fieldname: "payment_schedules",
+					label: __("Payment Schedules"),
+					cannot_add_rows: true,
+					in_place_edit: false,
+					data: schedules,
+					fields: [
+						{
+							fieldtype: "Data",
+							fieldname: "name",
+							label: __("Schedule Name"),
+							read_only: 1,
+						},
+						{
+							fieldtype: "Data",
+							fieldname: "payment_term",
+							label: __("Payment Term"),
+							in_list_view: 1,
+							read_only: 1,
+						},
+						{
+							fieldtype: "Date",
+							fieldname: "due_date",
+							label: __("Due Date"),
+							in_list_view: 1,
+							read_only: 1,
+						},
+						{
+							fieldtype: "Currency",
+							fieldname: "payment_amount",
+							label: __("Amount"),
+							in_list_view: 1,
+							read_only: 1,
+						},
+					],
+				},
+			],
+			primary_action_label: __("Create Payment Request"),
+			primary_action: async () => {
+				const values = dialog.get_values();
+				const selected = values.payment_schedules.filter((r) => r.__checked);
+
+				if (!selected.length) {
+					frappe.msgprint(__("Please select at least one schedule."));
+					return;
+				}
+				console.log(selected);
+				dialog.hide();
+				let me = this;
+				const payment_request_type = ["Sales Order", "Sales Invoice"].includes(this.frm.doc.doctype)
+					? "Inward"
+					: "Outward";
+				const { message: pr_name } = await frappe.call({
+					method: "erpnext.accounts.doctype.payment_request.payment_request.make_payment_request",
+					args: {
+						dt: me.frm.doc.doctype,
+						dn: me.frm.doc.name,
+						recipient_id: me.frm.doc.contact_email,
+						payment_request_type: payment_request_type,
+						party_type: payment_request_type == "Outward" ? "Supplier" : "Customer",
+						party: payment_request_type == "Outward" ? me.frm.doc.supplier : me.frm.doc.customer,
+						party_name:
+							payment_request_type == "Outward"
+								? me.frm.doc.supplier_name
+								: me.frm.doc.customer_name,
+						reference_doctype: frm.doctype,
+						reference_name: frm.docname,
+						schedules: selected,
+					},
+				});
+
+				frappe.set_route("Form", "Payment Request", pr_name.name);
+			},
+		});
+
+		dialog.show();
+	};
 	onload_post_render() {
 		if (
 			this.frm.doc.__islocal &&
@@ -1733,13 +1832,11 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 
 		this.frm.set_currency_labels(
 			[
+				"advance_paid",
 				"base_total",
 				"base_net_total",
 				"base_total_taxes_and_charges",
 				"base_discount_amount",
-				"base_grand_total",
-				"base_rounded_total",
-				"base_in_words",
 				"base_taxes_and_charges_added",
 				"base_taxes_and_charges_deducted",
 				"total_amount_to_pay",
@@ -1750,7 +1847,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 				"base_raw_material_cost",
 				"base_total_cost",
 				"base_scrap_material_cost",
-				"base_rounding_adjustment",
+				"base_totals_section",
 			],
 			company_currency
 		);
@@ -1761,19 +1858,16 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 				"net_total",
 				"total_taxes_and_charges",
 				"discount_amount",
-				"grand_total",
 				"taxes_and_charges_added",
 				"taxes_and_charges_deducted",
 				"tax_withholding_net_total",
-				"rounded_total",
-				"in_words",
 				"paid_amount",
 				"write_off_amount",
 				"operating_cost",
 				"scrap_material_cost",
-				"rounding_adjustment",
 				"raw_material_cost",
 				"total_cost",
+				"totals_section",
 			],
 			this.frm.doc.currency
 		);
@@ -1826,6 +1920,19 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 			["plc_conversion_rate", "price_list_currency"],
 			this.frm.doc.price_list_currency != company_currency
 		);
+
+		let taxes_fields = [
+			"total_taxes_and_charges",
+			"taxes_and_charges_deducted",
+			"taxes_and_charges_added",
+			"base_taxes_and_charges_added",
+			"base_taxes_and_charges_deducted",
+			"base_total_taxes_and_charges",
+		];
+
+		taxes_fields.forEach((field) => {
+			this.frm.toggle_display(field, this.frm.doc[field] !== 0 || this.frm.doc.docstatus !== 1);
+		});
 
 		let show =
 			cint(this.frm.doc.discount_amount) ||

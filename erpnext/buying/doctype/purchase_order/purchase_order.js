@@ -428,7 +428,7 @@ erpnext.buying.PurchaseOrderController = class PurchaseOrderController extends (
 						this.frm.add_custom_button(
 							__("Payment Request"),
 							function () {
-								me.make_payment_request();
+								me.make_payment_request_with_schedule();
 							},
 							__("Create")
 						);
@@ -459,27 +459,6 @@ erpnext.buying.PurchaseOrderController = class PurchaseOrderController extends (
 		} else if (doc.docstatus === 0) {
 			this.frm.cscript.add_from_mappers();
 		}
-	}
-
-	get_items_from_open_material_requests() {
-		erpnext.utils.map_current_doc({
-			method: "erpnext.stock.doctype.material_request.material_request.make_purchase_order_based_on_supplier",
-			args: {
-				supplier: this.frm.doc.supplier,
-			},
-			source_doctype: "Material Request",
-			source_name: this.frm.doc.supplier,
-			target: this.frm,
-			setters: {
-				company: this.frm.doc.company,
-			},
-			get_query_filters: {
-				docstatus: ["!=", 2],
-				supplier: this.frm.doc.supplier,
-			},
-			get_query_method:
-				"erpnext.stock.doctype.material_request.material_request.get_material_requests_based_on_supplier",
-		});
 	}
 
 	validate() {

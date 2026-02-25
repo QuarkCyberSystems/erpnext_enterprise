@@ -82,7 +82,6 @@ class JobCard(Document):
 		batch_no: DF.Link | None
 		bom_no: DF.Link | None
 		company: DF.Link
-		current_time: DF.Int
 		employee: DF.TableMultiSelect[JobCardTimeLog]
 		expected_end_date: DF.Datetime | None
 		expected_start_date: DF.Datetime | None
@@ -118,7 +117,6 @@ class JobCard(Document):
 		serial_no: DF.SmallText | None
 		skip_material_transfer: DF.Check
 		source_warehouse: DF.Link | None
-		started_time: DF.Datetime | None
 		status: DF.Literal[
 			"Open",
 			"Work In Progress",

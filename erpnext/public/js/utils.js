@@ -667,7 +667,7 @@ erpnext.utils.update_child_items = function (opts) {
 					filters: filters,
 				};
 			},
-			onchange: function () {
+			change: function () {
 				const me = this;
 
 				frm.call({
@@ -1073,10 +1073,14 @@ frappe.form.link_formatters["Project"] = function (value, doc, df) {
  * @returns {string} - The link value with the added title.
  */
 function add_link_title(value, doc, df, title_field) {
-	if (doc && value && doc[title_field] && doc[title_field] !== value && doc[df.fieldname] === value) {
-		return value + ": " + doc[title_field];
-	} else if (!value && doc.doctype && doc[title_field] && doc.doctype == df.parent) {
-		return doc[title_field];
+	if (value && doc[title_field]) {
+		if (doc[title_field] !== value && doc[df.fieldname] === value) {
+			return value + ": " + doc[title_field];
+		} else if (doc.doctype == df.parent) {
+			return doc[title_field];
+		} else {
+			return value;
+		}
 	} else {
 		return value;
 	}
