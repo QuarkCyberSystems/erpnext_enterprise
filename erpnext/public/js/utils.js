@@ -1081,6 +1081,8 @@ function add_link_title(value, doc, df, title_field) {
 		} else {
 			return value;
 		}
+	} else {
+		return value;
 	}
 }
 
