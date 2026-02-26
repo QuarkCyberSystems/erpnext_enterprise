@@ -136,8 +136,13 @@ class ERPNextTestSuite(unittest.TestCase):
 		if not hasattr(cls, "globalTestRecords"):
 			cls.globalTestRecords = {}
 
-		cls.make_presets()
-		cls.make_persistent_master_data()
+		if not hasattr(cls, "bootstrap_testsite"):
+			cls.bootstrap_testsite = False
+
+		if not cls.bootstrap_testsite:
+			cls.make_presets()
+			cls.make_persistent_master_data()
+			cls.bootstrap_testsite = True
 
 	def tearDown(self):
 		frappe.db.rollback()
