@@ -416,7 +416,9 @@ def deactivate_sales_person(status=None, employee=None):
 
 
 @frappe.whitelist()
-def create_user(employee, user=None, email=None, create_user_permission=0):
+def create_user(
+	employee: str, user: str | None = None, email: str | None = None, create_user_permission: int = 0
+) -> str:
 	if not employee:
 		frappe.throw(_("Employee is required"))
 
