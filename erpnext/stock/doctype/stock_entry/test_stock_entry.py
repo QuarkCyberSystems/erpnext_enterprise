@@ -649,7 +649,7 @@ class TestStockEntry(ERPNextTestSuite):
 				doc = frappe.new_doc("Serial No")
 				doc.serial_no = serial_no
 				doc.item_code = "_Test Serialized Item"
-				doc.company = self.companies[0].name
+				doc.company = "_Test Company"
 				doc.insert(ignore_permissions=True)
 
 		se = frappe.copy_doc(self.globalTestRecords["Stock Entry"][0])

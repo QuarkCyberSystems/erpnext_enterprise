@@ -40,7 +40,7 @@ class TestMapper(ERPNextTestSuite):
 				"order_type": "Sales",
 				"transaction_date": nowdate(),
 				"valid_till": add_months(nowdate(), 1),
-				"company": self.companies[0].name,
+				"company": "_Test Company",
 			}
 		)
 		for item in item_list:

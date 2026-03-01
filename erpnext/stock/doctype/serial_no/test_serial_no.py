@@ -34,7 +34,7 @@ class TestSerialNo(ERPNextTestSuite):
 		sr.warehouse = "_Test Warehouse - _TC"
 		sr.serial_no = "_TCSER0001"
 		sr.purchase_rate = 10
-		sr.company = self.companies[0].name
+		sr.company = "_Test Company"
 		self.assertRaises(SerialNoCannotCreateDirectError, sr.insert)
 
 		sr.warehouse = None
@@ -198,7 +198,7 @@ class TestSerialNo(ERPNextTestSuite):
 						"doctype": "Serial No",
 						"item_code": item_code,
 						"serial_no": serial_no,
-						"company": self.companies[0].name,
+						"company": "_Test Company",
 					}
 				).insert()
 

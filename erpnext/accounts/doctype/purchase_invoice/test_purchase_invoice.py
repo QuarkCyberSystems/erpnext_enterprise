@@ -2272,7 +2272,7 @@ class TestPurchaseInvoice(ERPNextTestSuite, StockTestMixin):
 
 	def test_create_purchase_invoice_without_mandatory(self):
 		pi = frappe.new_doc("Purchase Invoice")
-		pi.company = self.companies[0].name
+		pi.company = "_Test Company"
 		pi.flags.ignore_mandatory = True
 		pi.insert(ignore_permissions=True)
 
@@ -2401,7 +2401,7 @@ class TestPurchaseInvoice(ERPNextTestSuite, StockTestMixin):
 						"doctype": "Serial No",
 						"item_code": serial_item,
 						"serial_no": serial_no,
-						"company": self.companies[0].name,
+						"company": "_Test Company",
 					}
 				).insert()
 

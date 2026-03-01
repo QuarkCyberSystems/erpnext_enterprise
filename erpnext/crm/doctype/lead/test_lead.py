@@ -122,7 +122,7 @@ class TestLead(ERPNextTestSuite):
 		create_todo("followup", "Lead", lead.name)
 
 		opportunity = make_opportunity(lead.name)
-		opportunity.company = self.companies[0].name
+		opportunity.company = "_Test Company"
 		opportunity.save()
 
 		self.assertEqual(opportunity.get("party_name"), lead.name)

@@ -742,7 +742,7 @@ class TestSubcontractingController(ERPNextTestSuite):
 					"doctype": "Serial No",
 					"item_code": "Subcontracted SRM Item 2",
 					"serial_no": serial_no,
-					"company": self.companies[0].name,
+					"company": "_Test Company",
 				}
 			).insert()
 

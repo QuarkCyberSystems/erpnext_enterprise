@@ -40,7 +40,7 @@ class TestSerialandBatchBundle(ERPNextTestSuite):
 						"doctype": "Serial No",
 						"serial_no": sn,
 						"item_code": serial_item_code,
-						"company": self.companies[0].name,
+						"company": "_Test Company",
 					}
 				).insert(ignore_permissions=True)
 
@@ -707,7 +707,7 @@ class TestSerialandBatchBundle(ERPNextTestSuite):
 						"doctype": "Serial No",
 						"serial_no": serial_no,
 						"item_code": item,
-						"company": self.companies[0].name,
+						"company": "_Test Company",
 					}
 				).insert(ignore_permissions=True)
 
@@ -805,7 +805,7 @@ class TestSerialandBatchBundle(ERPNextTestSuite):
 						"doctype": "Serial No",
 						"serial_no": serial_no,
 						"item_code": sn_item,
-						"company": self.companies[0].name,
+						"company": "_Test Company",
 					}
 				).insert(ignore_permissions=True)
 				serial_nos.append(serial_no)

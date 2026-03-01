@@ -87,7 +87,7 @@ class TestJobCard(ERPNextTestSuite):
 			quantity=1,
 			with_operations=1,
 			track_semi_finished_goods=1,
-			company=self.companies[9].name,
+			company="_Test Company",
 		)
 		final_bom.append("items", {"item_code": raw.name, "qty": 1})
 		final_bom.append(
@@ -121,7 +121,7 @@ class TestJobCard(ERPNextTestSuite):
 		final_bom.append("items", {"item_code": stitch_fg.name, "qty": 1, "operation_row_id": 3})
 		final_bom.submit()
 		work_order = make_work_order(final_bom.name, final.name, 1, variant_items=[], use_multi_level_bom=0)
-		work_order.company = self.companies[9].name
+		work_order.company = "_Test Company"
 		work_order.wip_warehouse = "Work In Progress - WP"
 		work_order.fg_warehouse = "Finished Goods - WP"
 		work_order.scrap_warehouse = "All Warehouses - WP"

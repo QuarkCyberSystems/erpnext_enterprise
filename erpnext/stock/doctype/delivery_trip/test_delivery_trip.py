@@ -22,14 +22,14 @@ class TestDeliveryTrip(ERPNextTestSuite):
 		create_test_contact_and_address()
 		address = create_address(driver)
 
-		self.delivery_trip = create_delivery_trip(driver, address, company=self.companies[0].name)
+		self.delivery_trip = create_delivery_trip(driver, address, company="_Test Company")
 
 	def test_delivery_trip_notify_customers(self):
 		# set default outgoing
 		outgoing = frappe.get_doc(
 			{
 				"doctype": "Email Account",
-				"company": self.companies[0].name,
+				"company": "_Test Company",
 				"enable_outgoing": 1,
 				"default_outgoing": 1,
 				"awaiting_password": 1,

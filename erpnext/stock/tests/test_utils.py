@@ -89,7 +89,7 @@ class TestStockUtilities(ERPNextTestSuite, StockTestMixin):
 			doctype="Serial No",
 			item_code=serial_item.name,
 			serial_no=frappe.generate_hash(),
-			company=self.companies[0].name,
+			company="_Test Company",
 		).insert()
 
 		serial_scan = scan_barcode(serial.name)

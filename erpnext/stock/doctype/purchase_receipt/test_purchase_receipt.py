@@ -739,7 +739,7 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 					"doctype": "Serial No",
 					"item_code": item_code,
 					"serial_no": serial_no[0],
-					"company": self.companies[0].name,
+					"company": "_Test Company",
 				}
 			).insert()
 
@@ -2698,7 +2698,7 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 						"doctype": "Serial No",
 						"item_code": serial_item,
 						"serial_no": serial_no,
-						"company": self.companies[0].name,
+						"company": "_Test Company",
 					}
 				).insert()
 
@@ -3992,7 +3992,7 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 						"doctype": "Serial No",
 						"item_code": serial_item,
 						"serial_no": serial_no,
-						"company": self.companies[0].name,
+						"company": "_Test Company",
 					}
 				).insert()
 

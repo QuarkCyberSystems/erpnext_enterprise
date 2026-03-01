@@ -12,7 +12,7 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 class TestProspect(ERPNextTestSuite):
 	def test_add_lead_to_prospect_and_address_linking(self):
-		company = self.companies[0].name
+		company = "_Test Company"
 		lead_doc = make_lead()
 		address_doc = make_address(address_title=lead_doc.name)
 		address_doc.append("links", {"link_doctype": lead_doc.doctype, "link_name": lead_doc.name})
@@ -38,7 +38,7 @@ class TestProspect(ERPNextTestSuite):
 				"doctype": "Prospect",
 				"company_name": "_Test Prospect",
 				"customer_group": "_Test Customer Group",
-				"company": self.companies[0].name,
+				"company": "_Test Company",
 			}
 		)
 		prospect.insert()

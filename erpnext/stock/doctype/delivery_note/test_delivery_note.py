@@ -161,7 +161,7 @@ class TestDeliveryNote(ERPNextTestSuite):
 				"doctype": "Serial No",
 				"item_code": "_Test Serialized Item With Series",
 				"serial_no": make_autoname("SRDD", "Serial No"),
-				"company": self.companies[0].name,
+				"company": "_Test Company",
 			}
 		)
 		serial_no.save()
@@ -226,7 +226,7 @@ class TestDeliveryNote(ERPNextTestSuite):
 						"doctype": "Serial No",
 						"item_code": sn_item,
 						"serial_no": sn,
-						"company": self.companies[0].name,
+						"company": "_Test Company",
 					}
 				)
 				sn_doc.insert()
@@ -1837,7 +1837,7 @@ class TestDeliveryNote(ERPNextTestSuite):
 						"doctype": "Serial No",
 						"item_code": sn_item,
 						"serial_no": sn,
-						"company": self.companies[0].name,
+						"company": "_Test Company",
 					}
 				)
 				sn_doc.insert()

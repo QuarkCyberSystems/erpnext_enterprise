@@ -56,7 +56,7 @@ class TestOpportunity(ERPNextTestSuite):
 		self.assertEqual(doc.status, "Quotation")
 
 	def test_make_new_lead_if_required(self):
-		opp_doc = make_opportunity_from_lead(self.companies[0].name)
+		opp_doc = make_opportunity_from_lead("_Test Company")
 
 		self.assertTrue(opp_doc.party_name)
 		self.assertEqual(opp_doc.opportunity_from, "Lead")

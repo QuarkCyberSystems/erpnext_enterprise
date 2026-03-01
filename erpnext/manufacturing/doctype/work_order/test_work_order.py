@@ -960,7 +960,7 @@ class TestWorkOrder(ERPNextTestSuite):
 				bom_item,
 				fg_qty=1,
 				process_loss_percentage=10,
-				company=self.companies[0].name,
+				company="_Test Company",
 			)
 			bom_doc.submit()
 
@@ -1147,7 +1147,7 @@ class TestWorkOrder(ERPNextTestSuite):
 				"is_active": 1,
 				"is_default": 1,
 				"quantity": 1.0,
-				"company": self.companies[0].name,
+				"company": "_Test Company",
 				"with_operations": 1,
 				"operations": [
 					{

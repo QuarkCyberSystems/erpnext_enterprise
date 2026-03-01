@@ -16,7 +16,7 @@ class TestTask(ERPNextTestSuite):
 		from erpnext.setup.doctype.employee.test_employee import make_employee
 
 		project_name = "Test Project Costing"
-		employee = make_employee("employee@frappe.io", company=self.companies[0].name)
+		employee = make_employee("employee@frappe.io", company="_Test Company")
 		project = make_project({"project_name": project_name})
 		task = create_task("_Test Task 1")
 		task.project = project.name

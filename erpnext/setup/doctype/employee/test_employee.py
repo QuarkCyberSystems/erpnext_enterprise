@@ -14,8 +14,8 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 class TestEmployee(ERPNextTestSuite):
 	def test_employee_status_left(self):
-		employee1 = make_employee("test_employee_1@company.com", company=self.companies[0].name)
-		employee2 = make_employee("test_employee_2@company.com", company=self.companies[0].name)
+		employee1 = make_employee("test_employee_1@company.com", company="_Test Company")
+		employee2 = make_employee("test_employee_2@company.com", company="_Test Company")
 		employee1_doc = frappe.get_doc("Employee", employee1)
 		employee2_doc = frappe.get_doc("Employee", employee2)
 		employee2_doc.reload()
@@ -26,7 +26,7 @@ class TestEmployee(ERPNextTestSuite):
 		self.assertRaises(InactiveEmployeeStatusError, employee1_doc.save)
 
 	def test_user_has_employee(self):
-		employee = make_employee("test_emp_user_creation@company.com", company=self.companies[0].name)
+		employee = make_employee("test_emp_user_creation@company.com", company="_Test Company")
 		employee_doc = frappe.get_doc("Employee", employee)
 		user = employee_doc.user_id
 		self.assertTrue("Employee" in frappe.get_roles(user))
@@ -36,12 +36,12 @@ class TestEmployee(ERPNextTestSuite):
 
 	def test_employee_user_permission(self):
 		employee1 = make_employee(
-			"employee_1_test@company.com", create_user_permission=1, company=self.companies[0].name
+			"employee_1_test@company.com", create_user_permission=1, company="_Test Company"
 		)
 		employee2 = make_employee(
-			"employee_2_test@company.com", create_user_permission=1, company=self.companies[0].name
+			"employee_2_test@company.com", create_user_permission=1, company="_Test Company"
 		)
-		make_employee("employee_3_test@company.com", create_user_permission=1, company=self.companies[0].name)
+		make_employee("employee_3_test@company.com", create_user_permission=1, company="_Test Company")
 
 		employee1_doc = frappe.get_doc("Employee", employee1)
 		employee2_doc = frappe.get_doc("Employee", employee2)

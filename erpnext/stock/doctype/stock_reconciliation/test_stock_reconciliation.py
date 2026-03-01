@@ -612,7 +612,7 @@ class TestStockReconciliation(ERPNextTestSuite, StockTestMixin):
 					"doctype": "Serial No",
 					"item_code": item_code,
 					"serial_no": "SR-CREATED-SR-NO",
-					"company": self.companies[0].name,
+					"company": "_Test Company",
 				}
 			).insert()
 

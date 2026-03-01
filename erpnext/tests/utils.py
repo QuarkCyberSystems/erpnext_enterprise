@@ -2992,8 +2992,17 @@ class ERPNextTestSuite(unittest.TestCase):
 
 		return decorator
 
+	@classmethod
+	def setUpClass(cls):
+		cls.globalTestRecords = {}
+
 	def tearDown(self):
 		frappe.db.rollback()
+
+	def load_test_records(self, doctype):
+		if doctype not in self.globalTestRecords:
+			records = load_test_records_for(doctype)
+			self.globalTestRecords[doctype] = records[doctype]
 
 	@contextmanager
 	def set_user(self, user: str):

@@ -401,7 +401,7 @@ class TestLandedCostVoucher(ERPNextTestSuite):
 					"doctype": "Serial No",
 					"item_code": item_code,
 					"serial_no": serial_no,
-					"company": self.companies[0].name,
+					"company": "_Test Company",
 				}
 			).insert()
 
@@ -670,7 +670,7 @@ class TestLandedCostVoucher(ERPNextTestSuite):
 						"doctype": "Serial No",
 						"item_code": sn_item,
 						"serial_no": sn,
-						"company": self.companies[0].name,
+						"company": "_Test Company",
 					}
 				)
 				sn_doc.insert()
@@ -821,7 +821,7 @@ class TestLandedCostVoucher(ERPNextTestSuite):
 						"doctype": "Serial No",
 						"item_code": sn_item,
 						"serial_no": sn,
-						"company": self.companies[0].name,
+						"company": "_Test Company",
 					}
 				)
 				sn_doc.insert()
@@ -1012,7 +1012,7 @@ class TestLandedCostVoucher(ERPNextTestSuite):
 						"doctype": "Serial No",
 						"item_code": sn_item,
 						"serial_no": sn,
-						"company": self.companies[0].name,
+						"company": "_Test Company",
 					}
 				)
 				sn_doc.insert()
