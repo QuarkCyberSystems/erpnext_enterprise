@@ -18,6 +18,7 @@
   "column_break_7",
   "order_type",
   "transaction_date",
+  "transaction_time",
   "delivery_date",
   "column_break1",
   "tax_id",
@@ -1724,6 +1725,14 @@
    "fieldname": "utm_analytics_section",
    "fieldtype": "Section Break",
    "label": "UTM Analytics"
+  },
+  {
+   "default": "Now",
+   "depends_on": "is_internal_customer",
+   "fieldname": "transaction_time",
+   "fieldtype": "Time",
+   "label": "Time",
+   "mandatory_depends_on": "is_internal_customer"
   }
  ],
  "grid_page_length": 50,
@@ -1731,7 +1740,11 @@
  "idx": 105,
  "is_submittable": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2026-02-10 11:55:52.796522",
+=======
+ "modified": "2026-03-02 00:42:18.834823",
+>>>>>>> 9538a9870c (fix(accounts): add transaction time field)
  "modified_by": "Administrator",
  "module": "Selling",
  "name": "Sales Order",
