@@ -19,6 +19,7 @@ from erpnext.tests.utils import ERPNextTestSuite, if_lending_app_installed, if_l
 
 class TestBankClearance(ERPNextTestSuite):
 	def setUp(self):
+		frappe.clear_cache()
 		create_warehouse(
 			warehouse_name="_Test Warehouse",
 			properties={"parent_warehouse": "All Warehouses - _TC"},
