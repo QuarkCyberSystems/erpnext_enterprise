@@ -261,6 +261,9 @@ class TestSalesInvoice(ERPNextTestSuite):
 		si1.load_from_db()
 		self.assertRaises(PaymentEntryUnlinkError, si1.cancel)
 
+	@ERPNextTestSuite.change_settings(
+		"Accounts Settings", {"allow_multi_currency_invoices_against_single_party_account": 1}
+	)
 	def test_sales_invoice_calculation_export_currency(self):
 		si = frappe.copy_doc(self.globalTestRecords["Sales Invoice"][2])
 		si.currency = "USD"
@@ -745,6 +748,9 @@ class TestSalesInvoice(ERPNextTestSuite):
 		self.assertEqual(si.base_grand_total, 1622.97)
 		self.assertEqual(si.grand_total, 1622.97)
 
+	@ERPNextTestSuite.change_settings(
+		"Accounts Settings", {"allow_multi_currency_invoices_against_single_party_account": 1}
+	)
 	def test_sales_invoice_calculation_export_currency_with_tax_inclusive_price(self):
 		# prepare
 		si = frappe.copy_doc(self.globalTestRecords["Sales Invoice"][3])
