@@ -9,7 +9,7 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestLocation(ERPNextTestSuite):
-	def runTest(self):
+	def test_location_features(self):
 		locations = ["Basil Farm", "Division 1", "Field 1", "Block 1"]
 		area = 0
 		formatted_locations = []
