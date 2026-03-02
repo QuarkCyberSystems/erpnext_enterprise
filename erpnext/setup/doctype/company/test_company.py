@@ -106,11 +106,12 @@ class TestCompany(ERPNextTestSuite):
 		)
 
 	def test_basic_tree(self, records=None):
+		self.load_test_records("Company")
 		min_lft = 1
 		max_rgt = frappe.db.sql("select max(rgt) from `tabCompany`")[0][0]
 
 		if not records:
-			records = self.companies[2:]
+			records = self.globalTestRecords["Company"][2:]
 
 		for company in records:
 			lft, rgt, parent_company = frappe.db.get_value(
