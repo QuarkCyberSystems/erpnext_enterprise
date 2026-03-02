@@ -121,9 +121,9 @@ class TestJobCard(ERPNextTestSuite):
 		final_bom.submit()
 		work_order = make_work_order(final_bom.name, final.name, 1, variant_items=[], use_multi_level_bom=0)
 		work_order.company = "_Test Company"
-		work_order.wip_warehouse = "Work In Progress - WP"
-		work_order.fg_warehouse = "Finished Goods - WP"
-		work_order.scrap_warehouse = "All Warehouses - WP"
+		work_order.wip_warehouse = "Work In Progress - _TC"
+		work_order.fg_warehouse = "Finished Goods - _TC"
+		work_order.scrap_warehouse = "All Warehouses - _TC"
 		for operation in work_order.operations:
 			operation.time_in_mins = 60
 
@@ -186,7 +186,7 @@ class TestJobCard(ERPNextTestSuite):
 		jc1 = frappe.get_last_doc("Job Card", {"work_order": self.work_order.name})
 		jc2 = frappe.get_last_doc("Job Card", {"work_order": wo2.name})
 
-		employee = "_Test Employee"
+		employee = frappe.db.get_all("Employee", {"first_name": "_Test Employee"})[0].name
 
 		jc1.append(
 			"time_logs",

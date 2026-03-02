@@ -15,11 +15,13 @@ class TestLead(ERPNextTestSuite):
 	def test_make_customer(self):
 		from erpnext.crm.doctype.lead.lead import make_customer
 
+		lead = frappe.db.get_all("Lead", {"lead_name": "_Test Lead"})[0].name
+
 		frappe.delete_doc_if_exists("Customer", "_Test Lead")
 
-		customer = make_customer("_Test Lead")
+		customer = make_customer(lead)
 		self.assertEqual(customer.doctype, "Customer")
-		self.assertEqual(customer.lead_name, "_Test Lead")
+		self.assertEqual(customer.lead_name, lead)
 
 		customer.company = "_Test Company"
 		customer.customer_group = "_Test Customer Group"
@@ -43,9 +45,10 @@ class TestLead(ERPNextTestSuite):
 	def test_make_customer_from_organization(self):
 		from erpnext.crm.doctype.lead.lead import make_customer
 
-		customer = make_customer("_Test Lead 1")
+		lead = frappe.db.get_all("Lead", {"lead_name": "_Test Lead 1"})[0].name
+		customer = make_customer(lead)
 		self.assertEqual(customer.doctype, "Customer")
-		self.assertEqual(customer.lead_name, "_Test Lead 1")
+		self.assertEqual(customer.lead_name, lead)
 
 		customer.company = "_Test Company"
 		customer.customer_group = "_Test Customer Group"

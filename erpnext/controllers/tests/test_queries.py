@@ -85,6 +85,8 @@ class TestQueries(ERPNextTestSuite):
 		self.assertGreaterEqual(frappe.db.count("UOM", {"enabled": 1}), 10)
 
 	def test_employee_query_with_user_permissions(self):
+		employee = frappe.db.get_all("Employee", {"first_name": "_Test Employee"})[0].name
+
 		# party field is a dynamic link field in Payment Entry doctype with ignore_user_permissions=0
 		ps = make_property_setter(
 			doctype="Payment Entry",
@@ -99,7 +101,7 @@ class TestQueries(ERPNextTestSuite):
 			{
 				"user": user.name,
 				"doctype": "Employee",
-				"docname": "_Test Employee",
+				"docname": employee,
 				"is_default": 1,
 				"apply_to_all_doctypes": 1,
 				"applicable_doctypes": [],
