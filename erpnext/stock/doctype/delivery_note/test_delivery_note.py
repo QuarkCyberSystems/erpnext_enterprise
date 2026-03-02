@@ -2613,7 +2613,7 @@ class TestDeliveryNote(ERPNextTestSuite):
 		self.assertEqual(dn.status, "To Bill")
 
 		si = make_sales_invoice(dn.name)
-		si.location = self.location[0].name
+		si.location = "Test Location"
 		si.submit()
 
 		dn_return = create_delivery_note(is_return=1, return_against=dn.name, qty=-2, do_not_submit=True)

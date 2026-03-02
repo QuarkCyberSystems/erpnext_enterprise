@@ -18,8 +18,8 @@ def create_party_specific_item(**args):
 
 class TestPartySpecificItem(ERPNextTestSuite):
 	def test_item_query_for_customer(self):
-		customer = self.customer[0].name
-		item = self.item[0].name
+		customer = "_Test Customer With Template"
+		item = "_Test Item"
 
 		create_party_specific_item(
 			party_type="Customer",
@@ -34,8 +34,8 @@ class TestPartySpecificItem(ERPNextTestSuite):
 		self.assertTrue(item in flatten(items))
 
 	def test_item_query_for_supplier(self):
-		supplier = self.suppliers[0].name
-		item = self.item_group[0].name
+		supplier = "_Test Supplier With Template 1"
+		item = "_Test Item Group"
 
 		create_party_specific_item(
 			party_type="Supplier",

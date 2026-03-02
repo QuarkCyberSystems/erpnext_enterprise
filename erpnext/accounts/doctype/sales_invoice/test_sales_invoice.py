@@ -52,8 +52,6 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 class TestSalesInvoice(ERPNextTestSuite):
 	def setUp(self):
-		self.make_employees()
-		self.make_sales_person()
 		self.load_test_records("Journal Entry")
 		self.load_test_records("Stock Entry")
 		self.load_test_records("Sales Invoice")

@@ -29,7 +29,6 @@ from erpnext.tests.utils import ERPNextTestSuite
 class TestJobCard(ERPNextTestSuite):
 	def setUp(self):
 		self.load_test_records("BOM")
-		self.make_employees()  # used in job card time log
 		self.make_bom_for_jc_tests()
 		self.transfer_material_against: Literal["Work Order", "Job Card"] = "Work Order"
 		self.source_warehouse = None
@@ -187,7 +186,7 @@ class TestJobCard(ERPNextTestSuite):
 		jc1 = frappe.get_last_doc("Job Card", {"work_order": self.work_order.name})
 		jc2 = frappe.get_last_doc("Job Card", {"work_order": wo2.name})
 
-		employee = self.employees[0].name
+		employee = "_Test Employee"
 
 		jc1.append(
 			"time_logs",

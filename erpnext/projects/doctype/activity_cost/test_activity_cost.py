@@ -10,17 +10,12 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestActivityCost(ERPNextTestSuite):
-	def setUp(self):
-		# TODO: only 1 employee is required
-		self.make_employees()
-		self.make_activity_type()
-
 	def test_duplication(self):
 		frappe.db.sql("delete from `tabActivity Cost`")
 		activity_cost1 = frappe.new_doc("Activity Cost")
 		activity_cost1.update(
 			{
-				"employee": self.employees[0].name,
+				"employee": "_Test Employee",
 				"employee_name": self.employees[0].first_name,
 				"activity_type": self.activity_type[1].name,
 				"billing_rate": 100,

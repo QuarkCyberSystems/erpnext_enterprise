@@ -99,7 +99,7 @@ class TestQueries(ERPNextTestSuite):
 			{
 				"user": user.name,
 				"doctype": "Employee",
-				"docname": self.employees[0].name,
+				"docname": "_Test Employee",
 				"is_default": 1,
 				"apply_to_all_doctypes": 1,
 				"applicable_doctypes": [],

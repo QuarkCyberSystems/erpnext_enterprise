@@ -156,7 +156,7 @@ class TestMaintenanceSchedule(ERPNextTestSuite):
 		self.assertFalse(ms.validate_items_table_change())
 		# After Save
 		ms.items[0].serial_no = "TEST001"
-		ms.items[0].sales_person = self.sales_person[0].name
+		ms.items[0].sales_person = "_Test Sales Person"
 		ms.items[0].no_of_visits = 2
 		self.assertTrue(ms.validate_items_table_change())
 		ms.save()

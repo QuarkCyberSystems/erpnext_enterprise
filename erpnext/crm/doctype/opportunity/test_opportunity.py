@@ -14,12 +14,6 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestOpportunity(ERPNextTestSuite):
-	def setUp(self):
-		# Only first lead is required
-		# TODO: dynamically generate limited test records
-		self.make_leads()
-		self.make_opportunities()
-
 	@classmethod
 	def make_opportunities(cls):
 		records = [
