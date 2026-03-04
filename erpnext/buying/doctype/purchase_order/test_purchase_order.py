@@ -787,6 +787,7 @@ class TestPurchaseOrder(ERPNextTestSuite):
 		Test "Advance Paid" on Purchase Order, when "Book Advance Payments in Separate Party Account" is enabled and
 		the payment entry linked to the Order is allocated to Purchase Invoice.
 		"""
+		frappe.flags.is_reverse_depr_entry = False
 		supplier = "_Test Supplier"
 		company = "_Test Company"
 
@@ -818,6 +819,7 @@ class TestPurchaseOrder(ERPNextTestSuite):
 	def test_advance_paid_upon_payment_entry_cancellation(self):
 		from erpnext.accounts.doctype.payment_entry.test_payment_entry import get_payment_entry
 
+		frappe.flags.is_reverse_depr_entry = False
 		supplier = "_Test Supplier USD"
 		company = "_Test Company"
 
@@ -1181,6 +1183,7 @@ class TestPurchaseOrder(ERPNextTestSuite):
 		self.assertTrue(frappe.db.get_value("Subcontracting Order", {"purchase_order": po.name}))
 
 	def test_purchase_order_advance_payment_status(self):
+		frappe.flags.is_reverse_depr_entry = False
 		from erpnext.accounts.doctype.payment_entry.test_payment_entry import get_payment_entry
 		from erpnext.accounts.doctype.payment_request.payment_request import make_payment_request
 
@@ -1334,6 +1337,7 @@ class TestPurchaseOrder(ERPNextTestSuite):
 		self.assertEqual(pi.items[0].qty, 50)
 
 	def test_multiple_advances_against_purchase_order_are_allocated_across_partial_purchase_invoices(self):
+		frappe.flags.is_reverse_depr_entry = False
 		# step - 1: create PO
 		po = create_purchase_order(qty=10, rate=10)
 
