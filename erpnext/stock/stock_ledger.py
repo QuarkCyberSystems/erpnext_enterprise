@@ -1305,7 +1305,7 @@ class update_entries_after:
 				else:
 					if sle.voucher_type in ("Delivery Note", "Sales Invoice"):
 						ref_doctype = "Packed Item"
-					elif sle == "Subcontracting Receipt":
+					elif sle.voucher_type == "Subcontracting Receipt":
 						ref_doctype = "Subcontracting Receipt Supplied Item"
 					else:
 						ref_doctype = "Purchase Receipt Item Supplied"
@@ -1861,6 +1861,9 @@ def get_stock_ledger_entries(
 
 	if extra_cond:
 		conditions += f"{extra_cond}"
+
+	if previous_sle.get("project"):
+		conditions += " and project = %(project)s"
 
 	# nosemgrep
 	return frappe.db.sql(

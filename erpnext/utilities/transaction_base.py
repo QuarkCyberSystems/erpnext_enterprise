@@ -341,6 +341,7 @@ class TransactionBase(StatusUpdater):
 				args.update(
 					{
 						"posting_date": self.transaction_date,
+						"posting_time": self.transaction_time,
 					}
 				)
 			else:
