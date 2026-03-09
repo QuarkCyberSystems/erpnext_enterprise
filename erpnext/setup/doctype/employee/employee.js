@@ -46,8 +46,6 @@ frappe.ui.form.on("Employee", {
 	refresh: function (frm) {
 		frm.fields_dict.date_of_birth.datepicker.update({ maxDate: new Date() });
 
-		frm.trigger("add_anniversary_indicator");
-
 		if (!frm.is_new() && !frm.doc.user_id) {
 			frm.add_custom_button(__("Create User"), () => {
 				const dialog = new frappe.ui.Dialog({
@@ -94,61 +92,6 @@ frappe.ui.form.on("Employee", {
 
 				dialog.show();
 			});
-		}
-	},
-
-	date_of_birth: function (frm) {
-		frm.trigger("add_anniversary_indicator");
-	},
-
-	date_of_joining: function (frm) {
-		frm.trigger("add_anniversary_indicator");
-	},
-
-	add_anniversary_indicator: function (frm) {
-		if (!frm.sidebar || !frm.sidebar.sidebar) return;
-
-		let $sidebar = frm.sidebar.sidebar;
-		let $indicator_section = $sidebar.find(".anniversary-indicator-section");
-
-		if (!$indicator_section.length) {
-			$indicator_section = $(`
-				<div class="sidebar-section anniversary-indicator-section border-bottom">
-					<div class="anniversary-content"></div>
-				</div>
-			`).insertAfter($sidebar.find(".sidebar-meta-details"));
-		}
-
-		let content = "";
-		let today = moment().startOf("day");
-
-		if (frm.doc.date_of_birth) {
-			let dob = moment(frm.doc.date_of_birth);
-			if (dob.date() === today.date() && dob.month() === today.month()) {
-				content += `<div class="mb-1"><span class="indicator green"></span> ${__(
-					"Today is their Birthday!"
-				)}</div>`;
-			}
-		}
-
-		if (frm.doc.date_of_joining) {
-			let doj = moment(frm.doc.date_of_joining);
-			if (doj.date() === today.date() && doj.month() === today.month()) {
-				let years = today.year() - doj.year();
-				if (years > 0) {
-					content += `<div class="mb-1"><span class="indicator green"></span> ${__(
-						"Today is their {0} Year Work Anniversary!",
-						[years]
-					)}</div>`;
-				}
-			}
-		}
-
-		if (content) {
-			$indicator_section.find(".anniversary-content").html(content);
-			$indicator_section.show();
-		} else {
-			$indicator_section.hide();
 		}
 	},
 
