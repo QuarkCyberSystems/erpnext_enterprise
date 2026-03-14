@@ -1078,7 +1078,6 @@ class BuyingController(SubcontractingController):
 				"asset_category": item_data.get("asset_category"),
 				"location": row.asset_location,
 				"company": self.company,
-				"cost_center": row.cost_center or self.cost_center or None,
 				"status": "Draft",
 				"supplier": self.supplier,
 				"purchase_date": self.posting_date,
@@ -1095,8 +1094,8 @@ class BuyingController(SubcontractingController):
 		for dimension in accounting_dimensions[0]:
 			asset.update(
 				{
-					dimension["fieldname"]: row.get(dimension["fieldname"])   
-					or self.get(dimension["fieldname"])                        
+					dimension["fieldname"]: row.get(dimension["fieldname"])
+					or self.get(dimension["fieldname"])
 					or dimension.get("default_dimension")
 				}
 			)
