@@ -561,7 +561,10 @@ def delete_node(**kwargs):
 
 
 @frappe.whitelist()
-def edit_bom_creator(doctype, docname, data, parent):
+def edit_bom_creator(doctype: str, docname: str, data: str | dict, parent: str):
+	if not frappe.has_permission(doctype=doctype, ptype="write", parent_doctype="BOM Creator"):
+		frappe.throw(_("You do not have permission to edit this document"), frappe.PermissionError)
+
 	if isinstance(data, str):
 		data = frappe.parse_json(data)
 
