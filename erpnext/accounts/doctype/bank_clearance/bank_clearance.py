@@ -7,12 +7,8 @@ from frappe import _, msgprint
 from frappe.model.document import Document
 from frappe.query_builder import Case
 from frappe.query_builder.custom import ConstantColumn
-<<<<<<< HEAD
-from frappe.utils import cint, flt, fmt_money, get_link_to_form, getdate
-=======
 from frappe.query_builder.functions import Coalesce, Sum
 from frappe.utils import cint, flt, fmt_money, getdate
->>>>>>> ef32622166 (fix(banking): include paid purchase invoices in reports and bank clearance (#52675))
 from pypika import Order
 
 import erpnext
