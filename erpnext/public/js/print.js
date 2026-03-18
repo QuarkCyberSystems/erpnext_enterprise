@@ -5,6 +5,11 @@ const doctype_list = [
 	"Purchase Order",
 	"Purchase Invoice",
 	"POS Invoice",
+<<<<<<< HEAD
+=======
+	"Quotation",
+	"Request for Quotation",
+>>>>>>> 4307cd5b1c (feat: default print format for Quotation)
 ];
 const allowed_print_formats = [
 	"Sales Order Standard",
