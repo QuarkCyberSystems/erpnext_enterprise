@@ -278,7 +278,12 @@ class TestPickList(ERPNextTestSuite):
 		from erpnext.stock.doctype.batch.test_batch import make_new_batch
 
 		batch_company = frappe.get_doc(
-			{"doctype": "Company", "company_name": "Batch Company", "default_currency": "INR"}
+			{
+				"doctype": "Company",
+				"company_name": "Batch Company",
+				"default_currency": "INR",
+				"country": "India",
+			}
 		)
 		batch_company.insert()
 
@@ -349,7 +354,12 @@ class TestPickList(ERPNextTestSuite):
 
 		warehouse_item = create_item("Warehouse Item")
 		temp_company = frappe.get_doc(
-			{"doctype": "Company", "company_name": "Temp Company", "default_currency": "INR"}
+			{
+				"doctype": "Company",
+				"company_name": "Temp Company",
+				"default_currency": "INR",
+				"country": "India",
+			}
 		).insert()
 		temp_warehouse = frappe.get_doc(
 			{"doctype": "Warehouse", "warehouse_name": "Temp Warehouse", "company": temp_company.name}
