@@ -276,7 +276,7 @@ class BootStrapTestData:
 		stock_settings.enable_serial_and_batch_no_for_item = 1
 		stock_settings.save()
 
-	def make_records(self, key, records, attr):
+	def make_records(self, key, records):
 		doctype = records[0].get("doctype")
 
 		def get_filters(record):
@@ -358,9 +358,7 @@ class BootStrapTestData:
 				"selling": 0,
 			},
 		]
-		self.make_records(
-			["price_list_name", "enabled", "selling", "buying", "currency"], records, "price_list"
-		)
+		self.make_records(["price_list_name", "enabled", "selling", "buying", "currency"], records)
 
 	def make_monthly_distribution(self):
 		records = [
@@ -384,7 +382,7 @@ class BootStrapTestData:
 				],
 			}
 		]
-		self.make_records(["distribution_id"], records, "monthly_distribution")
+		self.make_records(["distribution_id"], records)
 
 	def make_projects(self):
 		records = [
@@ -395,7 +393,7 @@ class BootStrapTestData:
 				"status": "Open",
 			}
 		]
-		self.make_records(["project_name"], records, "projects")
+		self.make_records(["project_name"], records)
 
 	def make_customer_group(self):
 		records = [
@@ -412,7 +410,7 @@ class BootStrapTestData:
 				"parent_customer_group": "All Customer Groups",
 			},
 		]
-		self.make_records(["customer_group_name"], records, "customer_group")
+		self.make_records(["customer_group_name"], records)
 
 	def make_territory(self):
 		records = [
@@ -447,7 +445,7 @@ class BootStrapTestData:
 				"territory_name": "_Test Territory United States",
 			},
 		]
-		self.make_records(["territory_name"], records, "territories")
+		self.make_records(["territory_name"], records)
 
 	def make_department(self):
 		records = [
@@ -464,7 +462,7 @@ class BootStrapTestData:
 				"parent_department": "All Departments",
 			},
 		]
-		self.make_records(["department_name"], records, "department")
+		self.make_records(["department_name"], records)
 
 	def make_role(self):
 		records = [
@@ -474,7 +472,7 @@ class BootStrapTestData:
 			{"doctype": "Role", "role_name": "_Test Role 4", "desk_access": 0},
 			{"doctype": "Role", "role_name": "Technician"},
 		]
-		self.make_records(["role_name"], records, "roles")
+		self.make_records(["role_name"], records)
 
 	def make_user(self):
 		records = [
@@ -571,7 +569,7 @@ class BootStrapTestData:
 				"roles": [{"doctype": "Has Role", "role": "Technician"}],
 			},
 		]
-		self.make_records(["email"], records, "users")
+		self.make_records(["email"], records)
 
 	def make_employees(self):
 		records = [
@@ -612,7 +610,7 @@ class BootStrapTestData:
 				"user_id": "test2@example.com",
 			},
 		]
-		self.make_records(["first_name"], records, "employees")
+		self.make_records(["first_name"], records)
 
 	def make_sales_person(self):
 		records = [
@@ -638,7 +636,7 @@ class BootStrapTestData:
 				"sales_person_name": "_Test Sales Person 2",
 			},
 		]
-		self.make_records(["sales_person_name"], records, "sales_person")
+		self.make_records(["sales_person_name"], records)
 
 	def make_leads(self):
 		records = [
@@ -680,7 +678,7 @@ class BootStrapTestData:
 				"naming_series": "_T-Lead-",
 			},
 		]
-		self.make_records(["email_id"], records, "leads")
+		self.make_records(["email_id"], records)
 
 	def make_holiday_list(self):
 		records = [
@@ -696,11 +694,11 @@ class BootStrapTestData:
 				"holiday_list_name": "_Test Holiday List",
 			}
 		]
-		self.make_records(["holiday_list_name"], records, "holiday_list")
+		self.make_records(["holiday_list_name"], records)
 
 	def make_company(self):
 		records = load_test_records_for("Company")["Company"]
-		self.make_records(["company_name"], records, "companies")
+		self.make_records(["company_name"], records)
 
 	def make_fiscal_year(self):
 		records = [
@@ -726,7 +724,7 @@ class BootStrapTestData:
 			)
 
 		key = ["year_start_date", "year_end_date"]
-		self.make_records(key, records, "fiscal_year")
+		self.make_records(key, records)
 
 	def make_payment_term(self):
 		records = [
@@ -763,7 +761,7 @@ class BootStrapTestData:
 				"credit_days": 30,
 			},
 		]
-		self.make_records(["payment_term_name"], records, "payment_terms")
+		self.make_records(["payment_term_name"], records)
 
 	def make_payment_terms_template(self):
 		records = [
@@ -826,7 +824,7 @@ class BootStrapTestData:
 				"template_name": "_Test Payment Term Template 3",
 			},
 		]
-		self.make_records(["template_name"], records, "payment_terms_template")
+		self.make_records(["template_name"], records)
 
 	def make_tax_category(self):
 		records = [
@@ -834,7 +832,7 @@ class BootStrapTestData:
 			{"doctype": "Tax Category", "name": "_Test Tax Category 2", "title": "_Test Tax Category 2"},
 			{"doctype": "Tax Category", "name": "_Test Tax Category 3", "title": "_Test Tax Category 3"},
 		]
-		self.make_records(["title"], records, "tax_category")
+		self.make_records(["title"], records)
 
 	def make_account(self):
 		records = [
@@ -858,7 +856,7 @@ class BootStrapTestData:
 				"company": "_Test Company with perpetual inventory",
 			},
 		]
-		self.make_records(["account_name", "company"], records, "accounts")
+		self.make_records(["account_name", "company"], records)
 
 	def make_supplier(self):
 		records = [
@@ -917,7 +915,7 @@ class BootStrapTestData:
 				"companies": [{"company": "_Test Company with perpetual inventory"}],
 			},
 		]
-		self.make_records(["supplier_name"], records, "suppliers")
+		self.make_records(["supplier_name"], records)
 
 	def make_supplier_group(self):
 		records = [
@@ -927,7 +925,7 @@ class BootStrapTestData:
 				"parent_supplier_group": "All Supplier Groups",
 			}
 		]
-		self.make_records(["supplier_group_name"], records, "supplier_groups")
+		self.make_records(["supplier_group_name"], records)
 
 	def make_cost_center(self):
 		records = [
@@ -953,7 +951,7 @@ class BootStrapTestData:
 				"parent_cost_center": "_Test Company - _TC",
 			},
 		]
-		self.make_records(["cost_center_name", "company"], records, "cost_center")
+		self.make_records(["cost_center_name", "company"], records)
 
 	def make_location(self):
 		records = [
@@ -996,7 +994,7 @@ class BootStrapTestData:
 				"is_container": 1,
 			},
 		]
-		self.make_records(["location_name"], records, "location")
+		self.make_records(["location_name"], records)
 
 	def make_warehouse(self):
 		records = [
@@ -1075,14 +1073,14 @@ class BootStrapTestData:
 				"is_group": 0,
 			},
 		]
-		self.make_records(["warehouse_name", "company"], records, "warehouse")
+		self.make_records(["warehouse_name", "company"], records)
 
 	def make_uom(self):
 		records = [
 			{"doctype": "UOM", "must_be_whole_number": 1, "uom_name": "_Test UOM"},
 			{"doctype": "UOM", "uom_name": "_Test UOM 1"},
 		]
-		self.make_records(["uom_name"], records, "uom")
+		self.make_records(["uom_name"], records)
 
 	def make_item_attribute(self):
 		records = [
@@ -1110,7 +1108,7 @@ class BootStrapTestData:
 				],
 			},
 		]
-		self.make_records(["attribute_name"], records, "item_attribute")
+		self.make_records(["attribute_name"], records)
 
 	def make_item_tax_template(self):
 		records = [
@@ -1192,7 +1190,7 @@ class BootStrapTestData:
 				],
 			},
 		]
-		self.make_records(["title", "company"], records, "item_tax_template")
+		self.make_records(["title", "company"], records)
 
 	def make_item_group(self):
 		records = [
@@ -1305,7 +1303,7 @@ class BootStrapTestData:
 				],
 			},
 		]
-		self.make_records(["item_group_name"], records, "item_group")
+		self.make_records(["item_group_name"], records)
 
 	def make_item(self):
 		records = [
@@ -1899,7 +1897,7 @@ class BootStrapTestData:
 				"company": "_Test Company",
 			},
 		]
-		self.make_records(["item_code", "item_name"], records, "item")
+		self.make_records(["item_code", "item_name"], records)
 
 	def make_product_bundle(self):
 		records = [
@@ -1922,7 +1920,7 @@ class BootStrapTestData:
 				],
 			}
 		]
-		self.make_records(["new_item_code"], records, "product_bundle")
+		self.make_records(["new_item_code"], records)
 
 	def make_test_account(self):
 		records = [
@@ -2085,7 +2083,7 @@ class BootStrapTestData:
 				"territory": "_Test Territory",
 			},
 		]
-		self.make_records(["customer_name"], records, "customer")
+		self.make_records(["customer_name"], records)
 
 	def make_shareholder(self):
 		records = [
@@ -2098,7 +2096,7 @@ class BootStrapTestData:
 			{"doctype": "Shareholder", "naming_series": "SH-", "title": "Thor", "company": "_Test Company"},
 			{"doctype": "Shareholder", "naming_series": "SH-", "title": "Hulk", "company": "_Test Company"},
 		]
-		self.make_records(["title", "company"], records, "shareholder")
+		self.make_records(["title", "company"], records)
 
 	def make_sales_taxes_template(self):
 		records = [
@@ -2314,7 +2312,7 @@ class BootStrapTestData:
 				],
 			},
 		]
-		self.make_records(["title", "company"], records, "sales_taxes_and_template")
+		self.make_records(["title", "company"], records)
 
 	def make_asset_category(self):
 		records = [
@@ -2355,7 +2353,7 @@ class BootStrapTestData:
 				],
 			},
 		]
-		self.make_records(["asset_category_name"], records, "asset_category")
+		self.make_records(["asset_category_name"], records)
 
 	def make_asset_maintenance_team(self):
 		records = [
@@ -2383,7 +2381,7 @@ class BootStrapTestData:
 				],
 			}
 		]
-		self.make_records(["maintenance_team_name"], records, "asset_maintenance_team")
+		self.make_records(["maintenance_team_name"], records)
 
 	def make_activity_type(self):
 		records = [
@@ -2398,7 +2396,7 @@ class BootStrapTestData:
 				"activity_type": "_Test Activity Type 1",
 			},
 		]
-		self.make_records(["activity_type"], records, "activity_type")
+		self.make_records(["activity_type"], records)
 
 	def make_loyalty_program(self):
 		records = [
@@ -2433,7 +2431,7 @@ class BootStrapTestData:
 				],
 			},
 		]
-		self.make_records(["loyalty_program_name"], records, "loyalty_program")
+		self.make_records(["loyalty_program_name"], records)
 
 	def make_item_price(self):
 		records = [
@@ -2504,13 +2502,13 @@ class BootStrapTestData:
 				"price_list_rate": 10000,
 			},
 		]
-		self.make_records(["item_code", "price_list", "price_list_rate"], records, "item_price")
+		self.make_records(["item_code", "price_list", "price_list_rate"], records)
 
 	def make_operation(self):
 		records = [
 			{"doctype": "Operation", "name": "_Test Operation 1", "workstation": "_Test Workstation 1"}
 		]
-		self.make_records(["name"], records, "operation")
+		self.make_records(["name"], records)
 
 	def make_workstation(self):
 		records = [
@@ -2527,16 +2525,16 @@ class BootStrapTestData:
 				"working_hours": [{"start_time": "10:00:00", "end_time": "20:00:00"}],
 			}
 		]
-		self.make_records(["workstation_name"], records, "workstation")
+		self.make_records(["workstation_name"], records)
 
 	def make_bom(self):
 		# TODO: replace JSON source with hardcoded data
 		records = load_test_records_for("BOM")["BOM"]
-		self.make_records(["item", "company"], records, "bom")
+		self.make_records(["item", "company"], records)
 
 	def make_quality_inspection_param(self):
 		records = [{"doctype": "Quality Inspection Parameter", "parameter": "_Test Param"}]
-		self.make_records(["parameter"], records, "quality_inspection_param")
+		self.make_records(["parameter"], records)
 
 	def make_quality_inspection_template(self):
 		records = [
@@ -2552,7 +2550,7 @@ class BootStrapTestData:
 				],
 			}
 		]
-		self.make_records(["quality_inspection_template_name"], records, "quality_inspection_template")
+		self.make_records(["quality_inspection_template_name"], records)
 
 	def make_brand(self):
 		records = [
@@ -2571,7 +2569,7 @@ class BootStrapTestData:
 				],
 			},
 		]
-		self.make_records(["brand"], records, "brand")
+		self.make_records(["brand"], records)
 
 	def make_dunning_type(self):
 		records = [
@@ -2610,7 +2608,7 @@ class BootStrapTestData:
 				],
 			},
 		]
-		self.make_records(["dunning_type"], records, "dunning_type")
+		self.make_records(["dunning_type"], records)
 
 	def make_finance_book(self):
 		records = [
@@ -2627,7 +2625,7 @@ class BootStrapTestData:
 				"finance_book_name": "Test Finance Book 3",
 			},
 		]
-		self.make_records(["finance_book_name"], records, "finance_book")
+		self.make_records(["finance_book_name"], records)
 
 	def make_custom_doctype(self):
 		if not frappe.db.exists("DocType", "Shelf"):
@@ -2794,7 +2792,7 @@ class BootStrapTestData:
 				],
 			},
 		]
-		self.make_records(["address_title", "address_type"], records, "address")
+		self.make_records(["address_title", "address_type"], records)
 
 
 BootStrapTestData()
