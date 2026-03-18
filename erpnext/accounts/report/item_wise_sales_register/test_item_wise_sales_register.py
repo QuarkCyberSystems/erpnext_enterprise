@@ -76,9 +76,13 @@ class TestItemWiseSalesRegister(AccountsTestMixin, ERPNextTestSuite):
 		self.assertDictEqual(report_output, expected_result)
 
 	def test_grouped_report_handles_different_tax_descriptions(self):
-		self.create_item(item_name="_Test Item Tax Description A")
+		self.create_item(
+			item_name="_Test Item Tax Description A", company="_Test Company", warehouse="Stores - _TC"
+		)
 		first_item = self.item
-		self.create_item(item_name="_Test Item Tax Description B")
+		self.create_item(
+			item_name="_Test Item Tax Description B", company="_Test Company", warehouse="Stores - _TC"
+		)
 		second_item = self.item
 
 		first_tax_description = "Tax Description A"
