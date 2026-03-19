@@ -3,7 +3,6 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
 from erpnext.projects.doctype.activity_cost.activity_cost import DuplicationError
 from erpnext.tests.utils import ERPNextTestSuite
