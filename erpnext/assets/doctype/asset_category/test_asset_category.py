@@ -3,10 +3,12 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
+
+from erpnext.assets.doctype.asset.test_asset import create_asset
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestAssetCategory(IntegrationTestCase):
+class TestAssetCategory(ERPNextTestSuite):
 	def test_mandatory_fields(self):
 		asset_category = frappe.new_doc("Asset Category")
 		asset_category.asset_category_name = "Computers"

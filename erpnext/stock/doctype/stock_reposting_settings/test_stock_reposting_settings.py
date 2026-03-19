@@ -3,12 +3,12 @@
 import unittest
 
 import frappe
-from frappe.tests import IntegrationTestCase
 
 from erpnext.stock.doctype.repost_item_valuation.repost_item_valuation import get_recipients
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestStockRepostingSettings(IntegrationTestCase):
+class TestStockRepostingSettings(ERPNextTestSuite):
 	def test_notify_reposting_error_to_role(self):
 		role = "Notify Reposting Role"
 

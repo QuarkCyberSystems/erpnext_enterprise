@@ -2,10 +2,8 @@
 # See license.txt
 import unittest
 
-from frappe.tests import IntegrationTestCase
-
-IGNORE_TEST_RECORD_DEPENDENCIES = ["Payment Gateway"]
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestPaymentGatewayAccount(IntegrationTestCase):
+class TestPaymentGatewayAccount(ERPNextTestSuite):
 	pass

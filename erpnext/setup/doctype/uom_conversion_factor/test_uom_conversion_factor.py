@@ -2,8 +2,8 @@
 # See license.txt
 import unittest
 
-from frappe.tests import IntegrationTestCase
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestUOMConversionFactor(IntegrationTestCase):
+class TestUOMConversionFactor(ERPNextTestSuite):
 	pass

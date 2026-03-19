@@ -3,8 +3,8 @@
 # import frappe
 import unittest
 
-from frappe.tests import IntegrationTestCase
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestQualityInspectionParameter(IntegrationTestCase):
+class TestQualityInspectionParameter(ERPNextTestSuite):
 	pass

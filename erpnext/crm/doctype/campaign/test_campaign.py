@@ -3,8 +3,8 @@
 # import frappe
 import unittest
 
-from frappe.tests import IntegrationTestCase
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestCampaign(IntegrationTestCase):
+class TestCampaign(ERPNextTestSuite):
 	pass

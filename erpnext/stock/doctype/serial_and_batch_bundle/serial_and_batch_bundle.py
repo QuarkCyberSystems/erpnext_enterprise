@@ -443,7 +443,7 @@ class SerialandBatchBundle(Document):
 			self.set_incoming_rate_for_inward_transaction(row, save, prev_sle=prev_sle)
 
 	def validate_returned_serial_batch_no(self, return_against, row, original_inv_details):
-		if frappe.flags.through_repost_item_valuation:
+		if frappe.flags.through_repost_item_valuation and not frappe.in_test:
 			return
 
 		if row.serial_no and row.serial_no not in original_inv_details["serial_nos"]:

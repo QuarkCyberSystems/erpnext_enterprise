@@ -2,9 +2,9 @@
 # See license.txt
 import unittest
 
-from frappe.tests import IntegrationTestCase
+from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestQualityAction(IntegrationTestCase):
+class TestQualityAction(ERPNextTestSuite):
 	# quality action has no code
 	pass
