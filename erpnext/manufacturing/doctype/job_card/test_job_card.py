@@ -96,6 +96,7 @@ class TestJobCard(ERPNextTestSuite):
 				"workstation": "_Test Workstation 1",
 				"bom_no": cut_bom,
 				"skip_material_transfer": 1,
+				"time_in_mins": 60,
 			},
 		)
 		final_bom.append(
@@ -105,6 +106,7 @@ class TestJobCard(ERPNextTestSuite):
 				"workstation": "_Test Workstation 1",
 				"bom_no": stitch_bom,
 				"skip_material_transfer": 1,
+				"time_in_mins": 60,
 			},
 		)
 		final_bom.append(
@@ -115,6 +117,7 @@ class TestJobCard(ERPNextTestSuite):
 				"is_final_finished_good": 1,
 				"bom_no": final_bom.name,
 				"skip_material_transfer": 1,
+				"time_in_mins": 60,
 			},
 		)
 		final_bom.append("items", {"item_code": stitch_fg.name, "qty": 1, "operation_row_id": 3})

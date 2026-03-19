@@ -1204,6 +1204,12 @@ class BOM(WebsiteGenerator):
 							"Row {0}: Workstation or Workstation Type is mandatory for an operation {1}"
 						).format(d.idx, d.operation)
 					)
+				if not d.time_in_mins or d.time_in_mins <= 0:
+					frappe.throw(
+						_("Row {0}: Operation time should be greater than 0 for operation {1}").format(
+							d.idx, d.operation
+						)
+					)
 
 	def get_tree_representation(self) -> BOMTree:
 		"""Get a complete tree representation preserving order of child items."""
