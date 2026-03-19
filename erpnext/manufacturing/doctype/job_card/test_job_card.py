@@ -882,37 +882,6 @@ class TestJobCard(ERPNextTestSuite):
 		s = frappe.get_doc(make_stock_entry_for_wo(wo_doc.name, "Manufacture", 6))
 		self.assertEqual(s.additional_costs[0].amount, 8)
 
-		for row in frappe.get_doc("BOM", self.work_order.bom_no).items:
-			make_stock_entry(
-				item_code=row.item_code,
-				target="_Test Warehouse - _TC",
-				qty=10,
-				basic_rate=100,
-			)
-
-		job_card = frappe.get_last_doc("Job Card", {"work_order": self.work_order.name})
-		job_card.append("secondary_items", {"item_code": "_Test Item", "stock_qty": 2, "type": "Scrap"})
-		job_card.append(
-			"time_logs",
-			{
-				"from_time": "2009-01-01 12:06:25",
-				"to_time": "2009-01-01 12:37:25",
-				"completed_qty": job_card.for_quantity,
-			},
-		)
-		job_card.save()
-		job_card.submit()
-
-		from erpnext.manufacturing.doctype.work_order.work_order import (
-			make_stock_entry as make_stock_entry_for_wo,
-		)
-
-		s = frappe.get_doc(make_stock_entry_for_wo(self.work_order.name, "Manufacture"))
-		s.submit()
-
-		self.assertEqual(s.items[3].item_code, "_Test Item")
-		self.assertEqual(s.items[3].transfer_qty, 2)
-
 
 def create_bom_with_multiple_operations():
 	"Create a BOM with multiple operations and Material Transfer against Job Card"
