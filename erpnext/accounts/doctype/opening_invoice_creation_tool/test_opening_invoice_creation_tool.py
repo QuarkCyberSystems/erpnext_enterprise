@@ -3,10 +3,6 @@
 
 import frappe
 
-from erpnext.accounts.doctype.accounting_dimension.test_accounting_dimension import (
-	create_dimension,
-	disable_dimension,
-)
 from erpnext.accounts.doctype.opening_invoice_creation_tool.opening_invoice_creation_tool import (
 	get_temporary_opening_account,
 )
@@ -15,9 +11,9 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 class TestOpeningInvoiceCreationTool(ERPNextTestSuite):
 	def setUp(self):
+		# TODO: move to bootstrap
 		if not frappe.db.exists("Company", "_Test Opening Invoice Company"):
 			make_company()
-		create_dimension()
 
 	def make_invoices(
 		self,

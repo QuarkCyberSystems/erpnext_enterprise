@@ -246,6 +246,10 @@ class BootStrapTestData:
 
 		frappe.db.commit()  # nosemgrep
 
+		# Dimensions
+		# DDL commands have implicit commit
+		self.make_dimensions()
+
 		# custom doctype
 		# DDL commands have implicit commit
 		self.make_custom_doctype()
@@ -2793,6 +2797,33 @@ class BootStrapTestData:
 			},
 		]
 		self.make_records(["address_title", "address_type"], records)
+
+	def make_dimensions(self):
+		records = [
+			{
+				"doctype": "Accounting Dimension",
+				"document_type": "Department",
+				"dimension_defaults": [
+					{
+						"company": "_Test Company",
+						"reference_document": "Department",
+						"default_dimension": "_Test Department - _TC",
+					}
+				],
+			},
+			{
+				"doctype": "Accounting Dimension",
+				"document_type": "Location",
+				"dimension_defaults": [
+					{
+						"company": "_Test Company",
+						"reference_document": "Location",
+						"default_dimension": "Block 1",
+					}
+				],
+			},
+		]
+		self.make_records(["document_type"], records)
 
 
 BootStrapTestData()
