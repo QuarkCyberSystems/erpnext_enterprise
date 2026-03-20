@@ -8,6 +8,7 @@ from typing import Any, NewType
 import frappe
 from frappe import _
 from frappe.core.doctype.report.report import get_report_module_dotted_path
+from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 from frappe.tests.utils import load_test_records_for
 from frappe.utils import now_datetime, today
 
@@ -246,13 +247,15 @@ class BootStrapTestData:
 
 		frappe.db.commit()  # nosemgrep
 
-		# Dimensions
 		# DDL commands have implicit commit
+		# Dimensions
 		self.make_dimensions()
 
 		# custom doctype
-		# DDL commands have implicit commit
 		self.make_custom_doctype()
+
+		# custom field
+		self.make_custom_field()
 
 	def update_system_settings(self):
 		system_settings = frappe.get_doc("System Settings")
@@ -2828,6 +2831,20 @@ class BootStrapTestData:
 			},
 		]
 		self.make_records(["document_type"], records)
+
+	def make_custom_field(self):
+		pan_field = {
+			"Supplier": [
+				{
+					"fieldname": "pan",
+					"label": "PAN",
+					"fieldtype": "Data",
+					"translatable": 0,
+				}
+			]
+		}
+
+		create_custom_fields(pan_field, update=1)
 
 
 BootStrapTestData()
