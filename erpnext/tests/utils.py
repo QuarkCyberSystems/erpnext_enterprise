@@ -2822,6 +2822,10 @@ class BootStrapTestData:
 					}
 				],
 			},
+			{
+				"doctype": "Accounting Dimension",
+				"document_type": "Branch",
+			},
 		]
 		self.make_records(["document_type"], records)
 
