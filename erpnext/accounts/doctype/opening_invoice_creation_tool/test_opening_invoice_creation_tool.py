@@ -10,11 +10,6 @@ from erpnext.tests.utils import ERPNextTestSuite
 
 
 class TestOpeningInvoiceCreationTool(ERPNextTestSuite):
-	def setUp(self):
-		# TODO: move to bootstrap
-		if not frappe.db.exists("Company", "_Test Opening Invoice Company"):
-			make_company()
-
 	def make_invoices(
 		self,
 		invoice_type="Sales",
@@ -177,19 +172,6 @@ def get_opening_invoice_creation_dict(**args):
 
 	invoice_dict.update(args)
 	return invoice_dict
-
-
-def make_company():
-	if frappe.db.exists("Company", "_Test Opening Invoice Company"):
-		return frappe.get_doc("Company", "_Test Opening Invoice Company")
-
-	company = frappe.new_doc("Company")
-	company.company_name = "_Test Opening Invoice Company"
-	company.abbr = "_TOIC"
-	company.default_currency = "INR"
-	company.country = "Pakistan"
-	company.insert()
-	return company
 
 
 def make_customer(customer=None):
