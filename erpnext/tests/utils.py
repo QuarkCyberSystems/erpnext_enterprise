@@ -254,6 +254,12 @@ class BootStrapTestData:
 		# custom doctype
 		self.make_custom_doctype()
 
+		# data on custom doctype
+		self.make_shelf()
+		self.make_rack()
+		self.make_inv_site()
+		self.make_store()
+
 		# custom field
 		self.make_custom_field()
 
@@ -2845,6 +2851,58 @@ class BootStrapTestData:
 		}
 
 		create_custom_fields(pan_field, update=1)
+
+	def make_shelf(self):
+		records = [
+			{
+				"doctype": "Shelf",
+				"shelf_name": "Shelf 1",
+			},
+			{
+				"doctype": "Shelf",
+				"shelf_name": "Shelf 2",
+			},
+		]
+		self.make_records(["shelf_name"], records)
+
+	def make_rack(self):
+		records = [
+			{
+				"doctype": "Rack",
+				"rack_name": "Rack 1",
+			},
+			{
+				"doctype": "Rack",
+				"rack_name": "Rack 2",
+			},
+		]
+		self.make_records(["rack_name"], records)
+
+	def make_inv_site(self):
+		records = [
+			{
+				"doctype": "Inv Site",
+				"site_name": "Site 1",
+			},
+			{
+				"doctype": "Inv Site",
+				"site_name": "Site 2",
+			},
+		]
+		self.make_records(["site_name"], records)
+
+	def make_store(self):
+		records = [
+			{
+				"doctype": "Store",
+				"store_name": "Store 1",
+			},
+			{
+				"doctype": "Store",
+				"store_name": "Store 2",
+			},
+		]
+		self.make_records(["store_name"], records)
 
 
 BootStrapTestData()
