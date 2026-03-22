@@ -124,7 +124,8 @@ frappe.ui.form.on("Opening Invoice Creation Tool", {
 	invoice_type: function (frm) {
 		$.each(frm.doc.invoices, (idx, row) => {
 			row.party_type = frm.doc.invoice_type == "Sales" ? "Customer" : "Supplier";
-			row.party = "";
+			frappe.model.set_value(row.doctype, row.name, "party", "");
+			frappe.model.set_value(row.doctype, row.name, "party_name", "");
 		});
 		frm.refresh_fields();
 	},

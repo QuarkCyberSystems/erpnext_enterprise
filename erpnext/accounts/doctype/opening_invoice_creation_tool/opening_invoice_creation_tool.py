@@ -108,11 +108,10 @@ class OpeningInvoiceCreationTool(Document):
 				frappe.throw(_("Row #{}: Either Party ID or Party Name is required").format(row.idx))
 
 			if not row.party and row.party_name:
-				self.add_party(row.party_type, row.party_name)
-				row.party = row.party_name
+				row.party = self.add_party(row.party_type, row.party_name)
 
 			if row.party and not frappe.db.exists(row.party_type, row.party):
-				self.add_party(row.party_type, row.party)
+				row.party = self.add_party(row.party_type, row.party)
 
 		else:
 			if not row.party:
@@ -171,6 +170,7 @@ class OpeningInvoiceCreationTool(Document):
 
 		party_doc.flags.ignore_mandatory = True
 		party_doc.save(ignore_permissions=True)
+		return party_doc.name
 
 	def get_invoice_dict(self, row=None):
 		def get_item_dict():
