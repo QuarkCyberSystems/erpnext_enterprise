@@ -14,6 +14,7 @@ from erpnext.controllers.accounts_controller import InvalidQtyError
 from erpnext.controllers.buying_controller import QtyMismatchError
 from erpnext.stock import get_warehouse_account_map
 from erpnext.stock.doctype.item.test_item import create_item, make_item
+from erpnext.stock.doctype.material_request.material_request import make_purchase_order
 from erpnext.stock.doctype.purchase_receipt.purchase_receipt import make_purchase_invoice
 from erpnext.stock.doctype.serial_and_batch_bundle.serial_and_batch_bundle import (
 	SerialNoDuplicateError,
@@ -32,6 +33,40 @@ class TestPurchaseReceipt(ERPNextTestSuite):
 	def setUp(self):
 		frappe.local.future_sle = {}
 		self.load_test_records("Purchase Receipt")
+
+	def test_purchase_receipt_skips_validation(self):
+		"""
+		Test that validation is skipped when over delivery receipt allowance is reduced after PO submission
+		and PR can be submitted with higher qty than MR.
+		"""
+		item = create_item("Test item for validation")
+		mr = frappe.new_doc("Material Request")
+		mr.material_request_type = "Purchase"
+		mr.company = "_Test Company"
+		mr.price_list = "_Test Price List"
+		mr.append(
+			"items",
+			{
+				"item_code": item.name,
+				"item_name": item.item_name,
+				"item_group": item.item_group,
+				"schedule_date": add_days(today(), 1),
+				"qty": 100,
+				"uom": item.stock_uom,
+			},
+		)
+		mr.insert()
+		mr.submit()
+		frappe.db.set_value("Item", item.name, "over_delivery_receipt_allowance", 200)
+		po = make_purchase_order(mr.name)
+		po.supplier = "_Test Supplier"
+		po.items[0].qty = 300
+		po.save()
+		po.submit()
+		frappe.db.set_value("Item", item.name, "over_delivery_receipt_allowance", 20)
+		pr = make_purchase_receipt(qty=300, item_code=item.name, do_not_save=True)
+		pr.save()
+		pr.submit()
 
 	def test_purchase_receipt_qty(self):
 		pr = make_purchase_receipt(qty=0, rejected_qty=0, do_not_save=True)
