@@ -56,7 +56,8 @@ frappe.ui.form.on("Employee", {
 							fieldname: "email",
 							label: __("Email"),
 							reqd: 1,
-							default: frm.doc.company_email || frm.doc.personal_email || frm.doc.user_id,
+							default:
+								frm.doc.prefered_email || frm.doc.company_email || frm.doc.personal_email,
 						},
 						{
 							fieldtype: "Check",
