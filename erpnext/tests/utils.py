@@ -975,6 +975,7 @@ class BootStrapTestData:
 	def make_location(self):
 		records = [
 			{"doctype": "Location", "location_name": "Test Location"},
+			{"doctype": "Location", "location_name": "Test Location 2"},
 			{"doctype": "Location", "location_name": "Test Location Area", "is_group": 1, "is_container": 1},
 			{
 				"doctype": "Location",
