@@ -161,11 +161,11 @@ class Employee(NestedSet):
 			self.validate_duplicate_user_id()
 
 	def validate_auto_user_creation(self):
-		if self.create_user_automatically and not (self.prefered_email or self.company_email):
+		if self.create_user_automatically and not (
+			self.prefered_email or self.company_email or self.personal_email
+		):
 			frappe.throw(
-				_(
-					"Company Email or Preferred Email is mandatory when 'Create User Automatically' is enabled"
-				),
+				_("Company or Personal Email is mandatory when 'Create User Automatically' is enabled"),
 				frappe.MandatoryError,
 				title=_("Auto User Creation Error"),
 			)
@@ -193,7 +193,7 @@ class Employee(NestedSet):
 
 		create_user(
 			employee=self.name,
-			email=self.prefered_email or self.company_email,
+			email=self.prefered_email or self.company_email or self.personal_email,
 			create_user_permission=self.create_user_permission,
 		)
 
