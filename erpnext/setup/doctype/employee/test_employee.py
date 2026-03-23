@@ -72,7 +72,7 @@ class TestEmployee(ERPNextTestSuite):
 				{
 					"doctype": "Employee",
 					"first_name": "Test Auto User 1",
-					"company": erpnext.get_default_company(),
+					"company": "_Test Company",
 					"date_of_birth": "2000-05-08",
 					"date_of_joining": "2013-01-01",
 					"gender": "Female",
@@ -118,10 +118,13 @@ class TestEmployee(ERPNextTestSuite):
 			)
 		)
 
+<<<<<<< HEAD
 	def tearDown(self):
 		frappe.db.rollback()
 
 >>>>>>> d4ecede3c3 (test: Create User Automatically)
+=======
+>>>>>>> a14f834589 (test(fix): set company in employee)
 
 def make_employee(user, company=None, **kwargs):
 	if not frappe.db.get_value("User", user):
