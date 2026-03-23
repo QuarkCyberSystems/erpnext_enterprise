@@ -241,6 +241,7 @@ class BootStrapTestData:
 		self.make_sales_person()
 		self.make_activity_type()
 		self.make_address()
+		self.update_support_settings()
 		self.update_selling_settings()
 		self.update_stock_settings()
 		self.update_system_settings()
@@ -270,6 +271,11 @@ class BootStrapTestData:
 		system_settings.currency_precision = system_settings.float_precision = 2
 		system_settings.rounding_method = "Banker's Rounding"
 		system_settings.save()
+
+	def update_support_settings(self):
+		support_settings = frappe.get_doc("Support Settings")
+		support_settings.track_service_level_agreement = True
+		support_settings.save()
 
 	def update_selling_settings(self):
 		selling_settings = frappe.get_doc("Selling Settings")
