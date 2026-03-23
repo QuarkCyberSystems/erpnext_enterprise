@@ -96,6 +96,15 @@ frappe.ui.form.on("Employee", {
 		}
 	},
 
+	create_user_automatically: function (frm) {
+		if (frm.doc.create_user_automatically) {
+			frm.set_value("user_id", "");
+			frm.set_df_property("user_id", "read_only", 1);
+		} else {
+			frm.set_df_property("user_id", "read_only", 0);
+		}
+	},
+
 	prefered_contact_email: function (frm) {
 		frm.events.update_contact(frm);
 	},
