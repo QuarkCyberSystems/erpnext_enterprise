@@ -430,8 +430,6 @@ def create_user(employee: str, email: str | None = None, create_user_permission:
 		frappe.throw(_("Employee {0} already has a linked user").format(emp.name))
 
 	if not email:
-		email = emp.company_email
-	if not email:
 		frappe.throw(_("Email is required to create a user"))
 
 	email = validate_email_address(email, True)
@@ -465,10 +463,6 @@ def create_user(employee: str, email: str | None = None, create_user_permission:
 
 	emp.user_id = user.name
 	emp.create_user_permission = cint(create_user_permission)
-	if not emp.company_email:
-		emp.company_email = email
-	if not emp.prefered_contact_email:
-		emp.prefered_contact_email = "Company Email"
 	emp.save()
 
 	if cint(create_user_permission):
