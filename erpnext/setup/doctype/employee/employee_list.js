@@ -10,25 +10,16 @@ frappe.listview_settings["Employee"] = {
 	},
 
 	onload(listview) {
-		listview.get_no_result_message = () => {
-			return `
-                <div class="msg-box no-border">
-                    <div class="mb-4">
-                        <svg class="icon icon-xl" style="stroke: var(--text-light);">
-                            <use href="#icon-small-file"></use>
-                        </svg>
-                    </div>
-                    <p>${__("No Active Employees Found. Prefer importing if you have many records.")}</p>
-                    <p>
-						<button class="btn btn-primary btn-sm btn-new-doc">
-							${__("Create New")}
-						</button>
-                        <button class="btn btn-default btn-sm" onclick="frappe.set_route('List', 'Data Import', {reference_doctype: 'Employee'})">
-                            ${__("Import Employees")}
-                        </button>
-                    </p>
-                </div>
-            `;
-		};
+		if (frappe.perm.has_perm("Employee", 0, "create")) {
+			frappe.db.count("Employee").then((count) => {
+				if (count === 0) {
+					listview.page.add_inner_button(__("Import Employees"), () => {
+						frappe.new_doc("Data Import", {
+							reference_doctype: "Employee",
+						});
+					});
+				}
+			});
+		}
 	},
 };
