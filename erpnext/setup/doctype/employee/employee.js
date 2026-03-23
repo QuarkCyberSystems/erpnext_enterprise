@@ -63,7 +63,7 @@ frappe.ui.form.on("Employee", {
 							fieldtype: "Check",
 							fieldname: "create_user_permission",
 							label: __("Create User Permission"),
-							default: 0,
+							default: 1,
 						},
 					],
 					primary_action_label: __("Create"),

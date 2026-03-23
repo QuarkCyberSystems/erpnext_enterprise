@@ -459,12 +459,12 @@ def create_user(employee: str, email: str | None = None, create_user_permission:
 			"bio": emp.bio,
 		}
 	)
-	frappe.db.set_value("Employee", emp.name, "user_id", email)
+	emp.db_set("user_id", email)
 	user.append_roles("Employee")
 	user.insert()
 
-	emp.reload()
 	emp.user_id = user.name
+	emp.create_user_permission = cint(create_user_permission)
 	if not emp.company_email:
 		emp.company_email = email
 	if not emp.prefered_contact_email:
