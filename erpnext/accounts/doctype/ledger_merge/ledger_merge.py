@@ -79,7 +79,8 @@ def start_merge(docname):
 					{"ledger_merge": ledger_merge.name, "current": successful_merges, "total": total},
 				)
 			except Exception:
-				frappe.db.rollback()
+				if not frappe.in_test:
+					frappe.db.rollback()
 				ledger_merge.log_error("Ledger merge failed")
 			finally:
 				if successful_merges == total:
