@@ -680,7 +680,7 @@ class ProductionPlan(Document):
 			frappe.delete_doc("Work Order", d.name)
 
 	@frappe.whitelist()
-	def set_status(self, close: bool | None = None, update_bin: bool = False) -> None:
+	def set_status(self, close=None, update_bin=False):
 		self.status = {0: "Draft", 1: "Submitted", 2: "Cancelled"}.get(self.docstatus)
 
 		if close:

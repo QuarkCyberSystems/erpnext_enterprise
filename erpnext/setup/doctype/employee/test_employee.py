@@ -64,8 +64,6 @@ class TestEmployee(ERPNextTestSuite):
 		self.assertEqual(qb_employee_list, employee_list)
 		frappe.set_user("Administrator")
 
-<<<<<<< HEAD
-=======
 	def test_create_user_automatically(self):
 		def get_new_employee(email: str, create_user_permission: int):
 			return frappe.get_doc(
@@ -118,13 +116,6 @@ class TestEmployee(ERPNextTestSuite):
 			)
 		)
 
-<<<<<<< HEAD
-	def tearDown(self):
-		frappe.db.rollback()
-
->>>>>>> d4ecede3c3 (test: Create User Automatically)
-=======
->>>>>>> a14f834589 (test(fix): set company in employee)
 
 def make_employee(user, company=None, **kwargs):
 	if not frappe.db.get_value("User", user):
