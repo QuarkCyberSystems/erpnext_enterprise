@@ -126,7 +126,6 @@ class Employee(NestedSet):
 		self.set_employee_name()
 		self.validate_date()
 		self.validate_email()
-		self.validate_auto_user_creation()
 		self.validate_status()
 		self.validate_reports_to()
 		self.set_preferred_email()
@@ -162,8 +161,14 @@ class Employee(NestedSet):
 			self.validate_duplicate_user_id()
 
 	def validate_auto_user_creation(self):
-		if self.create_user_automatically and not self.company_email:
-			frappe.throw(_("Email is mandatory when Create User Automatically is enabled"))
+		if self.create_user_automatically and not (self.prefered_email or self.company_email):
+			frappe.throw(
+				_(
+					"Company Email or Preferred Email is mandatory when 'Create User Automatically' is enabled"
+				),
+				frappe.MandatoryError,
+				title=_("Auto User Creation Error"),
+			)
 
 	def update_nsm_model(self):
 		frappe.utils.nestedset.update_nsm(self)
@@ -176,6 +181,9 @@ class Employee(NestedSet):
 			self.update_user_permissions()
 		self.reset_employee_emails_cache()
 
+	def before_insert(self):
+		self.validate_auto_user_creation()
+
 	def after_insert(self):
 		if not self.create_user_automatically:
 			return
@@ -185,7 +193,7 @@ class Employee(NestedSet):
 
 		create_user(
 			employee=self.name,
-			email=self.company_email,
+			email=self.prefered_email or self.company_email,
 			create_user_permission=self.create_user_permission,
 		)
 
