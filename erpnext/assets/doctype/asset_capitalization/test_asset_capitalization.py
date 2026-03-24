@@ -380,6 +380,7 @@ class TestAssetCapitalization(ERPNextTestSuite):
 				"asset_type": "Composite Component",
 				"purchase_date": pr.posting_date,
 				"available_for_use_date": pr.posting_date,
+				"location": "Test Location",
 			}
 		)
 		consumed_asset_doc.save()

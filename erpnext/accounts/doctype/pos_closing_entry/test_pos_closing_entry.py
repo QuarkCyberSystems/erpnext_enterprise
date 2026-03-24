@@ -4,10 +4,6 @@ import unittest
 
 import frappe
 
-from erpnext.accounts.doctype.accounting_dimension.test_accounting_dimension import (
-	create_dimension,
-	disable_dimension,
-)
 from erpnext.accounts.doctype.pos_closing_entry.pos_closing_entry import (
 	make_closing_entry_from_opening,
 )
@@ -162,7 +158,6 @@ class TestPOSClosingEntry(ERPNextTestSuite):
 		test case to check whether we can create POS Closing Entry without mandatory accounting dimension
 		"""
 
-		create_dimension()
 		location = frappe.get_doc("Accounting Dimension", "Location")
 		location.dimension_defaults[0].mandatory_for_bs = True
 		location.save()
@@ -198,7 +193,6 @@ class TestPOSClosingEntry(ERPNextTestSuite):
 		)
 		accounting_dimension_department.mandatory_for_bs = 0
 		accounting_dimension_department.save()
-		disable_dimension()
 
 	def test_merging_into_sales_invoice_for_batched_item(self):
 		frappe.flags.print_message = False
