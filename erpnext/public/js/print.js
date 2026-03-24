@@ -24,6 +24,9 @@ const allowed_print_formats = [
 	"Purchase Invoice with Item Image",
 	"POS Invoice Standard",
 	"POS Invoice with Item Image",
+	"Quotation Standard",
+	"Quotation with Item Image",
+	"Request for Quotation with Item Image",
 ];
 const allowed_letterheads = ["Company Letterhead", "Company Letterhead - Grey"];
 
