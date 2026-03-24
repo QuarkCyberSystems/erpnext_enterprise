@@ -28,16 +28,32 @@ frappe.query_reports["BOM Stock Analysis"] = {
 			default: false,
 		},
 	],
-	formatter: function (value, row, column, data, default_formatter) {
+	formatter(value, row, column, data, default_formatter) {
+		if (data && data.bold && column.fieldname === "item") {
+			return value ? `<b>${value}</b>` : "";
+		}
+
 		value = default_formatter(value, row, column, data);
 
-		if (column.id == "producible_fg_item") {
-			if (data["producible_fg_item"] >= data["required_qty"]) {
-				value = `<a style='color:green' href="/app/item/${data["producible_fg_item"]}" data-doctype="producible_fg_item">${data["producible_fg_item"]}</a>`;
-			} else {
-				value = `<a style='color:red' href="/app/item/${data["producible_fg_item"]}" data-doctype="producible_fg_item">${data["producible_fg_item"]}</a>`;
+		if (column.fieldname === "difference_qty" && value !== "" && value !== undefined) {
+			const numeric = parseFloat(value.replace(/,/g, "")) || 0;
+			if (numeric < 0) {
+				value = `<span style="color: red">${value}</span>`;
+			} else if (numeric > 0) {
+				value = `<span style="color: green">${value}</span>`;
 			}
 		}
+
+		if (data && data.bold) {
+			if (column.fieldname === "description" || column.fieldname === "item_name") {
+				const qty_to_make = frappe.query_report.get_filter_value("qty_to_make");
+				const producible = parseFloat(value) || 0;
+				const colour = qty_to_make && producible < qty_to_make ? "red" : "green";
+				return `<b style="color: ${colour}">${value}</b>`;
+			}
+			return `<b>${value}</b>`;
+		}
+
 		return value;
 	},
 };

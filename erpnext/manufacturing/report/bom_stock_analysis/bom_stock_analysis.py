@@ -4,74 +4,101 @@
 import frappe
 from frappe import _
 from frappe.query_builder.functions import Floor, IfNull, Sum
+from frappe.utils import flt, fmt_money
 from frappe.utils.data import comma_and
 from pypika.terms import ExistsCriterion
 
 
 def execute(filters=None):
-	qty_to_make = filters.get("qty_to_make")
-
-	if qty_to_make:
+	if filters.get("qty_to_make"):
 		columns = get_columns_with_qty_to_make()
 		data = get_data_with_qty_to_make(filters)
-		return columns, data
 	else:
-		data = []
 		columns = get_columns_without_qty_to_make()
-		bom_data = get_producible_fg_items(filters)
-		for row in bom_data:
-			data.append(row)
+		data = get_data_without_qty_to_make(filters)
 
-		return columns, data
+	return columns, data
+
+
+def fmt_qty(value):
+	"""Format a float quantity for display as a string, so blank rows stay blank."""
+	return frappe.utils.fmt_money(value, precision=2, currency=None)
+
+
+def fmt_rate(value):
+	"""Format a currency rate for display as a string."""
+	currency = frappe.defaults.get_global_default("currency")
+	return frappe.utils.fmt_money(value, precision=2, currency=currency)
 
 
 def get_data_with_qty_to_make(filters):
-	data = []
 	bom_data = get_bom_data(filters)
 	manufacture_details = get_manufacturer_records()
+	purchase_rates = batch_fetch_purchase_rates(bom_data)
+	qty_to_make = filters.get("qty_to_make")
 
+	data = []
 	for row in bom_data:
-		required_qty = filters.get("qty_to_make") * row.qty_per_unit
-		last_purchase_rate = frappe.db.get_value("Item", row.item_code, "last_purchase_rate")
+		qty_per_unit = flt(row.qty_per_unit) if row.qty_per_unit > 0 else 0
+		required_qty = qty_to_make * qty_per_unit
+		difference_qty = flt(row.actual_qty) - required_qty
+		rate = purchase_rates.get(row.item_code, 0)
 
-		data.append(get_report_data(last_purchase_rate, required_qty, row, manufacture_details))
+		data.append(
+			{
+				"item": row.item_code,
+				"description": row.description,
+				"from_bom_no": row.from_bom_no,
+				"manufacturer": comma_and(
+					manufacture_details.get(row.item_code, {}).get("manufacturer", []), add_quotes=False
+				),
+				"manufacturer_part_number": comma_and(
+					manufacture_details.get(row.item_code, {}).get("manufacturer_part", []), add_quotes=False
+				),
+				"qty_per_unit": fmt_qty(qty_per_unit),
+				"available_qty": fmt_qty(row.actual_qty),
+				"required_qty": fmt_qty(required_qty),
+				"difference_qty": fmt_qty(difference_qty),
+				"last_purchase_rate": fmt_rate(rate),
+				"_available_qty": flt(row.actual_qty),
+				"_qty_per_unit": qty_per_unit,
+			}
+		)
+
+	min_producible = (
+		min(int(r["_available_qty"] // r["_qty_per_unit"]) for r in data if r["_qty_per_unit"]) if data else 0
+	)
+
+	for row in data:
+		row.pop("_available_qty", None)
+		row.pop("_qty_per_unit", None)
+
+	# blank spacer row
+	data.append({})
+
+	data.append(
+		{
+			"item": _("Maximum Producible Items"),
+			"description": min_producible,
+			"from_bom_no": "",
+			"manufacturer": "",
+			"manufacturer_part_number": "",
+			"qty_per_unit": "",
+			"available_qty": "",
+			"required_qty": "",
+			"difference_qty": "",
+			"last_purchase_rate": "",
+			"bold": 1,
+		}
+	)
 
 	return data
 
 
-def get_report_data(last_purchase_rate, required_qty, row, manufacture_details):
-	qty_per_unit = row.qty_per_unit if row.qty_per_unit > 0 else 0
-	difference_qty = row.actual_qty - required_qty
-	return [
-		row.item_code,
-		row.description,
-		row.from_bom_no,
-		comma_and(manufacture_details.get(row.item_code, {}).get("manufacturer", []), add_quotes=False),
-		comma_and(manufacture_details.get(row.item_code, {}).get("manufacturer_part", []), add_quotes=False),
-		qty_per_unit,
-		row.actual_qty,
-		required_qty,
-		difference_qty,
-		last_purchase_rate,
-		row.actual_qty // qty_per_unit if qty_per_unit else 0,
-	]
-
-
 def get_columns_with_qty_to_make():
 	return [
-		{
-			"fieldname": "item",
-			"label": _("Item"),
-			"fieldtype": "Link",
-			"options": "Item",
-			"width": 120,
-		},
-		{
-			"fieldname": "description",
-			"label": _("Description"),
-			"fieldtype": "Data",
-			"width": 150,
-		},
+		{"fieldname": "item", "label": _("Item"), "fieldtype": "Link", "options": "Item", "width": 180},
+		{"fieldname": "description", "label": _("Description"), "fieldtype": "Data", "width": 160},
 		{
 			"fieldname": "from_bom_no",
 			"label": _("From BOM No"),
@@ -79,66 +106,87 @@ def get_columns_with_qty_to_make():
 			"options": "BOM",
 			"width": 150,
 		},
-		{
-			"fieldname": "manufacturer",
-			"label": _("Manufacturer"),
-			"fieldtype": "Data",
-			"width": 120,
-		},
+		{"fieldname": "manufacturer", "label": _("Manufacturer"), "fieldtype": "Data", "width": 130},
 		{
 			"fieldname": "manufacturer_part_number",
 			"label": _("Manufacturer Part Number"),
 			"fieldtype": "Data",
-			"width": 150,
+			"width": 170,
 		},
-		{
-			"fieldname": "qty_per_unit",
-			"label": _("Qty Per Unit"),
-			"fieldtype": "Float",
-			"width": 110,
-		},
-		{
-			"fieldname": "available_qty",
-			"label": _("Available Qty"),
-			"fieldtype": "Float",
-			"width": 120,
-		},
-		{
-			"fieldname": "required_qty",
-			"label": _("Required Qty"),
-			"fieldtype": "Float",
-			"width": 120,
-		},
-		{
-			"fieldname": "difference_qty",
-			"label": _("Difference Qty"),
-			"fieldtype": "Float",
-			"width": 130,
-		},
+		{"fieldname": "qty_per_unit", "label": _("Qty Per Unit"), "fieldtype": "Data", "width": 110},
+		{"fieldname": "available_qty", "label": _("Available Qty"), "fieldtype": "Data", "width": 120},
+		{"fieldname": "required_qty", "label": _("Required Qty"), "fieldtype": "Data", "width": 120},
+		{"fieldname": "difference_qty", "label": _("Difference Qty"), "fieldtype": "Data", "width": 130},
 		{
 			"fieldname": "last_purchase_rate",
 			"label": _("Last Purchase Rate"),
-			"fieldtype": "Float",
+			"fieldtype": "Data",
 			"width": 160,
 		},
-		{
-			"fieldname": "producible_fg_item",
-			"label": _("Producible FG Item"),
-			"fieldtype": "Float",
-			"width": 200,
-		},
 	]
+
+
+def get_data_without_qty_to_make(filters):
+	raw_rows = get_producible_fg_items(filters)
+
+	data = []
+	for row in raw_rows:
+		data.append(
+			{
+				"item": row[0],
+				"description": row[1],
+				"from_bom_no": row[2],
+				"qty_per_unit": fmt_qty(row[3]),
+				"available_qty": fmt_qty(row[4]),
+			}
+		)
+
+	min_producible = min((row[5] or 0) for row in raw_rows) if raw_rows else 0
+	# blank spacer row
+	data.append({})
+
+	data.append(
+		{
+			"item": _("Maximum Producible Items"),
+			"description": min_producible,
+			"from_bom_no": "",
+			"qty_per_unit": "",
+			"available_qty": "",
+			"bold": 1,
+		}
+	)
+
+	return data
 
 
 def get_columns_without_qty_to_make():
 	return [
-		_("Item") + ":Link/Item:150",
-		_("Item Name") + "::240",
-		_("Description") + "::300",
-		_("From BOM No") + "::200",
-		_("Required Qty") + ":Float:160",
-		_("Producible FG Item") + ":Float:200",
+		{"fieldname": "item", "label": _("Item"), "fieldtype": "Link", "options": "Item", "width": 180},
+		{"fieldname": "description", "label": _("Description"), "fieldtype": "Data", "width": 200},
+		{
+			"fieldname": "from_bom_no",
+			"label": _("From BOM No"),
+			"fieldtype": "Link",
+			"options": "BOM",
+			"width": 160,
+		},
+		{"fieldname": "qty_per_unit", "label": _("Qty Per Unit"), "fieldtype": "Data", "width": 120},
+		{"fieldname": "available_qty", "label": _("Available Qty"), "fieldtype": "Data", "width": 120},
 	]
+
+
+def batch_fetch_purchase_rates(bom_data):
+	if not bom_data:
+		return {}
+	item_codes = [row.item_code for row in bom_data]
+	return {
+		r.name: r.last_purchase_rate
+		for r in frappe.get_all(
+			"Item",
+			filters={"name": ["in", item_codes]},
+			fields=["name", "last_purchase_rate"],
+		)
+	}
 
 
 def get_bom_data(filters):
@@ -167,7 +215,6 @@ def get_bom_data(filters):
 		warehouse_details = frappe.db.get_value(
 			"Warehouse", filters.get("warehouse"), ["lft", "rgt"], as_dict=1
 		)
-
 		if warehouse_details:
 			wh = frappe.qb.DocType("Warehouse")
 			query = query.where(
@@ -212,7 +259,6 @@ def explode_phantom_boms(data, filters):
 		data.pop(idx)
 		data[idx:idx] = children
 
-	filters["bom"] = original_bom
 	return data
 
 
@@ -220,13 +266,11 @@ def get_manufacturer_records():
 	details = frappe.get_all(
 		"Item Manufacturer", fields=["manufacturer", "manufacturer_part_no", "item_code"]
 	)
-
 	manufacture_details = frappe._dict()
 	for detail in details:
 		dic = manufacture_details.setdefault(detail.get("item_code"), {})
 		dic.setdefault("manufacturer", []).append(detail.get("manufacturer"))
 		dic.setdefault("manufacturer_part", []).append(detail.get("manufacturer_part_no"))
-
 	return manufacture_details
 
 
@@ -237,10 +281,10 @@ def get_producible_fg_items(filters):
 	WH = frappe.qb.DocType("Warehouse")
 
 	warehouse = filters.get("warehouse")
-	warehouse_details = frappe.db.get_value("Warehouse", warehouse, ["lft", "rgt"], as_dict=1)
-
 	if not warehouse:
 		frappe.throw(_("Warehouse is required to get producible FG Items"))
+
+	warehouse_details = frappe.db.get_value("Warehouse", warehouse, ["lft", "rgt"], as_dict=1)
 
 	if warehouse_details:
 		bin_subquery = (
@@ -267,10 +311,10 @@ def get_producible_fg_items(filters):
 		.on(BOM_ITEM.item_code == bin_subquery.item_code)
 		.select(
 			BOM_ITEM.item_code,
-			BOM_ITEM.item_name,
 			BOM_ITEM.description,
 			BOM_ITEM.parent.as_("from_bom_no"),
 			(BOM_ITEM.stock_qty / BOM.quantity).as_("qty_per_unit"),
+			IfNull(bin_subquery.actual_qty, 0).as_("available_qty"),
 			Floor(bin_subquery.actual_qty / ((Sum(BOM_ITEM.stock_qty)) / BOM.quantity)),
 		)
 		.where((BOM_ITEM.parent == filters.get("bom")) & (BOM_ITEM.parenttype == "BOM"))
@@ -278,5 +322,4 @@ def get_producible_fg_items(filters):
 		.orderby(BOM_ITEM.idx)
 	)
 
-	data = query.run(as_list=True)
-	return data
+	return query.run(as_list=True)
