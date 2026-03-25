@@ -340,6 +340,55 @@ frappe.ui.form.on("Stock Entry", {
 					__("View")
 				);
 			}
+
+			if (frm.doc.purpose === "Manufacture" && frm.doc.work_order) {
+				frm.add_custom_button(
+					__("Disassemble"),
+					async function () {
+						let available_qty = await frappe.xcall(
+							"erpnext.manufacturing.doctype.work_order.work_order.get_disassembly_available_qty",
+							{ stock_entry_name: frm.doc.name }
+						);
+						frappe.prompt(
+							// fields
+							{
+								fieldtype: "Float",
+								label: __("Qty to Disassemble"),
+								fieldname: "qty",
+								default: available_qty,
+								description: __("Max: {0}", [available_qty]),
+							},
+							// callback
+							async (data) => {
+								if (data.qty > available_qty) {
+									frappe.throw(
+										__("Cannot disassemble more than available quantity ({0})", [
+											available_qty,
+										])
+									);
+								}
+
+								let stock_entry = await frappe.xcall(
+									"erpnext.manufacturing.doctype.work_order.work_order.make_stock_entry",
+									{
+										work_order_id: frm.doc.work_order,
+										purpose: "Disassemble",
+										qty: data.qty,
+										source_stock_entry: frm.doc.name,
+									}
+								);
+								if (stock_entry) {
+									frappe.model.sync(stock_entry);
+									frappe.set_route("Form", stock_entry.doctype, stock_entry.name);
+								}
+							},
+							__("Disassemble"),
+							__("Create")
+						);
+					},
+					__("Create")
+				);
+			}
 		}
 
 		if (frm.doc.docstatus === 0 && !frm.doc.subcontracting_inward_order) {
