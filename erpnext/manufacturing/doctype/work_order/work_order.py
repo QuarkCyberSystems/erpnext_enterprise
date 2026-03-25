@@ -2376,6 +2376,7 @@ def make_stock_entry(
 	qty: float | None = None,
 	target_warehouse: str | None = None,
 	is_additional_transfer_entry: bool = False,
+	source_stock_entry: str | None = None,
 ):
 	work_order = frappe.get_doc("Work Order", work_order_id)
 	if not frappe.db.get_value("Warehouse", work_order.wip_warehouse, "is_group"):
@@ -2416,6 +2417,8 @@ def make_stock_entry(
 	if purpose == "Disassemble":
 		stock_entry.from_warehouse = work_order.fg_warehouse
 		stock_entry.to_warehouse = target_warehouse or work_order.source_warehouse
+		if source_stock_entry:
+			stock_entry.source_stock_entry = source_stock_entry
 
 	stock_entry.set_stock_entry_type()
 	stock_entry.is_additional_transfer_entry = is_additional_transfer_entry
@@ -2429,7 +2432,32 @@ def make_stock_entry(
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def get_default_warehouse(company):
+=======
+def get_disassembly_available_qty(stock_entry_name: str) -> float:
+	se = frappe.db.get_value("Stock Entry", stock_entry_name, ["fg_completed_qty"], as_dict=True)
+	if not se:
+		return 0.0
+
+	already_disassembled = flt(
+		frappe.db.get_value(
+			"Stock Entry",
+			{
+				"source_stock_entry": stock_entry_name,
+				"purpose": "Disassemble",
+				"docstatus": 1,
+			},
+			[{"SUM": "fg_completed_qty"}],
+		)
+	)
+
+	return flt(se.fg_completed_qty) - already_disassembled
+
+
+@frappe.whitelist()
+def get_default_warehouse(company: str):
+>>>>>>> 68e97808c5 (fix: disassembly prompt with source stock entry field)
 	wip, fg, scrap = frappe.get_cached_value(
 		"Company", company, ["default_wip_warehouse", "default_fg_warehouse", "default_scrap_warehouse"]
 	)
