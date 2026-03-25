@@ -36,6 +36,16 @@ frappe.ui.form.on("Stock Entry", {
 			};
 		});
 
+		frm.set_query("source_stock_entry", function () {
+			return {
+				filters: {
+					purpose: "Manufacture",
+					docstatus: 1,
+					work_order: frm.doc.work_order || undefined,
+				},
+			};
+		});
+
 		frm.set_query("source_warehouse_address", function () {
 			return {
 				query: "erpnext.controllers.queries.get_warehouse_address",
