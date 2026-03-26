@@ -7,7 +7,7 @@ from erpnext.accounts.test.accounts_mixin import AccountsTestMixin
 from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestReactivity(AccountsTestMixin, ERPNextTestSuite):
+class TestReactivity(ERPNextTestSuite, AccountsTestMixin):
 	def setUp(self):
 		self.create_company()
 		self.create_customer()

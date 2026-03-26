@@ -35,7 +35,7 @@ from erpnext.stock.get_item_details import get_bin_details
 from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestSalesOrder(AccountsTestMixin, ERPNextTestSuite):
+class TestSalesOrder(ERPNextTestSuite, AccountsTestMixin):
 	def setUp(self):
 		self.create_customer("_Test Customer Credit")
 

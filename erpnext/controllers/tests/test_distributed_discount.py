@@ -4,7 +4,7 @@ from erpnext.selling.doctype.sales_order.test_sales_order import make_sales_orde
 from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestTaxesAndTotals(AccountsTestMixin, ERPNextTestSuite):
+class TestTaxesAndTotals(ERPNextTestSuite, AccountsTestMixin):
 	@ERPNextTestSuite.change_settings("Selling Settings", {"allow_multiple_items": 1})
 	def test_distributed_discount_amount(self):
 		so = make_sales_order(do_not_save=1)

@@ -16,7 +16,7 @@ from erpnext.stock.doctype.purchase_receipt.test_purchase_receipt import get_gl_
 from erpnext.tests.utils import ERPNextTestSuite
 
 
-class TestRepostAccountingLedger(AccountsTestMixin, ERPNextTestSuite):
+class TestRepostAccountingLedger(ERPNextTestSuite, AccountsTestMixin):
 	def setUp(self):
 		self.create_company()
 		self.create_customer()
