@@ -10,6 +10,7 @@ from pypika.terms import ExistsCriterion
 
 
 def execute(filters=None):
+	filters = filters or {}
 	if filters.get("qty_to_make"):
 		columns = get_columns_with_qty_to_make()
 		data = get_data_with_qty_to_make(filters)
@@ -35,7 +36,7 @@ def get_data_with_qty_to_make(filters):
 	bom_data = get_bom_data(filters)
 	manufacture_details = get_manufacturer_records()
 	purchase_rates = batch_fetch_purchase_rates(bom_data)
-	qty_to_make = filters.get("qty_to_make")
+	qty_to_make = flt(filters.get("qty_to_make"))
 
 	data = []
 	for row in bom_data:
@@ -203,7 +204,7 @@ def get_bom_data(filters):
 			bom_item.item_code,
 			bom_item.description,
 			bom_item.parent.as_("from_bom_no"),
-			bom_item.qty_consumed_per_unit.as_("qty_per_unit"),
+			Sum(bom_item.qty_consumed_per_unit).as_("qty_per_unit"),
 			IfNull(Sum(bin.actual_qty), 0).as_("actual_qty"),
 		)
 		.where((bom_item.parent == filters.get("bom")) & (bom_item.parenttype == "BOM"))

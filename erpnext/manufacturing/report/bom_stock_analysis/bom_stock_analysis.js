@@ -45,9 +45,9 @@ frappe.query_reports["BOM Stock Analysis"] = {
 		}
 
 		if (data && data.bold) {
-			if (column.fieldname === "description" || column.fieldname === "item_name") {
-				const qty_to_make = frappe.query_report.get_filter_value("qty_to_make");
-				const producible = parseFloat(value) || 0;
+			if (column.fieldname === "description") {
+				const qty_to_make = Number(frappe.query_report.get_filter_value("qty_to_make")) || 0;
+				const producible = Number(String(data.description ?? "").replace(/,/g, "")) || 0;
 				const colour = qty_to_make && producible < qty_to_make ? "red" : "green";
 				return `<b style="color: ${colour}">${value}</b>`;
 			}
