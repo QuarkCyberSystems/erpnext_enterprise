@@ -656,8 +656,8 @@ class update_entries_after:
 			# To avoid duplicate reposting of same sle in case of multiple dependant sle
 			self.distinct_sles.add(sle.name)
 
-			# if i % 1000 == 0:
-			self.update_data_in_repost(len(self._sles), i)
+			if i % 1000 == 0:
+				self.update_data_in_repost(len(self._sles), i)
 
 	def sort_sles(self, sles):
 		return sorted(
