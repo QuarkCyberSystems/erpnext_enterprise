@@ -601,7 +601,7 @@ class update_entries_after:
 	def initialize_reposting(self):
 		self._sles = []
 		self.distinct_sles = set()
-		self.distinct_dependant_sle = set()
+		self.distinct_dependant_item_wh = set()
 		self.prev_sle_dict = frappe._dict({})
 
 	def get_item_wh_wise_last_posted_sle(self):
@@ -642,19 +642,14 @@ class update_entries_after:
 			if item_wh_key not in self.prev_sle_dict:
 				self.prev_sle_dict[item_wh_key] = get_previous_sle_of_current_voucher(sle)
 
-			if (
-				sle.dependant_sle_voucher_detail_no
-				and sle.dependant_sle_voucher_detail_no not in self.distinct_dependant_sle
-			):
-				self._sles.append(sle)
-				self.distinct_dependant_sle.add(sle.dependant_sle_voucher_detail_no)
-				self.include_dependant_sle_in_reposting(sle)
-				continue
-
 			self.repost_stock_ledger_entry(sle)
 
 			# To avoid duplicate reposting of same sle in case of multiple dependant sle
 			self.distinct_sles.add(sle.name)
+
+			if sle.dependant_sle_voucher_detail_no:
+				self.include_dependant_sle_in_reposting(sle)
+				self.update_item_wh_wise_last_posted_sle(sle)
 
 			if i % 1000 == 0:
 				self.update_data_in_repost(len(self._sles), i)
@@ -669,16 +664,28 @@ class update_entries_after:
 		)
 
 	def include_dependant_sle_in_reposting(self, sle):
+		repost_dependant_sle = False
 		if sle.voucher_type == "Stock Entry" and is_repack_entry(sle.voucher_no):
 			repack_sles = self.get_sles_for_repack(sle)
 			for repack_sle in repack_sles:
+				if (repack_sle.item_code, repack_sle.warehouse) in self.distinct_dependant_item_wh:
+					continue
+
+				repost_dependant_sle = True
+				self.distinct_dependant_item_wh.add((repack_sle.item_code, repack_sle.warehouse))
 				self._sles.extend(self.get_future_entries_to_repost(repack_sle))
 		else:
 			dependant_sles = get_sle_by_voucher_detail_no(sle.dependant_sle_voucher_detail_no)
 			for depend_sle in dependant_sles:
+				if (depend_sle.item_code, depend_sle.warehouse) in self.distinct_dependant_item_wh:
+					continue
+
+				repost_dependant_sle = True
+				self.distinct_dependant_item_wh.add((depend_sle.item_code, depend_sle.warehouse))
 				self._sles.extend(self.get_future_entries_to_repost(depend_sle))
 
-		self._sles = deque(self.sort_sles(self._sles))
+		if repost_dependant_sle:
+			self._sles = deque(self.sort_sles(self._sles))
 
 	def repost_stock_ledger_entry(self, sle):
 		if self.args.item_code != sle.item_code or self.args.warehouse != sle.warehouse:
