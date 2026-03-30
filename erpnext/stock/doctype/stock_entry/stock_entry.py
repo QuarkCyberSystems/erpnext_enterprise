@@ -29,7 +29,6 @@ from erpnext.buying.utils import check_on_hold_or_closed_status
 from erpnext.controllers.taxes_and_totals import init_landed_taxes_and_totals
 from erpnext.manufacturing.doctype.bom.bom import (
 	add_additional_cost,
-	get_bom_items_as_dict,
 	get_op_cost_from_sub_assemblies,
 	get_secondary_items_from_sub_assemblies,
 	validate_bom_no,
@@ -2269,44 +2268,107 @@ class StockEntry(StockController, SubcontractingInwardController):
 				)
 
 	def get_items_for_disassembly(self):
-		"""Get items for Disassembly Order"""
+		"""Get items for Disassembly Order.
+
+		Priority:
+		1. From a specific Manufacture Stock Entry (exact reversal)
+		2. From Work Order required_items (reflects WO changes)
+		3. From BOM (standalone disassembly)
+		"""
+
+		if self.get("source_stock_entry"):
+			return self._add_items_for_disassembly_from_stock_entry()
 
 		if self.work_order:
 			return self._add_items_for_disassembly_from_work_order()
 
 		return self._add_items_for_disassembly_from_bom()
 
+	def _add_items_for_disassembly_from_stock_entry(self):
+		source_fg_qty = frappe.db.get_value("Stock Entry", self.source_stock_entry, "fg_completed_qty")
+		if not source_fg_qty:
+			frappe.throw(
+				_("Source Stock Entry {0} has no finished goods quantity").format(self.source_stock_entry)
+			)
+
+		scale_factor = flt(self.fg_completed_qty) / flt(source_fg_qty)
+
+		for source_row in self.get_items_from_manufacture_stock_entry(self.source_stock_entry):
+			if source_row.is_finished_item:
+				qty = flt(self.fg_completed_qty)
+				s_warehouse = self.from_warehouse or source_row.t_warehouse
+				t_warehouse = ""
+			else:
+				qty = flt(source_row.qty * scale_factor)
+				s_warehouse = ""
+				t_warehouse = self.to_warehouse or source_row.s_warehouse
+
+			use_serial_batch_fields = 1 if (source_row.batch_no or source_row.serial_no) else 0
+
+			self.append(
+				"items",
+				{
+					"item_code": source_row.item_code,
+					"item_name": source_row.item_name,
+					"description": source_row.description,
+					"stock_uom": source_row.stock_uom,
+					"uom": source_row.uom,
+					"conversion_factor": source_row.conversion_factor,
+					"basic_rate": source_row.basic_rate,
+					"qty": qty,
+					"s_warehouse": s_warehouse,
+					"t_warehouse": t_warehouse,
+					"is_finished_item": source_row.is_finished_item,
+					"against_stock_entry": self.source_stock_entry,
+					"ste_detail": source_row.name,
+					"batch_no": source_row.batch_no,
+					"serial_no": source_row.serial_no,
+					"use_serial_batch_fields": use_serial_batch_fields,
+				},
+			)
+
 	def _add_items_for_disassembly_from_work_order(self):
-		items = self.get_items_from_manufacture_entry()
+		wo = frappe.get_doc("Work Order", self.work_order)
 
-		s_warehouse = frappe.db.get_value("Work Order", self.work_order, "fg_warehouse")
+		if not wo.required_items:
+			return self._add_items_for_disassembly_from_bom()
 
-		items_dict = get_bom_items_as_dict(
-			self.bom_no,
-			self.company,
-			self.fg_completed_qty,
-			fetch_exploded=self.use_multi_level_bom,
-			fetch_qty_in_stock_uom=False,
+		scale_factor = flt(self.fg_completed_qty) / flt(wo.qty) if flt(wo.qty) else 0
+
+		# RMs
+		for ri in wo.required_items:
+			self.append(
+				"items",
+				{
+					"item_code": ri.item_code,
+					"item_name": ri.item_name,
+					"description": ri.description,
+					"qty": flt(ri.required_qty * scale_factor),
+					"stock_uom": ri.stock_uom,
+					"uom": ri.stock_uom,
+					"conversion_factor": 1,
+					"t_warehouse": ri.source_warehouse or wo.source_warehouse or self.to_warehouse,
+					"s_warehouse": "",
+					"is_finished_item": 0,
+				},
+			)
+
+		# FG
+		self.append(
+			"items",
+			{
+				"item_code": wo.production_item,
+				"item_name": wo.item_name,
+				"description": wo.description,
+				"qty": flt(self.fg_completed_qty),
+				"stock_uom": wo.stock_uom,
+				"uom": wo.stock_uom,
+				"conversion_factor": 1,
+				"s_warehouse": self.from_warehouse or wo.fg_warehouse,
+				"t_warehouse": "",
+				"is_finished_item": 1,
+			},
 		)
-
-		for row in items:
-			child_row = self.append("items", {})
-			for field, value in row.items():
-				if value is not None:
-					child_row.set(field, value)
-
-			# update qty and amount from BOM items
-			bom_items = items_dict.get(row.item_code)
-			if bom_items:
-				child_row.qty = bom_items.get("qty", child_row.qty)
-				child_row.amount = bom_items.get("amount", child_row.amount)
-
-			if row.is_finished_item:
-				child_row.qty = self.fg_completed_qty
-
-			child_row.s_warehouse = (self.from_warehouse or s_warehouse) if row.is_finished_item else ""
-			child_row.t_warehouse = row.s_warehouse
-			child_row.is_finished_item = 0 if row.is_finished_item else 1
 
 	def _add_items_for_disassembly_from_bom(self):
 		if not self.bom_no or not self.fg_completed_qty:
@@ -2325,34 +2387,36 @@ class StockEntry(StockController, SubcontractingInwardController):
 		# Finished goods
 		self.load_items_from_bom()
 
-	def get_items_from_manufacture_entry(self):
-		return frappe.get_all(
-			"Stock Entry",
-			fields=[
-				"`tabStock Entry Detail`.`item_code`",
-				"`tabStock Entry Detail`.`item_name`",
-				"`tabStock Entry Detail`.`description`",
-				{"SUM": "`tabStock Entry Detail`.`qty`", "as": "qty"},
-				{"SUM": "`tabStock Entry Detail`.`transfer_qty`", "as": "transfer_qty"},
-				"`tabStock Entry Detail`.`stock_uom`",
-				"`tabStock Entry Detail`.`uom`",
-				"`tabStock Entry Detail`.`basic_rate`",
-				"`tabStock Entry Detail`.`conversion_factor`",
-				"`tabStock Entry Detail`.`is_finished_item`",
-				"`tabStock Entry Detail`.`batch_no`",
-				"`tabStock Entry Detail`.`serial_no`",
-				"`tabStock Entry Detail`.`s_warehouse`",
-				"`tabStock Entry Detail`.`t_warehouse`",
-				"`tabStock Entry Detail`.`use_serial_batch_fields`",
-			],
-			filters=[
-				["Stock Entry", "purpose", "=", "Manufacture"],
-				["Stock Entry", "work_order", "=", self.work_order],
-				["Stock Entry", "docstatus", "=", 1],
-				["Stock Entry Detail", "docstatus", "=", 1],
-			],
-			order_by="`tabStock Entry Detail`.`idx` desc, `tabStock Entry Detail`.`is_finished_item` desc",
-			group_by="`tabStock Entry Detail`.`item_code`",
+	def get_items_from_manufacture_stock_entry(self, stock_entry):
+		SE = frappe.qb.DocType("Stock Entry")
+		SED = frappe.qb.DocType("Stock Entry Detail")
+
+		return (
+			frappe.qb.from_(SED)
+			.join(SE)
+			.on(SED.parent == SE.name)
+			.select(
+				SED.name,
+				SED.item_code,
+				SED.item_name,
+				SED.description,
+				SED.qty,
+				SED.transfer_qty,
+				SED.stock_uom,
+				SED.uom,
+				SED.basic_rate,
+				SED.conversion_factor,
+				SED.is_finished_item,
+				SED.batch_no,
+				SED.serial_no,
+				SED.use_serial_batch_fields,
+				SED.s_warehouse,
+				SED.t_warehouse,
+			)
+			.where(SE.name == stock_entry)
+			.where(SE.docstatus == 1)
+			.orderby(SED.idx)
+			.run(as_dict=True)
 		)
 
 	@frappe.whitelist()
