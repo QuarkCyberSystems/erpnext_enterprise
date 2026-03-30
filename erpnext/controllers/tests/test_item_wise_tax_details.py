@@ -2,8 +2,12 @@ import json
 
 import frappe
 
+<<<<<<< HEAD
 from erpnext.controllers.taxes_and_totals import calculate_taxes_and_totals
 from erpnext.tests.utils import ERPNextTestSuite
+=======
+from erpnext.tests.utils import ERPNextTestSuite, change_settings
+>>>>>>> fc8437c499 (test: update item-wise tax detail test for high conversion rates)
 
 
 class TestTaxesAndTotals(ERPNextTestSuite):
@@ -125,10 +129,22 @@ class TestTaxesAndTotals(ERPNextTestSuite):
 
 		self.assertEqual(actual_values, expected_values)
 
-	def test_item_wise_tax_detail_with_multi_currency(self):
+	@change_settings("Selling Settings", {"allow_multiple_items": 1})
+	def test_item_wise_tax_detail_high_conversion_rate(self):
 		"""
-		For multi-item, multi-currency invoices, item-wise tax breakup should
-		still reconcile with base tax totals.
+		With a high conversion rate (e.g. USD -> KRW ~1300), independently rounding
+		each item's base tax amount causes per-item errors that accumulate and exceed
+		the 0.5-unit safety threshold, raising a validation error.
+
+		Error diffusion fixes this: the cumulative base total after the last item
+		equals base_tax_amount_after_discount_amount exactly, so the sum of all
+		per-item amounts is always exact regardless of item count or rate magnitude.
+
+		Analytically with conversion_rate=1300, rate=7.77 x3 items, VAT 16%:
+		per-item txn tax = 1.2432
+		OLD independent: flt(1.2432 * 1300, 2) = 1616.16 -> sum 4848.48
+		expected base:   flt(flt(3.7296, 2) * 1300, 0) = flt(3.73 * 1300, 0) = 4849
+		diff = 0.52 -> exceeds 0.5 threshold -> would throw with old code
 		"""
 		doc = frappe.get_doc(
 			{
@@ -137,20 +153,28 @@ class TestTaxesAndTotals(ERPNextTestSuite):
 				"company": "_Test Company",
 				"currency": "USD",
 				"debit_to": "_Test Receivable USD - _TC",
-				"conversion_rate": 129.99,
+				"conversion_rate": 1300,
 				"items": [
 					{
 						"item_code": "_Test Item",
 						"qty": 1,
-						"rate": 47.41,
+						"rate": 7.77,
 						"income_account": "Sales - _TC",
 						"expense_account": "Cost of Goods Sold - _TC",
 						"cost_center": "_Test Cost Center - _TC",
 					},
 					{
-						"item_code": "_Test Item 2",
-						"qty": 2,
-						"rate": 33.33,
+						"item_code": "_Test Item",
+						"qty": 1,
+						"rate": 7.77,
+						"income_account": "Sales - _TC",
+						"expense_account": "Cost of Goods Sold - _TC",
+						"cost_center": "_Test Cost Center - _TC",
+					},
+					{
+						"item_code": "_Test Item",
+						"qty": 1,
+						"rate": 7.77,
 						"income_account": "Sales - _TC",
 						"expense_account": "Cost of Goods Sold - _TC",
 						"cost_center": "_Test Cost Center - _TC",
@@ -179,11 +203,11 @@ class TestTaxesAndTotals(ERPNextTestSuite):
 
 		details_by_tax = {}
 		for detail in doc.item_wise_tax_details:
-			bucket = details_by_tax.setdefault(detail.tax_row, {"amount": 0.0})
-			bucket["amount"] += detail.amount
+			bucket = details_by_tax.setdefault(detail.tax_row, 0.0)
+			details_by_tax[detail.tax_row] = bucket + detail.amount
 
 		for tax in doc.taxes:
-			self.assertEqual(details_by_tax[tax.name]["amount"], tax.base_tax_amount_after_discount_amount)
+			self.assertEqual(details_by_tax[tax.name], tax.base_tax_amount_after_discount_amount)
 
 	def test_item_wise_tax_detail_with_multi_currency_with_single_item(self):
 		"""
