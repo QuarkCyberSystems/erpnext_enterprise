@@ -2276,6 +2276,21 @@ class StockEntry(StockController, SubcontractingInwardController):
 		3. From BOM (standalone disassembly)
 		"""
 
+		# Auto-set source_stock_entry if WO has exactly one manufacture entry
+		if not self.get("source_stock_entry") and self.work_order:
+			manufacture_entries = frappe.get_all(
+				"Stock Entry",
+				filters={
+					"work_order": self.work_order,
+					"purpose": "Manufacture",
+					"docstatus": 1,
+				},
+				pluck="name",
+				limit_page_length=2,
+			)
+			if len(manufacture_entries) == 1:
+				self.source_stock_entry = manufacture_entries[0]
+
 		if self.get("source_stock_entry"):
 			return self._add_items_for_disassembly_from_stock_entry()
 
