@@ -247,6 +247,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 		self.validate_warehouse()
 		self.validate_warehouse_of_sabb()
 		self.validate_work_order()
+		self.validate_source_stock_entry()
 		self.validate_bom()
 		self.set_process_loss_qty()
 		self.validate_purchase_order()
@@ -846,6 +847,26 @@ class StockEntry(StockController, SubcontractingInwardController):
 				self.check_duplicate_entry_for_work_order()
 		elif self.purpose != "Material Transfer":
 			self.work_order = None
+
+	def validate_source_stock_entry(self):
+		if not self.get("source_stock_entry"):
+			return
+
+		from erpnext.manufacturing.doctype.work_order.work_order import get_disassembly_available_qty
+
+		available_qty = get_disassembly_available_qty(self.source_stock_entry, self.name)
+
+		if flt(self.fg_completed_qty) > available_qty:
+			frappe.throw(
+				_(
+					"Cannot disassemble {0} qty against Stock Entry {1}. Only {2} qty available to disassemble."
+				).format(
+					self.fg_completed_qty,
+					self.source_stock_entry,
+					available_qty,
+				),
+				title=_("Excess Disassembly"),
+			)
 
 	def check_if_operations_completed(self):
 		"""Check if Time Sheets are completed against before manufacturing to capture operating costs."""

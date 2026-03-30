@@ -2433,24 +2433,27 @@ def make_stock_entry(
 
 @frappe.whitelist()
 <<<<<<< HEAD
+<<<<<<< HEAD
 def get_default_warehouse(company):
 =======
 def get_disassembly_available_qty(stock_entry_name: str) -> float:
+=======
+def get_disassembly_available_qty(stock_entry_name: str, current_se_name: str | None = None) -> float:
+>>>>>>> 6394dead72 (fix: validate qty that can be disassembled from source stock entry.)
 	se = frappe.db.get_value("Stock Entry", stock_entry_name, ["fg_completed_qty"], as_dict=True)
 	if not se:
 		return 0.0
 
-	already_disassembled = flt(
-		frappe.db.get_value(
-			"Stock Entry",
-			{
-				"source_stock_entry": stock_entry_name,
-				"purpose": "Disassemble",
-				"docstatus": 1,
-			},
-			[{"SUM": "fg_completed_qty"}],
-		)
-	)
+	filters = {
+		"source_stock_entry": stock_entry_name,
+		"purpose": "Disassemble",
+		"docstatus": 1,
+	}
+
+	if current_se_name:
+		filters["name"] = ("!=", current_se_name)
+
+	already_disassembled = flt(frappe.db.get_value("Stock Entry", filters, [{"SUM": "fg_completed_qty"}]))
 
 	return flt(se.fg_completed_qty) - already_disassembled
 
