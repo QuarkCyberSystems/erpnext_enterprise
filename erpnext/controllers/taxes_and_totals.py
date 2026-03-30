@@ -285,6 +285,13 @@ class calculate_taxes_and_totals:
 		self.doc._item_wise_tax_details = item_wise_tax_details
 		self.doc.item_wise_tax_details = []
 
+		for tax in self.doc.get("taxes"):
+			if not tax.get("dont_recompute_tax"):
+				tax._running_txn_tax_total = 0.0
+				tax._running_base_tax_total = 0.0
+				tax._running_txn_taxable_total = 0.0
+				tax._running_base_taxable_total = 0.0
+
 	def determine_exclusive_rate(self):
 		if not any(cint(tax.included_in_print_rate) for tax in self.doc.get("taxes")):
 			return
@@ -521,8 +528,7 @@ class calculate_taxes_and_totals:
 			actual_breakup = tax._total_tax_breakup
 			diff = flt(expected_amount - actual_breakup, 5)
 
-			# TODO: fix rounding difference issues
-			if abs(diff) <= 1:
+			if abs(diff) <= 0.5:
 				detail_row = self.doc._item_wise_tax_details[last_idx]
 				detail_row["amount"] = flt(detail_row["amount"] + diff, 5)
 
@@ -597,14 +603,25 @@ class calculate_taxes_and_totals:
 	def set_item_wise_tax(self, item, tax, tax_rate, current_tax_amount, current_net_amount):
 		# store tax breakup for each item
 		multiplier = -1 if tax.get("add_deduct_tax") == "Deduct" else 1
-		item_wise_tax_amount = flt(
-			current_tax_amount * self.doc.conversion_rate * multiplier, tax.precision("tax_amount")
+
+		# Error diffusion: derive each item's base amount as a delta of the running cumulative total
+		# so the sum always equals base_tax_amount_after_discount_amount.
+		tax._running_txn_tax_total += current_tax_amount * multiplier
+		new_base_tax_total = flt(
+			flt(tax._running_txn_tax_total, tax.precision("tax_amount")) * self.doc.conversion_rate,
+			tax.precision("base_tax_amount"),
 		)
+		item_wise_tax_amount = new_base_tax_total - tax._running_base_tax_total
+		tax._running_base_tax_total = new_base_tax_total
 
 		if tax.charge_type != "On Item Quantity":
-			item_wise_taxable_amount = flt(
-				current_net_amount * self.doc.conversion_rate * multiplier, tax.precision("tax_amount")
+			tax._running_txn_taxable_total += current_net_amount * multiplier
+			new_base_taxable_total = flt(
+				flt(tax._running_txn_taxable_total, tax.precision("net_amount")) * self.doc.conversion_rate,
+				tax.precision("base_net_amount"),
 			)
+			item_wise_taxable_amount = new_base_taxable_total - tax._running_base_taxable_total
+			tax._running_base_taxable_total = new_base_taxable_total
 		else:
 			item_wise_taxable_amount = 0.0
 

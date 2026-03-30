@@ -179,14 +179,11 @@ class TestTaxesAndTotals(ERPNextTestSuite):
 
 		details_by_tax = {}
 		for detail in doc.item_wise_tax_details:
-			bucket = details_by_tax.setdefault(detail.tax_row, {"amount": 0.0, "taxable_amount": 0.0})
+			bucket = details_by_tax.setdefault(detail.tax_row, {"amount": 0.0})
 			bucket["amount"] += detail.amount
 
 		for tax in doc.taxes:
-			detail_totals = details_by_tax[tax.name]
-			self.assertAlmostEqual(
-				detail_totals["amount"], tax.base_tax_amount_after_discount_amount, places=2
-			)
+			self.assertEqual(details_by_tax[tax.name]["amount"], tax.base_tax_amount_after_discount_amount)
 
 	def test_item_wise_tax_detail_with_multi_currency_with_single_item(self):
 		"""
