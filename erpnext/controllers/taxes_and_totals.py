@@ -522,7 +522,7 @@ class calculate_taxes_and_totals:
 			diff = flt(expected_amount - actual_breakup, 5)
 
 			# TODO: fix rounding difference issues
-			if abs(diff) <= 0.5:
+			if abs(diff) <= 1:
 				detail_row = self.doc._item_wise_tax_details[last_idx]
 				detail_row["amount"] = flt(detail_row["amount"] + diff, 5)
 
