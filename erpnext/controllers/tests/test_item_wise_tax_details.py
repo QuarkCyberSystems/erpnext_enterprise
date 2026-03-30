@@ -148,7 +148,7 @@ class TestTaxesAndTotals(ERPNextTestSuite):
 						"cost_center": "_Test Cost Center - _TC",
 					},
 					{
-						"item_code": "_Test Item",
+						"item_code": "_Test Item 2",
 						"qty": 2,
 						"rate": 33.33,
 						"income_account": "Sales - _TC",
