@@ -1,6 +1,7 @@
 import json
 
 import frappe
+from frappe.utils import flt
 
 from erpnext.tests.utils import ERPNextTestSuite, change_settings
 
@@ -257,9 +258,8 @@ class TestTaxesAndTotals(ERPNextTestSuite):
 
 		# item 1: taxable=100, tax=9.0; item 2: taxable=57, tax=5.13; item 3: taxable=1000, tax=90.0
 		# error diffusion: 14.13 - 9.0 = 5.130000000000001 without rounding
-		# 3rd item ensures the artifact is on a middle row (not corrected by last-row adjustment)
 		for detail in doc.item_wise_tax_details:
-			self.assertEqual(detail.amount, round(detail.amount, 2))
+			self.assertEqual(detail.amount, flt(detail.amount, detail.precision("amount")))
 
 	def test_item_wise_tax_detail_with_multi_currency_with_single_item(self):
 		"""
