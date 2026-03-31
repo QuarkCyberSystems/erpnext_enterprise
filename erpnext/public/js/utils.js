@@ -44,7 +44,11 @@ $.extend(erpnext, {
 		}
 
 		if (["Purchase Receipt", "Purchase Invoice", "Subcontracting Receipt"].includes(frm.doc.doctype)) {
-			fields.push("add_serial_batch_for_rejected_qty", "rejected_serial_and_batch_bundle");
+			fields.push(
+				"add_serial_batch_for_rejected_qty",
+				"rejected_serial_and_batch_bundle",
+				"rejected_serial_no"
+			);
 		}
 
 		let child_name = "items";
