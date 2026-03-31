@@ -2639,17 +2639,16 @@ class TestWorkOrder(ERPNextTestSuite):
 
 	def test_disassembly_with_additional_rm_not_in_bom(self):
 		"""
-		Test that disassembly correctly handles additional raw materials that were
-		manually added during manufacturing (not part of the BOM).
+		Test that SE-linked disassembly includes additional raw materials
+		that were manually added during manufacturing (not part of the BOM).
 
 		Scenario:
 		1. Create Work Order for 10 units with 2 raw materials in BOM
 		2. Transfer raw materials for manufacture
 		3. Manufacture in 2 parts (3 units, then 7 units)
 		4. In each manufacture entry, manually add an extra consumable item
-		   (not in BOM) in proportion to the manufactured qty
-		5. Create Disassembly for 4 units
-		6. Verify that the additional RM is included in disassembly with proportional qty
+		5. Disassemble 3 units linked to first manufacture entry
+		6. Verify additional RM is included with correct proportional qty from SE1
 		"""
 		from erpnext.stock.doctype.stock_entry.test_stock_entry import (
 			make_stock_entry as make_stock_entry_test_record,
@@ -2685,9 +2684,8 @@ class TestWorkOrder(ERPNextTestSuite):
 		se_for_material_transfer.save()
 		se_for_material_transfer.submit()
 
-		# First Manufacture Entry - 3 units
+		# First Manufacture Entry - 3 units with additional RM
 		se_manufacture1 = frappe.get_doc(make_stock_entry(wo.name, "Manufacture", 3))
-		# Additional RM
 		se_manufacture1.append(
 			"items",
 			{
@@ -2700,9 +2698,8 @@ class TestWorkOrder(ERPNextTestSuite):
 		se_manufacture1.save()
 		se_manufacture1.submit()
 
-		# Second Manufacture Entry - 7 units
+		# Second Manufacture Entry - 7 units with additional RM
 		se_manufacture2 = frappe.get_doc(make_stock_entry(wo.name, "Manufacture", 7))
-		# AAdditional RM
 		se_manufacture2.append(
 			"items",
 			{
@@ -2718,13 +2715,15 @@ class TestWorkOrder(ERPNextTestSuite):
 		wo.reload()
 		self.assertEqual(wo.produced_qty, 10)
 
-		# Disassembly for 4 units
-		disassemble_qty = 4
-		stock_entry = frappe.get_doc(make_stock_entry(wo.name, "Disassemble", disassemble_qty))
+		# Disassemble 3 units linked to first manufacture entry
+		disassemble_qty = 3
+		stock_entry = frappe.get_doc(
+			make_stock_entry(wo.name, "Disassemble", disassemble_qty, source_stock_entry=se_manufacture1.name)
+		)
 		stock_entry.save()
 		stock_entry.submit()
 
-		# No duplicate
+		# No duplicates
 		item_counts = {}
 		for item in stock_entry.items:
 			item_code = item.item_code
@@ -2737,16 +2736,15 @@ class TestWorkOrder(ERPNextTestSuite):
 			f"Found duplicate items in disassembly stock entry: {duplicates}",
 		)
 
-		# Additional RM qty
+		# Additional RM should be included — qty proportional to SE1 (3 units -> 3 additional RM)
 		additional_rm_row = next((i for i in stock_entry.items if i.item_code == additional_rm), None)
 		self.assertIsNotNone(
 			additional_rm_row,
 			f"Additional raw material {additional_rm} not found in disassembly",
 		)
 
-		# intentional full reversal as not part of BOM
-		# eg: dies or consumables used during manufacturing
-		expected_additional_rm_qty = 3 + 7
+		# SE1 had 3 additional RM for 3 manufactured units, disassembling all 3
+		expected_additional_rm_qty = 3
 		self.assertAlmostEqual(
 			additional_rm_row.qty,
 			expected_additional_rm_qty,
@@ -2754,7 +2752,7 @@ class TestWorkOrder(ERPNextTestSuite):
 			msg=f"Additional RM qty mismatch: expected {expected_additional_rm_qty}, got {additional_rm_row.qty}",
 		)
 
-		# RM qty
+		# BOM RM qty — scaled from SE1's rows
 		for bom_item in bom.items:
 			expected_qty = (bom_item.qty / bom.quantity) * disassemble_qty
 			rm_row = next((i for i in stock_entry.items if i.item_code == bom_item.item_code), None)
@@ -2770,12 +2768,18 @@ class TestWorkOrder(ERPNextTestSuite):
 		fg_item_row = next((i for i in stock_entry.items if i.item_code == fg_item), None)
 		self.assertEqual(fg_item_row.qty, disassemble_qty)
 
+		# FG + 2 BOM RM + 1 additional RM = 4 items
 		expected_items = 4
 		self.assertEqual(
 			len(stock_entry.items),
 			expected_items,
 			f"Expected {expected_items} items, found {len(stock_entry.items)}",
 		)
+
+		# Verify traceability
+		for item in stock_entry.items:
+			self.assertEqual(item.against_stock_entry, se_manufacture1.name)
+			self.assertTrue(item.ste_detail)
 
 	def test_components_alternate_item_for_bom_based_manufacture_entry(self):
 		frappe.db.set_single_value("Manufacturing Settings", "backflush_raw_materials_based_on", "BOM")
