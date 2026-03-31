@@ -2781,6 +2781,206 @@ class TestWorkOrder(ERPNextTestSuite):
 			self.assertEqual(item.against_stock_entry, se_manufacture1.name)
 			self.assertTrue(item.ste_detail)
 
+	def test_disassembly_auto_sets_source_stock_entry(self):
+		from erpnext.stock.doctype.stock_entry.test_stock_entry import (
+			make_stock_entry as make_stock_entry_test_record,
+		)
+
+		raw_item = make_item("Test Raw Auto Set Disassembly", {"is_stock_item": 1}).name
+		fg_item = make_item("Test FG Auto Set Disassembly", {"is_stock_item": 1}).name
+		bom = make_bom(item=fg_item, quantity=1, raw_materials=[raw_item], rm_qty=2)
+
+		wo = make_wo_order_test_record(production_item=fg_item, qty=5, bom_no=bom.name, status="Not Started")
+
+		make_stock_entry_test_record(
+			item_code=raw_item, purpose="Material Receipt", target=wo.wip_warehouse, qty=50, basic_rate=100
+		)
+
+		se_transfer = frappe.get_doc(make_stock_entry(wo.name, "Material Transfer for Manufacture", wo.qty))
+		for item in se_transfer.items:
+			item.s_warehouse = wo.wip_warehouse
+		se_transfer.save()
+		se_transfer.submit()
+
+		se_manufacture = frappe.get_doc(make_stock_entry(wo.name, "Manufacture", wo.qty))
+		se_manufacture.submit()
+
+		# Disassemble without specifying source_stock_entry
+		stock_entry = frappe.get_doc(make_stock_entry(wo.name, "Disassemble", 3))
+		stock_entry.save()
+
+		# source_stock_entry should be auto-set since only one manufacture entry
+		self.assertEqual(stock_entry.source_stock_entry, se_manufacture.name)
+
+		# All items should have against_stock_entry linked
+		for item in stock_entry.items:
+			self.assertEqual(item.against_stock_entry, se_manufacture.name)
+			self.assertTrue(item.ste_detail)
+
+		stock_entry.submit()
+
+	def test_disassembly_batch_tracked_items(self):
+		from erpnext.stock.doctype.batch.batch import make_batch
+		from erpnext.stock.doctype.stock_entry.test_stock_entry import (
+			make_stock_entry as make_stock_entry_test_record,
+		)
+
+		wip_wh = "_Test Warehouse - _TC"
+
+		rm_item = make_item(
+			"Test Batch RM for Disassembly SB",
+			{
+				"is_stock_item": 1,
+				"has_batch_no": 1,
+				"create_new_batch": 1,
+				"batch_number_series": "TBRD-RM-.###",
+			},
+		).name
+		fg_item = make_item(
+			"Test Batch FG for Disassembly SB",
+			{
+				"is_stock_item": 1,
+				"has_batch_no": 1,
+				"create_new_batch": 1,
+				"batch_number_series": "TBRD-FG-.###",
+			},
+		).name
+
+		bom = make_bom(item=fg_item, quantity=1, raw_materials=[rm_item], rm_qty=2)
+		wo = make_wo_order_test_record(
+			production_item=fg_item,
+			qty=6,
+			bom_no=bom.name,
+			skip_transfer=1,
+			source_warehouse=wip_wh,
+			status="Not Started",
+		)
+
+		# Stock up RM — batch auto-created on receipt
+		rm_receipt = make_stock_entry_test_record(
+			item_code=rm_item, purpose="Material Receipt", target=wip_wh, qty=18, basic_rate=100
+		)
+		rm_bundle = frappe.db.get_value(
+			"Stock Entry Detail", {"parent": rm_receipt.name, "item_code": rm_item}, "serial_and_batch_bundle"
+		)
+		rm_batch = get_batch_from_bundle(rm_bundle)
+
+		# Pre-create FG batch so we can assign it to the manufacture row
+		fg_batch = make_batch(frappe._dict(item=fg_item))
+
+		# Manufacture 3 units: assign batches explicitly on RM and FG rows
+		se_manufacture = frappe.get_doc(make_stock_entry(wo.name, "Manufacture", 3))
+		for row in se_manufacture.items:
+			if row.item_code == rm_item:
+				row.batch_no = rm_batch
+				row.use_serial_batch_fields = 1
+			elif row.item_code == fg_item:
+				row.batch_no = fg_batch
+				row.use_serial_batch_fields = 1
+		se_manufacture.save()
+		se_manufacture.submit()
+
+		# Disassemble 2 of the 3 manufactured units linked to the manufacture SE
+		disassemble_qty = 2
+		stock_entry = frappe.get_doc(
+			make_stock_entry(wo.name, "Disassemble", disassemble_qty, source_stock_entry=se_manufacture.name)
+		)
+		stock_entry.save()
+		stock_entry.submit()
+
+		# FG row: consuming batch from FG warehouse — bundle must use FG batch
+		fg_row = next((i for i in stock_entry.items if i.item_code == fg_item), None)
+		self.assertIsNotNone(fg_row)
+		self.assertTrue(fg_row.serial_and_batch_bundle, "FG row must have a serial_and_batch_bundle")
+		self.assertEqual(get_batch_from_bundle(fg_row.serial_and_batch_bundle), fg_batch)
+
+		# RM row: returning to WIP warehouse — bundle must use RM batch
+		rm_row = next((i for i in stock_entry.items if i.item_code == rm_item), None)
+		self.assertIsNotNone(rm_row)
+		self.assertTrue(rm_row.serial_and_batch_bundle, "RM row must have a serial_and_batch_bundle")
+		self.assertEqual(get_batch_from_bundle(rm_row.serial_and_batch_bundle), rm_batch)
+
+		# RM qty: 2 FG disassembled x 2 RM per FG = 4
+		self.assertAlmostEqual(rm_row.qty, 4.0, places=3)
+
+	def test_disassembly_serial_tracked_items(self):
+		from frappe.model.naming import make_autoname
+
+		from erpnext.stock.doctype.stock_entry.test_stock_entry import (
+			make_stock_entry as make_stock_entry_test_record,
+		)
+
+		wip_wh = "_Test Warehouse - _TC"
+
+		rm_item = make_item(
+			"Test Serial RM for Disassembly SB",
+			{"is_stock_item": 1, "has_serial_no": 1, "serial_no_series": "TSRD-RM-.####"},
+		).name
+		fg_item = make_item(
+			"Test Serial FG for Disassembly SB",
+			{"is_stock_item": 1, "has_serial_no": 1, "serial_no_series": "TSRD-FG-.####"},
+		).name
+
+		bom = make_bom(item=fg_item, quantity=1, raw_materials=[rm_item], rm_qty=2)
+		wo = make_wo_order_test_record(
+			production_item=fg_item,
+			qty=6,
+			bom_no=bom.name,
+			skip_transfer=1,
+			source_warehouse=wip_wh,
+			status="Not Started",
+		)
+
+		# Stock up 6 RM serials — series auto-generates them
+		rm_receipt = make_stock_entry_test_record(
+			item_code=rm_item, purpose="Material Receipt", target=wip_wh, qty=6, basic_rate=100
+		)
+		rm_bundle = frappe.db.get_value(
+			"Stock Entry Detail", {"parent": rm_receipt.name, "item_code": rm_item}, "serial_and_batch_bundle"
+		)
+		all_rm_serials = get_serial_nos_from_bundle(rm_bundle)
+		self.assertEqual(len(all_rm_serials), 6)
+
+		# Pre-generate 3 FG serial numbers
+		series = frappe.db.get_value("Item", fg_item, "serial_no_series")
+		fg_serials = [make_autoname(series) for _ in range(3)]
+
+		# Manufacture 3 units: consume first 6 RM serials, produce 3 FG serials
+		se_manufacture = frappe.get_doc(make_stock_entry(wo.name, "Manufacture", 3))
+		for row in se_manufacture.items:
+			if row.item_code == rm_item:
+				row.serial_no = "\n".join(all_rm_serials)
+				row.use_serial_batch_fields = 1
+			elif row.item_code == fg_item:
+				row.serial_no = "\n".join(fg_serials)
+				row.use_serial_batch_fields = 1
+		se_manufacture.save()
+		se_manufacture.submit()
+
+		# Disassemble 2 of the 3 manufactured units
+		disassemble_qty = 2
+		stock_entry = frappe.get_doc(
+			make_stock_entry(wo.name, "Disassemble", disassemble_qty, source_stock_entry=se_manufacture.name)
+		)
+		stock_entry.save()
+		stock_entry.submit()
+
+		# FG row: 2 serials consumed — must be a subset of the manufacture FG serials
+		fg_row = next((i for i in stock_entry.items if i.item_code == fg_item), None)
+		self.assertIsNotNone(fg_row)
+		self.assertTrue(fg_row.serial_and_batch_bundle, "FG row must have a serial_and_batch_bundle")
+		fg_dasm_serials = get_serial_nos_from_bundle(fg_row.serial_and_batch_bundle)
+		self.assertEqual(len(fg_dasm_serials), disassemble_qty)
+		self.assertTrue(set(fg_dasm_serials).issubset(set(fg_serials)))
+
+		# RM row: 4 serials returned (2 FG x 2 RM each) — must be a subset of manufacture RM serials
+		rm_row = next((i for i in stock_entry.items if i.item_code == rm_item), None)
+		self.assertIsNotNone(rm_row)
+		self.assertTrue(rm_row.serial_and_batch_bundle, "RM row must have a serial_and_batch_bundle")
+		rm_dasm_serials = get_serial_nos_from_bundle(rm_row.serial_and_batch_bundle)
+		self.assertEqual(len(rm_dasm_serials), disassemble_qty * 2)
+		self.assertTrue(set(rm_dasm_serials).issubset(set(all_rm_serials)))
+
 	def test_components_alternate_item_for_bom_based_manufacture_entry(self):
 		frappe.db.set_single_value("Manufacturing Settings", "backflush_raw_materials_based_on", "BOM")
 		frappe.db.set_single_value("Manufacturing Settings", "validate_components_quantities_per_bom", 1)
