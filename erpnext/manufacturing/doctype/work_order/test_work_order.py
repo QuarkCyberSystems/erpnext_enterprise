@@ -2500,6 +2500,30 @@ class TestWorkOrder(ERPNextTestSuite):
 			f"Work Order disassembled_qty mismatch: expected {disassemble_qty}, got {wo.disassembled_qty}",
 		)
 
+		# Second disassembly: explicitly linked to manufacture SE — verifies SE-linked path
+		# (first disassembly auto-set source_stock_entry since there's only one manufacture entry)
+		disassemble_qty_2 = 2
+		stock_entry_2 = frappe.get_doc(
+			make_stock_entry(
+				wo.name, "Disassemble", disassemble_qty_2, source_stock_entry=se_for_manufacture.name
+			)
+		)
+		stock_entry_2.save()
+		stock_entry_2.submit()
+
+		# All rows must trace back to se_for_manufacture
+		for item in stock_entry_2.items:
+			self.assertEqual(item.against_stock_entry, se_for_manufacture.name)
+			self.assertTrue(item.ste_detail)
+
+		# RM qty scaled from the manufacture SE rows
+		rm_row = next((i for i in stock_entry_2.items if i.item_code == raw_item), None)
+		expected_rm_qty = (bom.items[0].qty / bom.quantity) * disassemble_qty_2
+		self.assertAlmostEqual(rm_row.qty, expected_rm_qty, places=3)
+
+		wo.reload()
+		self.assertEqual(wo.disassembled_qty, disassemble_qty + disassemble_qty_2)
+
 	def test_disassembly_with_multiple_manufacture_entries(self):
 		"""
 		Test that disassembly does not create duplicate items when manufacturing
