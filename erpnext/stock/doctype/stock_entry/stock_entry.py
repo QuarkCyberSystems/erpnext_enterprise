@@ -2362,7 +2362,8 @@ class StockEntry(StockController, SubcontractingInwardController):
 					"stock_uom": ri.stock_uom,
 					"uom": ri.stock_uom,
 					"conversion_factor": 1,
-					"t_warehouse": ri.source_warehouse or wo.source_warehouse or self.to_warehouse,
+					# manufacture transfers RMs from WIP (not source warehouse)
+					"t_warehouse": self.to_warehouse or wo.wip_warehouse,
 					"s_warehouse": "",
 					"is_finished_item": 0,
 				},
