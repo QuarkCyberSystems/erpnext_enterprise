@@ -331,6 +331,58 @@ class StockEntry(StockController, SubcontractingInwardController):
 		if self.purpose != "Disassemble":
 			return
 
+		if self.get("source_stock_entry"):
+			self._set_serial_batch_for_disassembly_from_stock_entry()
+		else:
+			self._set_serial_batch_for_disassembly_from_available_materials()
+
+	def _set_serial_batch_for_disassembly_from_stock_entry(self):
+		from erpnext.stock.doctype.serial_and_batch_bundle.serial_and_batch_bundle import (
+			get_voucher_wise_serial_batch_from_bundle,
+		)
+
+		source_fg_qty = flt(frappe.db.get_value("Stock Entry", self.source_stock_entry, "fg_completed_qty"))
+		scale_factor = flt(self.fg_completed_qty) / source_fg_qty if source_fg_qty else 0
+
+		bundle_data = get_voucher_wise_serial_batch_from_bundle(voucher_no=[self.source_stock_entry])
+		source_rows_by_name = {
+			r.name: r for r in self.get_items_from_manufacture_stock_entry(self.source_stock_entry)
+		}
+
+		for row in self.items:
+			if not row.ste_detail:
+				continue
+
+			source_row = source_rows_by_name.get(row.ste_detail)
+			if not source_row:
+				continue
+
+			source_warehouse = source_row.s_warehouse or source_row.t_warehouse
+			key = (source_row.item_code, source_warehouse, self.source_stock_entry)
+			source_bundle = bundle_data.get(key, {})
+
+			batches = defaultdict(float)
+			serial_nos = []
+
+			if source_bundle.get("batch_nos"):
+				qty_remaining = row.transfer_qty
+				for batch_no, batch_qty in source_bundle["batch_nos"].items():
+					if qty_remaining <= 0:
+						break
+					alloc = min(flt(batch_qty) * scale_factor, qty_remaining)
+					batches[batch_no] = alloc
+					qty_remaining -= alloc
+			elif source_row.batch_no:
+				batches[source_row.batch_no] = row.transfer_qty
+
+			if source_bundle.get("serial_nos"):
+				serial_nos = get_serial_nos(source_bundle["serial_nos"])[: int(row.transfer_qty)]
+			elif source_row.serial_no:
+				serial_nos = get_serial_nos(source_row.serial_no)[: int(row.transfer_qty)]
+
+			self._set_serial_batch_bundle_for_disassembly_row(row, serial_nos, batches)
+
+	def _set_serial_batch_for_disassembly_from_available_materials(self):
 		available_materials = get_available_materials(self.work_order, self)
 		for row in self.items:
 			warehouse = row.s_warehouse or row.t_warehouse
@@ -356,33 +408,37 @@ class StockEntry(StockController, SubcontractingInwardController):
 			if materials.serial_nos:
 				serial_nos = materials.serial_nos[: int(row.transfer_qty)]
 
-			if not serial_nos and not batches:
-				continue
+			self._set_serial_batch_bundle_for_disassembly_row(row, serial_nos, batches)
 
-			bundle_doc = SerialBatchCreation(
-				{
-					"item_code": row.item_code,
-					"warehouse": warehouse,
-					"posting_datetime": get_combine_datetime(self.posting_date, self.posting_time),
-					"voucher_type": self.doctype,
-					"voucher_no": self.name,
-					"voucher_detail_no": row.name,
-					"qty": row.transfer_qty,
-					"type_of_transaction": "Inward" if row.t_warehouse else "Outward",
-					"company": self.company,
-					"do_not_submit": True,
-				}
-			).make_serial_and_batch_bundle(serial_nos=serial_nos, batch_nos=batches)
+	def _set_serial_batch_bundle_for_disassembly_row(self, row, serial_nos, batches):
+		if not serial_nos and not batches:
+			return
 
-			row.serial_and_batch_bundle = bundle_doc.name
-			row.use_serial_batch_fields = 0
+		warehouse = row.s_warehouse or row.t_warehouse
+		bundle_doc = SerialBatchCreation(
+			{
+				"item_code": row.item_code,
+				"warehouse": warehouse,
+				"posting_datetime": get_combine_datetime(self.posting_date, self.posting_time),
+				"voucher_type": self.doctype,
+				"voucher_no": self.name,
+				"voucher_detail_no": row.name,
+				"qty": row.transfer_qty,
+				"type_of_transaction": "Inward" if row.t_warehouse else "Outward",
+				"company": self.company,
+				"do_not_submit": True,
+			}
+		).make_serial_and_batch_bundle(serial_nos=serial_nos, batch_nos=batches)
 
-			row.db_set(
-				{
-					"serial_and_batch_bundle": bundle_doc.name,
-					"use_serial_batch_fields": 0,
-				}
-			)
+		row.serial_and_batch_bundle = bundle_doc.name
+		row.use_serial_batch_fields = 0
+
+		row.db_set(
+			{
+				"serial_and_batch_bundle": bundle_doc.name,
+				"use_serial_batch_fields": 0,
+			}
+		)
 
 	def on_submit(self):
 		self.set_serial_batch_for_disassembly()
@@ -2336,8 +2392,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 					"is_finished_item": source_row.is_finished_item,
 					"against_stock_entry": self.source_stock_entry,
 					"ste_detail": source_row.name,
-					"batch_no": source_row.batch_no,
-					"serial_no": source_row.serial_no,
+					# batch and serial bundles built on submit
 					"use_serial_batch_fields": use_serial_batch_fields,
 				},
 			)
