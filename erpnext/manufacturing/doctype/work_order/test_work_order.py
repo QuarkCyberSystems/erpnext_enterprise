@@ -2419,7 +2419,7 @@ class TestWorkOrder(ERPNextTestSuite):
 
 		stock_entry.submit()
 
-	def test_disassembly_order_with_qty_behavior(self):
+	def test_disassembly_order_with_qty_from_wo_behavior(self):
 		# Create raw material and FG item
 		raw_item = make_item("Test Raw for Disassembly", {"is_stock_item": 1}).name
 		fg_item = make_item("Test FG for Disassembly", {"is_stock_item": 1}).name
@@ -2459,27 +2459,9 @@ class TestWorkOrder(ERPNextTestSuite):
 		se_for_manufacture = frappe.get_doc(make_stock_entry(wo.name, "Manufacture", wo.qty))
 		se_for_manufacture.submit()
 
-		# Simulate a disassembly stock entry
+		# Disassembly via WO required_items path (no source_stock_entry)
 		disassemble_qty = 4
 		stock_entry = frappe.get_doc(make_stock_entry(wo.name, "Disassemble", disassemble_qty))
-		stock_entry.append(
-			"items",
-			{
-				"item_code": fg_item,
-				"qty": disassemble_qty,
-				"s_warehouse": wo.fg_warehouse,
-			},
-		)
-
-		for bom_item in bom.items:
-			stock_entry.append(
-				"items",
-				{
-					"item_code": bom_item.item_code,
-					"qty": (bom_item.qty / bom.quantity) * disassemble_qty,
-					"t_warehouse": wo.source_warehouse,
-				},
-			)
 
 		wo.reload()
 		stock_entry.save()
@@ -2494,7 +2476,7 @@ class TestWorkOrder(ERPNextTestSuite):
 			f"Expected FG qty {disassemble_qty}, found {finished_good_entry.qty}",
 		)
 
-		# Assert raw materials
+		# Assert raw materials - qty scaled from WO required_items
 		for item in stock_entry.items:
 			if item.item_code == fg_item:
 				continue
