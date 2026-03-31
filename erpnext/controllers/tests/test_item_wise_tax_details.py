@@ -2,12 +2,7 @@ import json
 
 import frappe
 
-<<<<<<< HEAD
-from erpnext.controllers.taxes_and_totals import calculate_taxes_and_totals
-from erpnext.tests.utils import ERPNextTestSuite
-=======
 from erpnext.tests.utils import ERPNextTestSuite, change_settings
->>>>>>> fc8437c499 (test: update item-wise tax detail test for high conversion rates)
 
 
 class TestTaxesAndTotals(ERPNextTestSuite):
