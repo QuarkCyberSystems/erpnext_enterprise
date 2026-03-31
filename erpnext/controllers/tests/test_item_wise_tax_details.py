@@ -204,6 +204,63 @@ class TestTaxesAndTotals(ERPNextTestSuite):
 		for tax in doc.taxes:
 			self.assertEqual(details_by_tax[tax.name], tax.base_tax_amount_after_discount_amount)
 
+	@change_settings("Selling Settings", {"allow_multiple_items": 1})
+	def test_rounding_in_item_wise_tax_details(self):
+		"""
+		This test verifies the amounts are properly rounded.
+		"""
+		doc = frappe.get_doc(
+			{
+				"doctype": "Sales Invoice",
+				"customer": "_Test Customer",
+				"company": "_Test Company",
+				"currency": "INR",
+				"conversion_rate": 1,
+				"items": [
+					{
+						"item_code": "_Test Item",
+						"qty": 5,
+						"rate": 20,
+						"income_account": "Sales - _TC",
+						"expense_account": "Cost of Goods Sold - _TC",
+						"cost_center": "_Test Cost Center - _TC",
+					},
+					{
+						"item_code": "_Test Item",
+						"qty": 3,
+						"rate": 19,
+						"income_account": "Sales - _TC",
+						"expense_account": "Cost of Goods Sold - _TC",
+						"cost_center": "_Test Cost Center - _TC",
+					},
+					{
+						"item_code": "_Test Item",
+						"qty": 1,
+						"rate": 1000,
+						"income_account": "Sales - _TC",
+						"expense_account": "Cost of Goods Sold - _TC",
+						"cost_center": "_Test Cost Center - _TC",
+					},
+				],
+				"taxes": [
+					{
+						"charge_type": "On Net Total",
+						"account_head": "_Test Account VAT - _TC",
+						"cost_center": "_Test Cost Center - _TC",
+						"description": "VAT",
+						"rate": 9,
+					},
+				],
+			}
+		)
+		doc.save()
+
+		# item 1: taxable=100, tax=9.0; item 2: taxable=57, tax=5.13; item 3: taxable=1000, tax=90.0
+		# error diffusion: 14.13 - 9.0 = 5.130000000000001 without rounding
+		# 3rd item ensures the artifact is on a middle row (not corrected by last-row adjustment)
+		for detail in doc.item_wise_tax_details:
+			self.assertEqual(detail.amount, round(detail.amount, 2))
+
 	def test_item_wise_tax_detail_with_multi_currency_with_single_item(self):
 		"""
 		When the tax amount (in transaction currency) has more decimals than
