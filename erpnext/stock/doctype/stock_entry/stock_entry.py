@@ -864,7 +864,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 
 			if self.purpose == "Disassemble":
 				if has_bom:
-					if d.is_finished_item:
+					if d.is_finished_item or d.type or d.is_legacy_scrap_item:
 						d.t_warehouse = None
 						if not d.s_warehouse:
 							frappe.throw(_("Source warehouse is mandatory for row {0}").format(d.idx))
@@ -2369,10 +2369,16 @@ class StockEntry(StockController, SubcontractingInwardController):
 				qty = flt(self.fg_completed_qty)
 				s_warehouse = self.from_warehouse or source_row.t_warehouse
 				t_warehouse = ""
-			else:
+			elif source_row.s_warehouse:
+				# RM: was consumed FROM s_warehouse → return TO s_warehouse
 				qty = flt(source_row.qty * scale_factor)
 				s_warehouse = ""
 				t_warehouse = self.to_warehouse or source_row.s_warehouse
+			else:
+				# Scrap/secondary: was produced TO t_warehouse → take FROM t_warehouse
+				qty = flt(source_row.qty * scale_factor)
+				s_warehouse = source_row.t_warehouse
+				t_warehouse = ""
 
 			use_serial_batch_fields = 1 if (source_row.batch_no or source_row.serial_no) else 0
 
@@ -2390,6 +2396,9 @@ class StockEntry(StockController, SubcontractingInwardController):
 					"s_warehouse": s_warehouse,
 					"t_warehouse": t_warehouse,
 					"is_finished_item": source_row.is_finished_item,
+					"type": source_row.type,
+					"is_legacy_scrap_item": source_row.is_legacy_scrap_item,
+					"bom_secondary_item": source_row.bom_secondary_item,
 					"against_stock_entry": self.source_stock_entry,
 					"ste_detail": source_row.name,
 					# batch and serial bundles built on submit
@@ -2424,6 +2433,16 @@ class StockEntry(StockController, SubcontractingInwardController):
 				},
 			)
 
+		# Secondary/Scrap items
+		secondary_items = self.get_secondary_items(self.fg_completed_qty)
+		if secondary_items:
+			scrap_warehouse = wo.scrap_warehouse or self.from_warehouse or wo.fg_warehouse
+			for item in secondary_items.values():
+				item["from_warehouse"] = scrap_warehouse
+				item["to_warehouse"] = ""
+				item["is_finished_item"] = 0
+			self.add_to_stock_entry_detail(secondary_items, bom_no=self.bom_no)
+
 		# FG
 		self.append(
 			"items",
@@ -2455,6 +2474,23 @@ class StockEntry(StockController, SubcontractingInwardController):
 
 		self.add_to_stock_entry_detail(item_dict)
 
+		# Secondary/Scrap items (reverse of what set_secondary_items does for Manufacture)
+		secondary_items = self.get_secondary_items(self.fg_completed_qty)
+		if secondary_items:
+			scrap_warehouse = self.from_warehouse
+			if self.work_order:
+				wo_values = frappe.db.get_value(
+					"Work Order", self.work_order, ["scrap_warehouse", "fg_warehouse"], as_dict=True
+				)
+				scrap_warehouse = wo_values.scrap_warehouse or scrap_warehouse or wo_values.fg_warehouse
+
+			for item in secondary_items.values():
+				item["from_warehouse"] = scrap_warehouse
+				item["to_warehouse"] = ""
+				item["is_finished_item"] = 0
+
+			self.add_to_stock_entry_detail(secondary_items, bom_no=self.bom_no)
+
 		# Finished goods
 		self.load_items_from_bom()
 
@@ -2478,6 +2514,9 @@ class StockEntry(StockController, SubcontractingInwardController):
 				SED.basic_rate,
 				SED.conversion_factor,
 				SED.is_finished_item,
+				SED.type,
+				SED.is_legacy_scrap_item,
+				SED.bom_secondary_item,
 				SED.batch_no,
 				SED.serial_no,
 				SED.use_serial_batch_fields,
