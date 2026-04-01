@@ -2328,7 +2328,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 
 		Priority:
 		1. From a specific Manufacture Stock Entry (exact reversal)
-		2. From Work Order required_items (reflects WO changes)
+		2. From Work Order Manufacture Stock Entries (averaged reversal)
 		3. From BOM (standalone disassembly)
 		"""
 
@@ -2362,103 +2362,78 @@ class StockEntry(StockController, SubcontractingInwardController):
 				_("Source Stock Entry {0} has no finished goods quantity").format(self.source_stock_entry)
 			)
 
-		scale_factor = flt(self.fg_completed_qty) / flt(source_fg_qty)
+		disassemble_qty = flt(self.fg_completed_qty)
+		scale_factor = disassemble_qty / flt(source_fg_qty)
 
-		for source_row in self.get_items_from_manufacture_stock_entry(self.source_stock_entry):
-			if source_row.is_finished_item:
-				qty = flt(self.fg_completed_qty)
-				s_warehouse = self.from_warehouse or source_row.t_warehouse
-				t_warehouse = ""
-			elif source_row.s_warehouse:
-				# RM: was consumed FROM s_warehouse → return TO s_warehouse
-				qty = flt(source_row.qty * scale_factor)
-				s_warehouse = ""
-				t_warehouse = self.to_warehouse or source_row.s_warehouse
-			else:
-				# Scrap/secondary: was produced TO t_warehouse → take FROM t_warehouse
-				qty = flt(source_row.qty * scale_factor)
-				s_warehouse = source_row.t_warehouse
-				t_warehouse = ""
-
-			use_serial_batch_fields = 1 if (source_row.batch_no or source_row.serial_no) else 0
-
-			self.append(
-				"items",
-				{
-					"item_code": source_row.item_code,
-					"item_name": source_row.item_name,
-					"description": source_row.description,
-					"stock_uom": source_row.stock_uom,
-					"uom": source_row.uom,
-					"conversion_factor": source_row.conversion_factor,
-					"basic_rate": source_row.basic_rate,
-					"qty": qty,
-					"s_warehouse": s_warehouse,
-					"t_warehouse": t_warehouse,
-					"is_finished_item": source_row.is_finished_item,
-					"type": source_row.type,
-					"is_legacy_scrap_item": source_row.is_legacy_scrap_item,
-					"bom_secondary_item": source_row.bom_secondary_item,
-					"against_stock_entry": self.source_stock_entry,
-					"ste_detail": source_row.name,
-					# batch and serial bundles built on submit
-					"use_serial_batch_fields": use_serial_batch_fields,
-				},
-			)
+		self._append_disassembly_row_from_source(
+			disassemble_qty=disassemble_qty,
+			scale_factor=scale_factor,
+			source_stock_entry=self.source_stock_entry,
+		)
 
 	def _add_items_for_disassembly_from_work_order(self):
 		wo = frappe.get_doc("Work Order", self.work_order)
 
-		if not wo.required_items:
-			return self._add_items_for_disassembly_from_bom()
+		wo_produced_qty = flt(wo.produced_qty)
+		if wo_produced_qty <= 0:
+			frappe.throw(_("Work Order {0} has no produced qty").format(self.work_order))
 
-		scale_factor = flt(self.fg_completed_qty) / flt(wo.qty) if flt(wo.qty) else 0
+		disassemble_qty = flt(self.fg_completed_qty)
+		if disassemble_qty <= 0:
+			frappe.throw(_("Disassemble Qty cannot be less than or equal to 0."))
 
-		# RMs
-		for ri in wo.required_items:
-			self.append(
-				"items",
-				{
-					"item_code": ri.item_code,
-					"item_name": ri.item_name,
-					"description": ri.description,
-					"qty": flt(ri.required_qty * scale_factor),
-					"stock_uom": ri.stock_uom,
-					"uom": ri.stock_uom,
-					"conversion_factor": 1,
-					# manufacture transfers RMs from WIP (not source warehouse)
-					"t_warehouse": self.to_warehouse or wo.wip_warehouse,
-					"s_warehouse": "",
-					"is_finished_item": 0,
-				},
-			)
+		scale_factor = disassemble_qty / wo_produced_qty
 
-		# Secondary/Scrap items
-		secondary_items = self.get_secondary_items(self.fg_completed_qty)
-		if secondary_items:
-			scrap_warehouse = wo.scrap_warehouse or self.from_warehouse or wo.fg_warehouse
-			for item in secondary_items.values():
-				item["from_warehouse"] = scrap_warehouse
-				item["to_warehouse"] = ""
-				item["is_finished_item"] = 0
-			self.add_to_stock_entry_detail(secondary_items, bom_no=self.bom_no)
-
-		# FG
-		self.append(
-			"items",
-			{
-				"item_code": wo.production_item,
-				"item_name": wo.item_name,
-				"description": wo.description,
-				"qty": flt(self.fg_completed_qty),
-				"stock_uom": wo.stock_uom,
-				"uom": wo.stock_uom,
-				"conversion_factor": 1,
-				"s_warehouse": self.from_warehouse or wo.fg_warehouse,
-				"t_warehouse": "",
-				"is_finished_item": 1,
-			},
+		self._append_disassembly_row_from_source(
+			disassemble_qty=disassemble_qty,
+			scale_factor=scale_factor,
 		)
+
+	def _append_disassembly_row_from_source(self, disassemble_qty, scale_factor, source_stock_entry=None):
+		for source_row in self.get_items_from_manufacture_stock_entry(self.source_stock_entry):
+			if source_row.is_finished_item:
+				qty = disassemble_qty
+				s_warehouse = self.from_warehouse or source_row.t_warehouse
+				t_warehouse = ""
+			elif source_row.s_warehouse:
+				# RM: was consumed FROM s_warehouse -> return TO s_warehouse
+				qty = flt(source_row.qty * scale_factor)
+				s_warehouse = ""
+				t_warehouse = self.to_warehouse or source_row.s_warehouse
+			else:
+				# Scrap/secondary: was produced TO t_warehouse -> take FROM t_warehouse
+				qty = flt(source_row.qty * scale_factor)
+				s_warehouse = source_row.t_warehouse
+				t_warehouse = ""
+
+			item = {
+				"item_code": source_row.item_code,
+				"item_name": source_row.item_name,
+				"description": source_row.description,
+				"stock_uom": source_row.stock_uom,
+				"uom": source_row.uom,
+				"conversion_factor": source_row.conversion_factor,
+				"basic_rate": source_row.basic_rate,
+				"qty": qty,
+				"s_warehouse": s_warehouse,
+				"t_warehouse": t_warehouse,
+				"is_finished_item": source_row.is_finished_item,
+				"type": source_row.type,
+				"is_legacy_scrap_item": source_row.is_legacy_scrap_item,
+				"bom_secondary_item": source_row.bom_secondary_item,
+				# batch and serial bundles built on submit
+				"use_serial_batch_fields": 1 if (source_row.batch_no or source_row.serial_no) else 0,
+			}
+
+			if source_stock_entry:
+				item.update(
+					{
+						"against_stock_entry": source_stock_entry,
+						"ste_detail": source_row.name,
+					}
+				)
+
+			self.append("items", item)
 
 	def _add_items_for_disassembly_from_bom(self):
 		if not self.bom_no or not self.fg_completed_qty:

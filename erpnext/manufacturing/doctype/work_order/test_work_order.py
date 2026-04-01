@@ -2642,7 +2642,9 @@ class TestWorkOrder(ERPNextTestSuite):
 		self.assertTrue(scrap_row.s_warehouse)
 		self.assertFalse(scrap_row.t_warehouse)
 		self.assertEqual(scrap_row.s_warehouse, wo.scrap_warehouse)
-		self.assertEqual(scrap_row.qty, 40)
+		# BOM has scrap_qty=10/FG but also process_loss_per=10%, so actual scrap per FG = 9
+		# Total produced = 9*3 + 9*7 = 90, disassemble 4/10 → 36
+		self.assertEqual(scrap_row.qty, 36)
 
 		# RM quantities
 		for bom_item in bom.items:
