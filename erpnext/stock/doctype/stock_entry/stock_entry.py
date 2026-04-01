@@ -2494,37 +2494,43 @@ class StockEntry(StockController, SubcontractingInwardController):
 		# Finished goods
 		self.load_items_from_bom()
 
-	def get_items_from_manufacture_stock_entry(self, stock_entry):
+	def get_items_from_manufacture_stock_entry(self, stock_entry=None):
 		SE = frappe.qb.DocType("Stock Entry")
 		SED = frappe.qb.DocType("Stock Entry Detail")
+		query = frappe.qb.from_(SED).join(SE).on(SED.parent == SE.name).where(SE.docstatus == 1)
+
+		common_fields = [
+			SED.item_code,
+			SED.item_name,
+			SED.description,
+			SED.stock_uom,
+			SED.uom,
+			SED.basic_rate,
+			SED.conversion_factor,
+			SED.is_finished_item,
+			SED.type,
+			SED.is_legacy_scrap_item,
+			SED.bom_secondary_item,
+			SED.batch_no,
+			SED.serial_no,
+			SED.use_serial_batch_fields,
+			SED.s_warehouse,
+			SED.t_warehouse,
+		]
+
+		if stock_entry:
+			return (
+				query.select(SED.name, SED.qty, SED.transfer_qty, *common_fields)
+				.where(SE.name == stock_entry)
+				.orderby(SED.idx)
+				.run(as_dict=True)
+			)
 
 		return (
-			frappe.qb.from_(SED)
-			.join(SE)
-			.on(SED.parent == SE.name)
-			.select(
-				SED.name,
-				SED.item_code,
-				SED.item_name,
-				SED.description,
-				SED.qty,
-				SED.transfer_qty,
-				SED.stock_uom,
-				SED.uom,
-				SED.basic_rate,
-				SED.conversion_factor,
-				SED.is_finished_item,
-				SED.type,
-				SED.is_legacy_scrap_item,
-				SED.bom_secondary_item,
-				SED.batch_no,
-				SED.serial_no,
-				SED.use_serial_batch_fields,
-				SED.s_warehouse,
-				SED.t_warehouse,
-			)
-			.where(SE.name == stock_entry)
-			.where(SE.docstatus == 1)
+			query.select(Sum(SED.qty).as_("qty"), Sum(SED.transfer_qty).as_("transfer_qty"), *common_fields)
+			.where(SE.purpose == "Manufacture")
+			.where(SE.work_order == self.work_order)
+			.groupby(SED.item_code)
 			.orderby(SED.idx)
 			.run(as_dict=True)
 		)
