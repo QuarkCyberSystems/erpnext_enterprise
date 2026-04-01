@@ -2527,7 +2527,8 @@ class TestWorkOrder(ERPNextTestSuite):
 	def test_disassembly_with_multiple_manufacture_entries(self):
 		"""
 		Test that disassembly does not create duplicate items when manufacturing
-		is done in multiple batches (multiple manufacture stock entries).
+		is done in multiple batches (multiple manufacture stock entries), including
+		secondary/scrap items.
 
 		Scenario:
 		1. Create Work Order for 10 units
@@ -2536,11 +2537,19 @@ class TestWorkOrder(ERPNextTestSuite):
 		4. Create Disassembly for 4 units
 		5. Verify no duplicate items in the disassembly stock entry
 		"""
-		# Create RM and FG item
+		# Create RM, scrap and FG item
 		raw_item1 = make_item("Test Raw for Multi Batch Disassembly 1", {"is_stock_item": 1}).name
 		raw_item2 = make_item("Test Raw for Multi Batch Disassembly 2", {"is_stock_item": 1}).name
+		scrap_item = make_item("Test Scrap for Multi Batch Disassembly", {"is_stock_item": 1}).name
 		fg_item = make_item("Test FG for Multi Batch Disassembly", {"is_stock_item": 1}).name
-		bom = make_bom(item=fg_item, quantity=1, raw_materials=[raw_item1, raw_item2], rm_qty=2)
+		bom = make_bom(
+			item=fg_item,
+			quantity=1,
+			raw_materials=[raw_item1, raw_item2],
+			rm_qty=2,
+			scrap_items=[scrap_item],
+			scrap_qty=10,
+		)
 
 		# Create WO
 		wo = make_wo_order_test_record(production_item=fg_item, qty=10, bom_no=bom.name, status="Not Started")
@@ -2615,7 +2624,7 @@ class TestWorkOrder(ERPNextTestSuite):
 			f"Found duplicate items in disassembly stock entry: {duplicates}",
 		)
 
-		expected_items = 3  # FG item + 2 raw materials
+		expected_items = 4  # FG item + 2 raw materials + 1 scrap item
 		self.assertEqual(
 			len(stock_entry.items),
 			expected_items,
@@ -2625,6 +2634,15 @@ class TestWorkOrder(ERPNextTestSuite):
 		# FG item qty
 		fg_item_row = next((i for i in stock_entry.items if i.item_code == fg_item), None)
 		self.assertEqual(fg_item_row.qty, disassemble_qty)
+
+		# Secondary/Scrap item: should be taken from scrap warehouse in disassembly
+		scrap_row = next((i for i in stock_entry.items if i.item_code == scrap_item), None)
+		self.assertIsNotNone(scrap_row)
+		self.assertEqual(scrap_row.type, "Scrap")
+		self.assertTrue(scrap_row.s_warehouse)
+		self.assertFalse(scrap_row.t_warehouse)
+		self.assertEqual(scrap_row.s_warehouse, wo.scrap_warehouse)
+		self.assertEqual(scrap_row.qty, 40)
 
 		# RM quantities
 		for bom_item in bom.items:
