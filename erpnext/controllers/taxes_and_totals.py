@@ -627,7 +627,9 @@ class calculate_taxes_and_totals:
 			flt(tax._running_txn_tax_total, tax.precision("tax_amount")) * self.doc.conversion_rate,
 			tax.precision("base_tax_amount"),
 		)
-		item_wise_tax_amount = new_base_tax_total - tax._running_base_tax_total
+		item_wise_tax_amount = flt(
+			new_base_tax_total - tax._running_base_tax_total, tax.precision("base_tax_amount")
+		)
 		tax._running_base_tax_total = new_base_tax_total
 
 		if tax.charge_type != "On Item Quantity":
@@ -636,7 +638,9 @@ class calculate_taxes_and_totals:
 				flt(tax._running_txn_taxable_total, tax.precision("net_amount")) * self.doc.conversion_rate,
 				tax.precision("base_net_amount"),
 			)
-			item_wise_taxable_amount = new_base_taxable_total - tax._running_base_taxable_total
+			item_wise_taxable_amount = flt(
+				new_base_taxable_total - tax._running_base_taxable_total, tax.precision("base_net_amount")
+			)
 			tax._running_base_taxable_total = new_base_taxable_total
 		else:
 			item_wise_taxable_amount = 0.0
