@@ -2372,9 +2372,9 @@ class StockEntry(StockController, SubcontractingInwardController):
 		)
 
 	def _add_items_for_disassembly_from_work_order(self):
-		wo = frappe.get_doc("Work Order", self.work_order)
+		wo_produced_qty = frappe.db.get_value("Work Order", self.work_order, "produced_qty")
 
-		wo_produced_qty = flt(wo.produced_qty)
+		wo_produced_qty = flt(wo_produced_qty)
 		if wo_produced_qty <= 0:
 			frappe.throw(_("Work Order {0} has no produced qty").format(self.work_order))
 
