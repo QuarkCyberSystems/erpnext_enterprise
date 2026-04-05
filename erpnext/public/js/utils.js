@@ -21,6 +21,10 @@ $.extend(erpnext, {
 
 	toggle_serial_batch_fields(frm) {
 		let hide_fields = cint(frappe.user_defaults?.enable_serial_and_batch_no_for_item) === 0 ? 1 : 0;
+		if (!hide_fields) {
+			return;
+		}
+
 		let fields = ["serial_and_batch_bundle", "use_serial_batch_fields", "serial_no", "batch_no"];
 
 		if (
@@ -60,6 +64,12 @@ $.extend(erpnext, {
 			child_name = "stock_items";
 		}
 
+		let sn_field = frm.fields_dict[child_name].grid.docfields.filter((d) => d.fieldname === "serial_no");
+		if (sn_field?.length && sn_field[0].hidden === 1) {
+			// Already field is hidden
+			return;
+		}
+
 		fields.forEach((field) => {
 			if (frm.fields_dict[child_name].get_field(field)) {
 				frm.fields_dict[child_name].grid.update_docfield_property(field, "hidden", hide_fields);
@@ -72,7 +82,11 @@ $.extend(erpnext, {
 
 				if (
 					frm.doc.doctype === "Subcontracting Receipt" &&
-					!["add_serial_batch_for_rejected_qty", "rejected_serial_and_batch_bundle"].includes(field)
+					![
+						"add_serial_batch_for_rejected_qty",
+						"rejected_serial_and_batch_bundle",
+						"rejected_serial_no",
+					].includes(field)
 				) {
 					frm.fields_dict["supplied_items"].grid.update_docfield_property(
 						field,
@@ -85,11 +99,13 @@ $.extend(erpnext, {
 						"in_list_view",
 						hide_fields ? 0 : 1
 					);
-
-					frm.fields_dict["supplied_items"].grid.reset_grid();
 				}
 			}
 		});
+
+		if (frm.doc.doctype === "Subcontracting Receipt") {
+			frm.fields_dict["supplied_items"].grid.reset_grid();
+		}
 
 		frm.fields_dict[child_name].grid.reset_grid();
 	},
