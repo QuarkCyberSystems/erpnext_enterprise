@@ -688,9 +688,6 @@ class update_entries_after:
 			self._sles = deque(self.sort_sles(self._sles))
 
 	def repost_stock_ledger_entry(self, sle):
-		if self.args.item_code != sle.item_code or self.args.warehouse != sle.warehouse:
-			self.repost_affected_transaction.add((sle.voucher_type, sle.voucher_no))
-
 		if isinstance(sle, dict):
 			sle = frappe._dict(sle)
 
@@ -953,6 +950,8 @@ class update_entries_after:
 		sle.stock_value = self.wh_data.stock_value
 		sle.stock_queue = json.dumps(self.wh_data.stock_queue)
 
+		old_stock_value_difference = sle.stock_value_difference
+
 		sle.stock_value_difference = stock_value_difference
 
 		if (
@@ -985,6 +984,14 @@ class update_entries_after:
 			sle.serial_and_batch_bundle and sle.auto_created_serial_and_batch_bundle
 		):
 			self.update_outgoing_rate_on_transaction(sle)
+
+		if flt(old_stock_value_difference, self.currency_precision) == flt(
+			sle.stock_value_difference, self.currency_precision
+		):
+			return
+
+		if self.args.item_code != sle.item_code or self.args.warehouse != sle.warehouse:
+			self.repost_affected_transaction.add((sle.voucher_type, sle.voucher_no))
 
 	def get_serialized_values(self, sle):
 		from erpnext.stock.serial_batch_bundle import SerialNoValuation
