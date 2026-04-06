@@ -825,7 +825,8 @@ class calculate_taxes_and_totals:
 			discount_amount += total_return_discount
 
 		# validate that discount amount cannot exceed the total before discount
-		if (
+		# only during save (i.e. when `_action` is set)
+		if self.doc.get("_action") and (
 			(grand_total >= 0 and discount_amount > grand_total)
 			or (grand_total < 0 and discount_amount < grand_total)  # returns
 		):
