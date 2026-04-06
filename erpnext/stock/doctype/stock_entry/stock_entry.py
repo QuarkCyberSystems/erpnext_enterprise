@@ -907,6 +907,16 @@ class StockEntry(StockController, SubcontractingInwardController):
 		if not self.get("source_stock_entry"):
 			return
 
+		if self.work_order:
+			source_wo = frappe.db.get_value("Stock Entry", self.source_stock_entry, "work_order")
+			if source_wo and source_wo != self.work_order:
+				frappe.throw(
+					_(
+						"Source Stock Entry {0} belongs to Work Order {1}, not {2}. Please use a manufacture entry from the same Work Order."
+					).format(self.source_stock_entry, source_wo, self.work_order),
+					title=_("Work Order Mismatch"),
+				)
+
 		from erpnext.manufacturing.doctype.work_order.work_order import get_disassembly_available_qty
 
 		available_qty = get_disassembly_available_qty(self.source_stock_entry, self.name)
@@ -2704,7 +2714,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 		sorted_items = sorted(self.items, key=lambda x: x.item_code)
 		if self.purpose == "Manufacture":
 			# ensure finished item at last
-			sorted_items = sorted(sorted_items, key=lambda x: (x.t_warehouse))
+			sorted_items = sorted(sorted_items, key=lambda x: x.t_warehouse)
 
 		idx = 0
 		for row in sorted_items:
