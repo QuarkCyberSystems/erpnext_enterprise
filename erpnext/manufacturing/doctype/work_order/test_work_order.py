@@ -2658,6 +2658,15 @@ class TestWorkOrder(ERPNextTestSuite):
 			)
 
 		# -- BOM-path disassembly (no source_stock_entry, no work_order) --
+
+		make_stock_entry_test_record(
+			item_code=scrap_item,
+			purpose="Material Receipt",
+			target=wo.fg_warehouse,
+			qty=50,
+			basic_rate=10,
+		)
+
 		bom_disassemble_qty = 2
 		bom_se = frappe.get_doc(
 			{
