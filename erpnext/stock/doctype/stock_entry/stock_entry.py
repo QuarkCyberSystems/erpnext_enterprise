@@ -2474,6 +2474,12 @@ class StockEntry(StockController, SubcontractingInwardController):
 				item["to_warehouse"] = ""
 				item["is_finished_item"] = 0
 
+				if item.get("process_loss_per"):
+					item["qty"] -= flt(
+						item["qty"] * (item["process_loss_per"] / 100),
+						self.precision("fg_completed_qty"),
+					)
+
 			self.add_to_stock_entry_detail(secondary_items, bom_no=self.bom_no)
 
 		# Finished goods

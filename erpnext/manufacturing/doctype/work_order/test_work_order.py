@@ -6,7 +6,7 @@ from collections import defaultdict
 
 import frappe
 from frappe.tests import timeout
-from frappe.utils import add_days, add_months, add_to_date, cint, flt, now, today
+from frappe.utils import add_days, add_months, add_to_date, cint, flt, now, nowdate, nowtime, today
 
 from erpnext.manufacturing.doctype.job_card.job_card import JobCardCancelError
 from erpnext.manufacturing.doctype.job_card.job_card import make_stock_entry as make_stock_entry_from_jc
@@ -2656,6 +2656,36 @@ class TestWorkOrder(ERPNextTestSuite):
 				places=3,
 				msg=f"Raw material {bom_item.item_code} qty mismatch",
 			)
+
+		# -- BOM-path disassembly (no source_stock_entry, no work_order) --
+		bom_disassemble_qty = 2
+		bom_se = frappe.get_doc(
+			{
+				"doctype": "Stock Entry",
+				"stock_entry_type": "Disassemble",
+				"purpose": "Disassemble",
+				"from_bom": 1,
+				"bom_no": bom.name,
+				"fg_completed_qty": bom_disassemble_qty,
+				"from_warehouse": wo.fg_warehouse,
+				"to_warehouse": wo.wip_warehouse,
+				"company": wo.company,
+				"posting_date": nowdate(),
+				"posting_time": nowtime(),
+			}
+		)
+		bom_se.get_items()
+		bom_se.save()
+		bom_se.submit()
+
+		bom_scrap_row = next((i for i in bom_se.items if i.item_code == scrap_item), None)
+		self.assertIsNotNone(bom_scrap_row, "Scrap item must appear in BOM-path disassembly")
+		# Without fix 3: qty = 10 * 2 = 20; with fix 3 (process_loss_per=10%): qty = 9 * 2 = 18
+		self.assertEqual(
+			bom_scrap_row.qty,
+			18,
+			f"BOM-path disassembly must apply process_loss_per; expected 18, got {bom_scrap_row.qty}",
+		)
 
 	def test_disassembly_with_additional_rm_not_in_bom(self):
 		"""
