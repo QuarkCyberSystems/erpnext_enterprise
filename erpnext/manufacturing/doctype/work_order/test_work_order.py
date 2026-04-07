@@ -2915,49 +2915,81 @@ class TestWorkOrder(ERPNextTestSuite):
 			status="Not Started",
 		)
 
-		# Stock up RM — batch auto-created on receipt
-		rm_receipt = make_stock_entry_test_record(
-			item_code=rm_item, purpose="Material Receipt", target=wip_wh, qty=18, basic_rate=100
+		# Two separate RM receipts → two distinct batches (batch_1, batch_2)
+		rm_receipt_1 = make_stock_entry_test_record(
+			item_code=rm_item, purpose="Material Receipt", target=wip_wh, qty=6, basic_rate=100
 		)
-		rm_bundle = frappe.db.get_value(
-			"Stock Entry Detail", {"parent": rm_receipt.name, "item_code": rm_item}, "serial_and_batch_bundle"
+		rm_batch_1 = get_batch_from_bundle(
+			frappe.db.get_value(
+				"Stock Entry Detail",
+				{"parent": rm_receipt_1.name, "item_code": rm_item},
+				"serial_and_batch_bundle",
+			)
 		)
-		rm_batch = get_batch_from_bundle(rm_bundle)
 
-		# Pre-create FG batch so we can assign it to the manufacture row
-		fg_batch = make_batch(frappe._dict(item=fg_item))
+		rm_receipt_2 = make_stock_entry_test_record(
+			item_code=rm_item, purpose="Material Receipt", target=wip_wh, qty=6, basic_rate=100
+		)
+		rm_batch_2 = get_batch_from_bundle(
+			frappe.db.get_value(
+				"Stock Entry Detail",
+				{"parent": rm_receipt_2.name, "item_code": rm_item},
+				"serial_and_batch_bundle",
+			)
+		)
 
-		# Manufacture 3 units: assign batches explicitly on RM and FG rows
-		se_manufacture = frappe.get_doc(make_stock_entry(wo.name, "Manufacture", 3))
-		for row in se_manufacture.items:
+		self.assertNotEqual(rm_batch_1, rm_batch_2, "Two receipts must create two distinct RM batches")
+
+		fg_batch_1 = make_batch(frappe._dict(item=fg_item))
+		fg_batch_2 = make_batch(frappe._dict(item=fg_item))
+
+		# Manufacture entry 1 — 3 FG using batch_1 RM/FG
+		se_manufacture_1 = frappe.get_doc(make_stock_entry(wo.name, "Manufacture", 3))
+		for row in se_manufacture_1.items:
 			if row.item_code == rm_item:
-				row.batch_no = rm_batch
+				row.batch_no = rm_batch_1
 				row.use_serial_batch_fields = 1
 			elif row.item_code == fg_item:
-				row.batch_no = fg_batch
+				row.batch_no = fg_batch_1
 				row.use_serial_batch_fields = 1
-		se_manufacture.save()
-		se_manufacture.submit()
+		se_manufacture_1.save()
+		se_manufacture_1.submit()
 
-		# Disassemble 2 of the 3 manufactured units linked to the manufacture SE
+		# Manufacture entry 2 — 3 FG using batch_2 RM/FG
+		se_manufacture_2 = frappe.get_doc(make_stock_entry(wo.name, "Manufacture", 3))
+		for row in se_manufacture_2.items:
+			if row.item_code == rm_item:
+				row.batch_no = rm_batch_2
+				row.use_serial_batch_fields = 1
+			elif row.item_code == fg_item:
+				row.batch_no = fg_batch_2
+				row.use_serial_batch_fields = 1
+		se_manufacture_2.save()
+		se_manufacture_2.submit()
+
+		# Disassemble 2 units from SE_1 only — must use SE_1's batches, not SE_2's
 		disassemble_qty = 2
 		stock_entry = frappe.get_doc(
-			make_stock_entry(wo.name, "Disassemble", disassemble_qty, source_stock_entry=se_manufacture.name)
+			make_stock_entry(
+				wo.name, "Disassemble", disassemble_qty, source_stock_entry=se_manufacture_1.name
+			)
 		)
 		stock_entry.save()
 		stock_entry.submit()
 
-		# FG row: consuming batch from FG warehouse — bundle must use FG batch
+		# FG row: must use fg_batch_1 exclusively (fg_batch_2 must not appear)
 		fg_row = next((i for i in stock_entry.items if i.item_code == fg_item), None)
 		self.assertIsNotNone(fg_row)
 		self.assertTrue(fg_row.serial_and_batch_bundle, "FG row must have a serial_and_batch_bundle")
-		self.assertEqual(get_batch_from_bundle(fg_row.serial_and_batch_bundle), fg_batch)
+		self.assertEqual(get_batch_from_bundle(fg_row.serial_and_batch_bundle), fg_batch_1)
+		self.assertNotEqual(get_batch_from_bundle(fg_row.serial_and_batch_bundle), fg_batch_2)
 
-		# RM row: returning to WIP warehouse — bundle must use RM batch
+		# RM row: must use rm_batch_1 exclusively (rm_batch_2 must not appear)
 		rm_row = next((i for i in stock_entry.items if i.item_code == rm_item), None)
 		self.assertIsNotNone(rm_row)
 		self.assertTrue(rm_row.serial_and_batch_bundle, "RM row must have a serial_and_batch_bundle")
-		self.assertEqual(get_batch_from_bundle(rm_row.serial_and_batch_bundle), rm_batch)
+		self.assertEqual(get_batch_from_bundle(rm_row.serial_and_batch_bundle), rm_batch_1)
+		self.assertNotEqual(get_batch_from_bundle(rm_row.serial_and_batch_bundle), rm_batch_2)
 
 		# RM qty: 2 FG disassembled x 2 RM per FG = 4
 		self.assertAlmostEqual(rm_row.qty, 4.0, places=3)
@@ -2990,55 +3022,94 @@ class TestWorkOrder(ERPNextTestSuite):
 			status="Not Started",
 		)
 
-		# Stock up 6 RM serials — series auto-generates them
-		rm_receipt = make_stock_entry_test_record(
+		# Two separate RM receipts → two disjoint sets of serial numbers
+		rm_receipt_1 = make_stock_entry_test_record(
 			item_code=rm_item, purpose="Material Receipt", target=wip_wh, qty=6, basic_rate=100
 		)
-		rm_bundle = frappe.db.get_value(
-			"Stock Entry Detail", {"parent": rm_receipt.name, "item_code": rm_item}, "serial_and_batch_bundle"
+		rm_serials_1 = get_serial_nos_from_bundle(
+			frappe.db.get_value(
+				"Stock Entry Detail",
+				{"parent": rm_receipt_1.name, "item_code": rm_item},
+				"serial_and_batch_bundle",
+			)
 		)
-		all_rm_serials = get_serial_nos_from_bundle(rm_bundle)
-		self.assertEqual(len(all_rm_serials), 6)
+		self.assertEqual(len(rm_serials_1), 6)
 
-		# Pre-generate 3 FG serial numbers
+		rm_receipt_2 = make_stock_entry_test_record(
+			item_code=rm_item, purpose="Material Receipt", target=wip_wh, qty=6, basic_rate=100
+		)
+		rm_serials_2 = get_serial_nos_from_bundle(
+			frappe.db.get_value(
+				"Stock Entry Detail",
+				{"parent": rm_receipt_2.name, "item_code": rm_item},
+				"serial_and_batch_bundle",
+			)
+		)
+		self.assertEqual(len(rm_serials_2), 6)
+		self.assertFalse(
+			set(rm_serials_1) & set(rm_serials_2), "Two receipts must produce disjoint RM serial sets"
+		)
+
+		# Pre-generate two sets of FG serial numbers
 		series = frappe.db.get_value("Item", fg_item, "serial_no_series")
-		fg_serials = [make_autoname(series) for _ in range(3)]
+		fg_serials_1 = [make_autoname(series) for _ in range(3)]
+		fg_serials_2 = [make_autoname(series) for _ in range(3)]
 
-		# Manufacture 3 units: consume first 6 RM serials, produce 3 FG serials
-		se_manufacture = frappe.get_doc(make_stock_entry(wo.name, "Manufacture", 3))
-		for row in se_manufacture.items:
+		# Manufacture entry 1 — consumes rm_serials_1, produces fg_serials_1
+		se_manufacture_1 = frappe.get_doc(make_stock_entry(wo.name, "Manufacture", 3))
+		for row in se_manufacture_1.items:
 			if row.item_code == rm_item:
-				row.serial_no = "\n".join(all_rm_serials)
+				row.serial_no = "\n".join(rm_serials_1)
 				row.use_serial_batch_fields = 1
 			elif row.item_code == fg_item:
-				row.serial_no = "\n".join(fg_serials)
+				row.serial_no = "\n".join(fg_serials_1)
 				row.use_serial_batch_fields = 1
-		se_manufacture.save()
-		se_manufacture.submit()
+		se_manufacture_1.save()
+		se_manufacture_1.submit()
 
-		# Disassemble 2 of the 3 manufactured units
+		# Manufacture entry 2 — consumes rm_serials_2, produces fg_serials_2
+		se_manufacture_2 = frappe.get_doc(make_stock_entry(wo.name, "Manufacture", 3))
+		for row in se_manufacture_2.items:
+			if row.item_code == rm_item:
+				row.serial_no = "\n".join(rm_serials_2)
+				row.use_serial_batch_fields = 1
+			elif row.item_code == fg_item:
+				row.serial_no = "\n".join(fg_serials_2)
+				row.use_serial_batch_fields = 1
+		se_manufacture_2.save()
+		se_manufacture_2.submit()
+
+		# Disassemble 2 units from SE_1 only — must use SE_1's serials, not SE_2's
 		disassemble_qty = 2
 		stock_entry = frappe.get_doc(
-			make_stock_entry(wo.name, "Disassemble", disassemble_qty, source_stock_entry=se_manufacture.name)
+			make_stock_entry(
+				wo.name, "Disassemble", disassemble_qty, source_stock_entry=se_manufacture_1.name
+			)
 		)
 		stock_entry.save()
 		stock_entry.submit()
 
-		# FG row: 2 serials consumed — must be a subset of the manufacture FG serials
+		# FG row: 2 serials consumed — must be subset of fg_serials_1, disjoint from fg_serials_2
 		fg_row = next((i for i in stock_entry.items if i.item_code == fg_item), None)
 		self.assertIsNotNone(fg_row)
 		self.assertTrue(fg_row.serial_and_batch_bundle, "FG row must have a serial_and_batch_bundle")
 		fg_dasm_serials = get_serial_nos_from_bundle(fg_row.serial_and_batch_bundle)
 		self.assertEqual(len(fg_dasm_serials), disassemble_qty)
-		self.assertTrue(set(fg_dasm_serials).issubset(set(fg_serials)))
+		self.assertTrue(set(fg_dasm_serials).issubset(set(fg_serials_1)))
+		self.assertFalse(
+			set(fg_dasm_serials) & set(fg_serials_2), "Disassembly must not use SE_2's FG serials"
+		)
 
-		# RM row: 4 serials returned (2 FG x 2 RM each) — must be a subset of manufacture RM serials
+		# RM row: 4 serials returned (2 FG x 2 RM each) — subset of rm_serials_1, disjoint from rm_serials_2
 		rm_row = next((i for i in stock_entry.items if i.item_code == rm_item), None)
 		self.assertIsNotNone(rm_row)
 		self.assertTrue(rm_row.serial_and_batch_bundle, "RM row must have a serial_and_batch_bundle")
 		rm_dasm_serials = get_serial_nos_from_bundle(rm_row.serial_and_batch_bundle)
 		self.assertEqual(len(rm_dasm_serials), disassemble_qty * 2)
-		self.assertTrue(set(rm_dasm_serials).issubset(set(all_rm_serials)))
+		self.assertTrue(set(rm_dasm_serials).issubset(set(rm_serials_1)))
+		self.assertFalse(
+			set(rm_dasm_serials) & set(rm_serials_2), "Disassembly must not use SE_2's RM serials"
+		)
 
 	def test_components_alternate_item_for_bom_based_manufacture_entry(self):
 		frappe.db.set_single_value("Manufacturing Settings", "backflush_raw_materials_based_on", "BOM")
