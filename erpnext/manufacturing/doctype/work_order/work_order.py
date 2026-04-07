@@ -2432,14 +2432,7 @@ def make_stock_entry(
 
 
 @frappe.whitelist()
-<<<<<<< HEAD
-<<<<<<< HEAD
-def get_default_warehouse(company):
-=======
-def get_disassembly_available_qty(stock_entry_name: str) -> float:
-=======
 def get_disassembly_available_qty(stock_entry_name: str, current_se_name: str | None = None) -> float:
->>>>>>> 6394dead72 (fix: validate qty that can be disassembled from source stock entry.)
 	se = frappe.db.get_value("Stock Entry", stock_entry_name, ["fg_completed_qty"], as_dict=True)
 	if not se:
 		return 0.0
@@ -2459,8 +2452,7 @@ def get_disassembly_available_qty(stock_entry_name: str, current_se_name: str | 
 
 
 @frappe.whitelist()
-def get_default_warehouse(company: str):
->>>>>>> 68e97808c5 (fix: disassembly prompt with source stock entry field)
+def get_default_warehouse(company):
 	wip, fg, scrap = frappe.get_cached_value(
 		"Company", company, ["default_wip_warehouse", "default_fg_warehouse", "default_scrap_warehouse"]
 	)
