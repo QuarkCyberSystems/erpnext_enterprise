@@ -61,6 +61,7 @@ class JournalEntry(AccountsController):
 		cheque_no: DF.Data | None
 		clearance_date: DF.Date | None
 		company: DF.Link
+		custom_remark: DF.Check
 		difference: DF.Currency
 		due_date: DF.Date | None
 		finance_book: DF.Link | None
@@ -1023,11 +1024,11 @@ class JournalEntry(AccountsController):
 	def create_remarks(self):
 		r = []
 
-		if self.flags.skip_remarks_creation:
+		if self.get("custom_remark"):
 			return
 
-		if self.user_remark:
-			r.append(_("Note: {0}").format(self.user_remark))
+		if self.flags.skip_remarks_creation:
+			return
 
 		if self.cheque_no:
 			if self.cheque_date:
@@ -1135,9 +1136,7 @@ class JournalEntry(AccountsController):
 
 		for d in self.get("accounts"):
 			if d.debit or d.credit or (self.voucher_type == "Exchange Gain Or Loss"):
-				r = [d.user_remark, self.remark]
-				r = [x for x in r if x]
-				remarks = "\n".join(r)
+				remarks = self.remark
 
 				row = {
 					"account": d.account,
@@ -1548,7 +1547,7 @@ def get_against_jv(doctype, txt, searchfield, start, page_len, filters):
 		frappe.qb.from_(JournalEntry)
 		.join(JournalEntryAccount)
 		.on(JournalEntryAccount.parent == JournalEntry.name)
-		.select(JournalEntry.name, JournalEntry.posting_date, JournalEntry.user_remark)
+		.select(JournalEntry.name, JournalEntry.posting_date, JournalEntry.remark)
 		.where(JournalEntryAccount.account == filters.get("account"))
 		.where(JournalEntryAccount.reference_type.isnull() | (JournalEntryAccount.reference_type == ""))
 		.where(JournalEntry.docstatus == 1)
