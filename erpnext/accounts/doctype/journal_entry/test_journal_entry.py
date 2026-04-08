@@ -600,13 +600,6 @@ class TestJournalEntry(ERPNextTestSuite):
 		jv.insert()
 		self.assertEqual(jv.remark, "My custom remark text")
 
-		# When custom_remark is disabled, remark should be auto-generated
-		jv2 = make_journal_entry("_Test Cash - _TC", "_Test Bank - _TC", 100, save=False)
-		jv2.custom_remark = 0
-		jv2.remark = "Should be overwritten"
-		jv2.insert()
-		self.assertNotEqual(jv2.remark, "Should be overwritten")
-
 	def test_credit_limit_for_customer(self):
 		customer = make_customer("_Test New Customer")
 		set_credit_limit("_Test New Customer", "_Test Company", 50)

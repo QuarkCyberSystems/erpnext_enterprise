@@ -1024,10 +1024,10 @@ class JournalEntry(AccountsController):
 	def create_remarks(self):
 		r = []
 
-		if self.get("custom_remark"):
+		if self.flags.skip_remarks_creation:
 			return
 
-		if self.flags.skip_remarks_creation:
+		if self.get("custom_remark"):
 			return
 
 		if self.cheque_no:
@@ -1136,7 +1136,9 @@ class JournalEntry(AccountsController):
 
 		for d in self.get("accounts"):
 			if d.debit or d.credit or (self.voucher_type == "Exchange Gain Or Loss"):
-				remarks = self.remark
+				r = [d.user_remark, self.remark]
+				r = [x for x in r if x]
+				remarks = "\n".join(r)
 
 				row = {
 					"account": d.account,

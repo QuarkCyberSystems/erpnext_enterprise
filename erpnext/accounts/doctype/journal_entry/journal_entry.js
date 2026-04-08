@@ -669,6 +669,9 @@ $.extend(erpnext.journal_entry, {
 			if (values.remark) {
 				frm.set_value("custom_remark", 1);
 				frm.set_value("remark", values.remark);
+			} else {
+				frm.set_value("custom_remark", 0);
+				frm.set_value("remark", "");
 			}
 
 			// clear table is used because there might've been an error while adding child
