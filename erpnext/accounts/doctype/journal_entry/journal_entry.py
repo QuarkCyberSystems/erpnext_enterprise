@@ -1537,18 +1537,7 @@ def get_payment_entry(ref_doc, args):
 
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
-<<<<<<< HEAD
 def get_against_jv(doctype, txt, searchfield, start, page_len, filters):
-=======
-def get_against_jv(
-	doctype: str,
-	txt: str,
-	searchfield: str,
-	start: int,
-	page_len: int,
-	filters: dict,
-):
->>>>>>> c133f7156d (fix: replace raw SQL with qb in get_against_jv to prevent SQL injection)
 	if not frappe.db.has_column("Journal Entry", searchfield):
 		return []
 
