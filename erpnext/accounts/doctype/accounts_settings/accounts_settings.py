@@ -44,6 +44,8 @@ class AccountsSettings(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		from erpnext.accounts.doctype.repost_allowed_types.repost_allowed_types import RepostAllowedTypes
+
 		add_taxes_from_item_tax_template: DF.Check
 		add_taxes_from_taxes_and_charges_template: DF.Check
 		allow_multi_currency_invoices_against_single_party_account: DF.Check
@@ -86,6 +88,7 @@ class AccountsSettings(Document):
 		receivable_payable_fetch_method: DF.Literal["Buffered Cursor", "UnBuffered Cursor", "Raw SQL"]
 		receivable_payable_remarks_length: DF.Int
 		reconciliation_queue_size: DF.Int
+		repost_allowed_types: DF.Table[RepostAllowedTypes]
 		role_allowed_to_over_bill: DF.Link | None
 		role_to_notify_on_depreciation_failure: DF.Link | None
 		role_to_override_stop_action: DF.Link | None
