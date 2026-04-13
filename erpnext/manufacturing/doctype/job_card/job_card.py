@@ -71,7 +71,9 @@ class JobCard(Document):
 		from erpnext.manufacturing.doctype.job_card_scheduled_time.job_card_scheduled_time import (
 			JobCardScheduledTime,
 		)
-		from erpnext.manufacturing.doctype.job_card_scrap_item.job_card_scrap_item import JobCardScrapItem
+		from erpnext.manufacturing.doctype.job_card_secondary_item.job_card_secondary_item import (
+			JobCardSecondaryItem,
+		)
 		from erpnext.manufacturing.doctype.job_card_time_log.job_card_time_log import JobCardTimeLog
 
 		actual_end_date: DF.Datetime | None
@@ -110,7 +112,7 @@ class JobCard(Document):
 		remarks: DF.SmallText | None
 		requested_qty: DF.Float
 		scheduled_time_logs: DF.Table[JobCardScheduledTime]
-		scrap_items: DF.Table[JobCardScrapItem]
+		secondary_items: DF.Table[JobCardSecondaryItem]
 		semi_fg_bom: DF.Link | None
 		sequence_id: DF.Int
 		serial_and_batch_bundle: DF.Link | None
@@ -199,6 +201,7 @@ class JobCard(Document):
 
 	def set_manufactured_qty(self):
 		table_name = "Stock Entry"
+		child_name = "Stock Entry Detail"
 		if self.is_subcontracted:
 			table_name = "Subcontracting Receipt Item"
 
@@ -208,8 +211,13 @@ class JobCard(Document):
 		if self.is_subcontracted:
 			query = query.select(Sum(table.qty))
 		else:
-			query = query.select(Sum(table.fg_completed_qty))
-			query = query.where(table.purpose == "Manufacture")
+			child = frappe.qb.DocType(child_name)
+			query = (
+				query.join(child)
+				.on(table.name == child.parent)
+				.select(Sum(child.transfer_qty))
+				.where((table.purpose == "Manufacture") & (child.is_finished_item == 1))
+			)
 
 		qty = query.run()[0][0] or 0.0
 		self.manufactured_qty = flt(qty)
@@ -267,25 +275,35 @@ class JobCard(Document):
 				row.sub_operation = row.operation
 				self.append("sub_operations", row)
 
-	def set_scrap_items(self):
-		if not self.semi_fg_bom:
+	def set_secondary_items(self):
+		if not self.semi_fg_bom and not self.bom_no:
 			return
 
 		items_dict = get_bom_items_as_dict(
-			self.semi_fg_bom, self.company, qty=self.for_quantity, fetch_exploded=0, fetch_scrap_items=1
+			self.semi_fg_bom or self.bom_no,
+			self.company,
+			qty=self.for_quantity,
+			fetch_exploded=0,
+			fetch_secondary_items=1,
 		)
 		for item_code, values in items_dict.items():
 			values = frappe._dict(values)
+			secondary_item = {
+				"item_code": item_code,
+				"stock_qty": values.qty,
+				"item_name": values.item_name,
+				"stock_uom": values.stock_uom,
+				"type": values.type,
+				"bom_secondary_item": values.name,
+			}
 
-			self.append(
-				"scrap_items",
-				{
-					"item_code": item_code,
-					"stock_qty": values.qty,
-					"item_name": values.item_name,
-					"stock_uom": values.stock_uom,
-				},
-			)
+			if not values.is_legacy:
+				secondary_item["stock_qty"] -= flt(
+					secondary_item["stock_qty"] * (values.process_loss_per / 100),
+					self.precision("for_quantity"),
+				)
+
+			self.append("secondary_items", secondary_item)
 
 	def validate_time_logs(self, save=False):
 		self.total_time_in_mins = 0.0
@@ -770,27 +788,27 @@ class JobCard(Document):
 			["action_if_quality_inspection_is_not_submitted", "action_if_quality_inspection_is_rejected"],
 		)
 
-		item = self.finished_good or self.production_item
-		bom_inspection_required = frappe.db.get_value(
-			"BOM", self.semi_fg_bom or self.bom_no, "inspection_required"
+		bom_inspection_required = frappe.get_value("BOM", self.bom_no, "inspection_required")
+		operation_inspection_required = frappe.get_value(
+			"Work Order Operation", self.operation_id, "quality_inspection_required"
 		)
-		if bom_inspection_required:
+		if bom_inspection_required and operation_inspection_required:
 			if not self.quality_inspection:
 				frappe.throw(
 					_(
 						"Quality Inspection is required for the item {0} before completing the job card {1}"
-					).format(get_link_to_form("Item", item), bold(self.name))
+					).format(get_link_to_form("Item", self.finished_good), bold(self.name))
 				)
-			qa_status, docstatus = frappe.db.get_value(
+
+			qa_status, docstatus = frappe.get_value(
 				"Quality Inspection", self.quality_inspection, ["status", "docstatus"]
 			)
-
 			if docstatus != 1:
 				if action_submit == "Stop":
 					frappe.throw(
 						_("Quality Inspection {0} is not submitted for the item: {1}").format(
 							get_link_to_form("Quality Inspection", self.quality_inspection),
-							get_link_to_form("Item", item),
+							get_link_to_form("Item", self.finished_good),
 						),
 						title=_("Inspection Submission"),
 						exc=QualityInspectionNotSubmittedError,
@@ -799,7 +817,7 @@ class JobCard(Document):
 					frappe.msgprint(
 						_("Quality Inspection {0} is not submitted for the item: {1}").format(
 							get_link_to_form("Quality Inspection", self.quality_inspection),
-							get_link_to_form("Item", item),
+							get_link_to_form("Item", self.finished_good),
 						),
 						alert=True,
 						indicator="orange",
@@ -809,7 +827,7 @@ class JobCard(Document):
 					frappe.throw(
 						_("Quality Inspection {0} is rejected for the item: {1}").format(
 							get_link_to_form("Quality Inspection", self.quality_inspection),
-							get_link_to_form("Item", item),
+							get_link_to_form("Item", self.finished_good),
 						),
 						title=_("Inspection Rejected"),
 						exc=QualityInspectionRejectedError,
@@ -818,7 +836,7 @@ class JobCard(Document):
 					frappe.msgprint(
 						_("Quality Inspection {0} is rejected for the item: {1}").format(
 							get_link_to_form("Quality Inspection", self.quality_inspection),
-							get_link_to_form("Item", item),
+							get_link_to_form("Item", self.finished_good),
 						),
 						alert=True,
 						indicator="orange",
@@ -1181,7 +1199,7 @@ class JobCard(Document):
 	def set_status(self, update_status=False):
 		self.status = {0: "Open", 1: "Submitted", 2: "Cancelled"}[self.docstatus or 0]
 		if self.finished_good and self.docstatus == 1:
-			if self.manufactured_qty >= self.for_quantity:
+			if (self.manufactured_qty + self.process_loss_qty) >= self.for_quantity:
 				self.status = "Completed"
 			elif self.transferred_qty > 0 or self.skip_material_transfer:
 				self.status = "Work In Progress"
@@ -1456,12 +1474,24 @@ class JobCard(Document):
 			)
 
 	@frappe.whitelist()
-	def make_stock_entry_for_semi_fg_item(self, auto_submit=False):
+	def make_stock_entry_for_semi_fg_item(self, auto_submit: bool = False):
+		def get_consumed_process_loss():
+			table = frappe.qb.DocType("Stock Entry")
+			query = (
+				frappe.qb.from_(table)
+				.select(Sum(table.process_loss_qty))
+				.where(
+					(table.purpose == "Manufacture") & (table.job_card == self.name) & (table.docstatus == 1)
+				)
+			)
+			return query.run()[0][0] or 0
+
 		from erpnext.stock.doctype.stock_entry_type.stock_entry_type import ManufactureEntry
 
 		ste = ManufactureEntry(
 			{
 				"for_quantity": self.for_quantity - self.manufactured_qty,
+				"process_loss_qty": max(self.process_loss_qty - get_consumed_process_loss(), 0),
 				"job_card": self.name,
 				"skip_material_transfer": self.skip_material_transfer,
 				"backflush_from_wip_warehouse": self.backflush_from_wip_warehouse,
@@ -1481,9 +1511,10 @@ class JobCard(Document):
 		wo_doc = frappe.get_doc("Work Order", self.work_order)
 		add_additional_cost(ste.stock_entry, wo_doc, self)
 
-		ste.stock_entry.set_scrap_items()
+		ste.stock_entry.pro_doc = frappe.get_doc("Work Order", self.work_order)
+		ste.stock_entry.set_secondary_items_from_job_card()
 		for row in ste.stock_entry.items:
-			if row.is_scrap_item and not row.t_warehouse:
+			if (row.type or row.is_legacy_scrap_item) and not row.t_warehouse:
 				row.t_warehouse = self.target_warehouse
 
 		if auto_submit:

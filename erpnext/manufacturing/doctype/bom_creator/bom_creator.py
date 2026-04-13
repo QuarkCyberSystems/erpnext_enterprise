@@ -203,7 +203,9 @@ class BOMCreator(Document):
 					self,
 				)
 			else:
-				row.rate = flt(self.get_raw_material_cost(row.item_code) * row.conversion_factor)
+				row.rate = flt(
+					self.get_raw_material_cost(row.item_code) / flt(row.qty or 1) * row.conversion_factor
+				)
 
 			row.amount = flt(row.rate) * flt(row.qty)
 			amount += flt(row.amount)
@@ -356,7 +358,6 @@ class BOMCreator(Document):
 				{
 					"bom_no": bom_no,
 					"allow_alternative_item": 1,
-					"allow_scrap_items": not item.get("is_phantom_item"),
 					"include_item_in_manufacturing": 1,
 				}
 			)
