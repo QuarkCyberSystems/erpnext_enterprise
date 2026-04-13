@@ -310,11 +310,8 @@ def set_default_print_formats():
 		"Purchase Order": "Purchase Order with Item Image",
 		"Purchase Invoice": "Purchase Invoice with Item Image",
 		"POS Invoice": "POS Invoice with Item Image",
-<<<<<<< HEAD
-=======
 		"Quotation": "Quotation with Item Image",
 		"Request for Quotation": "Request for Quotation with Item Image",
->>>>>>> 4307cd5b1c (feat: default print format for Quotation)
 	}
 
 	for doctype, print_format in default_map.items():
