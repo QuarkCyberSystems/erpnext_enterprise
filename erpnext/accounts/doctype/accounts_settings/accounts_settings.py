@@ -10,6 +10,9 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.model.document import Document
 from frappe.utils import cint
 
+from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
+	get_accounting_dimensions,
+)
 from erpnext.accounts.utils import sync_auto_reconcile_config
 
 SELLING_DOCTYPES = [
@@ -143,6 +146,7 @@ class AccountsSettings(Document):
 			frappe.clear_cache()
 
 		self.validate_and_sync_auto_reconcile_config()
+		self.update_property_for_accounting_dimension()
 
 	def validate_stale_days(self):
 		if not self.allow_stale and cint(self.stale_days) <= 0:
@@ -189,6 +193,17 @@ class AccountsSettings(Document):
 				title=_("Auto Tax Settings Error"),
 			)
 
+	def update_property_for_accounting_dimension(self):
+		doctypes = [entry.document_type for entry in self.repost_allowed_types]
+		if not doctypes:
+			return
+
+		from erpnext.accounts.doctype.repost_accounting_ledger.repost_accounting_ledger import get_child_docs
+
+		doctypes += get_child_docs(doctypes)
+
+		set_allow_on_submit_for_dimension_fields(doctypes)
+
 	@frappe.whitelist()
 	def drop_ar_sql_procedures(self):
 		from erpnext.accounts.report.accounts_receivable.accounts_receivable import InitSQLProceduresForAR
@@ -228,3 +243,12 @@ def create_property_setter_for_hiding_field(doctype, field_name, hide):
 		"Check",
 		validate_fields_for_doctype=False,
 	)
+
+
+def set_allow_on_submit_for_dimension_fields(doctypes):
+	for dt in doctypes:
+		meta = frappe.get_meta(dt)
+		for dimension in get_accounting_dimensions():
+			df = meta.get_field(dimension)
+			if df and not df.allow_on_submit:
+				frappe.db.set_value("Custom Field", dt + "-" + dimension, "allow_on_submit", 1)
