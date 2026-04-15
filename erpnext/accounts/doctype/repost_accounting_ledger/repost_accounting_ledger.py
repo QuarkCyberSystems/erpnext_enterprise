@@ -219,7 +219,6 @@ def get_allowed_types_from_settings(child_doc: bool = False):
 		x.document_type
 		for x in frappe.db.get_all(
 			"Repost Allowed Types",
-			filters={"allowed": True},
 			fields=["document_type"],
 			distinct=True,
 		)
@@ -288,8 +287,6 @@ def validate_docs_for_voucher_types(doc_voucher_types):
 @frappe.whitelist()
 @frappe.validate_and_sanitize_search_inputs
 def get_repost_allowed_types(doctype, txt, searchfield, start, page_len, filters):
-	filters = {"allowed": True}
-
 	if txt:
 		filters.update({"document_type": ("like", f"%{txt}%")})
 
