@@ -91,7 +91,12 @@ frappe.ui.form.on("Journal Entry", {
 			);
 		}
 
-		if (frm.doc.docstatus == 1) {
+		if (
+			frm.doc.docstatus == 1 &&
+			!frm.doc.is_reversal &&
+			!frm.doc.is_reversed &&
+			!frm.doc.reversal_of
+		) {
 			frm.add_custom_button(
 				__("Reverse Journal Entry"),
 				function () {
@@ -99,6 +104,12 @@ frappe.ui.form.on("Journal Entry", {
 				},
 				__("Actions")
 			);
+		}
+
+		erpnext.journal_entry.show_reversal_indicators(frm);
+
+		if ((frm.doc.is_reversal || frm.doc.reversal_of) && frm.doc.docstatus === 0) {
+			erpnext.journal_entry.lock_reversal_fields(frm);
 		}
 
 		if (frm.doc.__islocal) {
@@ -790,6 +801,67 @@ $.extend(erpnext.journal_entry, {
 		row.party = null;
 		row.bank_account = null;
 
+		frm.refresh_field("accounts");
+	},
+	show_reversal_indicators: function (frm) {
+		if (frm.doc.is_reversed && frm.doc.reversed_by) {
+			frm.dashboard.add_indicator(
+				__("Reversed by {0}", [
+					`<a href="/app/journal-entry/${frm.doc.reversed_by}">${frm.doc.reversed_by}</a>`,
+				]),
+				"orange"
+			);
+		}
+		if (frm.doc.reversal_of) {
+			frm.dashboard.add_indicator(
+				__("Reversal of {0}", [
+					`<a href="/app/journal-entry/${frm.doc.reversal_of}">${frm.doc.reversal_of}</a>`,
+				]),
+				"blue"
+			);
+		}
+	},
+	lock_reversal_fields: function (frm) {
+		const header_fields = [
+			"voucher_type",
+			"company",
+			"multi_currency",
+			"cheque_no",
+			"cheque_date",
+		];
+		header_fields.forEach(function (field) {
+			frm.set_df_property(field, "read_only", 1);
+		});
+
+		const accounts_grid = frm.fields_dict.accounts && frm.fields_dict.accounts.grid;
+		if (accounts_grid) {
+			accounts_grid.cannot_add_rows = true;
+			accounts_grid.cannot_delete_rows = true;
+			accounts_grid.static_rows = true;
+			const locked_row_fields = [
+				"account",
+				"party_type",
+				"party",
+				"debit_in_account_currency",
+				"credit_in_account_currency",
+				"reference_type",
+				"reference_name",
+				"account_currency",
+				"exchange_rate",
+			];
+			locked_row_fields.forEach(function (field) {
+				const df = accounts_grid.get_docfield(field);
+				if (df) {
+					df.read_only = 1;
+				}
+			});
+			if (frm.doc.respect_cost_center_allocation) {
+				const cc_df = accounts_grid.get_docfield("cost_center");
+				if (cc_df) {
+					cc_df.read_only = 1;
+				}
+			}
+		}
 		frm.refresh_field("accounts");
 	},
 });
