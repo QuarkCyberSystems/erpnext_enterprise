@@ -57,6 +57,10 @@
   "inter_company_journal_entry_reference",
   "process_deferred_accounting",
   "reversal_of",
+  "reversed_by",
+  "is_reversed",
+  "is_reversal",
+  "respect_cost_center_allocation",
   "payment_order",
   "stock_entry",
   "printing_settings",
@@ -537,6 +541,41 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.docstatus && doc.is_reversed",
+   "fieldname": "reversed_by",
+   "fieldtype": "Link",
+   "label": "Reversed By",
+   "no_copy": 1,
+   "options": "Journal Entry",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_reversed",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Reversed",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_reversal",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Is Reversal Entry",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.is_reversal",
+   "description": "When checked, the reversal uses the same cost centers as the original entry. When unchecked, the reversal re-resolves cost center allocations active at its posting date via the Cost Center Allocation setup.",
+   "fieldname": "respect_cost_center_allocation",
+   "fieldtype": "Check",
+   "label": "Respect Cost Center Allocation"
+  },
+  {
    "fieldname": "process_deferred_accounting",
    "fieldtype": "Link",
    "label": "Process Deferred Accounting",
@@ -678,7 +717,7 @@
    "table_fieldname": "payment_entries"
   }
  ],
- "modified": "2026-04-08 14:19:30.870894",
+ "modified": "2026-04-19 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Journal Entry",
