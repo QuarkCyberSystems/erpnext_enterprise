@@ -2537,14 +2537,12 @@ class StockEntry(StockController, SubcontractingInwardController):
 			frappe.throw(_("Posting date and posting time is mandatory"))
 
 		self.set_work_order_details()
-		self.flags.backflush_based_on = frappe.db.get_single_value(
+		backflush_based_on = frappe.db.get_single_value(
 			"Manufacturing Settings", "backflush_raw_materials_based_on"
 		)
 
 		if self.bom_no:
-			backflush_based_on = frappe.db.get_single_value(
-				"Manufacturing Settings", "backflush_raw_materials_based_on"
-			)
+			backflush_based_on = self.get_backflush_based_on()
 
 			if self.purpose in [
 				"Material Issue",
@@ -2569,7 +2567,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 						or self.purpose == "Material Consumption for Manufacture"
 					)
 					and not self.pro_doc.skip_transfer
-					and self.flags.backflush_based_on == "Material Transferred for Manufacture"
+					and backflush_based_on == "Material Transferred for Manufacture"
 				):
 					self.add_transfered_raw_materials_in_items()
 
@@ -2579,7 +2577,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 						self.purpose == "Manufacture"
 						or self.purpose == "Material Consumption for Manufacture"
 					)
-					and self.flags.backflush_based_on == "BOM"
+					and backflush_based_on == "BOM"
 					and frappe.db.get_single_value("Manufacturing Settings", "material_consumption") == 1
 				):
 					self.get_unconsumed_raw_materials()
@@ -2649,8 +2647,7 @@ class StockEntry(StockController, SubcontractingInwardController):
 
 			if (
 				self.purpose not in ["Material Transfer for Manufacture"]
-				and frappe.db.get_single_value("Manufacturing Settings", "backflush_raw_materials_based_on")
-				!= "BOM"
+				and self.get_backflush_based_on() != "BOM"
 				and not skip_transfer
 			):
 				return
@@ -2726,6 +2723,11 @@ class StockEntry(StockController, SubcontractingInwardController):
 			idx += 1
 			row.idx = idx
 		self.set("items", sorted_items)
+
+	def get_backflush_based_on(self):
+		from erpnext.manufacturing.doctype.bom.bom import get_backflush_based_on
+
+		return get_backflush_based_on(self.bom_no)
 
 	def get_available_reserved_materials(self):
 		reserved_entries = self.get_reserved_materials()
