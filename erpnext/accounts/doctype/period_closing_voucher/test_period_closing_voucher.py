@@ -18,9 +18,6 @@ class TestPeriodClosingVoucher(ERPNextTestSuite):
 		frappe.db.set_single_value("Accounts Settings", "use_legacy_controller_for_pcv", 1)
 
 	def test_closing_entry(self):
-		frappe.db.sql("delete from `tabGL Entry` where company='Test PCV Company'")
-		frappe.db.sql("delete from `tabPeriod Closing Voucher` where company='Test PCV Company'")
-
 		company = create_company()
 		cost_center = create_cost_center("Test Cost Center 1")
 
@@ -70,9 +67,6 @@ class TestPeriodClosingVoucher(ERPNextTestSuite):
 		self.assertEqual(pcv_gle, expected_gle)
 
 	def test_cost_center_wise_posting(self):
-		frappe.db.sql("delete from `tabGL Entry` where company='Test PCV Company'")
-		frappe.db.sql("delete from `tabPeriod Closing Voucher` where company='Test PCV Company'")
-
 		company = create_company()
 		surplus_account = create_account()
 
@@ -136,9 +130,6 @@ class TestPeriodClosingVoucher(ERPNextTestSuite):
 		)
 
 	def test_period_closing_with_finance_book_entries(self):
-		frappe.db.sql("delete from `tabGL Entry` where company='Test PCV Company'")
-		frappe.db.sql("delete from `tabPeriod Closing Voucher` where company='Test PCV Company'")
-
 		company = create_company()
 		surplus_account = create_account()
 		cost_center = create_cost_center("Test Cost Center 1")
@@ -190,9 +181,6 @@ class TestPeriodClosingVoucher(ERPNextTestSuite):
 		self.assertSequenceEqual(pcv_gle, expected_gle)
 
 	def test_gl_entries_restrictions(self):
-		frappe.db.sql("delete from `tabGL Entry` where company='Test PCV Company'")
-		frappe.db.sql("delete from `tabPeriod Closing Voucher` where company='Test PCV Company'")
-
 		company = create_company()
 		cost_center = create_cost_center("Test Cost Center 1")
 
@@ -213,10 +201,6 @@ class TestPeriodClosingVoucher(ERPNextTestSuite):
 		self.assertRaises(frappe.ValidationError, jv1.submit)
 
 	def test_closing_balance_with_dimensions_and_test_reposting_entry(self):
-		frappe.db.sql("delete from `tabGL Entry` where company='Test PCV Company'")
-		frappe.db.sql("delete from `tabPeriod Closing Voucher` where company='Test PCV Company'")
-		frappe.db.sql("delete from `tabAccount Closing Balance` where company='Test PCV Company'")
-
 		company = create_company()
 		cost_center1 = create_cost_center("Test Cost Center 1")
 		cost_center2 = create_cost_center("Test Cost Center 2")
