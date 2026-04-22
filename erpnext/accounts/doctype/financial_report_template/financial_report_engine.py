@@ -527,11 +527,9 @@ class FinancialQueryBuilder:
 		if last_closing_voucher:
 			closing_voucher = last_closing_voucher[0]
 			closing_data = self._get_closing_balances(accounts, closing_voucher.name)
+			self.ignore_opening_entries = True  # Else it will double count
 
-			if sum(closing_data.values()) != 0.0:
-				# opening in current period
-				self.ignore_opening_entries = True
-				return self._rebase_closing_balances(closing_data, closing_voucher.period_end_date)
+			return self._rebase_closing_balances(closing_data, closing_voucher.period_end_date)
 
 		return self._get_opening_balances_from_gl(accounts)
 
