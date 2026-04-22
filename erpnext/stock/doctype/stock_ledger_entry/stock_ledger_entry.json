@@ -18,6 +18,9 @@
   "voucher_type",
   "voucher_no",
   "voucher_detail_no",
+  "against_adjustment_voucher_type",
+  "against_adjustment_voucher",
+  "repost_item_valuation",
   "serial_and_batch_bundle",
   "dependant_sle_voucher_detail_no",
   "section_break_11",
@@ -149,6 +152,30 @@
    "read_only": 1,
    "search_index": 1,
    "width": "150px"
+  },
+  {
+   "fieldname": "against_adjustment_voucher_type",
+   "fieldtype": "Link",
+   "label": "Against Adjustment Voucher Type",
+   "no_copy": 1,
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "against_adjustment_voucher",
+   "fieldtype": "Dynamic Link",
+   "label": "Against Adjustment Voucher",
+   "no_copy": 1,
+   "options": "against_adjustment_voucher_type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "repost_item_valuation",
+   "fieldtype": "Link",
+   "label": "Repost Item Valuation",
+   "no_copy": 1,
+   "options": "Repost Item Valuation",
+   "read_only": 1
   },
   {
    "fieldname": "actual_qty",
@@ -361,7 +388,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-10-04 09:59:15.546556",
+ "modified": "2026-04-21 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Stock",
  "name": "Stock Ledger Entry",

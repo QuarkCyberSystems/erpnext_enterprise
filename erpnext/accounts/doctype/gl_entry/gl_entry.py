@@ -37,6 +37,8 @@ class GLEntry(Document):
 		account: DF.Link | None
 		account_currency: DF.Link | None
 		against: DF.Text | None
+		against_adjustment_voucher: DF.DynamicLink | None
+		against_adjustment_voucher_type: DF.Link | None
 		against_voucher: DF.DynamicLink | None
 		against_voucher_type: DF.Link | None
 		company: DF.Link | None
@@ -52,6 +54,7 @@ class GLEntry(Document):
 		due_date: DF.Date | None
 		finance_book: DF.Link | None
 		fiscal_year: DF.Link | None
+		is_adjustment_entry: DF.Check
 		is_advance: DF.Literal["No", "Yes"]
 		is_cancelled: DF.Check
 		is_opening: DF.Literal["No", "Yes"]
@@ -61,6 +64,7 @@ class GLEntry(Document):
 		project: DF.Link | None
 		remarks: DF.Text | None
 		reporting_currency_exchange_rate: DF.Float
+		repost_item_valuation: DF.Link | None
 		to_rename: DF.Check
 		transaction_currency: DF.Link | None
 		transaction_date: DF.Date | None
