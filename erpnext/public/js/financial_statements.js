@@ -64,7 +64,7 @@ erpnext.financial_statements = {
 		const isPeriodColumn = periodKeys.includes(baseName);
 
 		return {
-			isAccount: baseName === erpnext.financial_statements.name_field,
+			isAccount: baseName === "account", // DO NOT USE `name_field` ! This can be overridden in some reports!
 			isPeriod: isPeriodColumn,
 			segmentIndex: valueMatch && valueMatch[1] ? parseInt(valueMatch[1]) : null,
 			fieldname: baseName,
