@@ -207,6 +207,21 @@ class FormattingRule:
 # ============================================================================
 
 
+FILTER_LABELS = {
+	"report_template": _("Report Template"),
+	"filter_based_on": _("Filter Based On"),
+	"period_start_date": _("Start Date"),
+	"period_end_date": _("End Date"),
+	"from_fiscal_year": _("Start Year"),
+	"to_fiscal_year": _("End Year"),
+}
+
+REQUIRED_FILTERS_BY_BASIS = {
+	"Date Range": ("period_start_date", "period_end_date"),
+	"Fiscal Year": ("from_fiscal_year", "to_fiscal_year"),
+}
+
+
 class FinancialReportEngine:
 	def execute(self, filters: dict[str, Any]) -> tuple[list[dict], list[dict]]:
 		"""Execute the complete report generation"""
@@ -226,14 +241,24 @@ class FinancialReportEngine:
 		return context.get_result()
 
 	def _validate_filters(self, filters: dict[str, Any]) -> None:
-		required_filters = ["report_template", "period_start_date", "period_end_date"]
+		required_filters = ["report_template", "filter_based_on"]
+		required_filters.extend(REQUIRED_FILTERS_BY_BASIS.get(filters.get("filter_based_on"), ()))
 
 		for filter_key in required_filters:
 			if not filters.get(filter_key):
-				frappe.throw(_("Missing required filter: {0}").format(filter_key))
+				frappe.throw(
+					title=_("Missing Required Filter"),
+					msg=_("Missing required filter: {0}").format(
+						frappe.bold(FILTER_LABELS.get(filter_key, filter_key))
+					),
+				)
 
 		if filters.get("presentation_currency"):
-			frappe.msgprint(_("Currency filters are currently unsupported in Custom Financial Report."))
+			frappe.msgprint(
+				title=_("Unsupported Feature"),
+				msg=_("Currency filters are currently unsupported in Custom Financial Report."),
+				indicator="orange",
+			)
 
 		# Margin view is dependent on first row being an income account. Hence not supported.
 		# Way to implement this would be using calculated rows with formulas.
