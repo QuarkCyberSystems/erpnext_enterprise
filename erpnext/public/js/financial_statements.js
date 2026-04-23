@@ -422,16 +422,16 @@ function get_filters() {
 			label: __("Start Year"),
 			fieldtype: "Link",
 			options: "Fiscal Year",
-			reqd: 1,
 			depends_on: "eval:doc.filter_based_on == 'Fiscal Year'",
+			mandatory_depends_on: "eval:doc.filter_based_on == 'Fiscal Year'",
 		},
 		{
 			fieldname: "to_fiscal_year",
 			label: __("End Year"),
 			fieldtype: "Link",
 			options: "Fiscal Year",
-			reqd: 1,
 			depends_on: "eval:doc.filter_based_on == 'Fiscal Year'",
+			mandatory_depends_on: "eval:doc.filter_based_on == 'Fiscal Year'",
 		},
 		{
 			fieldname: "periodicity",
