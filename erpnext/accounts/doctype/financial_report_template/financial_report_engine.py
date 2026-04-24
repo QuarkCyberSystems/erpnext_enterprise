@@ -627,6 +627,8 @@ class FinancialQueryBuilder:
 			"Accounts Settings", "ignore_is_opening_check_for_reporting"
 		)
 		if self.ignore_opening_entries and not ignore_is_opening:
+			# This filter here applies to all accounts (BS & PL)
+			# However, in legacy query, this filter only applies to BS accounts
 			query = query.where(gl_table.is_opening == "No")
 
 		# Add period-specific columns
