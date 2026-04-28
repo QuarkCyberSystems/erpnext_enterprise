@@ -708,11 +708,18 @@ class FinancialQueryBuilder:
 				account_data.unaccumulate_values()
 
 	def _apply_standard_filters(self, query, table, doctype: str = "GL Entry"):
-		if self.filters.get("ignore_closing_entries"):
-			if doctype == "GL Entry":
-				query = query.where(table.voucher_type != "Period Closing Voucher")
-			else:
-				query = query.where(table.is_period_closing_voucher_entry == 0)
+		# Exclude PCV-generated entries except those posted to a closing-account-head
+		# so BS retained earnings survive while P&L reversal entries are filtered out
+		pcv = frappe.qb.DocType("Period Closing Voucher")
+		closing_heads = frappe.qb.from_(pcv).select(pcv.closing_account_head).where(pcv.docstatus == 1)
+
+		if doctype == "GL Entry":
+			is_pcv = table.voucher_type == "Period Closing Voucher"
+		else:
+			# Account Closing Balance
+			is_pcv = table.is_period_closing_voucher_entry == 1
+
+		query = query.where(~is_pcv | table.account.isin(closing_heads))
 
 		if self.filters.get("project"):
 			projects = self.filters.get("project")
