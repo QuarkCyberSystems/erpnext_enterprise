@@ -492,6 +492,7 @@ class FinancialQueryBuilder:
 		self.periods = periods
 		self.company = filters.get("company")
 		self.account_meta = {}  # {name: {account_name, account_number}}
+		self.ignore_opening_entries = False
 
 	def fetch_account_balances(self, accounts: list[dict]) -> dict[str, AccountData]:
 		"""
@@ -529,6 +530,8 @@ class FinancialQueryBuilder:
 		"""
 		Return opening balances for *all accounts* defaulting to zero.
 		"""
+		self.ignore_opening_entries = False
+
 		if frappe.get_single_value("Accounts Settings", "ignore_account_closing_balance"):
 			return self._get_opening_balances_from_gl(accounts)
 
@@ -548,9 +551,9 @@ class FinancialQueryBuilder:
 		if last_closing_voucher:
 			closing_voucher = last_closing_voucher[0]
 			closing_data = self._get_closing_balances(accounts, closing_voucher.name)
+			self.ignore_opening_entries = True  # Else it will double count
 
-			if sum(closing_data.values()) != 0.0:
-				return self._rebase_closing_balances(closing_data, closing_voucher.period_end_date)
+			return self._rebase_closing_balances(closing_data, closing_voucher.period_end_date)
 
 		return self._get_opening_balances_from_gl(accounts)
 
@@ -644,7 +647,12 @@ class FinancialQueryBuilder:
 			.groupby(gl_table.account)
 		)
 
-		if not frappe.get_single_value("Accounts Settings", "ignore_is_opening_check_for_reporting"):
+		ignore_is_opening = frappe.get_single_value(
+			"Accounts Settings", "ignore_is_opening_check_for_reporting"
+		)
+		if self.ignore_opening_entries and not ignore_is_opening:
+			# This filter here applies to all accounts (BS & PL)
+			# However, in legacy query, this filter only applies to BS accounts
 			query = query.where(gl_table.is_opening == "No")
 
 		# Add period-specific columns

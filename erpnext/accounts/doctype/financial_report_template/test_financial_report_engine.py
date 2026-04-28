@@ -1953,6 +1953,159 @@ class TestFinancialQueryBuilder(FinancialReportTemplateTestCase):
 
 			jv_2023.cancel()
 
+	def test_opening_entries_roll_into_opening_after_period_closing(self):
+		"""
+		Sequence:
+		    1. is_opening JV of 3000 in current year (FY 2024)
+		    2. is_opening JV of 5000 in next year (FY 2025)
+		    3. Period Closing Voucher for previous year (FY 2023)
+
+		Expected (BS report for FY 2024):
+		    opening of FY 2024 = 3000 + 5000 = 8000
+		    (all is_opening entries roll into opening irrespective of fiscal year,
+		    on top of the PCV carry-forward — here PCV closing for cash is 0).
+		"""
+		company = "_Test Company"
+		cash_account = "_Test Cash - _TC"
+		# Opening JVs cannot post against P&L accounts; use a Balance Sheet offset.
+		opening_offset_account = "Temporary Opening - _TC"
+
+		pcv = None
+		jv_current_year = None
+		jv_next_year = None
+		original_pcv_setting = frappe.db.get_single_value(
+			"Accounts Settings", "use_legacy_controller_for_pcv"
+		)
+
+		try:
+			# Step 1: opening JV in current year (FY 2024) — must be posted before PCV
+			# exists, else `validate_against_pcv` rejects it.
+			jv_current_year = make_journal_entry(
+				account1=cash_account,
+				account2=opening_offset_account,
+				amount=3000,
+				posting_date="2024-06-15",
+				company=company,
+				save=False,
+			)
+			jv_current_year.is_opening = "Yes"
+			jv_current_year.insert()
+			jv_current_year.submit()
+
+			# Step 2: opening JV in next year (FY 2025)
+			jv_next_year = make_journal_entry(
+				account1=cash_account,
+				account2=opening_offset_account,
+				amount=5000,
+				posting_date="2025-06-15",
+				company=company,
+				save=False,
+			)
+			jv_next_year.is_opening = "Yes"
+			jv_next_year.insert()
+			jv_next_year.submit()
+
+			# Step 3: book Period Closing Voucher for previous year (FY 2023)
+			closing_account = frappe.db.get_value(
+				"Account",
+				{
+					"company": company,
+					"root_type": "Liability",
+					"is_group": 0,
+					"account_type": ["not in", ["Payable", "Receivable"]],
+				},
+				"name",
+			)
+			fy_2023 = get_fiscal_year("2023-06-15", company=company)
+
+			frappe.db.set_single_value("Accounts Settings", "use_legacy_controller_for_pcv", 1)
+
+			pcv = frappe.get_doc(
+				{
+					"doctype": "Period Closing Voucher",
+					"transaction_date": "2023-12-31",
+					"period_start_date": fy_2023[1],
+					"period_end_date": fy_2023[2],
+					"company": company,
+					"fiscal_year": fy_2023[0],
+					"cost_center": "_Test Cost Center - _TC",
+					"closing_account_head": closing_account,
+					"remarks": "Test Period Closing",
+				}
+			)
+			pcv.insert()
+			pcv.submit()
+			pcv.reload()
+
+			# Run BS report for FY 2024
+			filters = {
+				"company": company,
+				"from_fiscal_year": "2024",
+				"to_fiscal_year": "2024",
+				"period_start_date": "2024-01-01",
+				"period_end_date": "2024-12-31",
+				"filter_based_on": "Date Range",
+				"periodicity": "Yearly",
+				"ignore_closing_entries": True,
+			}
+
+			periods = [{"key": "2024", "from_date": "2024-01-01", "to_date": "2024-12-31"}]
+
+			query_builder = FinancialQueryBuilder(filters, periods)
+			accounts = [
+				frappe._dict({"name": cash_account, "account_name": "Cash", "account_number": "1001"}),
+				frappe._dict(
+					{
+						"name": opening_offset_account,
+						"account_name": "Temporary Opening",
+						"account_number": "1900",
+					}
+				),
+			]
+
+			balances_data = query_builder.fetch_account_balances(accounts)
+			cash_data = balances_data.get(cash_account)
+			offset_data = balances_data.get(opening_offset_account)
+			self.assertIsNotNone(cash_data, "Cash account should exist in results")
+			self.assertIsNotNone(offset_data, "Offset account should exist in results")
+
+			year_2024_cash = cash_data.get_period("2024")
+			year_2024_offset = offset_data.get_period("2024")
+			self.assertIsNotNone(year_2024_cash, "FY 2024 period should exist for cash")
+			self.assertIsNotNone(year_2024_offset, "FY 2024 period should exist for offset")
+
+			# All is_opening JVs (current + next year) roll into FY 2024 opening
+			self.assertEqual(
+				year_2024_cash.opening,
+				8000.0,
+				"FY 2024 cash opening must combine is_opening JVs from current and next year",
+			)
+			self.assertEqual(
+				year_2024_offset.opening,
+				-8000.0,
+				"FY 2024 offset opening must combine is_opening JVs from current and next year",
+			)
+			self.assertEqual(
+				year_2024_cash.movement, 0.0, "Opening JVs must not be counted as period movement"
+			)
+			self.assertEqual(year_2024_cash.closing, 8000.0, "Closing = opening when no non-opening movement")
+
+		finally:
+			frappe.db.set_single_value(
+				"Accounts Settings", "use_legacy_controller_for_pcv", original_pcv_setting or 0
+			)
+
+			if pcv:
+				pcv.reload()
+				if pcv.docstatus == 1:
+					pcv.cancel()
+
+			if jv_next_year and jv_next_year.docstatus == 1:
+				jv_next_year.cancel()
+
+			if jv_current_year and jv_current_year.docstatus == 1:
+				jv_current_year.cancel()
+
 	def test_account_with_gl_entries_but_no_prior_closing_balance(self):
 		company = "_Test Company"
 		cash_account = "_Test Cash - _TC"
