@@ -2053,23 +2053,41 @@ class TestFinancialQueryBuilder(FinancialReportTemplateTestCase):
 			query_builder = FinancialQueryBuilder(filters, periods)
 			accounts = [
 				frappe._dict({"name": cash_account, "account_name": "Cash", "account_number": "1001"}),
+				frappe._dict(
+					{
+						"name": opening_offset_account,
+						"account_name": "Temporary Opening",
+						"account_number": "1900",
+					}
+				),
 			]
 
 			balances_data = query_builder.fetch_account_balances(accounts)
 			cash_data = balances_data.get(cash_account)
+			offset_data = balances_data.get(opening_offset_account)
 			self.assertIsNotNone(cash_data, "Cash account should exist in results")
+			self.assertIsNotNone(offset_data, "Offset account should exist in results")
 
-			year_2024 = cash_data.get_period("2024")
-			self.assertIsNotNone(year_2024, "FY 2024 period should exist")
+			year_2024_cash = cash_data.get_period("2024")
+			year_2024_offset = offset_data.get_period("2024")
+			self.assertIsNotNone(year_2024_cash, "FY 2024 period should exist for cash")
+			self.assertIsNotNone(year_2024_offset, "FY 2024 period should exist for offset")
 
-			# All is_opening JVs (current + next year) roll into FY 2024 opening = 8000
+			# All is_opening JVs (current + next year) roll into FY 2024 opening
 			self.assertEqual(
-				year_2024.opening,
+				year_2024_cash.opening,
 				8000.0,
-				"FY 2024 opening must combine is_opening JVs from current and next year",
+				"FY 2024 cash opening must combine is_opening JVs from current and next year",
 			)
-			self.assertEqual(year_2024.movement, 0.0, "Opening JVs must not be counted as period movement")
-			self.assertEqual(year_2024.closing, 8000.0, "Closing = opening when no non-opening movement")
+			self.assertEqual(
+				year_2024_offset.opening,
+				-8000.0,
+				"FY 2024 offset opening must combine is_opening JVs from current and next year",
+			)
+			self.assertEqual(
+				year_2024_cash.movement, 0.0, "Opening JVs must not be counted as period movement"
+			)
+			self.assertEqual(year_2024_cash.closing, 8000.0, "Closing = opening when no non-opening movement")
 
 		finally:
 			frappe.db.set_single_value(
