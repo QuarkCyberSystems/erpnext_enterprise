@@ -201,7 +201,11 @@ class StockLedgerEntry(Document):
 			if not self.get(k):
 				frappe.throw(_("{0} is required").format(_(self.meta.get_label(k))))
 
-		if self.voucher_type != "Stock Reconciliation" and not self.actual_qty:
+		if (
+			self.voucher_type != "Stock Reconciliation"
+			and not self.actual_qty
+			and not self.is_adjustment_entry
+		):
 			frappe.throw(_("Actual Qty is mandatory"))
 
 	def validate_serial_batch_no_bundle(self):

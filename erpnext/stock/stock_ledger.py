@@ -1848,6 +1848,10 @@ class update_entries_after:
 		emission_sp = "emit_adj_" + frappe.generate_hash(length=8)
 		frappe.db.savepoint(emission_sp)
 		try:
+			# Normalise sle to frappe._dict so attribute access is uniform
+			# across callers (build() can yield plain dicts in some paths).
+			if not isinstance(sle, frappe._dict):
+				sle = frappe._dict(sle)
 			self._emit_adjustment_sle(sle, delta_svd)
 			self._emit_adjustment_gl_pair(sle, delta_svd)
 		except Exception as exc:
@@ -1895,12 +1899,17 @@ class update_entries_after:
 			"fiscal_year": sle.fiscal_year,
 			"project": sle.project,
 		}
-		make_sl_entries([args], allow_negative_stock=True)
+		# Use make_entry directly. make_sl_entries hard-requires
+		# actual_qty!=0 or voucher_type=Stock Reconciliation (our
+		# adjustment SLE has neither, hitting an UnboundLocalError on
+		# sle_doc) and additionally fires repost_current_voucher which
+		# would re-enter update_entries_after — both undesired here.
+		make_entry(frappe._dict(args), allow_negative_stock=True)
 
 	def _get_warehouse_account_map(self, company):
 		if self._warehouse_account_map is None:
-			from erpnext.stock.utils import get_stock_value_from_bin  # noqa: F401 lazy
-			from erpnext.accounts.utils import get_warehouse_account_map
+			from erpnext.stock import get_warehouse_account_map
+
 			self._warehouse_account_map = get_warehouse_account_map(company) or {}
 		return self._warehouse_account_map
 
@@ -1944,7 +1953,8 @@ class update_entries_after:
 			fields=[
 				"name", "account", "debit", "credit", "cost_center", "project",
 				"finance_book", "party_type", "party", "company", "fiscal_year",
-			] + dimensions,
+				*dimensions,
+			],
 		)
 
 		offset_rows = []
@@ -2026,7 +2036,11 @@ class update_entries_after:
 					target_row["debit"] = flt(target_row["debit"] + (-drift), self.currency_precision)
 					target_row["debit_in_account_currency"] = target_row["debit"]
 
-		make_gl_entries(gl_rows, from_repost=True, merge_entries=False)
+		make_gl_entries(
+			[frappe._dict(r) for r in gl_rows],
+			from_repost=True,
+			merge_entries=False,
+		)
 
 	def _build_adjustment_gl_row(self, *, sle, account, debit, credit, source_row, dimensions, inherit_party):
 		row = {
@@ -2057,9 +2071,7 @@ class update_entries_after:
 		return row
 
 	def _log_emission_failure(self, sle, exc):
-		msg = "Historical adjustment emission failed for {0} {1}: {2}".format(
-			sle.voucher_type, sle.voucher_no, str(exc)
-		)
+		msg = f"Historical adjustment emission failed for {sle.voucher_type} {sle.voucher_no}: {exc}"
 		try:
 			existing = self.repost_doc.error_log or ""
 			self.repost_doc.db_set(
