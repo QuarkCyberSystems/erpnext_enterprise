@@ -10,7 +10,7 @@ from frappe.exceptions import QueryDeadlockError, QueryTimeoutError
 from frappe.model.document import Document
 from frappe.query_builder import DocType, Interval
 from frappe.query_builder.functions import CombineDatetime, Max, Now
-from frappe.utils import cint, get_link_to_form, get_weekday, getdate, now, nowtime
+from frappe.utils import cint, flt, get_link_to_form, get_weekday, getdate, now, nowdate, nowtime
 from frappe.utils.user import get_users_with_role
 from rq.timeouts import JobTimeoutException
 
@@ -195,6 +195,8 @@ class RepostItemValuation(Document):
 		return query[0][0] if query and query[0][0] else None
 
 	def validate_accounts_freeze(self):
+		from erpnext.accounts.utils import is_immutable_ledger_enabled
+
 		acc_frozen_till_date = frappe.db.get_value("Company", self.company, "accounts_frozen_till_date")
 		frozen_accounts_modifier = frappe.db.get_value(
 			"Company", self.company, "role_allowed_for_frozen_entries"
@@ -202,6 +204,14 @@ class RepostItemValuation(Document):
 		if not acc_frozen_till_date:
 			return
 		if getdate(self.posting_date) <= getdate(acc_frozen_till_date):
+			# Under Immutable Ledger ON, the role-based override is no longer
+			# permitted (WP GA-0001-02 GAP-007). Period-lock is absolute.
+			if is_immutable_ledger_enabled():
+				frappe.throw(
+					_("Accounts are frozen till {0}. Repost is not permitted under Immutable Ledger.").format(
+						acc_frozen_till_date
+					)
+				)
 			if frozen_accounts_modifier and frappe.session.user in get_users_with_role(
 				frozen_accounts_modifier
 			):
@@ -217,10 +227,118 @@ class RepostItemValuation(Document):
 		self.allow_negative_stock = 1
 
 	def on_cancel(self):
+		self.cancel_adjustment_entries()
 		self.clear_attachment()
 
 	def on_trash(self):
 		self.clear_attachment()
+
+	def cancel_adjustment_entries(self):
+		"""Clean up adjustment GL Entry / Stock Ledger Entry rows this RIV
+		emitted under Immutable-Ledger historical-repost mode (WP GA-0001-02).
+
+		Under Immutable Ledger ON, post compensating reverse entries at
+		current date — never retroactively delete or flag-cancel, because
+		that would re-violate the immutability the adjustments were posted
+		to enforce.
+
+		Under Immutable Ledger OFF, the adjustment rows came from a path
+		that already assumes delete/recreate idempotency, so a flag-based
+		cancel is sufficient.
+		"""
+
+		from erpnext.accounts.utils import is_immutable_ledger_enabled
+
+		adjustment_gl = frappe.get_all(
+			"GL Entry",
+			filters={
+				"voucher_type": "Repost Item Valuation",
+				"voucher_no": self.name,
+				"is_cancelled": 0,
+				"is_adjustment_entry": 1,
+			},
+			fields="*",
+		)
+		adjustment_sle = frappe.get_all(
+			"Stock Ledger Entry",
+			filters={
+				"voucher_type": "Repost Item Valuation",
+				"voucher_no": self.name,
+				"is_cancelled": 0,
+				"is_adjustment_entry": 1,
+			},
+			fields="*",
+		)
+
+		if not adjustment_gl and not adjustment_sle:
+			return
+
+		if is_immutable_ledger_enabled():
+			for gl in adjustment_gl:
+				self._post_reverse_adjustment_gl(gl)
+			for sle in adjustment_sle:
+				self._post_reverse_adjustment_sle(sle)
+		else:
+			for gl in adjustment_gl:
+				frappe.db.set_value("GL Entry", gl.name, "is_cancelled", 1)
+			for sle in adjustment_sle:
+				adj_doc = frappe.get_doc("Stock Ledger Entry", sle.name)
+				adj_doc.flags.ignore_permissions = True
+				adj_doc.cancel()
+
+	def _post_reverse_adjustment_gl(self, original_gl):
+		from erpnext.accounts.general_ledger import make_gl_entries
+
+		reverse = {
+			"account": original_gl.account,
+			"debit": flt(original_gl.credit),
+			"credit": flt(original_gl.debit),
+			"debit_in_account_currency": flt(original_gl.credit_in_account_currency),
+			"credit_in_account_currency": flt(original_gl.debit_in_account_currency),
+			"posting_date": nowdate(),
+			"voucher_type": "Repost Item Valuation",
+			"voucher_no": self.name,
+			"is_adjustment_entry": 1,
+			"against_adjustment_voucher_type": original_gl.against_adjustment_voucher_type,
+			"against_adjustment_voucher": original_gl.against_adjustment_voucher,
+			"repost_item_valuation": self.name,
+			"company": original_gl.company,
+			"fiscal_year": original_gl.fiscal_year,
+			"cost_center": original_gl.cost_center,
+			"project": original_gl.project,
+			"finance_book": original_gl.finance_book,
+			"party_type": original_gl.party_type,
+			"party": original_gl.party,
+			"remarks": _("Cancellation of RIV adjustment {0}").format(original_gl.name),
+		}
+		make_gl_entries([reverse], from_repost=True, merge_entries=False)
+
+	def _post_reverse_adjustment_sle(self, original_sle):
+		from erpnext.stock.stock_ledger import make_sl_entries
+
+		reverse_args = {
+			"item_code": original_sle.item_code,
+			"warehouse": original_sle.warehouse,
+			"company": original_sle.company,
+			"posting_date": nowdate(),
+			"posting_time": nowtime(),
+			"actual_qty": 0,
+			"qty_after_transaction": flt(original_sle.qty_after_transaction),
+			"valuation_rate": flt(original_sle.valuation_rate),
+			"stock_value": flt(original_sle.stock_value) - flt(original_sle.stock_value_difference),
+			"stock_value_difference": -flt(original_sle.stock_value_difference),
+			"stock_queue": original_sle.stock_queue,
+			"is_adjustment_entry": 1,
+			"against_adjustment_voucher_type": original_sle.against_adjustment_voucher_type,
+			"against_adjustment_voucher": original_sle.against_adjustment_voucher,
+			"voucher_type": "Repost Item Valuation",
+			"voucher_no": self.name,
+			"repost_item_valuation": self.name,
+			"stock_uom": original_sle.stock_uom,
+			"fiscal_year": original_sle.fiscal_year,
+			"project": original_sle.project,
+		}
+		make_sl_entries([reverse_args], allow_negative_stock=True)
 
 	@frappe.whitelist()
 	def set_company(self):
