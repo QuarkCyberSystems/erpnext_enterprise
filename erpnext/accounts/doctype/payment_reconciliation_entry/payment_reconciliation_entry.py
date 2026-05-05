@@ -61,7 +61,7 @@ class PaymentReconciliationEntry(Document):
 
 	def on_submit(self):
 		self._create_advance_payment_ledger_entry()
-		# Clearing GL pair posted in a follow-up commit (_post_clearing_gl_pair).
+		self._post_clearing_gl_pair()
 		if self.is_reversal:
 			frappe.db.set_value(
 				"Payment Reconciliation Entry",
@@ -197,3 +197,127 @@ class PaymentReconciliationEntry(Document):
 			self.party_type,
 			self.party,
 		)
+
+	# --- clearing GL ---
+
+	def _resolve_clearing_accounts(self):
+		"""Returns (advance_account, dr_or_cr_for_invoice_side).
+
+		For a customer Receive PE: invoice side credits (CR), advance debits (DR).
+		For a supplier Pay PE: invoice side debits (DR), advance credits (CR).
+		"""
+		invoice_account = self.account  # the receivable / payable on the invoice
+		if self.payment_type == "Payment Entry":
+			pe = frappe.get_cached_doc("Payment Entry", self.payment_name)
+			advance_account = pe.party_account
+			if pe.payment_type == "Receive":
+				dr_or_cr_invoice = "credit"
+			else:
+				dr_or_cr_invoice = "debit"
+		elif self.payment_type == "Journal Entry":
+			# JE-as-payment: read the JE Account row this PRE references.
+			advance_account = invoice_account
+			if self.payment_reference_row:
+				row = frappe.db.get_value(
+					"Journal Entry Account",
+					self.payment_reference_row,
+					["account", "debit_in_account_currency", "credit_in_account_currency"],
+					as_dict=True,
+				)
+				if row:
+					advance_account = row.account
+					dr_or_cr_invoice = "credit" if flt(row.debit_in_account_currency) else "debit"
+				else:
+					dr_or_cr_invoice = "credit" if self.party_type == "Customer" else "debit"
+			else:
+				dr_or_cr_invoice = "credit" if self.party_type == "Customer" else "debit"
+		else:
+			# Sales/Purchase Invoice as payment (dr/cr note flow): treat invoice
+			# side as the receivable/payable and the "advance" side as the note's
+			# corresponding account on Account.
+			advance_account = invoice_account
+			dr_or_cr_invoice = "credit" if self.party_type == "Customer" else "debit"
+		return advance_account, dr_or_cr_invoice
+
+	def _post_clearing_gl_pair(self):
+		from erpnext.accounts.general_ledger import make_gl_entries
+
+		advance_account, dr_or_cr_invoice = self._resolve_clearing_accounts()
+		if self.is_reversal:
+			# Swap directions on reversal so the GL pair offsets the original.
+			dr_or_cr_invoice = "debit" if dr_or_cr_invoice == "credit" else "credit"
+		dr_or_cr_advance = "debit" if dr_or_cr_invoice == "credit" else "credit"
+
+		base_amount = flt(self.base_allocated_amount)
+		alloc_amount = flt(self.allocated_amount)
+
+		common = {
+			"company": self.company,
+			"posting_date": self.reconciliation_date,
+			"voucher_type": "Payment Reconciliation Entry",
+			"voucher_no": self.name,
+			"voucher_detail_no": self.payment_reference_row,
+			"party_type": self.party_type,
+			"party": self.party,
+			"cost_center": self.cost_center,
+			"project": self.project,
+			"finance_book": self.finance_book,
+			"remarks": _("Payment Reconciliation Entry {0}").format(self.name),
+		}
+
+		# Invoice side row
+		invoice_row = {**common}
+		invoice_row["account"] = self.account
+		invoice_row[dr_or_cr_invoice] = base_amount
+		invoice_row[dr_or_cr_invoice + "_in_account_currency"] = alloc_amount
+		invoice_row.update(
+			{
+				"against_voucher_type": self.invoice_type,
+				"against_voucher": self.invoice_name,
+			}
+		)
+
+		# Advance side row
+		advance_row = {**common}
+		advance_row["account"] = advance_account
+		advance_row[dr_or_cr_advance] = base_amount
+		advance_row[dr_or_cr_advance + "_in_account_currency"] = alloc_amount
+		advance_row.update(
+			{
+				"against_voucher_type": self.payment_type,
+				"against_voucher": self.payment_name,
+			}
+		)
+
+		gl_entries = [self._make_gl_dict(invoice_row), self._make_gl_dict(advance_row)]
+		make_gl_entries(gl_entries, update_outstanding="No", merge_entries=False)
+
+	def _make_gl_dict(self, args):
+		# Mirrors the minimal shape get_gl_dict produces. We avoid get_gl_dict
+		# directly because that is a Document method on transaction docs and
+		# pulls fields like cost_center defaults from `item` — we already have
+		# everything we need on `self`.
+		out = {
+			"account": args.get("account"),
+			"debit": args.get("debit", 0),
+			"credit": args.get("credit", 0),
+			"debit_in_account_currency": args.get("debit_in_account_currency", 0),
+			"credit_in_account_currency": args.get("credit_in_account_currency", 0),
+			"account_currency": self.currency,
+			"company": args["company"],
+			"posting_date": args["posting_date"],
+			"voucher_type": args["voucher_type"],
+			"voucher_no": args["voucher_no"],
+			"voucher_detail_no": args.get("voucher_detail_no"),
+			"party_type": args.get("party_type"),
+			"party": args.get("party"),
+			"cost_center": args.get("cost_center"),
+			"project": args.get("project"),
+			"finance_book": args.get("finance_book"),
+			"against_voucher_type": args.get("against_voucher_type"),
+			"against_voucher": args.get("against_voucher"),
+			"remarks": args.get("remarks"),
+			"is_advance": "No",
+		}
+		return out
+
