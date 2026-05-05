@@ -864,7 +864,14 @@ def delete_exchange_gain_loss_journal(
 ) -> None:
 	"""
 	Delete Exchange Gain/Loss for Sales/Purchase Invoice, if they have any.
+
+	Under Immutable Ledger this is a no-op: cancelled gain/loss JEs are
+	preserved with docstatus=2 so the audit trail of the original posting
+	is retained. The on_cancel reversal pair is created via the standard
+	JE-cancel flow (GA-0001-01).
 	"""
+	if is_immutable_ledger_enabled():
+		return
 	if parent_doc.doctype in ["Sales Invoice", "Purchase Invoice", "Payment Entry", "Journal Entry"]:
 		gain_loss_journals = get_linked_exchange_gain_loss_journal(
 			referenced_dt=parent_doc.doctype, referenced_dn=parent_doc.name, je_docstatus=2
