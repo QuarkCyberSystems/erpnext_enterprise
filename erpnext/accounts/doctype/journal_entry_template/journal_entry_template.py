@@ -21,8 +21,10 @@ class JournalEntryTemplate(Document):
 		)
 
 		accounts: DF.Table[JournalEntryTemplateAccount]
+		allow_additional_accounts: DF.Check
 		company: DF.Link
 		is_opening: DF.Literal["No", "Yes"]
+		lock_on_apply: DF.Check
 		multi_currency: DF.Check
 		naming_series: DF.Literal
 		template_title: DF.Data

@@ -15,6 +15,10 @@
   "company",
   "is_opening",
   "multi_currency",
+  "enforcement_section",
+  "lock_on_apply",
+  "enforcement_col_break",
+  "allow_additional_accounts",
   "section_break_3",
   "accounts"
  ],
@@ -83,6 +87,29 @@
    "fieldname": "multi_currency",
    "fieldtype": "Check",
    "label": "Multi Currency"
+  },
+  {
+   "fieldname": "enforcement_section",
+   "fieldtype": "Section Break",
+   "label": "Enforcement"
+  },
+  {
+   "default": "1",
+   "description": "When checked, Journal Entries created from this template lock the voucher type, company, multi-currency, naming series, and template-derived account rows.",
+   "fieldname": "lock_on_apply",
+   "fieldtype": "Check",
+   "label": "Lock Fields on Apply"
+  },
+  {
+   "fieldname": "enforcement_col_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "When checked, users may add account rows beyond those defined in this template.",
+   "fieldname": "allow_additional_accounts",
+   "fieldtype": "Check",
+   "label": "Allow Additional Accounts"
   }
  ],
  "links": [],
