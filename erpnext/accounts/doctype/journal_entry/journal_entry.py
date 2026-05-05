@@ -163,11 +163,51 @@ class JournalEntry(AccountsController):
 		self.validate_depr_account_and_depr_entry_voucher_type()
 		self.validate_company_in_accounting_dimension()
 		self.validate_advance_accounts()
+		self.validate_against_template()
 
 		JournalTaxWithholding(self).on_validate()
 
 		if self.is_new() or not self.title:
 			self.title = self.get_title()
+
+	def before_save(self):
+		if self.is_new():
+			return
+		old = self.get_doc_before_save()
+		if old and old.from_template and not self.from_template:
+			self.template_applied = 0
+			for row in self.accounts:
+				row.from_template = 0
+
+	def validate_against_template(self):
+		if not (self.from_template and self.template_applied):
+			return
+		if not frappe.db.exists("Journal Entry Template", self.from_template):
+			return
+
+		template = frappe.get_cached_doc("Journal Entry Template", self.from_template)
+		expected = sorted(
+			(r.account, r.party_type or "") for r in template.accounts
+		)
+		actual_template_rows = sorted(
+			(r.account, r.party_type or "") for r in self.accounts if r.from_template
+		)
+		if expected != actual_template_rows:
+			frappe.throw(
+				_(
+					"Template-derived account rows do not match {0}. "
+					"Clear and reapply the template, or remove the template reference."
+				).format(get_link_to_form("Journal Entry Template", self.from_template))
+			)
+
+		if not template.allow_additional_accounts:
+			extra = [r for r in self.accounts if not r.from_template]
+			if extra:
+				frappe.throw(
+					_(
+						"Template {0} does not allow additional accounts. Remove rows that are not part of the template."
+					).format(self.from_template)
+				)
 
 	def validate_advance_accounts(self):
 		journal_accounts = set([x.account for x in self.accounts])
