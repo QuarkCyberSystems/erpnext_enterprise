@@ -1026,7 +1026,17 @@ def remove_ref_from_advance_section(ref_doc: object = None, payment_name: str | 
 		child_table = (
 			"Sales Invoice Advance" if ref_doc.doctype == "Sales Invoice" else "Purchase Invoice Advance"
 		)
-		frappe.db.delete(child_table, {"name": ("in", row_names)})
+		if is_immutable_ledger_enabled():
+			# Preserve the row for audit; mark unlinked instead.
+			for row_name in row_names:
+				frappe.db.set_value(
+					child_table,
+					row_name,
+					{"is_unlinked": 1, "unlinked_on": nowdate()},
+					update_modified=False,
+				)
+		else:
+			frappe.db.delete(child_table, {"name": ("in", row_names)})
 
 
 def unlink_ref_doc_from_payment_entries(ref_doc: object = None, payment_name: str | None = None):
