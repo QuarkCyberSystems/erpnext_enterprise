@@ -374,6 +374,12 @@ class AccountsController(TransactionBase):
 		validate_einvoice_fields(self)
 
 	def _remove_references_in_unreconcile(self):
+		from erpnext.accounts.utils import is_immutable_ledger_enabled
+
+		if is_immutable_ledger_enabled():
+			# Submitted Unreconcile Payment docs are preserved under Immutable
+			# Ledger — their audit trail outlives the trashed parent voucher.
+			return
 		upe = frappe.qb.DocType("Unreconcile Payment Entries")
 		rows = (
 			frappe.qb.from_(upe)
@@ -405,6 +411,12 @@ class AccountsController(TransactionBase):
 			_doc.delete()
 
 	def _remove_references_in_repost_doctypes(self):
+		from erpnext.accounts.utils import is_immutable_ledger_enabled
+
+		if is_immutable_ledger_enabled():
+			# Submitted Repost Payment Ledger / Repost Accounting Ledger docs
+			# are preserved under Immutable Ledger.
+			return
 		repost_doctypes = ["Repost Payment Ledger Items", "Repost Accounting Ledger Items"]
 
 		for _doctype in repost_doctypes:
@@ -453,6 +465,11 @@ class AccountsController(TransactionBase):
 					repost_doc.save(ignore_permissions=True)
 
 	def _remove_advance_payment_ledger_entries(self):
+		from erpnext.accounts.utils import is_immutable_ledger_enabled
+
+		if is_immutable_ledger_enabled():
+			return self._supersede_advance_payment_ledger_entries()
+
 		adv = qb.DocType("Advance Payment Ledger Entry")
 		qb.from_(adv).delete().where(adv.voucher_type.eq(self.doctype) & adv.voucher_no.eq(self.name)).run()
 
@@ -460,6 +477,51 @@ class AccountsController(TransactionBase):
 			qb.from_(adv).delete().where(
 				adv.against_voucher_type.eq(self.doctype) & adv.against_voucher_no.eq(self.name)
 			).run()
+
+	def _supersede_advance_payment_ledger_entries(self):
+		"""Immutable-Ledger replacement for the hard-delete path.
+
+		For each non-cancelled APLE row that references this voucher (either
+		voucher_no/voucher_type or against_voucher_no/against_voucher_type),
+		insert a reversal APLE with negative amount and flip the original to
+		`is_cancelled=1`. The reversal carries `delinked=1` so it is not
+		treated as a live advance by `unreconcile_payment.get_linked_advances`.
+		"""
+		from frappe.utils import flt
+
+		adv = qb.DocType("Advance Payment Ledger Entry")
+		criteria = (adv.voucher_type == self.doctype) & (adv.voucher_no == self.name)
+		if self.doctype in self.get_advance_payment_doctypes():
+			criteria = criteria | (
+				(adv.against_voucher_type == self.doctype) & (adv.against_voucher_no == self.name)
+			)
+		rows = (
+			qb.from_(adv).select(adv.star).where(criteria & (adv.is_cancelled == 0)).run(as_dict=True)
+		)
+		for row in rows:
+			reversal = frappe.get_doc(
+				{
+					"doctype": "Advance Payment Ledger Entry",
+					"company": row.company,
+					"voucher_type": row.voucher_type,
+					"voucher_no": row.voucher_no,
+					"against_voucher_type": row.against_voucher_type,
+					"against_voucher_no": row.against_voucher_no,
+					"currency": row.currency,
+					"exchange_rate": row.exchange_rate,
+					"amount": -flt(row.amount),
+					"base_amount": -flt(row.base_amount),
+					"event": "Cancel",
+					"is_reversal": 1,
+					"reversal_of": row.name,
+					"delinked": 1,
+				}
+			)
+			reversal.flags.ignore_permissions = True
+			reversal.insert()
+			frappe.db.set_value(
+				"Advance Payment Ledger Entry", row.name, "is_cancelled", 1, update_modified=False
+			)
 
 	def on_trash(self):
 		from erpnext.accounts.utils import delete_exchange_gain_loss_journal

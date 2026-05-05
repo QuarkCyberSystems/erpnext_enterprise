@@ -12,6 +12,7 @@ from frappe.utils.data import comma_and
 
 from erpnext.accounts.utils import (
 	cancel_exchange_gain_loss_journal,
+	is_immutable_ledger_enabled,
 	unlink_ref_doc_from_payment_entries,
 	update_voucher_outstanding,
 )
@@ -58,10 +59,29 @@ class UnreconcilePayment(Document):
 
 	def on_submit(self):
 		# todo: more granular unreconciliation
+		immutable = is_immutable_ledger_enabled()
 		for alloc in self.allocations:
-			doc = frappe.get_doc(alloc.reference_doctype, alloc.reference_name)
-			unlink_ref_doc_from_payment_entries(doc, self.voucher_no)
-			cancel_exchange_gain_loss_journal(doc, self.voucher_type, self.voucher_no)
+			reversal_pre = None
+			if immutable:
+				original_pre = frappe.db.get_value(
+					"Payment Reconciliation Entry",
+					{
+						"payment_type": self.voucher_type,
+						"payment_name": self.voucher_no,
+						"invoice_type": alloc.reference_doctype,
+						"invoice_name": alloc.reference_name,
+						"is_reversal": 0,
+						"is_unreconciled": 0,
+						"docstatus": 1,
+					},
+					"name",
+				)
+				if original_pre:
+					reversal_pre = self._create_reversal_pre(original_pre)
+			else:
+				doc = frappe.get_doc(alloc.reference_doctype, alloc.reference_name)
+				unlink_ref_doc_from_payment_entries(doc, self.voucher_no)
+				cancel_exchange_gain_loss_journal(doc, self.voucher_type, self.voucher_no)
 
 			# update outstanding amounts
 			update_voucher_outstanding(
@@ -72,7 +92,36 @@ class UnreconcilePayment(Document):
 				alloc.party,
 			)
 
-			frappe.db.set_value("Unreconcile Payment Entries", alloc.name, "unlinked", True)
+			frappe.db.set_value(
+				"Unreconcile Payment Entries",
+				alloc.name,
+				{"unlinked": True, "reversal_pre": reversal_pre.name if reversal_pre else None},
+				update_modified=False,
+			)
+
+	def _create_reversal_pre(self, original_pre_name):
+		"""Create + submit a reversal Payment Reconciliation Entry.
+
+		Copies the original PRE, flips is_reversal=1, sets reversal_of, and
+		resets the unreconcile audit fields. Submitting the reversal PRE
+		posts a swap GL pair (Commit 6) and `db_set`s is_unreconciled=1
+		on the original (Commit 5 on_submit).
+		"""
+		src = frappe.get_doc("Payment Reconciliation Entry", original_pre_name)
+		reversal = frappe.copy_doc(src)
+		reversal.is_reversal = 1
+		reversal.reversal_of = original_pre_name
+		from frappe.utils import nowdate
+
+		reversal.reconciliation_date = nowdate()
+		reversal.is_unreconciled = 0
+		reversal.unreconciled_by = None
+		reversal.unreconciled_on = None
+		reversal.amended_from = None
+		reversal.flags.ignore_permissions = True
+		reversal.insert()
+		reversal.submit()
+		return reversal
 
 
 @frappe.whitelist()

@@ -518,6 +518,7 @@ def reconcile_against_document(
 			reconciled_entries[(row.voucher_type, row.voucher_no)] = []
 
 		reconciled_entries[(row.voucher_type, row.voucher_no)].append(row)
+	immutable = is_immutable_ledger_enabled()
 	for key, entries in reconciled_entries.items():
 		voucher_type, voucher_no = key
 
@@ -530,6 +531,13 @@ def reconcile_against_document(
 			validate_allocated_amount(entry)
 
 			dimensions_dict = _build_dimensions_dict_for_exc_gain_loss(entry, active_dimensions)
+
+			if immutable:
+				# Tier 3 — every reconcile produces one Payment Reconciliation Entry.
+				# The PE / JE is NOT mutated; the clearing GL pair is posted by
+				# PRE.on_submit under voucher_type="Payment Reconciliation Entry".
+				_create_pre_for_allocation(doc, entry, dimensions_dict)
+				continue
 
 			if voucher_type == "Journal Entry":
 				referenced_row = update_reference_in_journal_entry(entry, doc, do_not_save=False)
@@ -546,25 +554,26 @@ def reconcile_against_document(
 					skip_ref_details_update_for_pe=skip_ref_details_update_for_pe,
 					dimensions_dict=dimensions_dict,
 				)
-				if referenced_row.get("outstanding_amount"):
+				if referenced_row.get("outstanding_amount") and entry.get("outstanding_amount") is None:
 					referenced_row.outstanding_amount -= flt(entry.allocated_amount)
 
 				reposting_rows.append(referenced_row)
 
-		doc.save(ignore_permissions=True)
+		if not immutable:
+			doc.save(ignore_permissions=True)
 
-		if voucher_type == "Payment Entry" and doc.book_advance_payments_in_separate_party_account:
-			for row in reposting_rows:
-				doc.make_advance_gl_entries(entry=row)
-		else:
-			_delete_pl_entries(voucher_type, voucher_no)
-			_delete_adv_pl_entries(voucher_type, voucher_no)
-			gl_map = doc.build_gl_map()
-			# Make sure there is no overallocation
-			from erpnext.accounts.general_ledger import process_debit_credit_difference
+			if voucher_type == "Payment Entry" and doc.book_advance_payments_in_separate_party_account:
+				for row in reposting_rows:
+					doc.make_advance_gl_entries(entry=row)
+			else:
+				_supersede_pl_entries(voucher_type, voucher_no)
+				_supersede_adv_pl_entries(voucher_type, voucher_no)
+				gl_map = doc.build_gl_map()
+				# Make sure there is no overallocation
+				from erpnext.accounts.general_ledger import process_debit_credit_difference
 
-			process_debit_credit_difference(gl_map)
-			create_payment_ledger_entry(gl_map, update_outstanding="No", cancel=0, adv_adj=1)
+				process_debit_credit_difference(gl_map)
+				create_payment_ledger_entry(gl_map, update_outstanding="No", cancel=0, adv_adj=1)
 
 		# Only update outstanding for newly linked vouchers
 		for entry in entries:
@@ -576,6 +585,81 @@ def reconcile_against_document(
 				entry.party,
 			)
 		frappe.flags.ignore_party_validation = False
+
+
+def _create_pre_for_allocation(doc, entry, dimensions_dict):
+	"""Create + submit one Payment Reconciliation Entry for one allocation.
+
+	Used by `reconcile_against_document` under Immutable Ledger only. The
+	PRE captures all allocation details (amounts, currency, dimensions) and
+	its `on_submit` posts the clearing GL pair plus an APLE row. The PE / JE
+	is NOT mutated — the only post-submit write to the PE side is a single-
+	column `db_set` of `reconciliation_entry` on the linked PE Reference row,
+	performed inside PRE.on_submit.
+	"""
+	if doc.doctype == "Payment Entry":
+		ref_row_name = _insert_payment_entry_reference_row(doc, entry)
+	else:
+		ref_row_name = None
+
+	pre = frappe.new_doc("Payment Reconciliation Entry")
+	pre.update(
+		{
+			"reconciliation_date": nowdate(),
+			"company": doc.company,
+			"party_type": entry.party_type,
+			"party": entry.party,
+			"payment_type": doc.doctype,
+			"payment_name": doc.name,
+			"payment_reference_row": ref_row_name,
+			"invoice_type": entry.against_voucher_type,
+			"invoice_name": entry.against_voucher,
+			"account": entry.account,
+			"allocated_amount": flt(entry.allocated_amount),
+			"exchange_rate": flt(entry.exchange_rate) or 1,
+			"exchange_gain_loss": flt(entry.get("difference_amount") or 0),
+			"cost_center": entry.get("cost_center"),
+		}
+	)
+	for dim_field, dim_value in (dimensions_dict or {}).items():
+		if pre.meta.has_field(dim_field):
+			pre.set(dim_field, dim_value)
+	pre.flags.ignore_permissions = True
+	pre.insert()
+	pre.submit()
+	return pre
+
+
+def _insert_payment_entry_reference_row(pe_doc, entry):
+	"""Append a new Payment Entry Reference row to a SUBMITTED Payment Entry.
+
+	Uses direct child-row insert (no parent doc save, no
+	`ignore_validate_update_after_submit`). Single row, single insert,
+	`docstatus=1` to match the parent. This is the ONE permitted post-
+	submit write on the PE side under Immutable Ledger.
+	"""
+	max_idx = (
+		frappe.db.get_value("Payment Entry Reference", {"parent": pe_doc.name}, "max(idx)") or 0
+	)
+	row = frappe.get_doc(
+		{
+			"doctype": "Payment Entry Reference",
+			"parent": pe_doc.name,
+			"parenttype": "Payment Entry",
+			"parentfield": "references",
+			"idx": max_idx + 1,
+			"docstatus": 1,
+			"reference_doctype": entry.against_voucher_type,
+			"reference_name": entry.against_voucher,
+			"allocated_amount": flt(entry.allocated_amount),
+			"exchange_rate": flt(entry.exchange_rate) or 1,
+			"account": entry.account,
+			"reconcile_effect_on": nowdate(),
+		}
+	)
+	row.flags.ignore_permissions = True
+	row.insert()
+	return row.name
 
 
 def check_if_advance_entry_modified(args):
@@ -660,8 +744,17 @@ def validate_allocated_amount(args):
 
 def update_reference_in_journal_entry(d, journal_entry, do_not_save=False):
 	"""
-	Updates against document, if partial amount splits into rows
+	Updates against document, if partial amount splits into rows.
+
+	Tier 2 guardrail: under Immutable Ledger this function must not be
+	reached — JE reconciles route through `_create_pre_for_allocation`
+	in `reconcile_against_document`. The assert defends against
+	accidental routing.
 	"""
+	assert not is_immutable_ledger_enabled(), (
+		"update_reference_in_journal_entry must not be called under Immutable "
+		"Ledger; PRE flow handles JE reconciles."
+	)
 	jv_detail = journal_entry.get("accounts", {"name": d["voucher_detail_no"]})[0]
 
 	rev_dr_or_cr = (
@@ -733,6 +826,10 @@ def update_reference_in_journal_entry(d, journal_entry, do_not_save=False):
 def update_reference_in_payment_entry(
 	d, payment_entry, do_not_save=False, skip_ref_details_update_for_pe=False, dimensions_dict=None
 ):
+	assert not is_immutable_ledger_enabled(), (
+		"update_reference_in_payment_entry must not be called under Immutable "
+		"Ledger; PRE flow handles PE reconciles."
+	)
 	reference_details = {
 		"reference_doctype": d.against_voucher_type,
 		"reference_name": d.against_voucher,
@@ -864,7 +961,14 @@ def delete_exchange_gain_loss_journal(
 ) -> None:
 	"""
 	Delete Exchange Gain/Loss for Sales/Purchase Invoice, if they have any.
+
+	Under Immutable Ledger this is a no-op: cancelled gain/loss JEs are
+	preserved with docstatus=2 so the audit trail of the original posting
+	is retained. The on_cancel reversal pair is created via the standard
+	JE-cancel flow (GA-0001-01).
 	"""
+	if is_immutable_ledger_enabled():
+		return
 	if parent_doc.doctype in ["Sales Invoice", "Purchase Invoice", "Payment Entry", "Journal Entry"]:
 		gain_loss_journals = get_linked_exchange_gain_loss_journal(
 			referenced_dt=parent_doc.doctype, referenced_dn=parent_doc.name, je_docstatus=2
@@ -1019,7 +1123,17 @@ def remove_ref_from_advance_section(ref_doc: object = None, payment_name: str | 
 		child_table = (
 			"Sales Invoice Advance" if ref_doc.doctype == "Sales Invoice" else "Purchase Invoice Advance"
 		)
-		frappe.db.delete(child_table, {"name": ("in", row_names)})
+		if is_immutable_ledger_enabled():
+			# Preserve the row for audit; mark unlinked instead.
+			for row_name in row_names:
+				frappe.db.set_value(
+					child_table,
+					row_name,
+					{"is_unlinked": 1, "unlinked_on": nowdate()},
+					update_modified=False,
+				)
+		else:
+			frappe.db.delete(child_table, {"name": ("in", row_names)})
 
 
 def unlink_ref_doc_from_payment_entries(ref_doc: object = None, payment_name: str | None = None):
@@ -1719,6 +1833,42 @@ def _delete_pl_entries(voucher_type, voucher_no):
 def _delete_adv_pl_entries(voucher_type, voucher_no):
 	adv = qb.DocType("Advance Payment Ledger Entry")
 	qb.from_(adv).delete().where((adv.voucher_type == voucher_type) & (adv.voucher_no == voucher_no)).run()
+
+
+def _supersede_pl_entries(voucher_type, voucher_no):
+	"""Immutable-Ledger-aware replacement for _delete_pl_entries.
+
+	Under Immutable Ledger, mark existing PLE rows as delinked=1 instead
+	of DELETE; the rebuild path inserts new rows alongside.
+	"""
+	if not is_immutable_ledger_enabled():
+		return _delete_pl_entries(voucher_type, voucher_no)
+	ple = qb.DocType("Payment Ledger Entry")
+	(
+		qb.update(ple)
+		.set(ple.delinked, 1)
+		.set(ple.modified, now())
+		.set(ple.modified_by, frappe.session.user)
+		.where((ple.voucher_type == voucher_type) & (ple.voucher_no == voucher_no) & (ple.delinked == 0))
+		.run()
+	)
+
+
+def _supersede_adv_pl_entries(voucher_type, voucher_no):
+	"""Immutable-Ledger-aware replacement for _delete_adv_pl_entries."""
+	if not is_immutable_ledger_enabled():
+		return _delete_adv_pl_entries(voucher_type, voucher_no)
+	adv = qb.DocType("Advance Payment Ledger Entry")
+	(
+		qb.update(adv)
+		.set(adv.is_cancelled, 1)
+		.set(adv.modified, now())
+		.set(adv.modified_by, frappe.session.user)
+		.where(
+			(adv.voucher_type == voucher_type) & (adv.voucher_no == voucher_no) & (adv.is_cancelled == 0)
+		)
+		.run()
+	)
 
 
 def _delete_gl_entries(voucher_type, voucher_no):

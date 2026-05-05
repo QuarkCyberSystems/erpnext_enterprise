@@ -15,7 +15,11 @@
   "amount",
   "base_amount",
   "event",
-  "delinked"
+  "delinked",
+  "is_cancelled",
+  "is_reversal",
+  "reversal_of",
+  "payment_reconciliation_entry"
  ],
  "fields": [
   {
@@ -81,6 +85,34 @@
    "read_only": 1
   },
   {
+   "default": "0",
+   "fieldname": "is_cancelled",
+   "fieldtype": "Check",
+   "label": "Is Cancelled",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_reversal",
+   "fieldtype": "Check",
+   "label": "Is Reversal",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reversal_of",
+   "fieldtype": "Link",
+   "label": "Reversal Of",
+   "options": "Advance Payment Ledger Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payment_reconciliation_entry",
+   "fieldtype": "Link",
+   "label": "Payment Reconciliation Entry",
+   "options": "Payment Reconciliation Entry",
+   "read_only": 1
+  },
+  {
    "depends_on": "base_amount",
    "fieldname": "base_amount",
    "fieldtype": "Currency",
@@ -101,7 +133,7 @@
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-13 12:45:03.014555",
+ "modified": "2026-05-05 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Advance Payment Ledger Entry",
