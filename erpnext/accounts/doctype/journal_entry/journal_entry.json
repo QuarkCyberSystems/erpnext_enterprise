@@ -41,6 +41,8 @@
   "user_remark",
   "auto_repeat_section",
   "auto_repeat",
+  "linked_auto_repeat",
+  "auto_reversal_status",
   "tax_withholding_tab",
   "section_tax_withholding_entry",
   "tax_withholding_group",
@@ -485,6 +487,23 @@
    "no_copy": 1,
    "options": "Auto Repeat",
    "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "description": "Active Auto Repeat (Reversal mode) scheduling this JE's reversal. While set and active, manual reversal via the Reverse Journal Entry action is blocked.",
+   "fieldname": "linked_auto_repeat",
+   "fieldtype": "Link",
+   "label": "Auto Repeat (Reversal)",
+   "no_copy": 1,
+   "options": "Auto Repeat",
+   "read_only": 1
+  },
+  {
+   "description": "Lifecycle of the linked auto-reversal: Scheduled (waiting), Completed (reversal posted), Failed (submit raised), Cancelled (Auto Repeat disabled before run).",
+   "fieldname": "auto_reversal_status",
+   "fieldtype": "Data",
+   "label": "Auto Reversal Status",
+   "no_copy": 1,
    "read_only": 1
   },
   {
