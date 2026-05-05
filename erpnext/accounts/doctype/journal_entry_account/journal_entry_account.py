@@ -27,6 +27,7 @@ class JournalEntryAccount(Document):
 		debit: DF.Currency
 		debit_in_account_currency: DF.Currency
 		exchange_rate: DF.Float
+		from_template: DF.Check
 		is_advance: DF.Literal["No", "Yes"]
 		is_tax_withholding_account: DF.Check
 		parent: DF.Data

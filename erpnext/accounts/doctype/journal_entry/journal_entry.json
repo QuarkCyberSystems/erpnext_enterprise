@@ -80,12 +80,22 @@
   "is_opening",
   "finance_book",
   "from_template",
+  "template_applied",
   "title",
   "column_break3",
   "custom_remark",
   "remark",
   "mode_of_payment",
-  "party_not_required"
+  "party_not_required",
+  "auto_reversal_section",
+  "enable_auto_reversal",
+  "auto_reverse_on",
+  "auto_reverse_date",
+  "auto_reversal_col_break",
+  "reversal_exchange_rate_type",
+  "reversal_tax_mode",
+  "reversal_cost_center_mode",
+  "auto_submit_reversal"
  ],
  "fields": [
   {
@@ -513,6 +523,17 @@
    "report_hide": 1
   },
   {
+   "default": "0",
+   "fieldname": "template_applied",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Template Applied",
+   "no_copy": 1,
+   "print_hide": 1,
+   "read_only": 1,
+   "report_hide": 1
+  },
+  {
    "depends_on": "eval:doc.apply_tds",
    "fieldname": "tax_withholding_category",
    "fieldtype": "Link",
@@ -629,6 +650,82 @@
    "hidden": 1,
    "label": "Party Not Required",
    "no_copy": 1
+  },
+  {
+   "collapsible": 1,
+   "depends_on": "eval:doc.enable_auto_reversal",
+   "fieldname": "auto_reversal_section",
+   "fieldtype": "Section Break",
+   "label": "Auto Reversal"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_auto_reversal",
+   "fieldtype": "Check",
+   "label": "Enable Auto Reversal",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "default": "First Day of Next Month",
+   "depends_on": "eval:doc.enable_auto_reversal",
+   "fieldname": "auto_reverse_on",
+   "fieldtype": "Select",
+   "label": "Auto Reverse On",
+   "no_copy": 1,
+   "options": "First Day of Next Month\nSpecific Date",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:doc.enable_auto_reversal && doc.auto_reverse_on=='Specific Date'",
+   "fieldname": "auto_reverse_date",
+   "fieldtype": "Date",
+   "label": "Reversal Date",
+   "mandatory_depends_on": "eval:doc.enable_auto_reversal && doc.auto_reverse_on=='Specific Date'",
+   "no_copy": 1
+  },
+  {
+   "fieldname": "auto_reversal_col_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Original Rate",
+   "depends_on": "eval:doc.enable_auto_reversal",
+   "fieldname": "reversal_exchange_rate_type",
+   "fieldtype": "Select",
+   "label": "Exchange Rate for Reversal",
+   "no_copy": 1,
+   "options": "Original Rate\nCurrent Rate",
+   "read_only": 1
+  },
+  {
+   "default": "Use Original",
+   "depends_on": "eval:doc.enable_auto_reversal",
+   "fieldname": "reversal_tax_mode",
+   "fieldtype": "Select",
+   "label": "Reversal Tax Mode",
+   "no_copy": 1,
+   "options": "Use Original\nRecalculate for Posting Date",
+   "read_only": 1
+  },
+  {
+   "default": "Use Original",
+   "depends_on": "eval:doc.enable_auto_reversal",
+   "fieldname": "reversal_cost_center_mode",
+   "fieldtype": "Select",
+   "label": "Reversal Cost Center Mode",
+   "no_copy": 1,
+   "options": "Use Original\nApply Current Allocation",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.enable_auto_reversal",
+   "fieldname": "auto_submit_reversal",
+   "fieldtype": "Check",
+   "label": "Auto Submit Reversal",
+   "no_copy": 1,
+   "read_only": 1
   },
   {
    "collapsible_depends_on": "eval: doc.apply_tds && doc.docstatus == 0",

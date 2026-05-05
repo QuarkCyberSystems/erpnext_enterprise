@@ -55,6 +55,9 @@ class JournalEntry(AccountsController):
 		amended_from: DF.Link | None
 		apply_tds: DF.Check
 		auto_repeat: DF.Link | None
+		auto_reverse_date: DF.Date | None
+		auto_reverse_on: DF.Literal["First Day of Next Month", "Specific Date"]
+		auto_submit_reversal: DF.Check
 		bill_date: DF.Date | None
 		bill_no: DF.Data | None
 		cheque_date: DF.Date | None
@@ -64,6 +67,7 @@ class JournalEntry(AccountsController):
 		custom_remark: DF.Check
 		difference: DF.Currency
 		due_date: DF.Date | None
+		enable_auto_reversal: DF.Check
 		finance_book: DF.Link | None
 		for_all_stock_asset_accounts: DF.Check
 		from_template: DF.Link | None
@@ -86,7 +90,10 @@ class JournalEntry(AccountsController):
 		process_deferred_accounting: DF.Link | None
 		remark: DF.SmallText | None
 		respect_cost_center_allocation: DF.Check
+		reversal_cost_center_mode: DF.Literal["Use Original", "Apply Current Allocation"]
+		reversal_exchange_rate_type: DF.Literal["Original Rate", "Current Rate"]
 		reversal_of: DF.Link | None
+		reversal_tax_mode: DF.Literal["Use Original", "Recalculate for Posting Date"]
 		reversed_by: DF.Link | None
 		select_print_heading: DF.Link | None
 		stock_asset_account: DF.Link | None
@@ -94,6 +101,7 @@ class JournalEntry(AccountsController):
 		tax_withholding_category: DF.Link | None
 		tax_withholding_entries: DF.Table[TaxWithholdingEntry]
 		tax_withholding_group: DF.Link | None
+		template_applied: DF.Check
 		title: DF.Data | None
 		total_amount: DF.Currency
 		total_amount_currency: DF.Link | None
@@ -159,6 +167,7 @@ class JournalEntry(AccountsController):
 		self.validate_depr_account_and_depr_entry_voucher_type()
 		self.validate_company_in_accounting_dimension()
 		self.validate_advance_accounts()
+		self.validate_against_template()
 
 		JournalTaxWithholding(self).on_validate()
 
@@ -168,6 +177,45 @@ class JournalEntry(AccountsController):
 
 		if self.is_new() or not self.title:
 			self.title = self.get_title()
+
+	def before_save(self):
+		if self.is_new():
+			return
+		old = self.get_doc_before_save()
+		if old and old.from_template and not self.from_template:
+			self.template_applied = 0
+			for row in self.accounts:
+				row.from_template = 0
+
+	def validate_against_template(self):
+		if not (self.from_template and self.template_applied):
+			return
+		if not frappe.db.exists("Journal Entry Template", self.from_template):
+			return
+
+		template = frappe.get_cached_doc("Journal Entry Template", self.from_template)
+		expected = sorted(
+			(r.account, r.party_type or "") for r in template.accounts
+		)
+		actual_template_rows = sorted(
+			(r.account, r.party_type or "") for r in self.accounts if r.from_template
+		)
+		if expected != actual_template_rows:
+			frappe.throw(
+				_(
+					"Template-derived account rows do not match {0}. "
+					"Clear and reapply the template, or remove the template reference."
+				).format(get_link_to_form("Journal Entry Template", self.from_template))
+			)
+
+		if not template.allow_additional_accounts:
+			extra = [r for r in self.accounts if not r.from_template]
+			if extra:
+				frappe.throw(
+					_(
+						"Template {0} does not allow additional accounts. Remove rows that are not part of the template."
+					).format(self.from_template)
+				)
 
 	def validate_advance_accounts(self):
 		journal_accounts = set([x.account for x in self.accounts])
@@ -216,6 +264,43 @@ class JournalEntry(AccountsController):
 		self.update_invoice_discounting()
 		JournalTaxWithholding(self).on_submit()
 		self.update_reversal_link()
+		self._maybe_create_template_auto_repeat()
+
+	def _maybe_create_template_auto_repeat(self):
+		if not (self.from_template and self.template_applied and self.enable_auto_reversal):
+			return
+		if getattr(self, "is_reversal", 0):
+			return
+		if not frappe.get_meta("Auto Repeat").has_field("repeat_type"):
+			frappe.log_error(
+				title="JE Template auto-reversal skipped",
+				message=(
+					f"Journal Entry {self.name}: enable_auto_reversal=1 but the Auto Repeat doctype "
+					f"does not have repeat_type (GA-0001-05+06 not deployed). "
+					f"No reversal scheduled."
+				),
+			)
+			return
+
+		ar = frappe.new_doc("Auto Repeat")
+		ar.update(
+			{
+				"reference_doctype": "Journal Entry",
+				"reference_document": self.name,
+				"repeat_type": "Reversal",
+				"reverse_on_next_month": 1 if self.auto_reverse_on == "First Day of Next Month" else 0,
+				"reverse_date": self.auto_reverse_date if self.auto_reverse_on == "Specific Date" else None,
+				"reversal_exchange_rate_type": self.reversal_exchange_rate_type,
+				"reversal_tax_mode": self.reversal_tax_mode,
+				"reversal_cost_center_mode": self.reversal_cost_center_mode,
+				"auto_submit_reversal": self.auto_submit_reversal,
+				"submit_on_creation": 1,
+				"start_date": self.posting_date,
+			}
+		)
+		ar.flags.ignore_permissions = True
+		ar.insert()
+		ar.submit()
 
 	@frappe.whitelist()
 	def get_balance_for_periodic_accounting(self):

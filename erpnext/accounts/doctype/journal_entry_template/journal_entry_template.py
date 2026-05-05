@@ -21,10 +21,19 @@ class JournalEntryTemplate(Document):
 		)
 
 		accounts: DF.Table[JournalEntryTemplateAccount]
+		allow_additional_accounts: DF.Check
+		auto_reverse_date: DF.Date | None
+		auto_reverse_on: DF.Literal["First Day of Next Month", "Specific Date"]
+		auto_submit_reversal: DF.Check
 		company: DF.Link
+		enable_auto_reversal: DF.Check
 		is_opening: DF.Literal["No", "Yes"]
+		lock_on_apply: DF.Check
 		multi_currency: DF.Check
 		naming_series: DF.Literal
+		reversal_cost_center_mode: DF.Literal["Use Original", "Apply Current Allocation"]
+		reversal_exchange_rate_type: DF.Literal["Original Rate", "Current Rate"]
+		reversal_tax_mode: DF.Literal["Use Original", "Recalculate for Posting Date"]
 		template_title: DF.Data
 		voucher_type: DF.Literal[
 			"Journal Entry",
@@ -45,6 +54,7 @@ class JournalEntryTemplate(Document):
 
 	def validate(self):
 		self.validate_party()
+		self.validate_auto_reversal()
 
 	def validate_party(self):
 		"""
@@ -66,6 +76,14 @@ class JournalEntryTemplate(Document):
 						account.idx, account.account
 					)
 				)
+
+	def validate_auto_reversal(self):
+		if not self.enable_auto_reversal:
+			return
+		if self.auto_reverse_on == "Specific Date" and not self.auto_reverse_date:
+			frappe.throw(_("Reversal Date is required when Auto Reverse On is set to Specific Date."))
+		if self.auto_reverse_on == "First Day of Next Month":
+			self.auto_reverse_date = None
 
 
 @frappe.whitelist()
