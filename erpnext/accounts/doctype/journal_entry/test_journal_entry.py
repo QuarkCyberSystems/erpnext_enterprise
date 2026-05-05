@@ -609,6 +609,86 @@ class TestJournalEntry(ERPNextTestSuite):
 		jv.save()
 		self.assertRaises(frappe.ValidationError, jv.submit)
 
+	# ──────────────────────────────────────────────────────────────────────
+	# WP GA-0001-05+06 — Auto Repeat (Reversal) integration tests
+	# Each test self-skips when Auto Repeat is missing the repeat_type field
+	# (i.e., when the Frappe-side WP isn't deployed yet) so the file remains
+	# safe to run on any version-16 site.
+	# ──────────────────────────────────────────────────────────────────────
+
+	def _auto_repeat_reversal_available(self):
+		return frappe.get_meta("Auto Repeat").has_field("repeat_type")
+
+	def _make_submitted_jv(self, amount=100, **kwargs):
+		"""Helper: a submitted JE suitable as a reversal source."""
+		jv = make_journal_entry("_Test Cash - _TC", "Sales - _TC", amount, save=False, **kwargs)
+		jv.submit()
+		return jv
+
+	def test_auto_repeat_reversal_blocks_manual_reversal(self):
+		"""TC-012: While an active Auto Repeat (Reversal) is linked, manual
+		make_reverse_journal_entry must throw."""
+		if not self._auto_repeat_reversal_available():
+			self.skipTest("Auto Repeat does not expose repeat_type — Frappe-side WP not deployed")
+		from erpnext.accounts.doctype.journal_entry.journal_entry import make_reverse_journal_entry
+
+		jv = self._make_submitted_jv()
+		# Simulate the link an active Auto Repeat (Reversal) would set on insert.
+		ar = frappe.new_doc("Auto Repeat")
+		ar.update(
+			{
+				"reference_doctype": "Journal Entry",
+				"reference_document": jv.name,
+				"repeat_type": "Reversal",
+				"reverse_on_next_month": 1,
+				"start_date": nowdate(),
+				"frequency": "",
+			}
+		)
+		ar.flags.ignore_permissions = True
+		ar.insert()
+		ar.submit()
+		frappe.db.set_value("Journal Entry", jv.name, "linked_auto_repeat", ar.name)
+
+		with self.assertRaisesRegex(frappe.ValidationError, "active Auto Repeat reversal"):
+			make_reverse_journal_entry(jv.name)
+
+	def test_auto_repeat_reversal_guard_clears_on_disable(self):
+		"""TC-013: After the linked Auto Repeat is disabled, manual reversal succeeds."""
+		if not self._auto_repeat_reversal_available():
+			self.skipTest("Auto Repeat does not expose repeat_type — Frappe-side WP not deployed")
+		from erpnext.accounts.doctype.journal_entry.journal_entry import make_reverse_journal_entry
+
+		jv = self._make_submitted_jv()
+		ar = frappe.new_doc("Auto Repeat")
+		ar.update(
+			{
+				"reference_doctype": "Journal Entry",
+				"reference_document": jv.name,
+				"repeat_type": "Reversal",
+				"reverse_on_next_month": 1,
+				"start_date": nowdate(),
+				"frequency": "",
+			}
+		)
+		ar.flags.ignore_permissions = True
+		ar.insert()
+		ar.submit()
+		frappe.db.set_value("Journal Entry", jv.name, "linked_auto_repeat", ar.name)
+
+		# Disable the AR — guard must release.
+		frappe.db.set_value("Auto Repeat", ar.name, "disabled", 1)
+
+		rjv = make_reverse_journal_entry(jv.name)
+		self.assertEqual(rjv.reversal_of, jv.name)
+
+	def test_auto_repeat_reversal_default_status(self):
+		"""TC-baseline: Fresh JE has empty linked_auto_repeat / auto_reversal_status."""
+		jv = self._make_submitted_jv()
+		jv.reload()
+		self.assertFalse(jv.get("linked_auto_repeat"))
+		self.assertFalse(jv.get("auto_reversal_status"))
+
 
 def make_journal_entry(
 	account1,
