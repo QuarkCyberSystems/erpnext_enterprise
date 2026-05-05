@@ -109,4 +109,21 @@ frappe.ui.form.on("Journal Entry Template", {
 		frappe.model.clear_table(frm.doc, "accounts");
 		frm.refresh_field("accounts");
 	},
+	enable_auto_reversal: function (frm) {
+		if (!frm.doc.enable_auto_reversal) {
+			frm.set_value({
+				auto_reverse_on: "First Day of Next Month",
+				auto_reverse_date: null,
+				reversal_exchange_rate_type: "Original Rate",
+				reversal_tax_mode: "Use Original",
+				reversal_cost_center_mode: "Use Original",
+				auto_submit_reversal: 0,
+			});
+		}
+	},
+	auto_reverse_on: function (frm) {
+		if (frm.doc.auto_reverse_on === "First Day of Next Month") {
+			frm.set_value("auto_reverse_date", null);
+		}
+	},
 });

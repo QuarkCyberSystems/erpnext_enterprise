@@ -20,7 +20,16 @@
   "enforcement_col_break",
   "allow_additional_accounts",
   "section_break_3",
-  "accounts"
+  "accounts",
+  "auto_reversal_tab",
+  "enable_auto_reversal",
+  "auto_reverse_on",
+  "auto_reverse_date",
+  "auto_reversal_col_break",
+  "reversal_exchange_rate_type",
+  "reversal_tax_mode",
+  "reversal_cost_center_mode",
+  "auto_submit_reversal"
  ],
  "fields": [
   {
@@ -110,6 +119,72 @@
    "fieldname": "allow_additional_accounts",
    "fieldtype": "Check",
    "label": "Allow Additional Accounts"
+  },
+  {
+   "fieldname": "auto_reversal_tab",
+   "fieldtype": "Tab Break",
+   "label": "Auto Reversal"
+  },
+  {
+   "default": "0",
+   "description": "When checked, every Journal Entry created from this template inherits the auto-reversal settings below and an Auto Repeat is created on submit to schedule the reversal.",
+   "fieldname": "enable_auto_reversal",
+   "fieldtype": "Check",
+   "label": "Enable Auto Reversal"
+  },
+  {
+   "default": "First Day of Next Month",
+   "depends_on": "eval:doc.enable_auto_reversal",
+   "fieldname": "auto_reverse_on",
+   "fieldtype": "Select",
+   "label": "Auto Reverse On",
+   "mandatory_depends_on": "eval:doc.enable_auto_reversal",
+   "options": "First Day of Next Month\nSpecific Date"
+  },
+  {
+   "depends_on": "eval:doc.enable_auto_reversal && doc.auto_reverse_on=='Specific Date'",
+   "fieldname": "auto_reverse_date",
+   "fieldtype": "Date",
+   "label": "Reversal Date",
+   "mandatory_depends_on": "eval:doc.enable_auto_reversal && doc.auto_reverse_on=='Specific Date'"
+  },
+  {
+   "fieldname": "auto_reversal_col_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Original Rate",
+   "depends_on": "eval:doc.enable_auto_reversal",
+   "description": "Original Rate produces a perfect offset (recommended for immutable ledger). Current Rate creates an FX difference.",
+   "fieldname": "reversal_exchange_rate_type",
+   "fieldtype": "Select",
+   "label": "Exchange Rate for Reversal",
+   "options": "Original Rate\nCurrent Rate"
+  },
+  {
+   "default": "Use Original",
+   "depends_on": "eval:doc.enable_auto_reversal",
+   "description": "Use Original reverses exact tax amounts (true reversal). Recalculate applies current tax rules for the reversal date.",
+   "fieldname": "reversal_tax_mode",
+   "fieldtype": "Select",
+   "label": "Reversal Tax Mode",
+   "options": "Use Original\nRecalculate for Posting Date"
+  },
+  {
+   "default": "Use Original",
+   "depends_on": "eval:doc.enable_auto_reversal",
+   "description": "Use Original keeps the original cost centers (recommended for immutable ledger). Apply Current Allocation re-resolves cost-center allocations active at the reversal posting date.",
+   "fieldname": "reversal_cost_center_mode",
+   "fieldtype": "Select",
+   "label": "Reversal Cost Center Mode",
+   "options": "Use Original\nApply Current Allocation"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.enable_auto_reversal",
+   "fieldname": "auto_submit_reversal",
+   "fieldtype": "Check",
+   "label": "Auto Submit Reversal"
   }
  ],
  "links": [],
