@@ -70,6 +70,8 @@ class JournalEntry(AccountsController):
 		ignore_tax_withholding_threshold: DF.Check
 		inter_company_journal_entry_reference: DF.Link | None
 		is_opening: DF.Literal["No", "Yes"]
+		is_reversal: DF.Check
+		is_reversed: DF.Check
 		is_system_generated: DF.Check
 		letter_head: DF.Link | None
 		mode_of_payment: DF.Link | None
@@ -83,7 +85,9 @@ class JournalEntry(AccountsController):
 		posting_date: DF.Date
 		process_deferred_accounting: DF.Link | None
 		remark: DF.SmallText | None
+		respect_cost_center_allocation: DF.Check
 		reversal_of: DF.Link | None
+		reversed_by: DF.Link | None
 		select_print_heading: DF.Link | None
 		stock_asset_account: DF.Link | None
 		stock_entry: DF.Link | None
@@ -158,6 +162,10 @@ class JournalEntry(AccountsController):
 
 		JournalTaxWithholding(self).on_validate()
 
+		self.validate_reversal_locked_fields()
+		self.validate_reversal_totals_match_original()
+		self.maybe_reresolve_cost_center()
+
 		if self.is_new() or not self.title:
 			self.title = self.get_title()
 
@@ -207,6 +215,7 @@ class JournalEntry(AccountsController):
 		self.update_inter_company_jv()
 		self.update_invoice_discounting()
 		JournalTaxWithholding(self).on_submit()
+		self.update_reversal_link()
 
 	@frappe.whitelist()
 	def get_balance_for_periodic_accounting(self):
@@ -292,6 +301,8 @@ class JournalEntry(AccountsController):
 	def on_cancel(self):
 		# Cancel tax withholding entries
 
+		self.validate_reversal_cancel_allowed()
+
 		# References for this Journal are removed on the `on_cancel` event in accounts_controller
 		super().on_cancel()
 
@@ -320,6 +331,156 @@ class JournalEntry(AccountsController):
 		self.unlink_inter_company_jv()
 		self.unlink_asset_adjustment_entry()
 		self.update_invoice_discounting()
+		self.clear_reversal_link()
+
+	def validate_reversal_cancel_allowed(self):
+		if not self.is_reversal:
+			return
+
+		from erpnext.accounts.utils import is_immutable_ledger_enabled
+
+		if is_immutable_ledger_enabled():
+			frappe.throw(
+				_(
+					"Cannot cancel Reversal Journal Entry {0} while Immutable Ledger is enabled. Disable Immutable Ledger in Accounts Settings to allow cancelling reversal entries."
+				).format(frappe.bold(self.name))
+			)
+
+	def validate_reversal_locked_fields(self):
+		if not self.is_reversal or not self.reversal_of or self.docstatus == 2:
+			return
+		if self.is_new():
+			# Fresh mapped draft — nothing to diff yet.
+			return
+
+		original = frappe.get_doc("Journal Entry", self.reversal_of)
+
+		header_fields = ("company", "voucher_type", "multi_currency", "cheque_no", "cheque_date")
+		for field in header_fields:
+			if self.get(field) != original.get(field):
+				frappe.throw(
+					_("Field {0} cannot be modified on a Reversal Journal Entry.").format(
+						frappe.bold(_(self.meta.get_label(field) or field))
+					)
+				)
+
+		if len(self.accounts) != len(original.accounts):
+			frappe.throw(
+				_("Rows cannot be added or removed on a Reversal Journal Entry.")
+			)
+
+		row_fields = (
+			"account",
+			"party_type",
+			"party",
+			"reference_type",
+			"reference_name",
+			"cost_center",
+			"project",
+			"account_currency",
+		)
+		original_rows = {row.idx: row for row in original.accounts}
+		for reversal_row in self.accounts:
+			original_row = original_rows.get(reversal_row.idx)
+			if not original_row:
+				continue
+			for field in row_fields:
+				if field == "cost_center" and not self.respect_cost_center_allocation:
+					# cost_center is allowed to change when re-resolution is requested.
+					continue
+				if reversal_row.get(field) != original_row.get(field):
+					frappe.throw(
+						_("Row #{0}: Field {1} cannot be modified on a Reversal Journal Entry.").format(
+							reversal_row.idx,
+							frappe.bold(_(reversal_row.meta.get_label(field) or field)),
+						)
+					)
+
+			original_debit = flt(original_row.debit_in_account_currency)
+			original_credit = flt(original_row.credit_in_account_currency)
+			if (
+				flt(reversal_row.debit_in_account_currency) != original_credit
+				or flt(reversal_row.credit_in_account_currency) != original_debit
+			):
+				frappe.throw(
+					_(
+						"Row #{0}: Debit/Credit amounts on a Reversal Journal Entry must mirror the original entry."
+					).format(reversal_row.idx)
+				)
+
+	def validate_reversal_totals_match_original(self):
+		if not self.is_reversal or not self.reversal_of or self.docstatus == 2:
+			return
+
+		original = frappe.db.get_value(
+			"Journal Entry",
+			self.reversal_of,
+			["total_debit", "total_credit"],
+			as_dict=True,
+		)
+		if not original:
+			return
+
+		debit_precision = self.precision("total_debit")
+		credit_precision = self.precision("total_credit")
+
+		if flt(self.total_debit, debit_precision) != flt(original.total_credit, credit_precision):
+			frappe.throw(
+				_(
+					"Reversal entry total debit ({0}) must match the original entry's total credit ({1})."
+				).format(
+					fmt_money(self.total_debit, precision=debit_precision),
+					fmt_money(original.total_credit, precision=credit_precision),
+				)
+			)
+
+		if flt(self.total_credit, credit_precision) != flt(original.total_debit, debit_precision):
+			frappe.throw(
+				_(
+					"Reversal entry total credit ({0}) must match the original entry's total debit ({1})."
+				).format(
+					fmt_money(self.total_credit, precision=credit_precision),
+					fmt_money(original.total_debit, precision=debit_precision),
+				)
+			)
+
+	def maybe_reresolve_cost_center(self):
+		if not self.is_reversal or self.respect_cost_center_allocation or self.docstatus == 2:
+			return
+		if not self.reversal_of:
+			return
+
+		original = frappe.get_doc("Journal Entry", self.reversal_of)
+		original_rows = {row.idx: row for row in original.accounts}
+		for row in self.accounts:
+			original_row = original_rows.get(row.idx)
+			if not original_row or not original_row.cost_center:
+				continue
+			main_cost_center = _find_main_cost_center_for_leaf(
+				original_row.cost_center, original.posting_date
+			)
+			if main_cost_center:
+				row.cost_center = main_cost_center
+
+	def update_reversal_link(self):
+		if not self.is_reversal or not self.reversal_of:
+			return
+		frappe.db.set_value(
+			"Journal Entry",
+			self.reversal_of,
+			{"reversed_by": self.name, "is_reversed": 1},
+			update_modified=False,
+		)
+
+	def clear_reversal_link(self):
+		if not self.is_reversal or not self.reversal_of:
+			return
+		frappe.db.set_value(
+			"Journal Entry",
+			self.reversal_of,
+			{"reversed_by": None, "is_reversed": 0},
+			update_modified=False,
+		)
 
 	def get_title(self):
 		return self.pay_to_recd_from or self.accounts[0].account
@@ -1758,7 +1919,22 @@ def make_inter_company_journal_entry(name, voucher_type, company):
 
 @frappe.whitelist()
 def make_reverse_journal_entry(source_name, target_doc=None):
-	existing_reverse = frappe.db.exists("Journal Entry", {"reversal_of": source_name, "docstatus": 1})
+	source = frappe.db.get_value(
+		"Journal Entry",
+		source_name,
+		["is_reversal", "reversal_of"],
+		as_dict=True,
+	)
+	if source and (source.is_reversal or source.reversal_of):
+		frappe.throw(
+			_("Journal Entry {0} is itself a reversal. Reversing a reversal entry is not allowed.").format(
+				get_link_to_form("Journal Entry", source_name)
+			)
+		)
+
+	existing_reverse = frappe.db.exists(
+		"Journal Entry", {"reversal_of": source_name, "docstatus": ["in", [0, 1]]}
+	)
 	if existing_reverse:
 		frappe.throw(
 			_("A Reverse Journal Entry {0} already exists for this Journal Entry.").format(
@@ -1770,6 +1946,10 @@ def make_reverse_journal_entry(source_name, target_doc=None):
 
 	def post_process(source, target):
 		target.reversal_of = source.name
+		target.is_reversal = 1
+		target.is_reversed = 0
+		target.reversed_by = None
+		target.respect_cost_center_allocation = 1
 
 	doclist = get_mapped_doc(
 		"Journal Entry",
@@ -1795,3 +1975,28 @@ def make_reverse_journal_entry(source_name, target_doc=None):
 	)
 
 	return doclist
+
+
+def _find_main_cost_center_for_leaf(leaf_cost_center, posting_date):
+	"""Given a (potentially leaf) cost center that was posted on the original
+	entry, return the main cost center whose allocation at ``posting_date``
+	resolves to this leaf. If no allocation references the leaf, fall back to
+	the leaf itself so ``distribute_gl_based_on_cost_center_allocation`` treats
+	it normally at the reversal's posting date."""
+	allocation = frappe.db.sql(
+		"""
+		SELECT parent.main_cost_center
+		FROM `tabCost Center Allocation Percentage` child
+		JOIN `tabCost Center Allocation` parent ON child.parent = parent.name
+		WHERE child.cost_center = %(leaf)s
+			AND parent.docstatus = 1
+			AND parent.valid_from <= %(posting_date)s
+		ORDER BY parent.valid_from DESC
+		LIMIT 1
+		""",
+		{"leaf": leaf_cost_center, "posting_date": posting_date},
+		as_dict=True,
+	)
+	if allocation:
+		return allocation[0].main_cost_center
+	return leaf_cost_center

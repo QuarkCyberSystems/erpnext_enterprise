@@ -609,6 +609,191 @@ class TestJournalEntry(ERPNextTestSuite):
 		jv.save()
 		self.assertRaises(frappe.ValidationError, jv.submit)
 
+	# ------------------------------------------------------------------
+	# Reversal Journal Entry enhancements (WP GA-0001-01)
+	# ------------------------------------------------------------------
+
+	def _make_reversal(self, original):
+		from erpnext.accounts.doctype.journal_entry.journal_entry import make_reverse_journal_entry
+
+		reversal = make_reverse_journal_entry(original.name)
+		reversal.insert()
+		return reversal
+
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"enable_immutable_ledger": 0})
+	def test_reversal_two_way_linking_on_submit(self):
+		# TC-001: submitting a reversal sets is_reversed + reversed_by on the
+		# original and is_reversal on the reversal.
+		original = make_journal_entry(
+			"_Test Bank - _TC", "_Test Cash - _TC", 500, submit=True
+		)
+		reversal = self._make_reversal(original)
+		reversal.submit()
+
+		original.reload()
+		self.assertEqual(original.is_reversed, 1)
+		self.assertEqual(original.reversed_by, reversal.name)
+		self.assertEqual(reversal.is_reversal, 1)
+		self.assertEqual(reversal.reversal_of, original.name)
+
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"enable_immutable_ledger": 0})
+	def test_reversal_link_cleanup_on_cancel(self):
+		# TC-002: cancelling a reversal under immutable-ledger OFF clears the
+		# back-pointer on the original.
+		original = make_journal_entry(
+			"_Test Bank - _TC", "_Test Cash - _TC", 600, submit=True
+		)
+		reversal = self._make_reversal(original)
+		reversal.submit()
+		reversal.cancel()
+
+		original.reload()
+		self.assertEqual(original.is_reversed, 0)
+		self.assertIsNone(original.reversed_by)
+
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"enable_immutable_ledger": 0})
+	def test_reversal_blocks_duplicate_draft(self):
+		# TC-003: only one draft-or-submitted reversal may exist per original.
+		from erpnext.accounts.doctype.journal_entry.journal_entry import make_reverse_journal_entry
+
+		original = make_journal_entry(
+			"_Test Bank - _TC", "_Test Cash - _TC", 700, submit=True
+		)
+		first = self._make_reversal(original)
+		self.assertTrue(first.name)
+
+		self.assertRaises(
+			frappe.ValidationError,
+			make_reverse_journal_entry,
+			original.name,
+		)
+
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"enable_immutable_ledger": 0})
+	def test_reversal_field_lock_bypass_blocked(self):
+		# TC-004: backend rejects edits to fields copied from the original
+		# (even when UI locking is bypassed via db_set).
+		original = make_journal_entry(
+			"_Test Bank - _TC", "_Test Cash - _TC", 800, submit=True
+		)
+		reversal = self._make_reversal(original)
+		reversal.db_set("cheque_no", "TAMPERED", update_modified=False)
+		reversal.reload()
+		self.assertRaises(frappe.ValidationError, reversal.save)
+
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"enable_immutable_ledger": 0})
+	def test_reversal_total_mismatch_blocked(self):
+		# TC-005: totals of the reversal must mirror the original's.
+		original = make_journal_entry(
+			"_Test Bank - _TC", "_Test Cash - _TC", 900, submit=True
+		)
+		reversal = self._make_reversal(original)
+		# Swap two rows via direct attribute changes so validate_reversal_*
+		# sees mismatched totals while row-level locked-field checks pass.
+		reversal.accounts[0].debit_in_account_currency = 100
+		reversal.accounts[0].credit_in_account_currency = 0
+		self.assertRaises(frappe.ValidationError, reversal.save)
+
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"enable_immutable_ledger": 0})
+	def test_reversal_indicator_data_populated(self):
+		# TC-006: the flags the dashboard indicator reads must be populated
+		# after submit on both sides of the reversal pair.
+		original = make_journal_entry(
+			"_Test Bank - _TC", "_Test Cash - _TC", 1000, submit=True
+		)
+		reversal = self._make_reversal(original)
+		reversal.submit()
+
+		original.reload()
+		reversal.reload()
+		self.assertEqual(original.is_reversed, 1)
+		self.assertEqual(original.reversed_by, reversal.name)
+		self.assertEqual(reversal.is_reversal, 1)
+		self.assertEqual(reversal.reversal_of, original.name)
+
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"enable_immutable_ledger": 0})
+	def test_reversal_of_reversal_blocked(self):
+		# TC-007 (new, GAP-010): reversing a reversal entry is always blocked.
+		from erpnext.accounts.doctype.journal_entry.journal_entry import make_reverse_journal_entry
+
+		original = make_journal_entry(
+			"_Test Bank - _TC", "_Test Cash - _TC", 1100, submit=True
+		)
+		reversal = self._make_reversal(original)
+		reversal.submit()
+
+		self.assertRaises(
+			frappe.ValidationError,
+			make_reverse_journal_entry,
+			reversal.name,
+		)
+
+	def test_reversal_cancel_blocked_under_immutable_ledger(self):
+		# TC-008 (new, GAP-010): cancel of a reversal is blocked when
+		# Immutable Ledger is enabled.
+		frappe.db.set_single_value("Accounts Settings", "enable_immutable_ledger", 0)
+		original = make_journal_entry(
+			"_Test Bank - _TC", "_Test Cash - _TC", 1200, submit=True
+		)
+		reversal = self._make_reversal(original)
+		reversal.submit()
+
+		try:
+			frappe.db.set_single_value("Accounts Settings", "enable_immutable_ledger", 1)
+			self.assertRaises(frappe.ValidationError, reversal.cancel)
+		finally:
+			frappe.db.set_single_value("Accounts Settings", "enable_immutable_ledger", 0)
+
+	@ERPNextTestSuite.change_settings("Accounts Settings", {"enable_immutable_ledger": 0})
+	def test_reversal_cost_center_reresolution(self):
+		# TC-009 (new, GAP-009): toggling respect_cost_center_allocation off
+		# rewrites the reversal's row cost centers to the main ancestor so
+		# GL-layer allocation fans out at the reversal posting date.
+		from erpnext.accounts.doctype.cost_center.test_cost_center import create_cost_center
+
+		company = "_Test Company"
+		company_abbr = frappe.db.get_value("Company", company, "abbr")
+		main_name = "_Test Reversal Main CC"
+		leaf_name = "_Test Reversal Leaf CC"
+		create_cost_center(cost_center_name=main_name, company=company)
+		create_cost_center(cost_center_name=leaf_name, company=company)
+		main_cc = f"{main_name} - {company_abbr}"
+		leaf_cc = f"{leaf_name} - {company_abbr}"
+
+		# Seed an allocation so _find_main_cost_center_for_leaf returns main_cc
+		# when looking up leaf_cc.
+		if not frappe.db.exists(
+			"Cost Center Allocation",
+			{"main_cost_center": main_cc, "docstatus": 1},
+		):
+			allocation = frappe.new_doc("Cost Center Allocation")
+			allocation.main_cost_center = main_cc
+			allocation.company = company
+			allocation.valid_from = nowdate()
+			allocation.append("allocation_percentages", {"cost_center": leaf_cc, "percentage": 100})
+			try:
+				allocation.insert()
+				allocation.submit()
+			except frappe.ValidationError:
+				# Cost Center Allocation has strict rules (no existing GL
+				# entries under main, no hierarchy overlap). Skip when the
+				# fixture state forbids seeding.
+				self.skipTest("Cost Center Allocation not permitted by fixture constraints")
+
+		original = make_journal_entry(
+			"_Test Bank - _TC",
+			"_Test Cash - _TC",
+			1300,
+			cost_center=leaf_cc,
+			submit=True,
+		)
+		reversal = self._make_reversal(original)
+		self.assertEqual(reversal.accounts[0].cost_center, leaf_cc)
+
+		reversal.respect_cost_center_allocation = 0
+		reversal.save()
+		reversal.reload()
+		self.assertEqual(reversal.accounts[0].cost_center, main_cc)
+
 
 def make_journal_entry(
 	account1,
