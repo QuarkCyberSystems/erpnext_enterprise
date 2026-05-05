@@ -55,6 +55,9 @@ class JournalEntry(AccountsController):
 		amended_from: DF.Link | None
 		apply_tds: DF.Check
 		auto_repeat: DF.Link | None
+		auto_reverse_date: DF.Date | None
+		auto_reverse_on: DF.Literal["First Day of Next Month", "Specific Date"]
+		auto_submit_reversal: DF.Check
 		bill_date: DF.Date | None
 		bill_no: DF.Data | None
 		cheque_date: DF.Date | None
@@ -64,6 +67,7 @@ class JournalEntry(AccountsController):
 		custom_remark: DF.Check
 		difference: DF.Currency
 		due_date: DF.Date | None
+		enable_auto_reversal: DF.Check
 		finance_book: DF.Link | None
 		for_all_stock_asset_accounts: DF.Check
 		from_template: DF.Link | None
@@ -83,13 +87,17 @@ class JournalEntry(AccountsController):
 		posting_date: DF.Date
 		process_deferred_accounting: DF.Link | None
 		remark: DF.SmallText | None
+		reversal_cost_center_mode: DF.Literal["Use Original", "Apply Current Allocation"]
+		reversal_exchange_rate_type: DF.Literal["Original Rate", "Current Rate"]
 		reversal_of: DF.Link | None
+		reversal_tax_mode: DF.Literal["Use Original", "Recalculate for Posting Date"]
 		select_print_heading: DF.Link | None
 		stock_asset_account: DF.Link | None
 		stock_entry: DF.Link | None
 		tax_withholding_category: DF.Link | None
 		tax_withholding_entries: DF.Table[TaxWithholdingEntry]
 		tax_withholding_group: DF.Link | None
+		template_applied: DF.Check
 		title: DF.Data | None
 		total_amount: DF.Currency
 		total_amount_currency: DF.Link | None
