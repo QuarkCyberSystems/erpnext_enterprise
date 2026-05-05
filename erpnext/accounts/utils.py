@@ -1661,6 +1661,17 @@ def repost_gle_for_stock_vouchers(
 	if not stock_vouchers:
 		return
 
+	# Immutable-Ledger short-circuit (WP GA-0001-02). Under immutable mode,
+	# adjustment GL pairs are emitted synchronously by
+	# update_entries_after._emit_adjustment_gl_pair as part of the SLE
+	# repost pass. Skip the legacy delete-and-recreate path which would
+	# otherwise wipe historical GL rows. LCV flow is exempt — its own
+	# cancel+resubmit logic produces correct GL via make_reverse_gl_entries.
+	if is_immutable_ledger_enabled() and not (
+		repost_doc and getattr(repost_doc, "via_landed_cost_voucher", 0)
+	):
+		return
+
 	if not warehouse_account:
 		warehouse_account = get_warehouse_account_map(company)
 

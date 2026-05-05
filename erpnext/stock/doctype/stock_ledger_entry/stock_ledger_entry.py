@@ -43,6 +43,8 @@ class StockLedgerEntry(Document):
 		from frappe.types import DF
 
 		actual_qty: DF.Float
+		against_adjustment_voucher: DF.DynamicLink | None
+		against_adjustment_voucher_type: DF.Link | None
 		auto_created_serial_and_batch_bundle: DF.Check
 		batch_no: DF.Data | None
 		company: DF.Link | None
@@ -61,6 +63,7 @@ class StockLedgerEntry(Document):
 		project: DF.Link | None
 		qty_after_transaction: DF.Float
 		recalculate_rate: DF.Check
+		repost_item_valuation: DF.Link | None
 		serial_and_batch_bundle: DF.Link | None
 		serial_no: DF.LongText | None
 		stock_queue: DF.LongText | None
@@ -198,7 +201,11 @@ class StockLedgerEntry(Document):
 			if not self.get(k):
 				frappe.throw(_("{0} is required").format(_(self.meta.get_label(k))))
 
-		if self.voucher_type != "Stock Reconciliation" and not self.actual_qty:
+		if (
+			self.voucher_type != "Stock Reconciliation"
+			and not self.actual_qty
+			and not self.is_adjustment_entry
+		):
 			frappe.throw(_("Actual Qty is mandatory"))
 
 	def validate_serial_batch_no_bundle(self):

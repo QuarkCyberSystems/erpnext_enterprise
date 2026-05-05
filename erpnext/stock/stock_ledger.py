@@ -27,6 +27,7 @@ from frappe.utils import (
 )
 
 import erpnext
+from erpnext.accounts.utils import is_immutable_ledger_enabled
 from erpnext.stock.doctype.bin.bin import update_qty as update_bin_qty
 from erpnext.stock.doctype.inventory_dimension.inventory_dimension import get_inventory_dimensions
 from erpnext.stock.doctype.serial_and_batch_bundle.serial_and_batch_bundle import (
@@ -477,6 +478,15 @@ class update_entries_after:
 		self.current_idx = args.get("current_idx", 0)
 		self.repost_doc = args.get("repost_doc") or None
 		self.items_to_be_repost = args.get("items_to_be_repost") or None
+
+		# Immutable-Ledger historical-repost gate (WP GA-0001-02).
+		# LCV flows handle their own cancel+resubmit under immutable mode and
+		# must not double-emit adjustments — short-circuit at construction.
+		self.immutable_ledger = (
+			is_immutable_ledger_enabled() and not via_landed_cost_voucher
+		)
+		self._adjustment_emission_seq = 0
+		self._warehouse_account_map = None
 
 		self.allow_negative_stock = allow_negative_stock or is_negative_stock_allowed(
 			item_code=self.item_code
@@ -990,6 +1000,25 @@ class update_entries_after:
 
 		sle.doctype = "Stock Ledger Entry"
 		sle.modified = now()
+
+		# EMIT_BRANCH (WP GA-0001-02): under Immutable Ledger on a multi-SLE
+		# historical repost walk, preserve the original SLE byte-for-byte and
+		# emit a current-dated adjustment SLE + matching GL pair for the
+		# computed vs persisted stock_value_difference delta. sle_id is
+		# unset on historical walks (set only by repost_current_voucher for
+		# fresh-voucher submits — those must keep db_update semantics).
+		# repost_doc presence is required since adjustments link back to the
+		# originating Repost Item Valuation.
+		if (
+			self.immutable_ledger
+			and not sle.is_adjustment_entry
+			and not self.args.get("sle_id")
+			and self.repost_doc
+		):
+			self._emit_historical_adjustment(sle, old_stock_value_difference)
+			self.prev_sle_dict[key] = sle
+			return
+
 		frappe.get_doc(sle).db_update()
 
 		self.prev_sle_dict[key] = sle
@@ -1770,6 +1799,288 @@ class update_entries_after:
 				updated_values["valuation_rate"] = flt(data.valuation_rate)
 
 			frappe.db.set_value("Bin", bin_name, updated_values, update_modified=True)
+
+	# ----------------------------------------------------------------
+	# Immutable-Ledger historical-repost adjustment emission
+	# (WP GA-0001-02). Invoked from process_sle's EMIT_BRANCH.
+	# ----------------------------------------------------------------
+
+	def _emit_historical_adjustment(self, sle, persisted_svd_at_entry):
+		"""Emit adjustment SLE + matching GL pair for the delta between
+		computed and persisted stock_value_difference on ``sle``.
+
+		``persisted_svd_at_entry`` is the value of sle.stock_value_difference
+		captured BEFORE process_sle's in-memory overwrite (it is
+		old_stock_value_difference in process_sle scope). sle at this point
+		holds the COMPUTED values — we diff against the snapshot + any prior
+		RIV adjustments targeting the same original voucher so re-reposts
+		are idempotent.
+		"""
+
+		computed_svd = flt(sle.stock_value_difference)
+		prior_adj_svd = flt(frappe.db.sql(
+			"""
+			SELECT COALESCE(SUM(stock_value_difference), 0)
+			FROM `tabStock Ledger Entry`
+			WHERE against_adjustment_voucher = %(vno)s
+				AND against_adjustment_voucher_type = %(vtype)s
+				AND is_adjustment_entry = 1
+				AND repost_item_valuation IS NOT NULL
+				AND is_cancelled = 0
+			""",
+			{"vno": sle.voucher_no, "vtype": sle.voucher_type},
+		)[0][0])
+
+		persisted_svd_total = flt(persisted_svd_at_entry) + prior_adj_svd
+		delta_svd = flt(computed_svd - persisted_svd_total, self.currency_precision)
+		if not delta_svd:
+			return
+
+		# Row lock on the original SLE — serialises concurrent RIVs against
+		# the same original voucher. Lock is held until this transaction /
+		# savepoint commits or rolls back.
+		frappe.db.sql(
+			"""SELECT stock_value_difference FROM `tabStock Ledger Entry`
+			WHERE name = %s FOR UPDATE""",
+			sle.name,
+		)
+
+		emission_sp = "emit_adj_" + frappe.generate_hash(length=8)
+		frappe.db.savepoint(emission_sp)
+		try:
+			# Normalise sle to frappe._dict so attribute access is uniform
+			# across callers (build() can yield plain dicts in some paths).
+			if not isinstance(sle, frappe._dict):
+				sle = frappe._dict(sle)
+			self._emit_adjustment_sle(sle, delta_svd)
+			self._emit_adjustment_gl_pair(sle, delta_svd)
+		except Exception as exc:
+			frappe.db.rollback(save_point=emission_sp)
+			self._log_emission_failure(sle, exc)
+		else:
+			frappe.db.release_savepoint(emission_sp)
+
+	def _next_adjustment_posting_time(self):
+		"""Monotonic microsecond-offset posting_time so sort order among
+		same-day adjustment emissions is deterministic.
+		posting_time column is TIME(6) — confirmed via DESCRIBE."""
+		import datetime as _dt
+
+		self._adjustment_emission_seq += 1
+		now_t = _dt.datetime.now().time()
+		combined = _dt.datetime.combine(_dt.date.today(), now_t) + _dt.timedelta(
+			microseconds=self._adjustment_emission_seq
+		)
+		return combined.time()
+
+	def _emit_adjustment_sle(self, sle, delta_svd):
+		posting_date = getdate()
+		args = {
+			"item_code": sle.item_code,
+			"warehouse": sle.warehouse,
+			"company": sle.company,
+			"posting_date": posting_date,
+			"posting_time": self._next_adjustment_posting_time(),
+			"actual_qty": 0,
+			"qty_after_transaction": flt(sle.qty_after_transaction),
+			"valuation_rate": flt(sle.valuation_rate),
+			"stock_value": flt(sle.stock_value),
+			"stock_value_difference": delta_svd,
+			"stock_queue": json.dumps(
+				[[flt(sle.qty_after_transaction), flt(sle.valuation_rate)]]
+			),
+			"is_adjustment_entry": 1,
+			"against_adjustment_voucher_type": sle.voucher_type,
+			"against_adjustment_voucher": sle.voucher_no,
+			"voucher_type": "Repost Item Valuation",
+			"voucher_no": self.repost_doc.name,
+			"repost_item_valuation": self.repost_doc.name,
+			"stock_uom": sle.stock_uom,
+			"fiscal_year": sle.fiscal_year,
+			"project": sle.project,
+		}
+		# Use make_entry directly. make_sl_entries hard-requires
+		# actual_qty!=0 or voucher_type=Stock Reconciliation (our
+		# adjustment SLE has neither, hitting an UnboundLocalError on
+		# sle_doc) and additionally fires repost_current_voucher which
+		# would re-enter update_entries_after — both undesired here.
+		make_entry(frappe._dict(args), allow_negative_stock=True)
+
+	def _get_warehouse_account_map(self, company):
+		if self._warehouse_account_map is None:
+			from erpnext.stock import get_warehouse_account_map
+
+			self._warehouse_account_map = get_warehouse_account_map(company) or {}
+		return self._warehouse_account_map
+
+	def _get_accounting_dimensions(self):
+		from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
+			get_accounting_dimensions,
+		)
+		return get_accounting_dimensions() or []
+
+	def _emit_adjustment_gl_pair(self, sle, delta_svd):
+		from erpnext.accounts.general_ledger import make_gl_entries
+
+		warehouse_account = self._get_warehouse_account_map(sle.company)
+		if not warehouse_account or sle.warehouse not in warehouse_account:
+			raise frappe.ValidationError(
+				_("Warehouse account mapping missing for {0}; cannot emit adjustment GL").format(
+					sle.warehouse
+				)
+			)
+
+		stock_account_info = warehouse_account[sle.warehouse]
+		stock_account = (
+			stock_account_info.get("account") if isinstance(stock_account_info, dict) else stock_account_info
+		)
+		stock_accounts_all = set()
+		for info in warehouse_account.values():
+			acct = info.get("account") if isinstance(info, dict) else info
+			if acct:
+				stock_accounts_all.add(acct)
+
+		dimensions = self._get_accounting_dimensions()
+
+		original_gl_rows = frappe.get_all(
+			"GL Entry",
+			filters={
+				"voucher_type": sle.voucher_type,
+				"voucher_no": sle.voucher_no,
+				"is_cancelled": 0,
+				"is_adjustment_entry": 0,
+			},
+			fields=[
+				"name", "account", "debit", "credit", "cost_center", "project",
+				"finance_book", "party_type", "party", "company", "fiscal_year",
+				*dimensions,
+			],
+		)
+
+		offset_rows = []
+		for row in original_gl_rows:
+			if row.account in stock_accounts_all:
+				continue
+			account_type = frappe.get_cached_value("Account", row.account, "account_type") or ""
+			if account_type in ("Tax", "Chargeable"):
+				continue
+			offset_rows.append(row)
+
+		if not offset_rows:
+			raise frappe.ValidationError(
+				_("No offset account found on {0} {1} for historical adjustment").format(
+					sle.voucher_type, sle.voucher_no
+				)
+			)
+
+		total_abs = sum(abs(flt(r.debit) - flt(r.credit)) for r in offset_rows) or 1
+		gl_rows = []
+
+		for row in offset_rows:
+			row_abs = abs(flt(row.debit) - flt(row.credit))
+			row_share = flt(delta_svd * (row_abs / total_abs), self.currency_precision)
+			if not row_share:
+				continue
+
+			# Stock side for this share (one stock row per offset row so
+			# dimensions line up per-CC / per-project on both sides).
+			gl_rows.append(
+				self._build_adjustment_gl_row(
+					sle=sle,
+					account=stock_account,
+					debit=row_share if row_share > 0 else 0,
+					credit=-row_share if row_share < 0 else 0,
+					source_row=row,
+					dimensions=dimensions,
+					inherit_party=False,
+				)
+			)
+			# Offset side (party info preserved where present).
+			gl_rows.append(
+				self._build_adjustment_gl_row(
+					sle=sle,
+					account=row.account,
+					debit=-row_share if row_share < 0 else 0,
+					credit=row_share if row_share > 0 else 0,
+					source_row=row,
+					dimensions=dimensions,
+					inherit_party=True,
+				)
+			)
+
+		if not gl_rows:
+			return
+
+		# Rounding-drift absorption: residual between stock side and offset
+		# side gets absorbed on the first non-party offset row (or last
+		# offset row if all carry party info).
+		total_debit = sum(r["debit"] for r in gl_rows)
+		total_credit = sum(r["credit"] for r in gl_rows)
+		drift = flt(total_debit - total_credit, self.currency_precision)
+		if drift:
+			target_row = None
+			for gr in gl_rows:
+				if gr["account"] != stock_account and not gr.get("party"):
+					target_row = gr
+					break
+			if target_row is None:
+				for gr in reversed(gl_rows):
+					if gr["account"] != stock_account:
+						target_row = gr
+						break
+			if target_row is not None:
+				if drift > 0:
+					target_row["credit"] = flt(target_row["credit"] + drift, self.currency_precision)
+					target_row["credit_in_account_currency"] = target_row["credit"]
+				else:
+					target_row["debit"] = flt(target_row["debit"] + (-drift), self.currency_precision)
+					target_row["debit_in_account_currency"] = target_row["debit"]
+
+		make_gl_entries(
+			[frappe._dict(r) for r in gl_rows],
+			from_repost=True,
+			merge_entries=False,
+		)
+
+	def _build_adjustment_gl_row(self, *, sle, account, debit, credit, source_row, dimensions, inherit_party):
+		row = {
+			"account": account,
+			"debit": debit,
+			"credit": credit,
+			"debit_in_account_currency": debit,
+			"credit_in_account_currency": credit,
+			"posting_date": getdate(),
+			"voucher_type": "Repost Item Valuation",
+			"voucher_no": self.repost_doc.name,
+			"against_adjustment_voucher_type": sle.voucher_type,
+			"against_adjustment_voucher": sle.voucher_no,
+			"is_adjustment_entry": 1,
+			"repost_item_valuation": self.repost_doc.name,
+			"company": source_row.get("company") or sle.company,
+			"fiscal_year": source_row.get("fiscal_year"),
+			"cost_center": source_row.get("cost_center"),
+			"project": source_row.get("project"),
+			"finance_book": source_row.get("finance_book"),
+			"remarks": _("Historical adjustment for {0} {1}").format(sle.voucher_type, sle.voucher_no),
+		}
+		if inherit_party:
+			row["party_type"] = source_row.get("party_type")
+			row["party"] = source_row.get("party")
+		for dim in dimensions:
+			row[dim] = source_row.get(dim)
+		return row
+
+	def _log_emission_failure(self, sle, exc):
+		msg = f"Historical adjustment emission failed for {sle.voucher_type} {sle.voucher_no}: {exc}"
+		try:
+			existing = self.repost_doc.error_log or ""
+			self.repost_doc.db_set(
+				"error_log",
+				(existing + "\n" + msg).strip(),
+				update_modified=False,
+			)
+		except Exception:
+			frappe.log_error(title="Repost adjustment emission failure", message=msg)
 
 
 def get_sle_against_current_voucher(kwargs):
