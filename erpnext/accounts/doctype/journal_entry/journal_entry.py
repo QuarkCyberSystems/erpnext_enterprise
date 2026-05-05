@@ -255,6 +255,43 @@ class JournalEntry(AccountsController):
 		self.update_inter_company_jv()
 		self.update_invoice_discounting()
 		JournalTaxWithholding(self).on_submit()
+		self._maybe_create_template_auto_repeat()
+
+	def _maybe_create_template_auto_repeat(self):
+		if not (self.from_template and self.template_applied and self.enable_auto_reversal):
+			return
+		if getattr(self, "is_reversal", 0):
+			return
+		if not frappe.get_meta("Auto Repeat").has_field("repeat_type"):
+			frappe.log_error(
+				title="JE Template auto-reversal skipped",
+				message=(
+					f"Journal Entry {self.name}: enable_auto_reversal=1 but the Auto Repeat doctype "
+					f"does not have repeat_type (GA-0001-05+06 not deployed). "
+					f"No reversal scheduled."
+				),
+			)
+			return
+
+		ar = frappe.new_doc("Auto Repeat")
+		ar.update(
+			{
+				"reference_doctype": "Journal Entry",
+				"reference_document": self.name,
+				"repeat_type": "Reversal",
+				"reverse_on_next_month": 1 if self.auto_reverse_on == "First Day of Next Month" else 0,
+				"reverse_date": self.auto_reverse_date if self.auto_reverse_on == "Specific Date" else None,
+				"reversal_exchange_rate_type": self.reversal_exchange_rate_type,
+				"reversal_tax_mode": self.reversal_tax_mode,
+				"reversal_cost_center_mode": self.reversal_cost_center_mode,
+				"auto_submit_reversal": self.auto_submit_reversal,
+				"submit_on_creation": 1,
+				"start_date": self.posting_date,
+			}
+		)
+		ar.flags.ignore_permissions = True
+		ar.insert()
+		ar.submit()
 
 	@frappe.whitelist()
 	def get_balance_for_periodic_accounting(self):
