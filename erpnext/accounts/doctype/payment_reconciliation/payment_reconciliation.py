@@ -191,6 +191,29 @@ class PaymentReconciliation(Document):
 			condition=condition,
 		)
 
+		# WP GA-0001-03 §3.7 — under Immutable Ledger, exclude PEs that already
+		# have a non-reversed Payment Reconciliation Entry. Avoids re-displaying
+		# a payment that's already been reconciled via PRE.
+		from erpnext.accounts.utils import is_immutable_ledger_enabled
+
+		if is_immutable_ledger_enabled() and payment_entries:
+			covered_pes = set(
+				frappe.get_all(
+					"Payment Reconciliation Entry",
+					filters={
+						"payment_type": "Payment Entry",
+						"is_reversal": 0,
+						"is_unreconciled": 0,
+						"docstatus": 1,
+					},
+					pluck="payment_name",
+				)
+			)
+			if covered_pes:
+				payment_entries = [
+					pe for pe in payment_entries if pe.get("reference_name") not in covered_pes
+				]
+
 		return payment_entries
 
 	def get_jv_entries(self):
