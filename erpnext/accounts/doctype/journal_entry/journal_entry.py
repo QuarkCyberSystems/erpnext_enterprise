@@ -55,6 +55,7 @@ class JournalEntry(AccountsController):
 		amended_from: DF.Link | None
 		apply_tds: DF.Check
 		auto_repeat: DF.Link | None
+		auto_reversal_status: DF.Data | None
 		auto_reverse_date: DF.Date | None
 		auto_reverse_on: DF.Literal["First Day of Next Month", "Specific Date"]
 		auto_submit_reversal: DF.Check
@@ -78,6 +79,7 @@ class JournalEntry(AccountsController):
 		is_reversed: DF.Check
 		is_system_generated: DF.Check
 		letter_head: DF.Link | None
+		linked_auto_repeat: DF.Link | None
 		mode_of_payment: DF.Link | None
 		multi_currency: DF.Check
 		naming_series: DF.Literal["ACC-JV-.YYYY.-"]
@@ -2004,6 +2006,28 @@ def make_inter_company_journal_entry(name, voucher_type, company):
 
 @frappe.whitelist()
 def make_reverse_journal_entry(source_name, target_doc=None):
+	# WP GA-0001-05+06: block manual reversal while an active Auto Repeat (Reversal) is linked.
+	# The user must cancel/disable the Auto Repeat before reversing manually.
+	# Capability-checked so this is safe to ship before Auto Repeat gains repeat_type
+	# (frappe.db.get_value returns None silently when the field doesn't exist on the doctype).
+	if frappe.get_meta("Journal Entry").has_field("linked_auto_repeat"):
+		linked_ar = frappe.db.get_value("Journal Entry", source_name, "linked_auto_repeat")
+		if linked_ar:
+			ar = frappe.db.get_value(
+				"Auto Repeat", linked_ar, ["docstatus", "disabled"], as_dict=True
+			)
+			if ar and ar.docstatus == 1 and not ar.disabled:
+				frappe.throw(
+					_(
+						"{0} has an active Auto Repeat reversal {1}. "
+						"Cancel or disable the Auto Repeat first before reversing manually."
+					).format(
+						frappe.bold(source_name),
+						get_link_to_form("Auto Repeat", linked_ar),
+					)
+				)
+
+	# WP GA-0001-01: block reversal of a reversal.
 	source = frappe.db.get_value(
 		"Journal Entry",
 		source_name,
