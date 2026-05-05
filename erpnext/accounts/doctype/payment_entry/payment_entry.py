@@ -1490,6 +1490,11 @@ class PaymentEntry(AccountsController):
 				return "debit", reference.account
 
 	def add_advance_gl_for_reference(self, gl_entries, invoice):
+		# When this PE Reference row is owned by a Payment Reconciliation Entry
+		# (Tier 3 PRE flow under Immutable Ledger), the clearing GL pair is
+		# posted by PRE.on_submit. Skip here to avoid double-posting.
+		if invoice.get("reconciliation_entry"):
+			return
 		args_dict = {
 			"party_type": self.party_type,
 			"party": self.party,
