@@ -557,8 +557,8 @@ def reconcile_against_document(
 			for row in reposting_rows:
 				doc.make_advance_gl_entries(entry=row)
 		else:
-			_delete_pl_entries(voucher_type, voucher_no)
-			_delete_adv_pl_entries(voucher_type, voucher_no)
+			_supersede_pl_entries(voucher_type, voucher_no)
+			_supersede_adv_pl_entries(voucher_type, voucher_no)
 			gl_map = doc.build_gl_map()
 			# Make sure there is no overallocation
 			from erpnext.accounts.general_ledger import process_debit_credit_difference
@@ -1708,6 +1708,42 @@ def _delete_pl_entries(voucher_type, voucher_no):
 def _delete_adv_pl_entries(voucher_type, voucher_no):
 	adv = qb.DocType("Advance Payment Ledger Entry")
 	qb.from_(adv).delete().where((adv.voucher_type == voucher_type) & (adv.voucher_no == voucher_no)).run()
+
+
+def _supersede_pl_entries(voucher_type, voucher_no):
+	"""Immutable-Ledger-aware replacement for _delete_pl_entries.
+
+	Under Immutable Ledger, mark existing PLE rows as delinked=1 instead
+	of DELETE; the rebuild path inserts new rows alongside.
+	"""
+	if not is_immutable_ledger_enabled():
+		return _delete_pl_entries(voucher_type, voucher_no)
+	ple = qb.DocType("Payment Ledger Entry")
+	(
+		qb.update(ple)
+		.set(ple.delinked, 1)
+		.set(ple.modified, now())
+		.set(ple.modified_by, frappe.session.user)
+		.where((ple.voucher_type == voucher_type) & (ple.voucher_no == voucher_no) & (ple.delinked == 0))
+		.run()
+	)
+
+
+def _supersede_adv_pl_entries(voucher_type, voucher_no):
+	"""Immutable-Ledger-aware replacement for _delete_adv_pl_entries."""
+	if not is_immutable_ledger_enabled():
+		return _delete_adv_pl_entries(voucher_type, voucher_no)
+	adv = qb.DocType("Advance Payment Ledger Entry")
+	(
+		qb.update(adv)
+		.set(adv.is_cancelled, 1)
+		.set(adv.modified, now())
+		.set(adv.modified_by, frappe.session.user)
+		.where(
+			(adv.voucher_type == voucher_type) & (adv.voucher_no == voucher_no) & (adv.is_cancelled == 0)
+		)
+		.run()
+	)
 
 
 def _delete_gl_entries(voucher_type, voucher_no):
