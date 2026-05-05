@@ -13,7 +13,8 @@
   "reference_name",
   "allocated_amount",
   "account_currency",
-  "unlinked"
+  "unlinked",
+  "reversal_pre"
  ],
  "fields": [
   {
@@ -66,12 +67,19 @@
    "label": "Account Currency",
    "options": "Currency",
    "read_only": 1
+  },
+  {
+   "fieldname": "reversal_pre",
+   "fieldtype": "Link",
+   "label": "Reversal PRE",
+   "options": "Payment Reconciliation Entry",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2024-03-27 13:10:57.224053",
+ "modified": "2026-05-05 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Unreconcile Payment Entries",

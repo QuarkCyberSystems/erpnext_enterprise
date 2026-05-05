@@ -24,7 +24,8 @@
   "payment_request",
   "payment_request_outstanding",
   "advance_voucher_type",
-  "advance_voucher_no"
+  "advance_voucher_no",
+  "reconciliation_entry"
  ],
  "fields": [
   {
@@ -171,12 +172,19 @@
    "label": "Advance Voucher No",
    "options": "advance_voucher_type",
    "read_only": 1
+  },
+  {
+   "fieldname": "reconciliation_entry",
+   "fieldtype": "Link",
+   "label": "Reconciliation Entry",
+   "options": "Payment Reconciliation Entry",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-01-05 14:18:03.286224",
+ "modified": "2026-05-05 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Payment Entry Reference",
