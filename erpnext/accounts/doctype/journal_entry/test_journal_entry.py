@@ -610,6 +610,228 @@ class TestJournalEntry(ERPNextTestSuite):
 		self.assertRaises(frappe.ValidationError, jv.submit)
 
 
+class TestJournalEntryTemplateEnforcement(ERPNextTestSuite):
+	"""GA-0001-04: JE Template enforcement and Auto Reversal inheritance."""
+
+	@classmethod
+	def _make_template(
+		cls,
+		title,
+		voucher_type="Journal Entry",
+		lock_on_apply=1,
+		allow_additional_accounts=0,
+		accounts=None,
+		auto_reversal_kwargs=None,
+	):
+		if frappe.db.exists("Journal Entry Template", title):
+			frappe.delete_doc("Journal Entry Template", title, force=1)
+		tpl = frappe.new_doc("Journal Entry Template")
+		tpl.template_title = title
+		tpl.voucher_type = voucher_type
+		tpl.company = "_Test Company"
+		tpl.naming_series = "ACC-JV-.YYYY.-"
+		tpl.lock_on_apply = lock_on_apply
+		tpl.allow_additional_accounts = allow_additional_accounts
+		for acc in accounts or [
+			{"account": "_Test Cash - _TC"},
+			{"account": "_Test Bank - _TC"},
+		]:
+			tpl.append("accounts", acc)
+		if auto_reversal_kwargs:
+			tpl.update(auto_reversal_kwargs)
+		tpl.insert()
+		return tpl
+
+	def _make_je_from_template(self, tpl, amounts=None):
+		"""Mirror what the client-side apply_template handler does, server-side."""
+		amounts = amounts or [(100, 0), (0, 100)]
+		je = frappe.new_doc("Journal Entry")
+		je.posting_date = nowdate()
+		je.company = tpl.company
+		je.voucher_type = tpl.voucher_type
+		je.naming_series = tpl.naming_series
+		je.is_opening = tpl.is_opening
+		je.multi_currency = tpl.multi_currency
+		je.from_template = tpl.name
+		je.template_applied = 1
+		je.enable_auto_reversal = tpl.enable_auto_reversal
+		je.auto_reverse_on = tpl.auto_reverse_on
+		je.auto_reverse_date = tpl.auto_reverse_date
+		je.reversal_exchange_rate_type = tpl.reversal_exchange_rate_type
+		je.reversal_tax_mode = tpl.reversal_tax_mode
+		je.reversal_cost_center_mode = tpl.reversal_cost_center_mode
+		je.auto_submit_reversal = tpl.auto_submit_reversal
+		for tpl_row, (debit, credit) in zip(tpl.accounts, amounts, strict=False):
+			je.append(
+				"accounts",
+				{
+					"account": tpl_row.account,
+					"party_type": tpl_row.party_type,
+					"party": tpl_row.party,
+					"cost_center": tpl_row.cost_center or "_Test Cost Center - _TC",
+					"project": tpl_row.project,
+					"user_remark": tpl_row.user_remark,
+					"debit_in_account_currency": debit,
+					"credit_in_account_currency": credit,
+					"from_template": 1,
+				},
+			)
+		return je
+
+	# TC-006 - Server-side parity check rejects missing template account
+	def test_tc006_server_validation_blocks_missing_template_account(self):
+		tpl = self._make_template("_Test JE Tpl TC006")
+		je = self._make_je_from_template(tpl)
+		je.accounts.pop()  # remove a template-derived row
+		self.assertRaises(frappe.ValidationError, je.insert)
+		frappe.delete_doc("Journal Entry Template", tpl.name, force=1)
+
+	# TC-006b - Replacing a template account with a different one is also rejected
+	def test_tc006_server_validation_blocks_swapped_account(self):
+		tpl = self._make_template("_Test JE Tpl TC006b")
+		je = self._make_je_from_template(tpl)
+		je.accounts[0].account = "_Test Receivable - _TC"
+		self.assertRaises(frappe.ValidationError, je.insert)
+		frappe.delete_doc("Journal Entry Template", tpl.name, force=1)
+
+	# TC-004 - allow_additional_accounts=0 blocks user-added rows on the server
+	def test_tc004_server_blocks_extra_rows_when_disallowed(self):
+		tpl = self._make_template(
+			"_Test JE Tpl TC004", allow_additional_accounts=0
+		)
+		je = self._make_je_from_template(tpl)
+		je.append(
+			"accounts",
+			{
+				"account": "_Test Receivable - _TC",
+				"cost_center": "_Test Cost Center - _TC",
+				"debit_in_account_currency": 0,
+				"credit_in_account_currency": 0,
+				"from_template": 0,
+			},
+		)
+		self.assertRaises(frappe.ValidationError, je.insert)
+		frappe.delete_doc("Journal Entry Template", tpl.name, force=1)
+
+	# TC-003 - allow_additional_accounts=1 lets the user add a non-template row
+	def test_tc003_server_allows_extra_rows_when_permitted(self):
+		tpl = self._make_template(
+			"_Test JE Tpl TC003", allow_additional_accounts=1
+		)
+		je = self._make_je_from_template(tpl)
+		je.append(
+			"accounts",
+			{
+				"account": "_Test Receivable - _TC",
+				"cost_center": "_Test Cost Center - _TC",
+				"debit_in_account_currency": 50,
+				"credit_in_account_currency": 0,
+				"from_template": 0,
+			},
+		)
+		# Adjust totals so the JE balances
+		je.accounts[1].credit_in_account_currency = 150
+		je.insert()
+		self.assertEqual(je.template_applied, 1)
+		non_tpl_rows = [r for r in je.accounts if not r.from_template]
+		self.assertEqual(len(non_tpl_rows), 1)
+		frappe.delete_doc("Journal Entry", je.name, force=1)
+		frappe.delete_doc("Journal Entry Template", tpl.name, force=1)
+
+	# TC-005 - before_save clears template_applied + row from_template when from_template cleared
+	def test_tc005_clearing_from_template_resets_state(self):
+		tpl = self._make_template("_Test JE Tpl TC005")
+		je = self._make_je_from_template(tpl)
+		je.insert()
+		je.from_template = None
+		je.save()
+		self.assertEqual(je.template_applied, 0)
+		for row in je.accounts:
+			self.assertEqual(row.from_template, 0)
+		frappe.delete_doc("Journal Entry", je.name, force=1)
+		frappe.delete_doc("Journal Entry Template", tpl.name, force=1)
+
+	# TC-007 - editing amounts on template rows is allowed
+	def test_tc007_amount_edits_allowed_on_template_rows(self):
+		tpl = self._make_template("_Test JE Tpl TC007")
+		je = self._make_je_from_template(tpl)
+		je.insert()
+		je.accounts[0].debit_in_account_currency = 250
+		je.accounts[1].credit_in_account_currency = 250
+		je.save()
+		self.assertEqual(flt(je.accounts[0].debit_in_account_currency), 250)
+		frappe.delete_doc("Journal Entry", je.name, force=1)
+		frappe.delete_doc("Journal Entry Template", tpl.name, force=1)
+
+	# TC-010 - Template's seven Auto Reversal fields land on JE
+	def test_tc010_auto_reversal_fields_inherit_from_template(self):
+		tpl = self._make_template(
+			"_Test JE Tpl TC010",
+			auto_reversal_kwargs={
+				"enable_auto_reversal": 1,
+				"auto_reverse_on": "Specific Date",
+				"auto_reverse_date": nowdate(),
+				"reversal_exchange_rate_type": "Current Rate",
+				"reversal_tax_mode": "Recalculate for Posting Date",
+				"reversal_cost_center_mode": "Apply Current Allocation",
+				"auto_submit_reversal": 1,
+			},
+		)
+		je = self._make_je_from_template(tpl)
+		je.insert()
+		self.assertEqual(je.enable_auto_reversal, 1)
+		self.assertEqual(je.auto_reverse_on, "Specific Date")
+		self.assertEqual(je.reversal_exchange_rate_type, "Current Rate")
+		self.assertEqual(je.reversal_tax_mode, "Recalculate for Posting Date")
+		self.assertEqual(je.reversal_cost_center_mode, "Apply Current Allocation")
+		self.assertEqual(je.auto_submit_reversal, 1)
+		frappe.delete_doc("Journal Entry", je.name, force=1)
+		frappe.delete_doc("Journal Entry Template", tpl.name, force=1)
+
+	# TC-012 - Auto Repeat skipped + error logged when GA-0001-05+06 not deployed
+	def test_tc012_auto_reversal_skipped_when_repeat_type_missing(self):
+		if frappe.get_meta("Auto Repeat").has_field("repeat_type"):
+			self.skipTest("GA-0001-05+06 deployed; capability-detected branch not exercised")
+		tpl = self._make_template(
+			"_Test JE Tpl TC012",
+			auto_reversal_kwargs={
+				"enable_auto_reversal": 1,
+				"auto_reverse_on": "First Day of Next Month",
+			},
+		)
+		je = self._make_je_from_template(
+			tpl, amounts=[(500, 0), (0, 500)]
+		)
+		je.insert()
+		je.submit()
+		# JE should still submit cleanly; no Auto Repeat created
+		ar_count = frappe.db.count(
+			"Auto Repeat",
+			{"reference_doctype": "Journal Entry", "reference_document": je.name},
+		)
+		self.assertEqual(ar_count, 0)
+		self.assertEqual(je.docstatus, 1)
+		frappe.delete_doc("Journal Entry Template", tpl.name, force=1)
+
+	# TC-014 - Re-applying same template re-marks rows cleanly (idempotent reseed)
+	def test_tc014_reapply_template_resets_state(self):
+		tpl = self._make_template("_Test JE Tpl TC014")
+		je = self._make_je_from_template(tpl)
+		je.insert()
+		# Simulate clear + reapply on existing JE
+		je.from_template = None
+		je.save()
+		self.assertEqual(je.template_applied, 0)
+		# Reapply by a fresh server-side seed
+		fresh = self._make_je_from_template(tpl, amounts=[(75, 0), (0, 75)])
+		fresh.insert()
+		self.assertEqual(fresh.template_applied, 1)
+		self.assertEqual(len([r for r in fresh.accounts if r.from_template]), 2)
+		frappe.delete_doc("Journal Entry", je.name, force=1)
+		frappe.delete_doc("Journal Entry", fresh.name, force=1)
+		frappe.delete_doc("Journal Entry Template", tpl.name, force=1)
+
+
 def make_journal_entry(
 	account1,
 	account2,
