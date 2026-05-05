@@ -374,6 +374,12 @@ class AccountsController(TransactionBase):
 		validate_einvoice_fields(self)
 
 	def _remove_references_in_unreconcile(self):
+		from erpnext.accounts.utils import is_immutable_ledger_enabled
+
+		if is_immutable_ledger_enabled():
+			# Submitted Unreconcile Payment docs are preserved under Immutable
+			# Ledger — their audit trail outlives the trashed parent voucher.
+			return
 		upe = frappe.qb.DocType("Unreconcile Payment Entries")
 		rows = (
 			frappe.qb.from_(upe)
@@ -405,6 +411,12 @@ class AccountsController(TransactionBase):
 			_doc.delete()
 
 	def _remove_references_in_repost_doctypes(self):
+		from erpnext.accounts.utils import is_immutable_ledger_enabled
+
+		if is_immutable_ledger_enabled():
+			# Submitted Repost Payment Ledger / Repost Accounting Ledger docs
+			# are preserved under Immutable Ledger.
+			return
 		repost_doctypes = ["Repost Payment Ledger Items", "Repost Accounting Ledger Items"]
 
 		for _doctype in repost_doctypes:
