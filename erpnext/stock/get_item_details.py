@@ -1117,6 +1117,7 @@ def insert_item_price(ctx: ItemDetailsCtx):
 				currency=ctx.currency,
 				uom=ctx.stock_uom,
 				price_list=ctx.price_list,
+				valid_from=transaction_date,
 			)
 			item_price.insert()
 			frappe.msgprint(
@@ -1139,6 +1140,7 @@ def insert_item_price(ctx: ItemDetailsCtx):
 				"currency": ctx.currency,
 				"price_list_rate": price_list_rate,
 				"uom": ctx.stock_uom,
+				"valid_from": transaction_date,
 			}
 		)
 		item_price.insert()
