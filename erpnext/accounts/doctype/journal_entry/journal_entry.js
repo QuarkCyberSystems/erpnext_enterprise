@@ -255,16 +255,19 @@ frappe.ui.form.on("Journal Entry", {
 
 	from_template: function (frm) {
 		if (frm.doc.from_template) {
-			frappe.db.get_doc("Journal Entry Template", frm.doc.from_template).then((doc) => {
-				frappe.model.clear_table(frm.doc, "accounts");
-				frm.set_value({
-					company: doc.company,
-					voucher_type: doc.voucher_type,
-					naming_series: doc.naming_series,
-					is_opening: doc.is_opening,
-					multi_currency: doc.multi_currency,
-				});
-				update_jv_details(frm.doc, doc.accounts);
+			frappe.db.get_doc("Journal Entry Template", frm.doc.from_template).then((tpl) => {
+				apply_template(frm, tpl);
+			});
+		} else {
+			clear_template(frm);
+		}
+	},
+
+	refresh: function (frm) {
+		if (frm.doc.template_applied && frm.doc.from_template && !frm.is_new()) {
+			frappe.db.get_doc("Journal Entry Template", frm.doc.from_template).then((tpl) => {
+				apply_template_locks(frm, tpl);
+				show_template_indicator(frm);
 			});
 		}
 	},
@@ -274,7 +277,114 @@ frappe.ui.form.on("Journal Entry", {
 	},
 });
 
-var update_jv_details = function (doc, r) {
+frappe.ui.form.on("Journal Entry Account", {
+	before_accounts_remove: function (frm, cdt, cdn) {
+		const row = locals[cdt][cdn];
+		if (row.from_template && frm.doc.template_applied) {
+			frappe.throw(
+				__(
+					"Cannot delete account rows that come from the template. Clear the From Template reference to unlock the rows."
+				)
+			);
+		}
+	},
+});
+
+const TEMPLATE_HEADER_LOCKS = [
+	"voucher_type",
+	"company",
+	"multi_currency",
+	"is_opening",
+	"naming_series",
+	"from_template",
+];
+const TEMPLATE_AUTO_REVERSAL_LOCKS = [
+	"enable_auto_reversal",
+	"auto_reverse_on",
+	"reversal_exchange_rate_type",
+	"reversal_tax_mode",
+	"reversal_cost_center_mode",
+	"auto_submit_reversal",
+];
+
+var apply_template = function (frm, tpl) {
+	frappe.model.clear_table(frm.doc, "accounts");
+	frm.set_value({
+		company: tpl.company,
+		voucher_type: tpl.voucher_type,
+		naming_series: tpl.naming_series,
+		is_opening: tpl.is_opening,
+		multi_currency: tpl.multi_currency,
+		enable_auto_reversal: tpl.enable_auto_reversal || 0,
+		auto_reverse_on: tpl.auto_reverse_on || "First Day of Next Month",
+		auto_reverse_date: tpl.auto_reverse_date || null,
+		reversal_exchange_rate_type: tpl.reversal_exchange_rate_type || "Original Rate",
+		reversal_tax_mode: tpl.reversal_tax_mode || "Use Original",
+		reversal_cost_center_mode: tpl.reversal_cost_center_mode || "Use Original",
+		auto_submit_reversal: tpl.auto_submit_reversal || 0,
+	});
+	update_jv_details(frm.doc, tpl.accounts, true);
+	frm.set_value("template_applied", 1);
+	if (tpl.lock_on_apply) {
+		apply_template_locks(frm, tpl);
+	}
+	show_template_indicator(frm);
+};
+
+var clear_template = function (frm) {
+	frm.set_value({
+		template_applied: 0,
+		enable_auto_reversal: 0,
+		auto_reverse_on: "First Day of Next Month",
+		auto_reverse_date: null,
+		reversal_exchange_rate_type: "Original Rate",
+		reversal_tax_mode: "Use Original",
+		reversal_cost_center_mode: "Use Original",
+		auto_submit_reversal: 0,
+	});
+	(frm.doc.accounts || []).forEach((row) => {
+		row.from_template = 0;
+	});
+	remove_template_locks(frm);
+	frm.refresh_fields();
+};
+
+var apply_template_locks = function (frm, tpl) {
+	TEMPLATE_HEADER_LOCKS.forEach((f) => frm.set_df_property(f, "read_only", 1));
+	TEMPLATE_AUTO_REVERSAL_LOCKS.forEach((f) => frm.set_df_property(f, "read_only", 1));
+	const reverse_date_ro = frm.doc.auto_reverse_on !== "Specific Date";
+	frm.set_df_property("auto_reverse_date", "read_only", reverse_date_ro ? 1 : 0);
+
+	["account", "party_type"].forEach((f) =>
+		frm.fields_dict.accounts.grid.update_docfield_property(
+			f,
+			"read_only",
+			"eval:doc.from_template"
+		)
+	);
+	frm.fields_dict.accounts.grid.cannot_delete_rows = true;
+	frm.fields_dict.accounts.grid.cannot_add_rows = !tpl.allow_additional_accounts;
+	frm.refresh_fields();
+};
+
+var remove_template_locks = function (frm) {
+	TEMPLATE_HEADER_LOCKS.forEach((f) => frm.set_df_property(f, "read_only", 0));
+	TEMPLATE_AUTO_REVERSAL_LOCKS.forEach((f) => frm.set_df_property(f, "read_only", 0));
+	frm.set_df_property("auto_reverse_date", "read_only", 0);
+	["account", "party_type"].forEach((f) =>
+		frm.fields_dict.accounts.grid.update_docfield_property(f, "read_only", 0)
+	);
+	frm.fields_dict.accounts.grid.cannot_delete_rows = false;
+	frm.fields_dict.accounts.grid.cannot_add_rows = false;
+};
+
+var show_template_indicator = function (frm) {
+	if (frm.doc.from_template && frm.doc.template_applied && frm.dashboard) {
+		frm.dashboard.add_indicator(__("Template: {0}", [frm.doc.from_template]), "blue");
+	}
+};
+
+var update_jv_details = function (doc, r, mark_from_template) {
 	$.each(r, function (i, d) {
 		var row = frappe.model.add_child(doc, "Journal Entry Account", "accounts");
 		const {
@@ -292,6 +402,9 @@ var update_jv_details = function (doc, r) {
 			...fields
 		} = d;
 		frappe.model.set_value(row.doctype, row.name, fields);
+		if (mark_from_template) {
+			row.from_template = 1;
+		}
 	});
 	refresh_field("accounts");
 };
