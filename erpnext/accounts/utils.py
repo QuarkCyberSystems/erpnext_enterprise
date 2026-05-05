@@ -744,8 +744,17 @@ def validate_allocated_amount(args):
 
 def update_reference_in_journal_entry(d, journal_entry, do_not_save=False):
 	"""
-	Updates against document, if partial amount splits into rows
+	Updates against document, if partial amount splits into rows.
+
+	Tier 2 guardrail: under Immutable Ledger this function must not be
+	reached — JE reconciles route through `_create_pre_for_allocation`
+	in `reconcile_against_document`. The assert defends against
+	accidental routing.
 	"""
+	assert not is_immutable_ledger_enabled(), (
+		"update_reference_in_journal_entry must not be called under Immutable "
+		"Ledger; PRE flow handles JE reconciles."
+	)
 	jv_detail = journal_entry.get("accounts", {"name": d["voucher_detail_no"]})[0]
 
 	rev_dr_or_cr = (
@@ -817,6 +826,10 @@ def update_reference_in_journal_entry(d, journal_entry, do_not_save=False):
 def update_reference_in_payment_entry(
 	d, payment_entry, do_not_save=False, skip_ref_details_update_for_pe=False, dimensions_dict=None
 ):
+	assert not is_immutable_ledger_enabled(), (
+		"update_reference_in_payment_entry must not be called under Immutable "
+		"Ledger; PRE flow handles PE reconciles."
+	)
 	reference_details = {
 		"reference_doctype": d.against_voucher_type,
 		"reference_name": d.against_voucher,
