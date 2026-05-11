@@ -617,6 +617,7 @@ class TestJournalEntry(ERPNextTestSuite):
 		from erpnext.accounts.doctype.journal_entry.journal_entry import make_reverse_journal_entry
 
 		reversal = make_reverse_journal_entry(original.name)
+		reversal.posting_date = nowdate()
 		reversal.insert()
 		return reversal
 
