@@ -374,6 +374,24 @@ class TestPaymentReconciliation(ERPNextTestSuite):
 		pr.party_type = "Customer" if party_is_customer else "Supplier"
 		pr.party = self.customer if party_is_customer else self.supplier
 		pr.receivable_payable_account = get_party_account(pr.party_type, pr.party, pr.company)
+		# When book_advance_payments_in_separate_party_account=1 on the company,
+		# PEs are auto-routed to an advance account (not the receivable). The PR
+		# backend's PE filter needs the same advance account or it filters them out.
+		# Prefer the Party Account override (currency-matched) over the company default
+		# so multi-currency tests pick the right USD/EUR advance account.
+		party_doc = frappe.get_doc(pr.party_type, pr.party)
+		pr.default_advance_account = next(
+			(
+				r.advance_account
+				for r in (party_doc.get("accounts") or [])
+				if r.company == pr.company and r.advance_account
+			),
+			None,
+		) or frappe.db.get_value(
+			"Company",
+			pr.company,
+			"default_advance_received_account" if party_is_customer else "default_advance_paid_account",
+		)
 		pr.from_invoice_date = pr.to_invoice_date = pr.from_payment_date = pr.to_payment_date = nowdate()
 		return pr
 
