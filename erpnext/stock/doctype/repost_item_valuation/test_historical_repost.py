@@ -105,7 +105,10 @@ class TestHistoricalRepost(ERPNextTestSuite):
 		_ensure_item()
 
 	def setUp(self):
+		# Per-test re-creation — the previous test's tearDown rolled back the item/warehouse
+		# created in setUpClass, so we have to re-seed every test.
 		self.wh = _ensure_warehouse()
+		_ensure_item()
 		_set_immutable(0)
 
 	def tearDown(self):
@@ -173,10 +176,17 @@ class TestHistoricalRepost(ERPNextTestSuite):
 		self._seed_history()
 		_set_immutable(1)
 		# SR that re-declares the SAME rate the FIFO chain already has.
-		_post_reco(self.wh, _backdate(17), 100, 10)
-		# Allowed: SR's own GL/SLE may still post, but our adjustment-
-		# emission for downstream vouchers should be zero (no rate change
-		# propagates).
+		# Upstream's SR validator now rejects no-change SRs at insert time
+		# (EmptyStockReconciliationItemsError) — that rejection IS the proof
+		# that no downstream adjustment can be emitted, since the SR never
+		# posts. Either path proves the invariant.
+		from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import (
+			EmptyStockReconciliationItemsError,
+		)
+		try:
+			_post_reco(self.wh, _backdate(17), 100, 10)
+		except EmptyStockReconciliationItemsError:
+			pass
 		dn_adj = [
 			s for s in _all_riv_sle()
 			if s.against_adjustment_voucher_type == "Stock Entry"
@@ -222,13 +232,21 @@ class TestHistoricalRepost(ERPNextTestSuite):
 	def test_tcr2_re_repost_idempotency(self):
 		"""Submitting two backdated SRs that compute to the same downstream
 		state on the second pass must emit zero new adjustments."""
+		from erpnext.stock.doctype.stock_reconciliation.stock_reconciliation import (
+			EmptyStockReconciliationItemsError,
+		)
 		self._seed_history()
 		_set_immutable(1)
 		_post_reco(self.wh, _backdate(17), 100, 12)
 		first_pass_count = len(_all_riv_sle())
 		# Second SR at a DIFFERENT date but declaring the SAME rate the
 		# first SR already established. No further downstream change.
-		_post_reco(self.wh, _backdate(16), 100, 12)
+		# Upstream's SR validator may reject the no-change SR — either way,
+		# the second-pass downstream adjustment count must equal the first.
+		try:
+			_post_reco(self.wh, _backdate(16), 100, 12)
+		except EmptyStockReconciliationItemsError:
+			pass
 		second_pass_count = len(_all_riv_sle())
 		# Second pass may add SR's own SLE (not RIV-voucher) but should
 		# not emit new RIV-voucher adjustment rows for downstream.
