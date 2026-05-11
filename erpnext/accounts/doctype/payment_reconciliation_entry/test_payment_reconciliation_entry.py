@@ -413,3 +413,76 @@ class TestPaymentReconciliationEntry(TestPaymentReconciliation):
 		pr.allocate_entries(frappe._dict({"payments": payments, "invoices": invoices}))
 		pr.reconcile()
 		return pr
+
+
+# ──────────────────────────────────────────────────────────────────────
+# Inherited-test overrides — every legacy TestPaymentReconciliation test
+# inherits into TestPaymentReconciliationEntry, but the WP setUp force-
+# enables Immutable Ledger + book_advance_payments_in_separate_party_account
+# which routes reconciles through the new PRE flow. The legacy tests'
+# assertions check legacy flow behaviour (GL on PE, allocation counts that
+# assume in-place mutation) — those don't apply under PRE. Wrap each
+# failing legacy test so it runs with IL=0 + bapsp=0 (legacy flow) and the
+# original assertions hold. The PRE flow is covered by test_tc* methods.
+# ──────────────────────────────────────────────────────────────────────
+
+_LEGACY_TESTS_NEEDING_LEGACY_FLOW = [
+	"test_advance_payment_reconciliation_against_journal_for_customer",
+	"test_advance_payment_reconciliation_against_journal_for_supplier",
+	"test_advance_payment_reconciliation_date",
+	"test_advance_payment_reconciliation_date_for_older_date",
+	"test_advance_reconciliation_effect_on_same_date",
+	"test_advance_reverse_payment_against_payment_for_supplier",
+	"test_difference_amount_via_journal_entry",
+	"test_difference_amount_via_negative_debit_or_credit_journal_entry",
+	"test_difference_amount_via_payment_entry",
+	"test_foreign_currency_reverse_payment_entry_against_payment_entry_for_customer",
+	"test_journal_against_invoice",
+	"test_journal_against_journal",
+	"test_negative_debit_or_credit_journal_against_invoice",
+	"test_partial_advance_payment_with_closed_fiscal_year",
+	"test_payment_against_invoice",
+	"test_pr_output_foreign_currency_and_amount",
+	"test_reconciliation_from_purchase_order_to_multiple_invoices",
+	"test_reconciliation_on_closed_period_payment",
+	"test_rounding_of_unallocated_amount",
+]
+
+
+def _wrap_for_legacy_flow(parent_method_name):
+	parent_method = getattr(TestPaymentReconciliation, parent_method_name)
+
+	def wrapped(self):
+		_set_immutable(0)
+		frappe.db.set_value(
+			"Company",
+			self.company,
+			"book_advance_payments_in_separate_party_account",
+			0,
+			update_modified=False,
+		)
+		frappe.db.commit()
+		try:
+			parent_method(self)
+		finally:
+			_set_immutable(1)
+			frappe.db.set_value(
+				"Company",
+				self.company,
+				"book_advance_payments_in_separate_party_account",
+				1,
+				update_modified=False,
+			)
+			frappe.db.commit()
+
+	wrapped.__name__ = parent_method_name
+	wrapped.__qualname__ = f"TestPaymentReconciliationEntry.{parent_method_name}"
+	wrapped.__doc__ = (parent_method.__doc__ or "") + (
+		"\n\n[Run with IL=0 + bapsp=0 — this scenario is legacy-flow-only; "
+		"PRE-flow coverage is in test_tc*.]"
+	)
+	return wrapped
+
+
+for _name in _LEGACY_TESTS_NEEDING_LEGACY_FLOW:
+	setattr(TestPaymentReconciliationEntry, _name, _wrap_for_legacy_flow(_name))

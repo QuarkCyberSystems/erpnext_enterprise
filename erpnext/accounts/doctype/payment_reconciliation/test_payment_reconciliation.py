@@ -25,6 +25,21 @@ class TestPaymentReconciliation(ERPNextTestSuite):
 		self.create_item()
 		self.create_customer()
 		self.create_account()
+		# Reset Immutable Ledger + book_advance_payments_in_separate_party_account
+		# to 0 before every legacy test — TestPaymentReconciliationEntry (subclass)
+		# commits both to 1 in its setUp, and Frappe's commit() persists across
+		# the per-test rollback. Legacy tests assume bapsp=0 / IL=0 (legacy flow);
+		# without this reset, a WP-class run before a legacy-class run leaves the
+		# company / settings in a state the legacy assertions don't match.
+		frappe.db.set_single_value("Accounts Settings", "enable_immutable_ledger", 0)
+		frappe.db.set_value(
+			"Company",
+			self.company,
+			"book_advance_payments_in_separate_party_account",
+			0,
+			update_modified=False,
+		)
+		frappe.db.commit()
 		self.create_cost_center()
 		self.clear_old_entries()
 
@@ -165,9 +180,10 @@ class TestPaymentReconciliation(ERPNextTestSuite):
 				acc = frappe.get_doc("Account", name)
 			setattr(self, x.attribute, acc.name)
 
-		# Wire the INR defaults to the company so set_liability_account() finds them.
-		# book_advance_payments_in_separate_party_account=1 routes advances through the
-		# dedicated advance account instead of mixing into receivable/payable.
+		# Wire the INR advance defaults to the company so set_liability_account() can
+		# find them when bapsp=1 is enabled later by TestPaymentReconciliationEntry.
+		# We do NOT enable bapsp here — that's a WP-class-only behaviour because
+		# the legacy tests assume bapsp=0 and route GL through receivable directly.
 		company = frappe.get_doc("Company", self.company)
 		dirty = False
 		if not company.default_advance_received_account:
@@ -175,9 +191,6 @@ class TestPaymentReconciliation(ERPNextTestSuite):
 			dirty = True
 		if not company.default_advance_paid_account:
 			company.default_advance_paid_account = self.advance_payable_account
-			dirty = True
-		if not company.book_advance_payments_in_separate_party_account:
-			company.book_advance_payments_in_separate_party_account = 1
 			dirty = True
 		if dirty:
 			company.flags.ignore_validate = True
@@ -357,6 +370,19 @@ class TestPaymentReconciliation(ERPNextTestSuite):
 		return pord
 
 	def clear_old_entries(self):
+		# Cancel any submitted Period Closing Voucher first — leftover PCVs from
+		# test_partial_advance_payment_with_closed_fiscal_year / test_reconciliation_on_closed_period_payment
+		# block subsequent tests with "Books have been closed till ...".
+		for name in frappe.get_all(
+			"Period Closing Voucher",
+			filters={"company": self.company, "docstatus": 1},
+			pluck="name",
+		):
+			try:
+				doc = frappe.get_doc("Period Closing Voucher", name)
+				doc.cancel()
+			except Exception:
+				pass
 		doctype_list = [
 			"GL Entry",
 			"Payment Ledger Entry",
@@ -364,6 +390,7 @@ class TestPaymentReconciliation(ERPNextTestSuite):
 			"Purchase Invoice",
 			"Payment Entry",
 			"Journal Entry",
+			"Period Closing Voucher",
 		]
 		for doctype in doctype_list:
 			qb.from_(qb.DocType(doctype)).delete().where(qb.DocType(doctype).company == self.company).run()
