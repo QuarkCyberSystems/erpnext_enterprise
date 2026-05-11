@@ -638,9 +638,13 @@ def _insert_payment_entry_reference_row(pe_doc, entry):
 	`docstatus=1` to match the parent. This is the ONE permitted post-
 	submit write on the PE side under Immutable Ledger.
 	"""
-	max_idx = (
-		frappe.db.get_value("Payment Entry Reference", {"parent": pe_doc.name}, "max(idx)") or 0
+	# v16 query builder rejects SQL functions passed as fieldname strings to
+	# frappe.db.get_value; drop to a raw aggregate query instead.
+	max_idx_row = frappe.db.sql(
+		"SELECT MAX(idx) FROM `tabPayment Entry Reference` WHERE parent = %s",
+		pe_doc.name,
 	)
+	max_idx = (max_idx_row[0][0] if max_idx_row and max_idx_row[0] else 0) or 0
 	row = frappe.get_doc(
 		{
 			"doctype": "Payment Entry Reference",
