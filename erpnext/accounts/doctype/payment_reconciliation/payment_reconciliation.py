@@ -483,7 +483,9 @@ class PaymentReconciliation(Document):
 		for pay in args.get("payments"):
 			pay.update({"unreconciled_amount": pay.get("amount")})
 			for inv in args.get("invoices"):
-				if pay.get("amount") >= inv.get("outstanding_amount"):
+				# Defensive flt() — when reconciling against a fresh JE that hasn't
+				# computed outstanding yet, outstanding_amount can be None.
+				if flt(pay.get("amount")) >= flt(inv.get("outstanding_amount")):
 					res = self.get_allocated_entry(pay, inv, inv["outstanding_amount"])
 					pay["amount"] = flt(pay.get("amount")) - flt(inv.get("outstanding_amount"))
 					inv["outstanding_amount"] = 0

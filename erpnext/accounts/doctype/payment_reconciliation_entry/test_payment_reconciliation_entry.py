@@ -194,6 +194,7 @@ class TestPaymentReconciliationEntry(TestPaymentReconciliation):
 		)
 		ple.flags.ignore_permissions = True
 		ple.flags.ignore_validate = True
+		ple.flags.ignore_links = True  # synthetic row; voucher_no points at non-existent JE on purpose
 		ple.insert()
 
 		_supersede_pl_entries("Journal Entry", "TEST-JE-001")
@@ -221,6 +222,7 @@ class TestPaymentReconciliationEntry(TestPaymentReconciliation):
 			}
 		)
 		aple.flags.ignore_permissions = True
+		aple.flags.ignore_links = True  # synthetic row; voucher_no points at non-existent PE on purpose
 		aple.insert()
 
 		_supersede_adv_pl_entries("Payment Entry", "TEST-PE-001")
@@ -252,6 +254,7 @@ class TestPaymentReconciliationEntry(TestPaymentReconciliation):
 		)
 		sia.flags.ignore_permissions = True
 		sia.flags.ignore_validate = True
+		sia.flags.ignore_links = True  # synthetic row; reference_name points at non-existent PE on purpose
 		sia.insert()
 		si_doc = frappe.get_doc("Sales Invoice", si.name)
 		si_doc.append(
