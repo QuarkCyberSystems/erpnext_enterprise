@@ -398,25 +398,18 @@ class TestPaymentReconciliationEntry(TestPaymentReconciliation):
 		pr.party_type = "Customer"
 		pr.party = self.customer if not pe.party or pe.party == self.customer else pe.party
 		pr.receivable_payable_account = self.debit_to
-		pr.get_unreconciled_entries()
-		# Allocate
-		pr.allocate_entries(
-			{
-				"payments": [
-					{
-						"reference_type": "Payment Entry",
-						"reference_name": pe.name,
-						"amount": amount,
-					}
-				],
-				"invoices": [
-					{
-						"invoice_type": "Sales Invoice",
-						"invoice_number": si.name,
-						"amount": amount,
-					}
-				],
-			}
+		# When book_advance_payments_in_separate_party_account=1 on the company,
+		# the PE gets posted to the advance account. PR's payment filter needs
+		# both the receivable AND the advance account in its lookup.
+		pr.default_advance_account = frappe.db.get_value(
+			"Company", self.company, "default_advance_received_account"
 		)
+		pr.get_unreconciled_entries()
+		# Hand the PR-populated dicts to allocate_entries — the legacy form-driven
+		# flow does the same. Building simplified dicts manually omits required
+		# fields like outstanding_amount and triggers KeyError downstream.
+		invoices = [x.as_dict() for x in pr.get("invoices")]
+		payments = [x.as_dict() for x in pr.get("payments")]
+		pr.allocate_entries(frappe._dict({"payments": payments, "invoices": invoices}))
 		pr.reconcile()
 		return pr

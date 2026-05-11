@@ -212,6 +212,36 @@ def get_linked_payments_for_doc(
 
 			res += get_linked_advances(company, _dn)
 
+			# Under Immutable Ledger, PE → invoice linkage lives in PRE, not in PLE
+			# (the PRE owns the clearing GL pair, the PE's own PLE only points to the
+			# advance account). Pull active (non-reversed, non-unreconciled) PREs
+			# whose payment_name == this PE and add them as reference rows.
+			if is_immutable_ledger_enabled():
+				existing_pairs = {(r.get("reference_doctype"), r.get("reference_name")) for r in res}
+				pre_rows = frappe.get_all(
+					"Payment Reconciliation Entry",
+					filters={
+						"company": company,
+						"payment_name": _dn,
+						"is_reversal": 0,
+						"is_unreconciled": 0,
+						"docstatus": 1,
+					},
+					fields=[
+						"company",
+						"account",
+						"party_type",
+						"party",
+						"invoice_type as reference_doctype",
+						"invoice_name as reference_name",
+						"allocated_amount",
+						"currency as account_currency",
+					],
+				)
+				for row in pre_rows:
+					if (row.reference_doctype, row.reference_name) not in existing_pairs:
+						res.append(row)
+
 			return res
 
 	return []

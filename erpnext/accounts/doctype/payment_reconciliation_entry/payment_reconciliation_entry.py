@@ -296,14 +296,20 @@ class PaymentReconciliationEntry(Document):
 		# Mirrors the minimal shape get_gl_dict produces. We avoid get_gl_dict
 		# directly because that is a Document method on transaction docs and
 		# pulls fields like cost_center defaults from `item` — we already have
-		# everything we need on `self`.
-		out = {
+		# everything we need on `self`. Returns frappe._dict so the downstream
+		# make_gl_entries pipeline can attribute-access fields like .voucher_type.
+		# account_currency is derived from the row's account (not self.currency)
+		# because the invoice and advance accounts may be in different currencies.
+		account_currency = frappe.get_cached_value(
+			"Account", args.get("account"), "account_currency"
+		) if args.get("account") else self.currency
+		out = frappe._dict({
 			"account": args.get("account"),
 			"debit": args.get("debit", 0),
 			"credit": args.get("credit", 0),
 			"debit_in_account_currency": args.get("debit_in_account_currency", 0),
 			"credit_in_account_currency": args.get("credit_in_account_currency", 0),
-			"account_currency": self.currency,
+			"account_currency": account_currency,
 			"company": args["company"],
 			"posting_date": args["posting_date"],
 			"voucher_type": args["voucher_type"],
@@ -318,6 +324,6 @@ class PaymentReconciliationEntry(Document):
 			"against_voucher": args.get("against_voucher"),
 			"remarks": args.get("remarks"),
 			"is_advance": "No",
-		}
+		})
 		return out
 
