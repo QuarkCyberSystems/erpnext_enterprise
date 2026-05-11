@@ -116,6 +116,33 @@ class TestPaymentReconciliation(ERPNextTestSuite):
 			},
 		]
 
+		# Multi-currency advance accounts — needed by EUR customers and any USD party.
+		# Without these, set_liability_account() picks the INR advance account for a
+		# non-INR PE and throws InvalidAccountCurrency.
+		accounts.extend([
+			{
+				"attribute": "advance_receivable_account_eur",
+				"account_name": "Advance Received EUR",
+				"parent_account": "Current Liabilities - _PR",
+				"account_currency": "EUR",
+				"account_type": "Receivable",
+			},
+			{
+				"attribute": "advance_payable_account_eur",
+				"account_name": "Advance Paid EUR",
+				"parent_account": "Current Assets - _PR",
+				"account_currency": "EUR",
+				"account_type": "Payable",
+			},
+			{
+				"attribute": "advance_payable_account_usd",
+				"account_name": "Advance Paid USD",
+				"parent_account": "Current Assets - _PR",
+				"account_currency": "USD",
+				"account_type": "Payable",
+			},
+		])
+
 		for x in accounts:
 			x = frappe._dict(x)
 			if not frappe.db.get_value(
@@ -137,6 +164,82 @@ class TestPaymentReconciliation(ERPNextTestSuite):
 				)
 				acc = frappe.get_doc("Account", name)
 			setattr(self, x.attribute, acc.name)
+
+		# Wire the INR defaults to the company so set_liability_account() finds them.
+		# book_advance_payments_in_separate_party_account=1 routes advances through the
+		# dedicated advance account instead of mixing into receivable/payable.
+		company = frappe.get_doc("Company", self.company)
+		dirty = False
+		if not company.default_advance_received_account:
+			company.default_advance_received_account = self.advance_receivable_account
+			dirty = True
+		if not company.default_advance_paid_account:
+			company.default_advance_paid_account = self.advance_payable_account
+			dirty = True
+		if not company.book_advance_payments_in_separate_party_account:
+			company.book_advance_payments_in_separate_party_account = 1
+			dirty = True
+		if dirty:
+			company.flags.ignore_validate = True
+			company.save(ignore_permissions=True)
+
+		# Party Account override for non-default-currency customers. EUR customers
+		# need both their EUR receivable account AND their EUR advance account so
+		# the PE / reconciliation flow picks currency-matched accounts.
+		for customer_name in [self.customer3, self.customer4, self.customer5]:
+			self._ensure_party_advance_account(
+				"Customer", customer_name, self.debtors_eur, self.advance_receivable_account_eur
+			)
+
+		# USD suppliers used by foreign-currency JE / PE tests further down — ensure
+		# the suppliers exist and have a Party Account row that maps to USD payable
+		# and USD advance accounts. The tests reference these supplier names directly
+		# without calling make_supplier in setUp.
+		for supplier_name in ("_Test Supplier USD", "_Test Supplier2 USD"):
+			if not frappe.db.exists("Supplier", supplier_name):
+				supplier = frappe.new_doc("Supplier")
+				supplier.supplier_name = supplier_name
+				supplier.supplier_type = "Individual"
+				supplier.default_currency = "USD"
+				supplier.save(ignore_permissions=True)
+			self._ensure_party_advance_account(
+				"Supplier", supplier_name, self.creditors_usd, self.advance_payable_account_usd
+			)
+
+	def _ensure_party_advance_account(self, party_type, party_name, party_account, advance_account):
+		"""Set account + advance_account on the Party Account row for (party, company).
+
+		Customer / Supplier `accounts` child table maps (company, account, advance_account).
+		Both fields matter: `account` is the receivable/payable in the party's currency,
+		`advance_account` is the advance account in the party's currency. Without these,
+		multi-currency party transactions error with InvalidAccountCurrency because the
+		system falls back to the company defaults which are typically INR-only.
+		"""
+		party = frappe.get_doc(party_type, party_name)
+		row = next(
+			(r for r in party.get("accounts") or [] if r.company == self.company),
+			None,
+		)
+		if row:
+			dirty = False
+			if row.account != party_account:
+				row.account = party_account
+				dirty = True
+			if row.advance_account != advance_account:
+				row.advance_account = advance_account
+				dirty = True
+			if dirty:
+				party.save(ignore_permissions=True)
+		else:
+			party.append(
+				"accounts",
+				{
+					"company": self.company,
+					"account": party_account,
+					"advance_account": advance_account,
+				},
+			)
+			party.save(ignore_permissions=True)
 
 	def create_sales_invoice(
 		self, qty=1, rate=100, posting_date=None, do_not_save=False, do_not_submit=False
