@@ -722,7 +722,7 @@ class TestJournalEntryTemplateEnforcement(ERPNextTestSuite):
 		je.append(
 			"accounts",
 			{
-				"account": "_Test Receivable - _TC",
+				"account": "_Test Bank - _TC",  # Bank account — no party-type required
 				"cost_center": "_Test Cost Center - _TC",
 				"debit_in_account_currency": 50,
 				"credit_in_account_currency": 0,
