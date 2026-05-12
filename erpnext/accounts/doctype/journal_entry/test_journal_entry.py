@@ -974,6 +974,62 @@ class TestJournalEntryTemplateEnforcement(ERPNextTestSuite):
 		frappe.delete_doc("Journal Entry", je.name, force=1)
 		frappe.delete_doc("Journal Entry Template", tpl.name, force=1)
 
+	# Cross-WP integration: WP GA-0001-04 (Template) -> WP GA-0001-05+06 (Auto Repeat).
+	# TC-010 above only verifies that the template's auto-reversal config flows
+	# into the JE on insert. This goes the full distance: after submit, the JE
+	# controller's _maybe_create_template_auto_repeat hook fires and persists an
+	# Auto Repeat doc keyed to the JE.
+	def test_template_submit_creates_auto_repeat_reversal_record(self):
+		if not self._auto_repeat_reversal_available():
+			self.skipTest("Auto Repeat does not expose repeat_type — Frappe-side WP not deployed")
+		tpl = self._make_template(
+			"_Test JE Tpl XWP",
+			auto_reversal_kwargs={
+				"enable_auto_reversal": 1,
+				"auto_reverse_on": "First Day of Next Month",
+				"reversal_exchange_rate_type": "Original Rate",
+				"reversal_tax_mode": "Use Original",
+				"reversal_cost_center_mode": "Use Original",
+				"auto_submit_reversal": 0,
+			},
+		)
+		je = self._make_je_from_template(tpl)
+		je.insert()
+		je.submit()
+
+		ars = frappe.get_all(
+			"Auto Repeat",
+			filters={
+				"reference_doctype": "Journal Entry",
+				"reference_document": je.name,
+				"repeat_type": "Reversal",
+				"docstatus": 1,
+			},
+			fields=["name", "reverse_on_next_month", "reversal_tax_mode"],
+		)
+		self.assertEqual(len(ars), 1, "Exactly one Auto Repeat should be created from template submit")
+		self.assertEqual(ars[0].reverse_on_next_month, 1)
+		self.assertEqual(ars[0].reversal_tax_mode, "Use Original")
+
+		# Note: linked_auto_repeat on the JE is NOT set at submit time — the
+		# Auto Repeat controller writes it back only when the scheduled
+		# reversal actually fires (frappe/automation/.../auto_repeat.py:1070).
+		# At submit time we only verify the AR exists with the correct config.
+		# The reversal-fire path is covered by frappe-side test_auto_repeat.
+
+		# Cleanup. AR holds a hard Link to JE; flip frappe.flags.ignore_links
+		# so the chained deletes don't trip LinkExistsError. Order: AR -> JE
+		# -> template (AR depends on JE, JE depends on template).
+		frappe.flags.ignore_links = True
+		try:
+			frappe.delete_doc("Auto Repeat", ars[0].name, force=1)
+			je.reload()  # AR creation + ref-clear updated the JE row
+			je.cancel()
+			frappe.delete_doc("Journal Entry", je.name, force=1)
+			frappe.delete_doc("Journal Entry Template", tpl.name, force=1)
+		finally:
+			frappe.flags.ignore_links = False
+
 	# TC-012 - Auto Repeat skipped + error logged when GA-0001-05+06 not deployed
 	def test_tc012_auto_reversal_skipped_when_repeat_type_missing(self):
 		if frappe.get_meta("Auto Repeat").has_field("repeat_type"):
