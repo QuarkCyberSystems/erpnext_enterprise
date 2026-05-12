@@ -137,13 +137,17 @@ def doc_has_references(doctype: str | None = None, docname: str | None = None):
 			"Payment Ledger Entry",
 			filters={"delinked": 0, "voucher_no": docname, "against_voucher_no": ["!=", docname]},
 		)
+		# WP GA-0001-03: under bapsp + Immutable Ledger, reconciliation creates
+		# an APLE row with event='Reconcile' rather than mutating the original
+		# Submit row. Treat either as a "live reference" so the UnReconcile
+		# action remains discoverable on reconciled PEs under that flow.
 		count += frappe.db.count(
 			"Advance Payment Ledger Entry",
 			filters={
 				"delinked": 0,
 				"voucher_no": docname,
 				"voucher_type": doctype,
-				"event": ["=", "Submit"],
+				"event": ["in", ["Submit", "Reconcile"]],
 			},
 		)
 

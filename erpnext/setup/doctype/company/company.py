@@ -637,7 +637,10 @@ class Company(NestedSet):
 				}
 			)
 
-		if self.update_default_account:
+		# Temporary local patch (NOT for upstream): set_default_accounts gets called
+		# from on_update without validate() first in some test paths, so
+		# self.update_default_account may be missing. Default to True.
+		if getattr(self, "update_default_account", True):
 			for default_account in default_accounts:
 				self._set_default_account(default_account, default_accounts.get(default_account))
 
