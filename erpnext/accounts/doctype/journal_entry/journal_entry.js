@@ -842,6 +842,14 @@ $.extend(erpnext.journal_entry, {
 		const SKIP_TYPES = new Set([
 			"Section Break", "Column Break", "Tab Break", "HTML", "Button",
 			"Heading",
+			// Table fields are locked at the grid level (cannot_add_rows,
+			// cannot_delete_rows, static_rows, plus per-column docfield
+			// read_only). Setting read_only on the parent Table field flips
+			// `grid.display_status` to "Read", which in base_control.js
+			// FORCES every child field to Read regardless of its own
+			// `df.read_only` — overriding apply_cost_center_lock and any
+			// other per-field unlock we do later.
+			"Table", "Table MultiSelect",
 		]);
 
 		// Lock all parent doctype fields
