@@ -701,3 +701,13 @@ repost_allowed_doctypes = [
 	"Payment Entry",
 	"Purchase Receipt",
 ]
+
+# Auto Repeat — doctype-specific repeat handlers (WP GA-0001-05+06).
+# Hook consumed by frappe.automation.auto_repeat.AutoRepeat.make_new_document.
+# Adding entries here lets ERPNext own the accounting-specific reversal /
+# refresh logic without keeping it in frappe core.
+auto_repeat_handlers = {
+	"Journal Entry": {
+		"Reversal": "erpnext.accounts.doctype.journal_entry.auto_repeat_handler.make_journal_entry_reversal",
+	},
+}
