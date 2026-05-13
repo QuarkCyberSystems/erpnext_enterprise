@@ -1,0 +1,281 @@
+# Copyright (c) 2026, QuarkCyberSystems and contributors
+# For license information, please see license.txt
+"""ERPNext-side Copy-mode refresh handler for Auto Repeat.
+
+Registered in `erpnext/hooks.py` under `auto_repeat_copy_refresh_handlers`:
+
+    auto_repeat_copy_refresh_handlers = {
+        "*": "erpnext.accounts.doctype.journal_entry.auto_repeat_copy_refresh.refresh_copy_document"
+    }
+
+Consumed by frappe.automation.auto_repeat.AutoRepeat.make_copy_document AFTER
+the source has been deep-copied but BEFORE insert. The handler mutates
+`new_doc` in place to apply ERPNext-specific refreshes:
+
+  - prices (Item Price -> latest)
+  - exchange rate (multi-currency revaluation at posting date)
+  - sales / purchase / item tax templates
+  - shipping rule
+  - taxes (charge re-computation)
+  - payment terms (schedule rebuild for new posting date)
+  - cost-center allocation audit
+
+Refactor lineage: badia_docs/signed_off_wp/imp_ga-0001-05+06.md, Phase D of
+the upstream-shape refactor. This module owns the accounting / inventory
+refresh behavior that previously lived in frappe.automation.auto_repeat,
+keeping the framework module upstream-PR-clean.
+"""
+
+import frappe
+from frappe import _
+from frappe.utils import flt, getdate
+
+
+def refresh_copy_document(auto_repeat, new_doc, reference_doc):
+	"""Apply ERPNext-specific refreshes to a Copy-mode Auto Repeat's new doc.
+
+	Called from frappe.automation.auto_repeat.AutoRepeat.make_copy_document
+	via the `auto_repeat_copy_refresh_handlers` hook. All refreshes are
+	idempotent and bounded — if any underlying dependency is missing or
+	throws, the helper logs and continues so the doc still inserts.
+
+	Unconditional: previously, frappe AR carried ~10 user-facing toggles
+	(refresh_prices, recalculate_taxes, refresh_*_tax_template, etc.) that
+	the user could selectively enable. The toggle fields are gone from
+	frappe in this refactor; refreshes now always run. Surface a per-toggle
+	option set back on the consuming app's side if granular control is
+	required again.
+	"""
+	# Skip silently for the Reversal flow — that path goes through
+	# make_journal_entry_reversal, not this hook.
+	if getattr(auto_repeat, "repeat_type", "Copy") != "Copy":
+		return
+
+	_refresh_item_prices(auto_repeat, new_doc)
+	_refresh_conversion_rate(auto_repeat, new_doc)
+	_refresh_sales_tax_template_for(auto_repeat, new_doc)
+	_refresh_purchase_tax_template_for(auto_repeat, new_doc)
+	_refresh_item_tax_template_for(auto_repeat, new_doc)
+	_refresh_shipping_rule_for(auto_repeat, new_doc)
+	_recalculate_document_taxes(auto_repeat, new_doc)
+	_recalculate_payment_schedule(auto_repeat, new_doc)
+	_apply_cost_center_allocation(auto_repeat, new_doc)
+
+
+def _refresh_item_prices(auto_repeat, new_doc):
+	"""Refresh item rates / price-list rates from the latest Price List."""
+	try:
+		from erpnext.stock.get_item_details import get_item_details
+	except ImportError:
+		frappe.log_error(
+			title="Auto Repeat Refresh Skipped",
+			message=f"Auto Repeat {auto_repeat.name}: refresh prices requires ERPNext.",
+		)
+		return
+	items = new_doc.get("items") or []
+	if not items:
+		return
+	posting_date = (
+		new_doc.get("posting_date")
+		or new_doc.get("transaction_date")
+		or new_doc.get("schedule_date")
+		or getdate()
+	)
+	for row in items:
+		if not row.get("item_code"):
+			continue
+		try:
+			args = frappe._dict(
+				{
+					"doctype": new_doc.doctype,
+					"item_code": row.item_code,
+					"company": new_doc.get("company"),
+					"transaction_date": posting_date,
+					"price_list": new_doc.get("selling_price_list")
+					or new_doc.get("buying_price_list"),
+					"currency": new_doc.get("currency"),
+					"conversion_rate": flt(new_doc.get("conversion_rate")) or 1,
+					"plc_conversion_rate": 1,
+					"warehouse": row.get("warehouse"),
+					"customer": new_doc.get("customer"),
+					"supplier": new_doc.get("supplier"),
+					"qty": row.get("qty") or 1,
+					"stock_qty": row.get("stock_qty") or row.get("qty") or 1,
+					"uom": row.get("uom"),
+					"conversion_factor": row.get("conversion_factor") or 1,
+				}
+			)
+			details = get_item_details(args)
+			if details and details.get("price_list_rate"):
+				row.price_list_rate = flt(details["price_list_rate"])
+				row.rate = flt(details["price_list_rate"])
+		except Exception:
+			# Don't fail the doc-create; just log and continue.
+			frappe.log_error(
+				title="Auto Repeat Price Refresh",
+				message=f"Auto Repeat {auto_repeat.name}: failed to refresh price for {row.item_code}",
+			)
+
+
+def _refresh_conversion_rate(auto_repeat, new_doc):
+	"""Refresh the exchange rate on the new doc against today's posting date."""
+	try:
+		from erpnext.setup.utils import get_exchange_rate
+	except ImportError:
+		return
+	if not new_doc.get("multi_currency") and not new_doc.get("conversion_rate"):
+		return
+	company_currency = frappe.get_cached_value(
+		"Company", new_doc.get("company"), "default_currency"
+	)
+	currency = new_doc.get("currency")
+	if not currency or currency == company_currency:
+		return
+	posting_date = (
+		new_doc.get("posting_date") or new_doc.get("transaction_date") or getdate()
+	)
+	try:
+		rate = get_exchange_rate(currency, company_currency, posting_date)
+	except Exception:
+		return
+	if rate:
+		new_doc.conversion_rate = flt(rate)
+
+
+def _refresh_sales_tax_template_for(auto_repeat, new_doc):
+	"""Refresh Sales Tax Template from customer's default for the new posting date."""
+	if new_doc.doctype not in ("Sales Invoice", "Sales Order", "Delivery Note", "Quotation"):
+		return
+	customer = new_doc.get("customer")
+	if not customer:
+		return
+	new_template = frappe.db.get_value(
+		"Customer", customer, "default_taxes_and_charges"
+	) or frappe.db.get_value(
+		"Sales Taxes and Charges Template", {"is_default": 1, "company": new_doc.company}, "name"
+	)
+	if new_template:
+		_apply_taxes_template(auto_repeat, new_doc, new_template)
+
+
+def _refresh_purchase_tax_template_for(auto_repeat, new_doc):
+	"""Refresh Purchase Tax Template from supplier's default."""
+	if new_doc.doctype not in ("Purchase Invoice", "Purchase Order", "Purchase Receipt"):
+		return
+	supplier = new_doc.get("supplier")
+	if not supplier:
+		return
+	new_template = frappe.db.get_value(
+		"Supplier", supplier, "default_taxes_and_charges"
+	) or frappe.db.get_value(
+		"Purchase Taxes and Charges Template", {"is_default": 1, "company": new_doc.company}, "name"
+	)
+	if new_template:
+		_apply_taxes_template(auto_repeat, new_doc, new_template)
+
+
+def _apply_taxes_template(auto_repeat, new_doc, template):
+	"""Replace the doc's taxes_and_charges + taxes rows with the new template's."""
+	new_doc.taxes_and_charges = template
+	try:
+		from erpnext.controllers.accounts_controller import (
+			get_taxes_and_charges,
+		)
+	except ImportError:
+		return
+	master_doctype = (
+		"Sales Taxes and Charges Template"
+		if new_doc.doctype in ("Sales Invoice", "Sales Order", "Delivery Note", "Quotation")
+		else "Purchase Taxes and Charges Template"
+	)
+	rows = get_taxes_and_charges(master_doctype, template)
+	new_doc.set("taxes", [])
+	for row in rows or []:
+		new_doc.append("taxes", row)
+
+
+def _refresh_item_tax_template_for(auto_repeat, new_doc):
+	"""Refresh per-row Item Tax Template from the item master."""
+	items = new_doc.get("items") or []
+	if not items:
+		return
+	for row in items:
+		if not row.get("item_code"):
+			continue
+		try:
+			item_tax_template = frappe.db.get_value(
+				"Item", row.item_code, "default_item_tax_template"
+			)
+		except Exception:
+			continue
+		if item_tax_template:
+			row.item_tax_template = item_tax_template
+
+
+def _refresh_shipping_rule_for(auto_repeat, new_doc):
+	"""Refresh Shipping Rule per the rule's current conditions."""
+	if not new_doc.get("shipping_rule"):
+		return
+	try:
+		# Trigger rule re-evaluation by calling its apply_rule if available.
+		rule = frappe.get_doc("Shipping Rule", new_doc.shipping_rule)
+		if hasattr(rule, "apply"):
+			rule.apply(new_doc)
+	except Exception:
+		pass
+
+
+def _recalculate_document_taxes(auto_repeat, new_doc):
+	"""Trigger the doc's tax-charge recompute (rate × amount × percentage)."""
+	if hasattr(new_doc, "calculate_taxes_and_totals"):
+		try:
+			new_doc.calculate_taxes_and_totals()
+		except Exception:
+			frappe.log_error(
+				title="Auto Repeat Tax Recalc",
+				message=f"Auto Repeat {auto_repeat.name}: tax recalc on {new_doc.doctype} failed",
+			)
+
+
+def _recalculate_payment_schedule(auto_repeat, new_doc):
+	"""Rebuild the payment_schedule child table for the new posting date."""
+	if hasattr(new_doc, "set_payment_schedule"):
+		try:
+			new_doc.set_payment_schedule()
+		except Exception:
+			pass
+
+
+def _apply_cost_center_allocation(auto_repeat, new_doc):
+	"""Audit Cost Center Allocation rules for the new doc's posting date."""
+	try:
+		from erpnext.accounts.general_ledger import get_cost_center_allocation_data
+	except ImportError:
+		return
+	company = new_doc.get("company")
+	posting_date = new_doc.get("posting_date") or new_doc.get("transaction_date") or getdate()
+	if not company:
+		return
+	rows = []
+	if new_doc.get("items"):
+		rows.extend(new_doc.get("items"))
+	if new_doc.get("accounts"):
+		rows.extend(new_doc.get("accounts"))
+	seen = set()
+	for row in rows:
+		cc = row.get("cost_center")
+		if not cc or cc in seen:
+			continue
+		seen.add(cc)
+		try:
+			allocation = get_cost_center_allocation_data(company, posting_date, cc)
+		except Exception:
+			continue
+		if allocation:
+			frappe.log_error(
+				title="Auto Repeat Cost Center Allocation",
+				message=(
+					f"Auto Repeat {auto_repeat.name}: cost center {cc} has allocation rules "
+					f"valid for {posting_date}. GL distribution will apply at posting time."
+				),
+			)
