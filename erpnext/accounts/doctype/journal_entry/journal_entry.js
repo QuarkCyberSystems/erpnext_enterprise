@@ -201,6 +201,12 @@ frappe.ui.form.on("Journal Entry", {
 		erpnext.journal_entry.toggle_fields_based_on_currency(frm);
 	},
 
+	respect_cost_center_allocation: function (frm) {
+		if ((frm.doc.is_reversal || frm.doc.reversal_of) && frm.doc.docstatus === 0) {
+			erpnext.journal_entry.apply_cost_center_lock(frm);
+		}
+	},
+
 	posting_date: function (frm) {
 		if (!frm.doc.multi_currency || !frm.doc.posting_date) return;
 
@@ -824,11 +830,14 @@ $.extend(erpnext.journal_entry, {
 	lock_reversal_fields: function (frm) {
 		// On a reversal draft, everything must be structurally identical to
 		// the original — the user cannot edit any field, add/delete rows, or
-		// change row values. Only docstatus transitions (save → submit) are
-		// allowed. Implemented via a denylist of meta fields so any field
-		// ever added to JE / JE Account is locked by default.
+		// change row values. Only docstatus transitions (save → submit) and
+		// the cost-center override switch are user-driven.
 		const ALWAYS_EDITABLE = new Set([
-			// none — every JE field is structurally bound to the original
+			// The override flag itself must remain editable — that's how the
+			// user opts into re-resolving cost centers. The server-side
+			// validator (validate_reversal_locked_fields) skips cost_center
+			// diff when this flag is unchecked, so client + server agree.
+			"respect_cost_center_allocation",
 		]);
 		const SKIP_TYPES = new Set([
 			"Section Break", "Column Break", "Tab Break", "HTML", "Button",
@@ -860,6 +869,19 @@ $.extend(erpnext.journal_entry, {
 				accounts_grid.update_docfield_property(df.fieldname, "allow_on_submit", 0);
 			});
 		}
+		erpnext.journal_entry.apply_cost_center_lock(frm);
+		frm.refresh_field("accounts");
+	},
+	apply_cost_center_lock: function (frm) {
+		// cost_center editability follows respect_cost_center_allocation:
+		// flag ON  → row cost_center stays locked (mirrors the original)
+		// flag OFF → row cost_center becomes editable so the user can
+		//            re-resolve to a different center; the server validator
+		//            permits the diff in this mode.
+		const accounts_grid = frm.fields_dict.accounts && frm.fields_dict.accounts.grid;
+		if (!accounts_grid) return;
+		const read_only = frm.doc.respect_cost_center_allocation ? 1 : 0;
+		accounts_grid.update_docfield_property("cost_center", "read_only", read_only);
 		frm.refresh_field("accounts");
 	},
 });
