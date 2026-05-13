@@ -134,17 +134,13 @@ context("WP GA-0001-05+06 — Auto Repeat Enhancements", () => {
 		cy.window().then((win) => {
 			const frm = win.cur_frm;
 			expect(frm.doc.repeat_type, "repeat_type set to Reversal").to.eq("Reversal");
-			// reverse_on_next_month depends_on `repeat_type == 'Reversal'` — section visible
-			const $section = win.$(frm.wrapper).find('[data-fieldname="reverse_on_next_month"]');
-			expect($section.length, "reverse_on_next_month field rendered").to.be.greaterThan(0);
 			// refresh_mode field hides via depends_on `repeat_type == 'Copy'`.
-			// Frappe sets visibility via the .form-control wrapper's display
-			// style; assert the wrapper element isn't visible.
+			// After the upstream-shape refactor the AR no longer carries doctype-
+			// specific reversal-config fields (reverse_on_next_month, reverse_date,
+			// reversal_tax_mode, etc.) — those moved to the source JE / its
+			// template, read by the ERPNext-side handler at fire time.
 			const $refresh = win.$(frm.wrapper).find('[data-fieldname="refresh_mode"]');
 			expect($refresh.is(":visible"), "refresh_mode hidden when Reversal").to.be.false;
-			// repeat_type=Reversal handler force-sets these defaults
-			expect(frm.doc.reverse_on_next_month, "reverse_on_next_month default").to.eq(1);
-			expect(frm.doc.reversal_tax_mode, "reversal_tax_mode default").to.eq("Use Original");
 		});
 	});
 
@@ -170,14 +166,16 @@ context("WP GA-0001-05+06 — Auto Repeat Enhancements", () => {
 						reference_document: je.name,
 						repeat_type: "Reversal",
 					},
-					fields: ["name", "reverse_on_next_month", "docstatus"],
+					fields: ["name", "start_date", "docstatus"],
 					limit_page_length: 5,
 				},
 			}).then((resp) => {
 				const rows = (resp.body && resp.body.message) || [];
 				expect(rows.length, "one Auto Repeat created for this JE").to.eq(1);
-				expect(rows[0].reverse_on_next_month, "reverse_on_next_month=1").to.eq(1);
 				expect(rows[0].docstatus, "Auto Repeat submitted").to.eq(1);
+				// Reversal schedule now lives on start_date (first day of next
+				// month for the auto_reverse_on=First Day of Next Month case).
+				expect(rows[0].start_date, "start_date populated").to.match(/^\d{4}-\d{2}-\d{2}$/);
 			});
 		});
 	});
@@ -200,14 +198,14 @@ context("WP GA-0001-05+06 — Auto Repeat Enhancements", () => {
 						reference_document: je.name,
 						repeat_type: "Reversal",
 					},
-					fields: ["name", "reverse_on_next_month", "reverse_date", "docstatus"],
+					fields: ["name", "start_date", "docstatus"],
 					limit_page_length: 5,
 				},
 			}).then((resp) => {
 				const rows = (resp.body && resp.body.message) || [];
 				expect(rows.length, "one Auto Repeat created").to.eq(1);
-				expect(rows[0].reverse_on_next_month, "reverse_on_next_month=0").to.eq(0);
-				expect(rows[0].reverse_date, "reverse_date populated").to.match(/^\d{4}-\d{2}-\d{2}$/);
+				// For Specific Date, start_date should match the configured date.
+				expect(rows[0].start_date, "start_date matches Specific Date").to.match(/^\d{4}-\d{2}-\d{2}$/);
 			});
 		});
 	});
@@ -262,7 +260,6 @@ context("WP GA-0001-05+06 — Auto Repeat Enhancements", () => {
 						reference_doctype: "Journal Entry",
 						reference_document: je_name,
 						repeat_type: "Reversal",
-						reverse_on_next_month: 1,
 						start_date: new Date().toISOString().slice(0, 10),
 					},
 				},

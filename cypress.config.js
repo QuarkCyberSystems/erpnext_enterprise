@@ -24,5 +24,9 @@ module.exports = {
 		fixturesFolder: path.resolve(__dirname, "..", "frappe", "cypress", "fixtures"),
 		specPattern: ["./**/ui_test_*.js"],
 		excludeSpecPattern: ["**/node_modules/**", "**/.git/**"],
+		// Bump pageLoadTimeout for the WP-05+06 refactor branch — first
+		// /desk load after a fresh bench-build can take longer than the
+		// default 15s on this dev box.
+		pageLoadTimeout: 60000,
 	},
 };
