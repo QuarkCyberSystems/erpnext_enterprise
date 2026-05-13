@@ -452,9 +452,29 @@ class JournalEntry(AccountsController):
 
 		original = frappe.get_doc("Journal Entry", self.reversal_of)
 
+		def _values_match(doc_a, doc_b, fieldname, meta):
+			# Normalise by fieldtype so a form-POSTed string ("2026-05-13", "0")
+			# compares equal to the DB-typed value (datetime.date, False).
+			df = meta.get_field(fieldname)
+			fieldtype = df.fieldtype if df else None
+			a, b = doc_a.get(fieldname), doc_b.get(fieldname)
+			if fieldtype == "Date":
+				from frappe.utils import getdate
+				return (getdate(a) if a else None) == (getdate(b) if b else None)
+			if fieldtype in ("Datetime",):
+				from frappe.utils import get_datetime
+				return (get_datetime(a) if a else None) == (get_datetime(b) if b else None)
+			if fieldtype in ("Check", "Int"):
+				from frappe.utils import cint
+				return cint(a) == cint(b)
+			if fieldtype in ("Float", "Currency", "Percent"):
+				return flt(a) == flt(b)
+			# Treat None and "" as equivalent for text-like fields.
+			return (a or None) == (b or None)
+
 		header_fields = ("company", "voucher_type", "multi_currency", "cheque_no", "cheque_date")
 		for field in header_fields:
-			if self.get(field) != original.get(field):
+			if not _values_match(self, original, field, self.meta):
 				frappe.throw(
 					_("Field {0} cannot be modified on a Reversal Journal Entry.").format(
 						frappe.bold(_(self.meta.get_label(field) or field))
@@ -477,6 +497,7 @@ class JournalEntry(AccountsController):
 			"account_currency",
 		)
 		original_rows = {row.idx: row for row in original.accounts}
+		row_meta = frappe.get_meta("Journal Entry Account")
 		for reversal_row in self.accounts:
 			original_row = original_rows.get(reversal_row.idx)
 			if not original_row:
@@ -485,7 +506,7 @@ class JournalEntry(AccountsController):
 				if field == "cost_center" and not self.respect_cost_center_allocation:
 					# cost_center is allowed to change when re-resolution is requested.
 					continue
-				if reversal_row.get(field) != original_row.get(field):
+				if not _values_match(reversal_row, original_row, field, row_meta):
 					frappe.throw(
 						_("Row #{0}: Field {1} cannot be modified on a Reversal Journal Entry.").format(
 							reversal_row.idx,
@@ -2069,6 +2090,16 @@ def make_reverse_journal_entry(source_name, target_doc=None):
 		target.is_reversed = 0
 		target.reversed_by = None
 		target.respect_cost_center_allocation = 1
+		# WP GA-0001-01: cheque_no / cheque_date have no_copy=1 in the JE
+		# doctype JSON, so get_mapped_doc strips them. Explicitly carry them
+		# over for Bank Entry / Cash Entry reversals — the reversal represents
+		# the same banking transaction reversed, so the reference number and
+		# date are the same. Without this, locking the (empty) fields combined
+		# with Frappe v16's `hide_empty_read_only_fields` sysdefault hides
+		# them on the form while mandatory_depends_on still requires them
+		# server-side — unsubmittable reversal.
+		target.cheque_no = source.cheque_no
+		target.cheque_date = source.cheque_date
 
 	doclist = get_mapped_doc(
 		"Journal Entry",
