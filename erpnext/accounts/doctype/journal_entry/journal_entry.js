@@ -822,45 +822,43 @@ $.extend(erpnext.journal_entry, {
 		}
 	},
 	lock_reversal_fields: function (frm) {
-		const header_fields = [
-			"voucher_type",
-			"company",
-			"multi_currency",
-			"cheque_no",
-			"cheque_date",
-		];
-		header_fields.forEach(function (field) {
-			frm.set_df_property(field, "read_only", 1);
+		// On a reversal draft, everything must be structurally identical to
+		// the original — the user cannot edit any field, add/delete rows, or
+		// change row values. Only docstatus transitions (save → submit) are
+		// allowed. Implemented via a denylist of meta fields so any field
+		// ever added to JE / JE Account is locked by default.
+		const ALWAYS_EDITABLE = new Set([
+			// none — every JE field is structurally bound to the original
+		]);
+		const SKIP_TYPES = new Set([
+			"Section Break", "Column Break", "Tab Break", "HTML", "Button",
+			"Heading",
+		]);
+
+		// Lock all parent doctype fields
+		(frm.meta.fields || []).forEach((df) => {
+			if (SKIP_TYPES.has(df.fieldtype)) return;
+			if (ALWAYS_EDITABLE.has(df.fieldname)) return;
+			frm.set_df_property(df.fieldname, "read_only", 1);
 		});
 
+		// Lock the accounts grid: no add, no delete, no inline-row editing
 		const accounts_grid = frm.fields_dict.accounts && frm.fields_dict.accounts.grid;
 		if (accounts_grid) {
 			accounts_grid.cannot_add_rows = true;
 			accounts_grid.cannot_delete_rows = true;
 			accounts_grid.static_rows = true;
-			const locked_row_fields = [
-				"account",
-				"party_type",
-				"party",
-				"debit_in_account_currency",
-				"credit_in_account_currency",
-				"reference_type",
-				"reference_name",
-				"account_currency",
-				"exchange_rate",
-			];
-			locked_row_fields.forEach(function (field) {
-				const df = accounts_grid.get_docfield(field);
-				if (df) {
-					df.read_only = 1;
-				}
+			// Lock every column on each row (Journal Entry Account child doctype).
+			// update_docfield_property applies to BOTH the inline grid columns
+			// and the row-edit dialog form, so accounting-dimension fields like
+			// cost_center / project / branch (which only render in the dialog)
+			// get locked too.
+			const child_meta = frappe.get_meta("Journal Entry Account");
+			(child_meta.fields || []).forEach((df) => {
+				if (SKIP_TYPES.has(df.fieldtype)) return;
+				accounts_grid.update_docfield_property(df.fieldname, "read_only", 1);
+				accounts_grid.update_docfield_property(df.fieldname, "allow_on_submit", 0);
 			});
-			if (frm.doc.respect_cost_center_allocation) {
-				const cc_df = accounts_grid.get_docfield("cost_center");
-				if (cc_df) {
-					cc_df.read_only = 1;
-				}
-			}
 		}
 		frm.refresh_field("accounts");
 	},
