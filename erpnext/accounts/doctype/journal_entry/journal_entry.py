@@ -1950,6 +1950,16 @@ def make_reverse_journal_entry(source_name, target_doc=None):
 		target.is_reversed = 0
 		target.reversed_by = None
 		target.respect_cost_center_allocation = 1
+		# WP GA-0001-01: cheque_no / cheque_date have no_copy=1 in the JE
+		# doctype JSON, so get_mapped_doc strips them. Explicitly carry them
+		# over for Bank Entry / Cash Entry reversals — the reversal represents
+		# the same banking transaction reversed, so the reference number and
+		# date are the same. Without this, locking the (empty) fields combined
+		# with Frappe v16's `hide_empty_read_only_fields` sysdefault hides
+		# them on the form while mandatory_depends_on still requires them
+		# server-side — unsubmittable reversal.
+		target.cheque_no = source.cheque_no
+		target.cheque_date = source.cheque_date
 
 	doclist = get_mapped_doc(
 		"Journal Entry",
