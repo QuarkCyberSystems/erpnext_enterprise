@@ -857,20 +857,39 @@ $.extend(erpnext.journal_entry, {
 			accounts_grid.cannot_add_rows = true;
 			accounts_grid.cannot_delete_rows = true;
 			accounts_grid.static_rows = true;
-			// Lock every column on each row (Journal Entry Account child doctype).
-			// update_docfield_property applies to BOTH the inline grid columns
-			// and the row-edit dialog form, so accounting-dimension fields like
-			// cost_center / project / branch (which only render in the dialog)
-			// get locked too.
+			// Lock every column on each row (Journal Entry Account child
+			// doctype). We bypass `accounts_grid.update_docfield_property`
+			// because that helper throws when any single row's `docfields`
+			// list doesn't include the named field (it can lag the child
+			// meta — perm-filtered fields, custom fields added after the row
+			// rendered, etc.), and one throw aborts the rest of the loop,
+			// leaving most child fields unlocked. Mutating the docfield
+			// objects directly is silent on misses and gives identical
+			// runtime behaviour for the fields that do exist.
 			const child_meta = frappe.get_meta("Journal Entry Account");
 			(child_meta.fields || []).forEach((df) => {
 				if (SKIP_TYPES.has(df.fieldtype)) return;
-				accounts_grid.update_docfield_property(df.fieldname, "read_only", 1);
-				accounts_grid.update_docfield_property(df.fieldname, "allow_on_submit", 0);
+				erpnext.journal_entry.set_grid_field_property(
+					accounts_grid, df.fieldname, "read_only", 1
+				);
+				erpnext.journal_entry.set_grid_field_property(
+					accounts_grid, df.fieldname, "allow_on_submit", 0
+				);
 			});
 		}
 		erpnext.journal_entry.apply_cost_center_lock(frm);
 		frm.refresh_field("accounts");
+	},
+	set_grid_field_property: function (grid, fieldname, property, value) {
+		// Safe replacement for grid.update_docfield_property — never throws
+		// if a row is missing the field, and also patches the grid-level
+		// docfields list so newly added rows pick up the change.
+		(grid.grid_rows || []).forEach((row) => {
+			const df = row?.docfields?.find((d) => d.fieldname === fieldname);
+			if (df) df[property] = value;
+		});
+		const parent_df = (grid.docfields || []).find((d) => d.fieldname === fieldname);
+		if (parent_df) parent_df[property] = value;
 	},
 	apply_cost_center_lock: function (frm) {
 		// cost_center editability follows respect_cost_center_allocation:
@@ -884,7 +903,9 @@ $.extend(erpnext.journal_entry, {
 
 		// Update the grid-level docfield (affects future row-dialog renders
 		// and inline grid columns).
-		accounts_grid.update_docfield_property("cost_center", "read_only", read_only);
+		erpnext.journal_entry.set_grid_field_property(
+			accounts_grid, "cost_center", "read_only", read_only
+		);
 
 		// If a row dialog is already open, the Field control cached
 		// `read_only` at render time — patch the live control too so the
