@@ -284,20 +284,25 @@ class JournalEntry(AccountsController):
 			)
 			return
 
+		# Compute the schedule date from the JE's auto-reversal config.
+		# The handler (erpnext.accounts.doctype.journal_entry.auto_repeat_handler)
+		# reads the full reversal config off the JE itself at fire time, so we
+		# only need to tell the Auto Repeat *when* to fire here.
+		from frappe.utils import add_months, get_first_day, getdate
+
+		if self.auto_reverse_on == "Specific Date" and self.auto_reverse_date:
+			start_date = getdate(self.auto_reverse_date)
+		else:
+			start_date = get_first_day(add_months(getdate(), 1))
+
 		ar = frappe.new_doc("Auto Repeat")
 		ar.update(
 			{
 				"reference_doctype": "Journal Entry",
 				"reference_document": self.name,
 				"repeat_type": "Reversal",
-				"reverse_on_next_month": 1 if self.auto_reverse_on == "First Day of Next Month" else 0,
-				"reverse_date": self.auto_reverse_date if self.auto_reverse_on == "Specific Date" else None,
-				"reversal_exchange_rate_type": self.reversal_exchange_rate_type,
-				"reversal_tax_mode": self.reversal_tax_mode,
-				"reversal_cost_center_mode": self.reversal_cost_center_mode,
-				"auto_submit_reversal": self.auto_submit_reversal,
 				"submit_on_creation": 1,
-				"start_date": self.posting_date,
+				"start_date": start_date,
 			}
 		)
 		ar.flags.ignore_permissions = True

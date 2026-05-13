@@ -58,25 +58,31 @@ def make_journal_entry_reversal(auto_repeat, reference_doc, assignee=None):
 
 	reversal = make_reverse_journal_entry(reference_doc.name)
 
-	# Schedule
-	if auto_repeat.get("reverse_on_next_month"):
+	# Reversal config (schedule + modes) is read off the source JE itself
+	# rather than from the Auto Repeat. The JE inherits these fields from
+	# its JE Template at insert time; storing them again on the AR was
+	# the WP's original shape but kept accounting concepts in frappe.
+	# Reading off the JE here lets frappe's Auto Repeat stay framework-
+	# generic and upstream-shaped.
+	auto_reverse_on = reference_doc.get("auto_reverse_on") or "First Day of Next Month"
+	if auto_reverse_on == "First Day of Next Month":
 		reversal.posting_date = get_first_day(add_months(getdate(), 1))
-	elif auto_repeat.get("reverse_date"):
-		reversal.posting_date = getdate(auto_repeat.reverse_date)
+	elif auto_reverse_on == "Specific Date" and reference_doc.get("auto_reverse_date"):
+		reversal.posting_date = getdate(reference_doc.auto_reverse_date)
 
 	# WP GAP-013/014 — make_reverse_journal_entry does not copy cost_center / party / project.
 	_enhance_reversal_mapping(reversal, reference_doc)
 
 	# WP GAP-021 / Phase 5.1 — FX handling
-	if auto_repeat.get("reversal_exchange_rate_type") == "Current Rate":
+	if reference_doc.get("reversal_exchange_rate_type") == "Current Rate":
 		_refresh_reversal_exchange_rate(reversal)
 
 	# WP GAP-022 — cost-center allocation audit
-	if auto_repeat.get("reversal_cost_center_mode") == "Apply Current Allocation":
+	if reference_doc.get("reversal_cost_center_mode") == "Apply Current Allocation":
 		_apply_reversal_cost_center_allocation(auto_repeat, reversal)
 
 	# WP GAP-021 — tax recalculation (audit-only — see imp plan §6 sign-off #4)
-	if auto_repeat.get("reversal_tax_mode") == "Recalculate for Posting Date":
+	if reference_doc.get("reversal_tax_mode") == "Recalculate for Posting Date":
 		_recalculate_reversal_taxes(auto_repeat, reversal)
 
 	reversal.user_remark = (reversal.user_remark or "") + (
@@ -100,7 +106,7 @@ def make_journal_entry_reversal(auto_repeat, reference_doc, assignee=None):
 	if updates:
 		frappe.db.set_value("Journal Entry", reference_doc.name, updates)
 
-	if auto_repeat.get("auto_submit_reversal"):
+	if reference_doc.get("auto_submit_reversal"):
 		try:
 			reversal.submit()
 			if je_meta.has_field("auto_reversal_status"):
