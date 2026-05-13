@@ -28,6 +28,14 @@ def after_install():
 	create_custom_company_links()
 	add_all_roles_to("Administrator")
 	create_default_success_action()
+
+	# WP GA-0001-05+06: install Custom Fields on frappe Auto Repeat so the
+	# ERPNextAutoRepeat override has the columns it needs. Frappe stays
+	# upstream-equivalent; the extension lives entirely ERPNext-side.
+	from erpnext.accounts.auto_repeat_extension.custom_fields import (
+		install_auto_repeat_custom_fields,
+	)
+	install_auto_repeat_custom_fields()
 	create_incoterms()
 	create_default_role_profiles()
 	add_company_to_session_defaults()

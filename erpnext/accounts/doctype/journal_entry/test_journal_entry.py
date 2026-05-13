@@ -1104,9 +1104,10 @@ class TestJournalEntryTemplateEnforcement(ERPNextTestSuite):
 				"reference_doctype": "Journal Entry",
 				"reference_document": jv.name,
 				"repeat_type": "Reversal",
-				"reverse_on_next_month": 1,
 				"start_date": nowdate(),
-				"frequency": "",
+				# Placeholder — Reversal mode is single-fire; ERPNextAutoRepeat's
+				# set_dates uses start_date directly and never consumes frequency.
+				"frequency": "Daily",
 			}
 		)
 		ar.flags.ignore_permissions = True
@@ -1130,9 +1131,10 @@ class TestJournalEntryTemplateEnforcement(ERPNextTestSuite):
 				"reference_doctype": "Journal Entry",
 				"reference_document": jv.name,
 				"repeat_type": "Reversal",
-				"reverse_on_next_month": 1,
 				"start_date": nowdate(),
-				"frequency": "",
+				# Placeholder — Reversal mode is single-fire; ERPNextAutoRepeat's
+				# set_dates uses start_date directly and never consumes frequency.
+				"frequency": "Daily",
 			}
 		)
 		ar.flags.ignore_permissions = True

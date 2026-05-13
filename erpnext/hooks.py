@@ -65,6 +65,19 @@ setup_wizard_stages = "erpnext.setup.setup_wizard.setup_wizard.get_setup_stages"
 
 after_install = "erpnext.setup.install.after_install"
 
+# WP GA-0001-05+06 — after every migrate, ensure the Auto Repeat custom
+# fields are present (idempotent). This handles the case where Phase A-D
+# changes land on an existing site without a fresh install.
+after_migrate = "erpnext.accounts.auto_repeat_extension.custom_fields.install_auto_repeat_custom_fields"
+
+# WP GA-0001-05+06 — replace frappe's Auto Repeat controller class with
+# the ERPNext-side subclass that adds repeat_type dispatch, source-
+# validation, and Copy-mode refresh handler invocation. Frappe's
+# doctype JSON / .py / .js stay at upstream version-16.
+override_doctype_class = {
+	"Auto Repeat": "erpnext.accounts.auto_repeat_extension.erpnext_auto_repeat.ERPNextAutoRepeat",
+}
+
 boot_session = "erpnext.startup.boot.boot_session"
 notification_config = "erpnext.startup.notifications.get_notification_config"
 get_help_messages = "erpnext.utilities.activation.get_help_messages"

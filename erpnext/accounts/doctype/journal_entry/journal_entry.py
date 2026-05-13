@@ -303,6 +303,11 @@ class JournalEntry(AccountsController):
 				"repeat_type": "Reversal",
 				"submit_on_creation": 1,
 				"start_date": start_date,
+				# frappe's Auto Repeat requires `frequency` (reqd=1). For our
+				# single-fire Reversal flow it's a placeholder — ERPNextAutoRepeat's
+				# set_dates uses start_date directly for Reversal mode and never
+				# consumes frequency. We pick "Daily" arbitrarily.
+				"frequency": "Daily",
 			}
 		)
 		ar.flags.ignore_permissions = True
