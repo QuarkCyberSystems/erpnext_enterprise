@@ -992,7 +992,23 @@ $.extend(erpnext.journal_entry, {
 		const accounts_grid = frm.fields_dict.accounts && frm.fields_dict.accounts.grid;
 		if (!accounts_grid) return;
 		const read_only = frm.doc.respect_cost_center_allocation ? 1 : 0;
+
+		// Update the grid-level docfield (affects future row-dialog renders
+		// and inline grid columns).
 		accounts_grid.update_docfield_property("cost_center", "read_only", read_only);
+
+		// If a row dialog is already open, the Field control cached
+		// `read_only` at render time — patch the live control too so the
+		// toggle is immediate, no close-reopen required.
+		const open = accounts_grid.open_grid_row;
+		if (open && open.grid_form) {
+			const live = open.grid_form.fields_dict && open.grid_form.fields_dict.cost_center;
+			if (live) {
+				live.df.read_only = read_only;
+				live.refresh();
+			}
+		}
+
 		frm.refresh_field("accounts");
 	},
 });
