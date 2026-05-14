@@ -375,15 +375,26 @@ var apply_template_locks = function (frm, tpl) {
 	const reverse_date_ro = frm.doc.auto_reverse_on !== "Specific Date";
 	frm.set_df_property("auto_reverse_date", "read_only", reverse_date_ro ? 1 : 0);
 
-	["account", "party_type"].forEach((f) =>
-		frm.fields_dict.accounts.grid.update_docfield_property(
-			f,
-			"read_only",
-			"eval:doc.from_template"
-		)
-	);
-	frm.fields_dict.accounts.grid.cannot_delete_rows = true;
-	frm.fields_dict.accounts.grid.cannot_add_rows = !tpl.allow_additional_accounts;
+	// Per-row lock: account / party_type are read-only ONLY on rows where
+	// from_template=1. `update_docfield_property` takes a scalar — passing
+	// "eval:doc.from_template" makes Frappe store the literal string and
+	// `cint()` it to 0 (= editable). Iterate grid rows and mutate each row's
+	// docfield individually so user-added rows (when allow_additional_accounts=1)
+	// stay fully editable.
+	const grid = frm.fields_dict.accounts.grid;
+	const apply_row_locks = () => {
+		(grid.grid_rows || []).forEach((row) => {
+			if (!row || !row.doc) return;
+			const read_only = row.doc.from_template ? 1 : 0;
+			["account", "party_type"].forEach((f) => {
+				const df = row.docfields && row.docfields.find((d) => d.fieldname === f);
+				if (df) df.read_only = read_only;
+			});
+		});
+	};
+	apply_row_locks();
+	grid.cannot_delete_rows = !tpl.allow_additional_accounts;
+	grid.cannot_add_rows = !tpl.allow_additional_accounts;
 	frm.refresh_fields();
 };
 
