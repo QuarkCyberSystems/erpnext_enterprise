@@ -39,7 +39,14 @@ class UnreconcilePayment(Document):
 	# end: auto-generated types
 
 	def validate(self):
-		self.supported_types = ["Payment Entry", "Journal Entry"]
+		# WP GA-0001-03 / GAP-013: under Immutable Ledger, credit/debit notes
+		# (Sales/Purchase Invoice with is_return=1) route through PRE just
+		# like PE/JE — so they must also be unreconcilable. Adding them
+		# unconditionally is safe: the IM-OFF path still uses
+		# `reconcile_dr_cr_note` which creates a system JE that's cancelled
+		# directly (no Unreconcile Payment doc is generated for it), so
+		# expanding the allowlist doesn't change legacy behaviour.
+		self.supported_types = ["Payment Entry", "Journal Entry", "Sales Invoice", "Purchase Invoice"]
 		if self.voucher_type not in self.supported_types:
 			frappe.throw(_("Only {0} are supported").format(comma_and(self.supported_types)))
 
@@ -168,7 +175,15 @@ def get_linked_payments_for_doc(
 		_dt = doctype
 		_dn = docname
 		ple = qb.DocType("Payment Ledger Entry")
-		if _dt in ["Sales Invoice", "Purchase Invoice"]:
+		# WP GA-0001-03 / GAP-013: a Sales/Purchase Invoice with is_return=1
+		# is a credit/debit note acting as a PAYMENT in a PRE recon. It
+		# should be looked up via the payment-side query (find PREs where
+		# payment_name = this doc), NOT the invoice-side query.
+		_is_return_invoice = (
+			_dt in ("Sales Invoice", "Purchase Invoice")
+			and (frappe.db.get_value(_dt, _dn, "is_return") or 0)
+		)
+		if _dt in ["Sales Invoice", "Purchase Invoice"] and not _is_return_invoice:
 			criteria = [
 				(ple.company == company),
 				(ple.delinked == 0),
