@@ -140,10 +140,25 @@ class UnreconcilePayment(Document):
 @frappe.whitelist()
 def doc_has_references(doctype: str | None = None, docname: str | None = None):
 	count = 0
-	if doctype in ["Sales Invoice", "Purchase Invoice"]:
+	# WP GA-0001-03 / GAP-013: credit/debit notes (Sales/Purchase Invoice
+	# with is_return=1) act as the PAYMENT side of a PRE under Immutable
+	# Ledger. Their references live as PREs where `payment_name=this doc`,
+	# not as inbound PLE rows on the invoice-side. Route them through the
+	# payment-side check so the button only appears when there's an actual
+	# active recon to undo.
+	is_return_invoice = (
+		doctype in ("Sales Invoice", "Purchase Invoice")
+		and (frappe.db.get_value(doctype, docname, "is_return") or 0)
+	)
+	if doctype in ["Sales Invoice", "Purchase Invoice"] and not is_return_invoice:
 		count = frappe.db.count(
 			"Payment Ledger Entry",
-			filters={"delinked": 0, "against_voucher_no": docname, "amount": ["<", 0]},
+			filters={
+				"delinked": 0,
+				"against_voucher_no": docname,
+				"voucher_no": ["!=", docname],  # exclude the invoice's own submit row
+				"amount": ["<", 0],
+			},
 		)
 	else:
 		count = frappe.db.count(
