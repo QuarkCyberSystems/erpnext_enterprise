@@ -18,6 +18,13 @@ frappe.ui.form.on("Payment Entry", {
 			"Unreconcile Payment",
 			"Unreconcile Payment Entries",
 			"Bank Transaction",
+			// WP GA-0001-03 / GAP-004: PREs are not cascade-cancellable from
+			// the PE side. Cancellation flows through the unreconcile path
+			// (which creates a reversal PRE), and PRE.on_cancel is blocked
+			// under Immutable Ledger. The server-side `before_cancel` guard
+			// on PE enforces the actual rule: cancel only allowed when no
+			// PRE is `docstatus=1 AND is_unreconciled=0 AND is_reversal=0`.
+			"Payment Reconciliation Entry",
 		];
 
 		if (frm.doc.__islocal) {
