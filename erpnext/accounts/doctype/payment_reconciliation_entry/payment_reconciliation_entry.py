@@ -73,6 +73,21 @@ class PaymentReconciliationEntry(Document):
 				},
 				update_modified=False,
 			)
+			# Reversal nets the original recon's PLE rows to zero. Leaving both
+			# rows live makes the AR / aged-receivables aggregator double-count
+			# them into the invoiced / paid buckets — outstanding stays right
+			# but the breakdown is misleading. Mark both vouchers' PLE rows as
+			# `delinked=1` so the report skips them. GL Entry rows stay intact
+			# for audit.
+			frappe.db.sql(
+				"""
+				update `tabPayment Ledger Entry`
+				set delinked=1, modified=%(now)s
+				where voucher_type='Payment Reconciliation Entry'
+				  and voucher_no in (%(orig)s, %(rev)s)
+				""",
+				{"now": frappe.utils.now(), "orig": self.reversal_of, "rev": self.name},
+			)
 		else:
 			if self.payment_type == "Payment Entry" and self.payment_reference_row:
 				frappe.db.set_value(
