@@ -578,12 +578,23 @@ class SalesInvoice(SellingController):
 		# check if generated via POS and already included in POS Closing Entry
 		self.check_if_created_using_pos_and_pos_closing_entry_generated()
 		self.check_if_consolidated_invoice()
+		# WP GA-0001-03 / GAP-004: block cancel if any PRE on this invoice
+		# is still active. Reconciled-then-unreconciled PREs don't block.
+		from erpnext.accounts.doctype.payment_reconciliation_entry.cancel_guards import (
+			assert_no_active_pres,
+		)
+		assert_no_active_pres("Sales Invoice", self.name)
 
 		super().before_cancel()
 		self.update_time_sheet(self.return_against if (self.is_return and self.return_against) else None)
 
 	def on_cancel(self):
 		check_if_return_invoice_linked_with_payment_entry(self)
+		# WP GA-0001-03 / GAP-004: silence Frappe's generic PRE link check.
+		from erpnext.accounts.doctype.payment_reconciliation_entry.cancel_guards import (
+			add_pre_to_ignore_linked_doctypes,
+		)
+		add_pre_to_ignore_linked_doctypes(self)
 
 		super().on_cancel()
 

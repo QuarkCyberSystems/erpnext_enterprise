@@ -1678,8 +1678,22 @@ class PurchaseInvoice(BuyingController):
 				)
 			)
 
+	def before_cancel(self):
+		# WP GA-0001-03 / GAP-004: block cancel if any PRE on this invoice
+		# is still active. Reconciled-then-unreconciled PREs don't block.
+		from erpnext.accounts.doctype.payment_reconciliation_entry.cancel_guards import (
+			assert_no_active_pres,
+		)
+		assert_no_active_pres("Purchase Invoice", self.name)
+		super().before_cancel()
+
 	def on_cancel(self):
 		check_if_return_invoice_linked_with_payment_entry(self)
+		# WP GA-0001-03 / GAP-004: silence Frappe's generic PRE link check.
+		from erpnext.accounts.doctype.payment_reconciliation_entry.cancel_guards import (
+			add_pre_to_ignore_linked_doctypes,
+		)
+		add_pre_to_ignore_linked_doctypes(self)
 
 		super().on_cancel()
 		PurchaseTaxWithholding(self).on_cancel()

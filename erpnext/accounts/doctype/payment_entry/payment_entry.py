@@ -292,7 +292,24 @@ class PaymentEntry(AccountsController):
 			alert=True,
 		)
 
+	def before_cancel(self):
+		# WP GA-0001-03 / GAP-004: block cancel while any reconciliation is
+		# still active. Unreconciled PREs (is_unreconciled=1) don't count —
+		# they're docstatus=1 only for audit. Throws with a list of blocking
+		# PREs and how to clear them.
+		from erpnext.accounts.doctype.payment_reconciliation_entry.cancel_guards import (
+			assert_no_active_pres,
+		)
+		assert_no_active_pres("Payment Entry", self.name)
+
 	def on_cancel(self):
+		# Frappe's generic link check (`check_no_back_links_exist`) runs
+		# after on_cancel and counts every submitted PRE — including ones
+		# already unreconciled — as a blocker. Silence it for PREs; the
+		# active-only guard in `before_cancel` does the right enforcement.
+		from erpnext.accounts.doctype.payment_reconciliation_entry.cancel_guards import (
+			add_pre_to_ignore_linked_doctypes,
+		)
 		self.ignore_linked_doctypes = (
 			"GL Entry",
 			"Stock Ledger Entry",
@@ -306,6 +323,7 @@ class PaymentEntry(AccountsController):
 			"Advance Payment Ledger Entry",
 			"Tax Withholding Entry",
 		)
+		add_pre_to_ignore_linked_doctypes(self)
 		super().on_cancel()
 		PaymentTaxWithholding(self).on_cancel()
 		self.update_payment_requests(cancel=True)
