@@ -162,6 +162,93 @@ class TestPaymentReconciliationEntry(TestPaymentReconciliation):
 		self.assertEqual(reversal_meta.reversal_of, original_pre_name)
 		self.assertEqual(reversal_meta.docstatus, 1)
 
+	# -------- TC-004: GAP-004 — cancel-with-active-PRE guard --------
+
+	def test_tc004a_active_pre_blocks_pe_cancel(self):
+		"""While a PRE on a PE is docstatus=1 / is_unreconciled=0 / is_reversal=0,
+		the PE cannot be cancelled. The error message names the active PRE so
+		the user knows which one to unreconcile."""
+		si = self.create_sales_invoice(qty=1, rate=100)
+		pe = self.create_payment_entry(amount=100)
+		pe.submit()
+		self._reconcile_pe_against_si(pe, si, 100)
+
+		active_pre = frappe.db.get_value(
+			"Payment Reconciliation Entry",
+			{"payment_name": pe.name, "is_reversal": 0, "is_unreconciled": 0, "docstatus": 1},
+			"name",
+		)
+		self.assertTrue(active_pre)
+
+		with self.assertRaises(frappe.ValidationError) as ctx:
+			pe.cancel()
+		self.assertIn(active_pre, str(ctx.exception))
+
+	def test_tc004b_unreconciled_pre_allows_pe_cancel(self):
+		"""Once every PRE on a PE has been unreconciled (is_unreconciled=1) and
+		the reversal PREs are present (is_reversal=1), the PE cancel must be
+		allowed. Frappe's generic link check (which would normally block on
+		every submitted PRE) is silenced for PREs by add_pre_to_ignore_linked_doctypes."""
+		import json
+		from erpnext.accounts.doctype.unreconcile_payment.unreconcile_payment import (
+			create_unreconcile_doc_for_selection,
+		)
+
+		si = self.create_sales_invoice(qty=1, rate=100)
+		pe = self.create_payment_entry(amount=100)
+		pe.submit()
+		self._reconcile_pe_against_si(pe, si, 100)
+
+		create_unreconcile_doc_for_selection(
+			selections=json.dumps(
+				[
+					{
+						"company": self.company,
+						"voucher_type": "Payment Entry",
+						"voucher_no": pe.name,
+						"against_voucher_type": "Sales Invoice",
+						"against_voucher_no": si.name,
+					}
+				]
+			)
+		)
+
+		# Confirm PRE state: original unreconciled, reversal exists.
+		pre_states = frappe.get_all(
+			"Payment Reconciliation Entry",
+			filters={"payment_name": pe.name, "docstatus": 1},
+			fields=["name", "is_reversal", "is_unreconciled"],
+		)
+		self.assertEqual(len(pre_states), 2)
+
+		# Cancel should now succeed.
+		pe.reload()
+		pe.cancel()
+		self.assertEqual(pe.docstatus, 2)
+
+	def test_tc004c_active_pre_blocks_si_cancel(self):
+		"""Symmetric to TC-004a — invoice side. An active PRE on an SI blocks
+		the SI from being cancelled."""
+		si = self.create_sales_invoice(qty=1, rate=100)
+		pe = self.create_payment_entry(amount=100)
+		pe.submit()
+		self._reconcile_pe_against_si(pe, si, 100)
+
+		active_pre = frappe.db.get_value(
+			"Payment Reconciliation Entry",
+			{"invoice_name": si.name, "is_reversal": 0, "is_unreconciled": 0, "docstatus": 1},
+			"name",
+		)
+		self.assertTrue(active_pre)
+
+		# Reload — _reconcile_pe_against_si updates the SI's outstanding_amount
+		# via direct DB writes, so the in-memory si is stale and si.cancel()
+		# would otherwise hit a timestamp-mismatch save error before our guard.
+		si.reload()
+		with self.assertRaises(frappe.ValidationError) as ctx:
+			si.cancel()
+		self.assertIn(active_pre, str(ctx.exception))
+
 	# -------- Tier 1 — block deletions (TC-002, TC-003, TC-006) --------
 
 	def test_tc002_supersede_pl_entries_no_delete(self):

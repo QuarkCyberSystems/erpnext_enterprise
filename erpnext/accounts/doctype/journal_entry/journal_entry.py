@@ -245,6 +245,13 @@ class JournalEntry(AccountsController):
 
 	def before_cancel(self):
 		self.has_asset_adjustment_entry()
+		# WP GA-0001-03 / GAP-004: block cancel if any PRE on this JE is still
+		# active. JEs reconciled as the payment side of a PRE need to be
+		# unreconciled (via reversal PRE) first.
+		from erpnext.accounts.doctype.payment_reconciliation_entry.cancel_guards import (
+			assert_no_active_pres,
+		)
+		assert_no_active_pres("Journal Entry", self.name)
 
 	def cancel(self):
 		if len(self.accounts) > 100:
@@ -420,6 +427,13 @@ class JournalEntry(AccountsController):
 
 		if from_doc_events and from_doc_events != self.ignore_linked_doctypes:
 			self.ignore_linked_doctypes = self.ignore_linked_doctypes + from_doc_events
+
+		# WP GA-0001-03 / GAP-004: silence Frappe's generic PRE link check;
+		# the active-only guard in `before_cancel` already enforced the rule.
+		from erpnext.accounts.doctype.payment_reconciliation_entry.cancel_guards import (
+			add_pre_to_ignore_linked_doctypes,
+		)
+		add_pre_to_ignore_linked_doctypes(self)
 
 		self.make_gl_entries(1)
 		JournalTaxWithholding(self).on_cancel()
