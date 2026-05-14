@@ -290,13 +290,18 @@ frappe.ui.form.on("Journal Entry Account", {
 	},
 });
 
+// Header fields locked once a template is applied. NOTE: `from_template`
+// is intentionally NOT in this list — it's the user's release switch. The
+// `before_save` hook on the server detects when `from_template` is blanked
+// and tears down `template_applied` + row `from_template` flags, returning
+// the JE to a fully editable state. Locking the link field would trap the
+// user with no way out (the documented "escape hatch" flow).
 const TEMPLATE_HEADER_LOCKS = [
 	"voucher_type",
 	"company",
 	"multi_currency",
 	"is_opening",
 	"naming_series",
-	"from_template",
 ];
 const TEMPLATE_AUTO_REVERSAL_LOCKS = [
 	"enable_auto_reversal",
