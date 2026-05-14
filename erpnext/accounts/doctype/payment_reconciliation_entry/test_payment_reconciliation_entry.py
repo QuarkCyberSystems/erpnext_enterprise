@@ -235,6 +235,108 @@ class TestPaymentReconciliationEntry(TestPaymentReconciliation):
 		pe.cancel()
 		self.assertEqual(pe.docstatus, 2)
 
+	def test_tc006b_multi_currency_je_recon_creates_gain_loss_je(self):
+		"""Multi-currency JE-as-payment reconcile (the intersection of TC-05
+		and TC-06) must compose correctly under PRE flow:
+
+		* one PRE with `payment_type='Journal Entry'`
+		* standard clearing-GL pair on the PRE voucher
+		* a system-generated Exchange Gain/Loss JE linked to the PRE via
+		  `pre.exchange_gain_loss_journal`, both ref legs pinned to the PRE
+		* original JE rows BYTE-UNCHANGED (no split, no append,
+		  reference_type/reference_name still NULL) — GAP-006 + GAP-014
+		* trial balance for the receivable account net to zero in base
+		  currency
+
+		Without this test the gain/loss helper was only proved on the PE
+		side (TC-05) and the JE-side path was only proved at same rate
+		(TC-06). The intersection — JE-as-payment with FX delta — was
+		theoretical-only.
+		"""
+		# 1) SI in EUR at rate 1.10 USD/EUR (= 110 base for 100 EUR)
+		si = self.create_sales_invoice(qty=1, rate=100, do_not_save=True, do_not_submit=True)
+		si.customer = self.customer3
+		si.currency = "EUR"
+		si.conversion_rate = 1.10
+		si.debit_to = self.debtors_eur
+		si.save().submit()
+
+		# 2) JE-as-payment: receive 100 EUR at rate 1.15 USD/EUR (= 115 base)
+		je = frappe.new_doc("Journal Entry")
+		je.company = self.company
+		je.posting_date = nowdate()
+		je.multi_currency = 1
+		je.append("accounts", {
+			"account": self.debtors_eur,
+			"party_type": "Customer",
+			"party": self.customer3,
+			"exchange_rate": 1.15,
+			"credit_in_account_currency": 100,
+			"credit": 100 * 1.15,
+			"cost_center": self.cost_center,
+		})
+		je.append("accounts", {
+			"account": self.cash,
+			"debit_in_account_currency": 100 * 1.15,
+			"debit": 100 * 1.15,
+			"cost_center": self.cost_center,
+		})
+		je.save().submit()
+
+		# 3) Snapshot JE rows BEFORE recon
+		je_rows_before = [
+			(r.account, r.debit_in_account_currency, r.credit_in_account_currency,
+			 r.party_type, r.party, r.reference_type, r.reference_name)
+			for r in je.accounts
+		]
+
+		# 4) Reconcile via PR tool
+		pr = self.create_payment_reconciliation()
+		pr.party = self.customer3
+		pr.receivable_payable_account = self.debtors_eur
+		pr.get_unreconciled_entries()
+		pr.allocate_entries(frappe._dict({
+			"invoices": [x.as_dict() for x in pr.invoices],
+			"payments": [x.as_dict() for x in pr.payments],
+		}))
+		pr.reconcile()
+
+		# 5) PRE created, currency + gain/loss correct, JE linked
+		pres = frappe.get_all(
+			"Payment Reconciliation Entry",
+			filters={"payment_name": je.name, "is_reversal": 0, "docstatus": 1},
+			fields=["name", "payment_type", "currency", "exchange_gain_loss",
+			        "exchange_gain_loss_journal"],
+		)
+		self.assertEqual(len(pres), 1)
+		pre = pres[0]
+		self.assertEqual(pre["payment_type"], "Journal Entry")
+		self.assertEqual(pre["currency"], "EUR")
+		self.assertAlmostEqual(pre["exchange_gain_loss"], 5.0)  # 100 * (1.15 - 1.10)
+		self.assertTrue(
+			pre["exchange_gain_loss_journal"],
+			"PRE must link to a system-generated Exchange Gain/Loss JE",
+		)
+
+		# 6) Gain/loss JE shape — both legs reference the PRE
+		gl_je = frappe.get_doc("Journal Entry", pre["exchange_gain_loss_journal"])
+		self.assertEqual(gl_je.voucher_type, "Exchange Gain Or Loss")
+		self.assertEqual(gl_je.is_system_generated, 1)
+		self.assertEqual(gl_je.docstatus, 1)
+		for row in gl_je.accounts:
+			self.assertEqual(row.reference_type, "Payment Reconciliation Entry")
+			self.assertEqual(row.reference_name, pre["name"])
+
+		# 7) Original JE rows BYTE-UNCHANGED (GAP-006 + GAP-014)
+		je.reload()
+		je_rows_after = [
+			(r.account, r.debit_in_account_currency, r.credit_in_account_currency,
+			 r.party_type, r.party, r.reference_type, r.reference_name)
+			for r in je.accounts
+		]
+		self.assertEqual(je_rows_before, je_rows_after,
+			"Original JE rows must not be split, appended, or have reference_type/name populated")
+
 	def test_tc004d_cancel_guards_helper_filters_correctly(self):
 		"""Unit-level: get_active_pres must include PREs that are
 		docstatus=1 AND is_unreconciled=0 AND is_reversal=0, and exclude
