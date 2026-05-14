@@ -322,6 +322,82 @@ class TestPaymentReconciliationEntry(TestPaymentReconciliation):
 		self.assertEqual(si.outstanding_amount, 60)
 		self.assertEqual(cr_note.outstanding_amount, 0)
 
+	def test_tc007b_credit_note_unreconcile_creates_reversal_pre(self):
+		"""The cr-note PRE flow must be reversible — recon creates one PRE,
+		unreconcile creates a reversal PRE, original flips is_unreconciled=1,
+		outstandings revert. Without this we shipped a one-way street where
+		users could reconcile via PRE (TC-07) but had no way to undo.
+
+		Three pieces had to compose:
+		  1. Unreconcile Payment.validate accepts Sales/Purchase Invoice
+		  2. get_linked_payments_for_doc routes return-invoices (is_return=1)
+		     to the payment-side query (the else branch + PRE lookup)
+		  3. on_submit finds the original PRE via payment_type/name and
+		     creates a reversal PRE via copy_doc + submit
+		"""
+		from erpnext.accounts.doctype.unreconcile_payment.unreconcile_payment import (
+			create_unreconcile_doc_for_selection,
+		)
+		import json
+
+		# Recon SI ↔ Credit Note as in TC-007
+		si = self.create_sales_invoice(qty=1, rate=100)
+		cr_note = self.create_sales_invoice(
+			qty=-1, rate=40, do_not_save=True, do_not_submit=True
+		)
+		cr_note.is_return = 1
+		cr_note.save().submit()
+
+		pr = self.create_payment_reconciliation()
+		pr.get_unreconciled_entries()
+		pr.allocate_entries(frappe._dict({
+			"invoices": [x.as_dict() for x in pr.invoices],
+			"payments": [x.as_dict() for x in pr.payments],
+		}))
+		pr.reconcile()
+
+		original_pre_name = frappe.db.get_value(
+			"Payment Reconciliation Entry",
+			{"payment_name": cr_note.name, "is_reversal": 0, "is_unreconciled": 0, "docstatus": 1},
+			"name",
+		)
+		self.assertTrue(original_pre_name, "Forward TC-07 prerequisite — PRE must exist")
+
+		# Trigger unreconcile from the credit note's side
+		create_unreconcile_doc_for_selection(
+			selections=json.dumps([{
+				"company": self.company,
+				"voucher_type": "Sales Invoice",
+				"voucher_no": cr_note.name,
+				"against_voucher_type": "Sales Invoice",
+				"against_voucher_no": si.name,
+			}])
+		)
+
+		# Original PRE flipped to unreconciled
+		flipped = frappe.db.get_value(
+			"Payment Reconciliation Entry", original_pre_name,
+			["is_unreconciled", "unreconciled_by"], as_dict=True,
+		)
+		self.assertEqual(flipped.is_unreconciled, 1)
+		self.assertTrue(flipped.unreconciled_by, "A reversal PRE must be linked back")
+
+		# Reversal PRE exists with the right shape
+		reversal = frappe.db.get_value(
+			"Payment Reconciliation Entry", flipped.unreconciled_by,
+			["docstatus", "is_reversal", "reversal_of", "payment_type"], as_dict=True,
+		)
+		self.assertEqual(reversal.docstatus, 1)
+		self.assertEqual(reversal.is_reversal, 1)
+		self.assertEqual(reversal.reversal_of, original_pre_name)
+		self.assertEqual(reversal.payment_type, "Sales Invoice")
+
+		# Outstandings revert
+		si.reload()
+		cr_note.reload()
+		self.assertEqual(si.outstanding_amount, 100, "SI outstanding must revert to full")
+		self.assertEqual(cr_note.outstanding_amount, -40, "Credit note outstanding must revert")
+
 	def test_tc006b_multi_currency_je_recon_creates_gain_loss_je(self):
 		"""Multi-currency JE-as-payment reconcile (the intersection of TC-05
 		and TC-06) must compose correctly under PRE flow:
