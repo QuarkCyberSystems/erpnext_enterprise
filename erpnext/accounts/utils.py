@@ -527,7 +527,23 @@ def reconcile_against_document(
 
 		reposting_rows = []
 		for entry in entries:
-			check_if_advance_entry_modified(entry)
+			# `check_if_advance_entry_modified` is built for JE/PE only — it
+			# queries `tabPayment Entry` for non-JE entries. For credit/debit
+			# notes (Sales/Purchase Invoice as the payment side under WP-03
+			# GAP-013 routing), do the equivalent outstanding-amount check
+			# that `reconcile_dr_cr_note` used to do inline.
+			if entry.voucher_type in ("Sales Invoice", "Purchase Invoice"):
+				outstanding = abs(
+					flt(frappe.db.get_value(entry.voucher_type, entry.voucher_no, "outstanding_amount"))
+				)
+				if outstanding < flt(entry.allocated_amount):
+					frappe.throw(
+						_("{0} has been modified after you pulled it. Please pull it again.").format(
+							entry.voucher_type
+						)
+					)
+			else:
+				check_if_advance_entry_modified(entry)
 			validate_allocated_amount(entry)
 
 			dimensions_dict = _build_dimensions_dict_for_exc_gain_loss(entry, active_dimensions)

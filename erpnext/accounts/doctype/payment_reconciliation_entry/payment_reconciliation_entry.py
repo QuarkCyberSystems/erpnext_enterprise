@@ -235,6 +235,18 @@ class PaymentReconciliationEntry(Document):
 			self.party_type,
 			self.party,
 		)
+		# When the payment side is itself a Sales/Purchase Invoice (the
+		# credit/debit note recon flow — GAP-013), its `outstanding_amount`
+		# also needs refreshing. PE/JE payments don't have an outstanding
+		# field that needs this maintenance.
+		if self.payment_type in ("Sales Invoice", "Purchase Invoice"):
+			update_voucher_outstanding(
+				self.payment_type,
+				self.payment_name,
+				self.account,
+				self.party_type,
+				self.party,
+			)
 
 	# --- clearing GL ---
 
