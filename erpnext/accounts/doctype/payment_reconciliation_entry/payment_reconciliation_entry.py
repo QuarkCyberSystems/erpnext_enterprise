@@ -88,6 +88,29 @@ class PaymentReconciliationEntry(Document):
 				""",
 				{"now": frappe.utils.now(), "orig": self.reversal_of, "rev": self.name},
 			)
+			# UAT-found: the PE Reference row added by the original recon
+			# (via `_insert_payment_entry_reference_row` in utils.py) was left
+			# in place when the original PRE got marked unreconciled, with its
+			# `reconciliation_entry` still pointing at the now-unreconciled
+			# PRE. A subsequent re-recon appends a fresh row, leaving the PE
+			# form showing two allocations for the same invoice (one stale,
+			# one live). `unallocated_amount` is computed correctly so the GL
+			# math is fine, but the references display is misleading. Delete
+			# the original row symmetrically with how it was inserted: direct
+			# child-row delete, no parent doc save. Reads `payment_reference_row`
+			# off the ORIGINAL PRE (which is the field the row belongs to) so
+			# the cleanup survives if the reversal PRE was created without
+			# inheriting that field.
+			if self.payment_type == "Payment Entry":
+				orig_ref_row = frappe.db.get_value(
+					"Payment Reconciliation Entry",
+					self.reversal_of,
+					"payment_reference_row",
+				)
+				if orig_ref_row and frappe.db.exists(
+					"Payment Entry Reference", orig_ref_row
+				):
+					frappe.db.delete("Payment Entry Reference", {"name": orig_ref_row})
 		else:
 			if self.payment_type == "Payment Entry" and self.payment_reference_row:
 				frappe.db.set_value(
