@@ -596,11 +596,28 @@ def _create_pre_for_allocation(doc, entry, dimensions_dict):
 	is NOT mutated — the only post-submit write to the PE side is a single-
 	column `db_set` of `reconciliation_entry` on the linked PE Reference row,
 	performed inside PRE.on_submit.
+
+	When the SI rate and PE rate differ (multi-currency reconciliation),
+	the clearing pair on the PRE balances in account currency but leaves a
+	residual in base currency. A system-generated Exchange Gain/Loss JE is
+	posted to close that residual and linked back to the PRE via
+	`pre.exchange_gain_loss_journal`. Without this step the trial balance
+	for the receivable/payable account is off by the rate-delta amount —
+	the GAP-010 closure the WP describes was missing for the PRE path.
 	"""
 	if doc.doctype == "Payment Entry":
 		ref_row_name = _insert_payment_entry_reference_row(doc, entry)
 	else:
 		ref_row_name = None
+
+	# Account currency drives PRE.currency (the recon happens in this
+	# currency). Falling back to the company default produced wrong
+	# values (e.g. INR on a EUR-account recon).
+	account_currency = (
+		frappe.get_cached_value("Account", entry.account, "account_currency")
+		if entry.account
+		else None
+	)
 
 	pre = frappe.new_doc("Payment Reconciliation Entry")
 	pre.update(
@@ -615,6 +632,7 @@ def _create_pre_for_allocation(doc, entry, dimensions_dict):
 			"invoice_type": entry.against_voucher_type,
 			"invoice_name": entry.against_voucher,
 			"account": entry.account,
+			"currency": account_currency,
 			"allocated_amount": flt(entry.allocated_amount),
 			"exchange_rate": flt(entry.exchange_rate) or 1,
 			"exchange_gain_loss": flt(entry.get("difference_amount") or 0),
@@ -627,7 +645,70 @@ def _create_pre_for_allocation(doc, entry, dimensions_dict):
 	pre.flags.ignore_permissions = True
 	pre.insert()
 	pre.submit()
+
+	# GAP-010 closure: book the Exchange Gain/Loss JE for the rate delta.
+	difference_amount = flt(entry.get("difference_amount") or 0)
+	if difference_amount:
+		_book_exchange_gain_loss_for_pre(pre, entry, dimensions_dict, difference_amount)
+
 	return pre
+
+
+def _book_exchange_gain_loss_for_pre(pre, entry, dimensions_dict, difference_amount):
+	"""Post a system-generated Exchange Gain/Loss JE for the PRE and link it.
+
+	Mirrors the legacy `make_exchange_gain_loss_journal` shape but binds the
+	resulting JE to the PRE (`reference_type='Payment Reconciliation Entry'`)
+	so the audit chain stays intact under Immutable Ledger.
+	"""
+	gain_loss_account = entry.get("difference_account") or frappe.get_cached_value(
+		"Company", pre.company, "exchange_gain_loss_account"
+	)
+	if not gain_loss_account:
+		frappe.throw(
+			_("Set the default Exchange Gain/Loss Account on Company {0} to enable multi-currency reconciliation.").format(
+				frappe.bold(pre.company)
+			)
+		)
+
+	# For a Customer with a gain (difference_amount > 0): debit party
+	# account, credit gain/loss. Supplier / loss inverts each axis.
+	if difference_amount > 0:
+		dr_or_cr = "debit" if entry.party_type == "Customer" else "credit"
+	else:
+		dr_or_cr = "credit" if entry.party_type == "Customer" else "debit"
+	reverse_dr_or_cr = "debit" if dr_or_cr == "credit" else "credit"
+
+	posting_date = entry.get("difference_posting_date") or nowdate()
+	je_name = create_gain_loss_journal(
+		pre.company,
+		posting_date,
+		entry.party_type,
+		entry.party,
+		entry.account,
+		gain_loss_account,
+		difference_amount,
+		dr_or_cr,
+		reverse_dr_or_cr,
+		# Pin both reference legs to the PRE — under Immutable Ledger the
+		# JE belongs to the recon event, not to the underlying SI/PE.
+		"Payment Reconciliation Entry",
+		pre.name,
+		None,
+		"Payment Reconciliation Entry",
+		pre.name,
+		None,
+		entry.get("cost_center"),
+		dimensions_dict,
+		entry.get("project"),
+	)
+	frappe.db.set_value(
+		"Payment Reconciliation Entry",
+		pre.name,
+		"exchange_gain_loss_journal",
+		je_name,
+		update_modified=False,
+	)
 
 
 def _insert_payment_entry_reference_row(pe_doc, entry):
