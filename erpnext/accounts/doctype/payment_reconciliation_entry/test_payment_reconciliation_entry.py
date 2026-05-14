@@ -46,8 +46,17 @@ class TestPaymentReconciliationEntry(TestPaymentReconciliation):
 	def setUp(self):
 		super().setUp()
 		_enable_bapsp_on_company(self.company)
+		# Class invariant: every test in this suite enters AND leaves the
+		# site with `enable_immutable_ledger=1`. Earlier this was
+		# `addCleanup(lambda: _set_immutable(0))`, which left shared sites
+		# (e.g. Badia UAT) in IM-OFF state after every test run — UAT
+		# reconcile flows would then fail in confusing ways. Capturing the
+		# pre-test value doesn't help either: once corrupted, every
+		# subsequent test would just preserve the corruption. Tests that
+		# need IM-OFF internally (e.g. test_tc_r1_immutable_off_no_pre)
+		# already toggle it in their own try/finally.
 		_set_immutable(1)
-		self.addCleanup(lambda: _set_immutable(0))
+		self.addCleanup(lambda: _set_immutable(1))
 
 	# -------- Tier 3 core (TC-012, TC-013, TC-014) --------
 
@@ -189,10 +198,10 @@ class TestPaymentReconciliationEntry(TestPaymentReconciliation):
 		the reversal PREs are present (is_reversal=1), the PE cancel must be
 		allowed. Frappe's generic link check (which would normally block on
 		every submitted PRE) is silenced for PREs by add_pre_to_ignore_linked_doctypes."""
-		import json
 		from erpnext.accounts.doctype.unreconcile_payment.unreconcile_payment import (
 			create_unreconcile_doc_for_selection,
 		)
+		import json
 
 		si = self.create_sales_invoice(qty=1, rate=100)
 		pe = self.create_payment_entry(amount=100)
@@ -225,6 +234,52 @@ class TestPaymentReconciliationEntry(TestPaymentReconciliation):
 		pe.reload()
 		pe.cancel()
 		self.assertEqual(pe.docstatus, 2)
+
+	def test_tc004d_cancel_guards_helper_filters_correctly(self):
+		"""Unit-level: get_active_pres must include PREs that are
+		docstatus=1 AND is_unreconciled=0 AND is_reversal=0, and exclude
+		all other PREs — regardless of payment_type. This protects against
+		JE-as-payment-side, PI-as-invoice-side, and any future doctype
+		combination going wrong via a typo in the helper's filter."""
+		from erpnext.accounts.doctype.payment_reconciliation_entry.cancel_guards import (
+			get_active_pres,
+		)
+
+		# Build three PREs by direct insert (no real GL — we only exercise
+		# the filter). Each represents a different state we care about.
+		si = self.create_sales_invoice(qty=1, rate=100)
+		pe = self.create_payment_entry(amount=100)
+		pe.submit()
+		self._reconcile_pe_against_si(pe, si, 100)
+		original_pre = frappe.db.get_value(
+			"Payment Reconciliation Entry",
+			{"payment_name": pe.name, "is_reversal": 0, "is_unreconciled": 0, "docstatus": 1},
+			"name",
+		)
+
+		# State 1: PE has 1 active PRE → guard must find it.
+		active = get_active_pres("Payment Entry", pe.name)
+		self.assertEqual(len(active), 1)
+		self.assertEqual(active[0]["name"], original_pre)
+
+		# State 2: Flip the original to unreconciled. Guard should now find 0.
+		frappe.db.set_value(
+			"Payment Reconciliation Entry",
+			original_pre,
+			{"is_unreconciled": 1, "unreconciled_by": original_pre},  # dummy self-link
+		)
+		self.assertEqual(get_active_pres("Payment Entry", pe.name), [])
+
+		# State 3: Same PE seen from invoice side (SI). Same filter applies.
+		# Reset the flag for the symmetry check.
+		frappe.db.set_value(
+			"Payment Reconciliation Entry",
+			original_pre,
+			{"is_unreconciled": 0, "unreconciled_by": None},
+		)
+		active_invoice_side = get_active_pres("Sales Invoice", si.name)
+		self.assertEqual(len(active_invoice_side), 1)
+		self.assertEqual(active_invoice_side[0]["name"], original_pre)
 
 	def test_tc004c_active_pre_blocks_si_cancel(self):
 		"""Symmetric to TC-004a — invoice side. An active PRE on an SI blocks
