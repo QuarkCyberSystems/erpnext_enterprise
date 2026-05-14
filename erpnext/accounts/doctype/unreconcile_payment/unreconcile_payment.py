@@ -118,6 +118,12 @@ class UnreconcilePayment(Document):
 		reversal.unreconciled_by = None
 		reversal.unreconciled_on = None
 		reversal.amended_from = None
+		# copy_doc inherits the original's exchange_gain_loss_journal link.
+		# Reversal PREs don't post their own gain/loss JE under the current
+		# WP-03 design (the original JE is preserved per GAP-010); leaving
+		# the link inherited makes it look like the reversal "owns" the JE,
+		# which it doesn't. Clear it to keep the data model honest.
+		reversal.exchange_gain_loss_journal = None
 		reversal.flags.ignore_permissions = True
 		reversal.insert()
 		reversal.submit()
