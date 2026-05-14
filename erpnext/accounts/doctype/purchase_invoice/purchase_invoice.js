@@ -58,6 +58,9 @@ erpnext.accounts.PurchaseInvoice = class PurchaseInvoice extends erpnext.buying.
 			"Unreconcile Payment Entries",
 			"Serial and Batch Bundle",
 			"Bank Transaction",
+			// WP GA-0001-03 / GAP-004: PREs are not cascade-cancellable.
+			// Server-side guard enforces active-PRE-only blocking.
+			"Payment Reconciliation Entry",
 		];
 
 		if (!this.frm.doc.__islocal) {

@@ -19,6 +19,11 @@ frappe.ui.form.on("Journal Entry", {
 			"Unreconcile Payment",
 			"Unreconcile Payment Entries",
 			"Bank Transaction",
+			// WP GA-0001-03 / GAP-004: PREs are not cascade-cancellable.
+			// The server-side `before_cancel` guard enforces the actual
+			// rule (active-PRE-only). See payment_entry.js for the full
+			// rationale.
+			"Payment Reconciliation Entry",
 		];
 
 		frm.trigger("set_queries");

@@ -45,6 +45,9 @@ erpnext.accounts.SalesInvoiceController = class SalesInvoiceController extends (
 			"Serial and Batch Bundle",
 			"Bank Transaction",
 			"Packing Slip",
+			// WP GA-0001-03 / GAP-004: PREs are not cascade-cancellable.
+			// Server-side guard enforces active-PRE-only blocking.
+			"Payment Reconciliation Entry",
 		];
 
 		if (!this.frm.doc.__islocal && !this.frm.doc.customer && this.frm.doc.debit_to) {
