@@ -576,7 +576,22 @@ class PaymentReconciliation(Document):
 			reconcile_against_document(entry_list, skip_ref_details_update_for_pe, self.dimensions)
 
 		if dr_or_cr_notes:
-			reconcile_dr_cr_note(dr_or_cr_notes, self.company, self.dimensions)
+			# WP GA-0001-03 / GAP-013: Under Immutable Ledger the credit/debit
+			# note recon must flow through PRE like every other recon — same
+			# clearing-GL shape, audit chain bound to the PRE voucher rather
+			# than to a standalone orphan JE. `reconcile_against_document`
+			# already has an `immutable` branch that routes to
+			# `_create_pre_for_allocation`, and PRE's `_resolve_clearing_accounts`
+			# already supports `payment_type='Sales Invoice'` (the dr/cr note
+			# flow). Just route through that path; legacy `reconcile_dr_cr_note`
+			# is preserved for IM-OFF sites (backward compat).
+			from erpnext.accounts.utils import is_immutable_ledger_enabled
+			if is_immutable_ledger_enabled():
+				reconcile_against_document(
+					dr_or_cr_notes, skip_ref_details_update_for_pe, self.dimensions
+				)
+			else:
+				reconcile_dr_cr_note(dr_or_cr_notes, self.company, self.dimensions)
 
 	@frappe.whitelist()
 	def reconcile(self):

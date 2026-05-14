@@ -235,6 +235,93 @@ class TestPaymentReconciliationEntry(TestPaymentReconciliation):
 		pe.cancel()
 		self.assertEqual(pe.docstatus, 2)
 
+	def test_tc007_credit_note_recon_flows_through_pre(self):
+		"""Credit Note ↔ SI recon under Immutable Ledger must route through
+		PRE (GAP-013), not create a system-generated 'Credit Note' JE:
+
+		* one PRE with payment_type='Sales Invoice' (= the credit note),
+		  invoice_type='Sales Invoice' (= the original SI)
+		* clearing GL pair on the PRE voucher, both rows on the receivable
+		  account, differentiated by against_voucher
+		* NO orphan 'Credit Note' voucher_type JE created
+		* Original SI and Credit Note GL counts unchanged (no new GL added
+		  under either invoice's voucher_no)
+		* Both invoices' outstanding_amount updated correctly
+		"""
+		si = self.create_sales_invoice(qty=1, rate=100)
+		cr_note = self.create_sales_invoice(
+			qty=-1, rate=40, do_not_save=True, do_not_submit=True
+		)
+		cr_note.is_return = 1
+		cr_note.save().submit()
+
+		# Pre-recon GL counts on both invoices
+		si_gl_before = frappe.db.count("GL Entry", {"voucher_no": si.name, "is_cancelled": 0})
+		cn_gl_before = frappe.db.count("GL Entry", {"voucher_no": cr_note.name, "is_cancelled": 0})
+
+		pr = self.create_payment_reconciliation()
+		pr.get_unreconciled_entries()
+		pr.allocate_entries(frappe._dict({
+			"invoices": [x.as_dict() for x in pr.invoices],
+			"payments": [x.as_dict() for x in pr.payments],
+		}))
+		pr.reconcile()
+
+		# 1. Exactly one PRE created — payment_type=Sales Invoice (the cr note)
+		pres = frappe.get_all(
+			"Payment Reconciliation Entry",
+			filters={"payment_name": cr_note.name, "is_reversal": 0, "docstatus": 1},
+			fields=["name", "payment_type", "invoice_type", "invoice_name", "allocated_amount"],
+		)
+		self.assertEqual(len(pres), 1)
+		pre = pres[0]
+		self.assertEqual(pre["payment_type"], "Sales Invoice")
+		self.assertEqual(pre["invoice_type"], "Sales Invoice")
+		self.assertEqual(pre["invoice_name"], si.name)
+		self.assertEqual(flt(pre["allocated_amount"]), 40)
+
+		# 2. NO legacy 'Credit Note' JE was created — GAP-013 closure
+		orphan_jes = frappe.get_all(
+			"Journal Entry",
+			filters={
+				"is_system_generated": 1,
+				"docstatus": 1,
+				"voucher_type": "Credit Note",
+				"reference_type": si.doctype,
+				"reference_name": si.name,
+			},
+			pluck="name",
+		)
+		self.assertEqual(orphan_jes, [],
+			"Under Immutable Ledger the credit-note recon must NOT create a system-generated JE")
+
+		# 3. Clearing GL pair on the PRE voucher
+		pre_gl = frappe.db.sql(
+			"select debit, credit, against_voucher_type, against_voucher "
+			"from `tabGL Entry` where voucher_no=%s and is_cancelled=0",
+			pre["name"], as_dict=True,
+		)
+		self.assertEqual(len(pre_gl), 2)
+		against_vouchers = {(r["against_voucher_type"], r["against_voucher"]) for r in pre_gl}
+		self.assertEqual(against_vouchers, {
+			("Sales Invoice", si.name),
+			("Sales Invoice", cr_note.name),
+		})
+
+		# 4. Neither original invoice got new GL rows
+		si_gl_after = frappe.db.count("GL Entry", {"voucher_no": si.name, "is_cancelled": 0})
+		cn_gl_after = frappe.db.count("GL Entry", {"voucher_no": cr_note.name, "is_cancelled": 0})
+		self.assertEqual(si_gl_before, si_gl_after,
+			"Original SI must have no new GL rows under its voucher")
+		self.assertEqual(cn_gl_before, cn_gl_after,
+			"Credit Note must have no new GL rows under its voucher")
+
+		# 5. Outstandings updated on both sides
+		si.reload()
+		cr_note.reload()
+		self.assertEqual(si.outstanding_amount, 60)
+		self.assertEqual(cr_note.outstanding_amount, 0)
+
 	def test_tc006b_multi_currency_je_recon_creates_gain_loss_je(self):
 		"""Multi-currency JE-as-payment reconcile (the intersection of TC-05
 		and TC-06) must compose correctly under PRE flow:
@@ -681,6 +768,10 @@ _LEGACY_TESTS_NEEDING_LEGACY_FLOW = [
 	"test_difference_amount_via_negative_debit_or_credit_journal_entry",
 	"test_difference_amount_via_payment_entry",
 	"test_foreign_currency_reverse_payment_entry_against_payment_entry_for_customer",
+	# Asserts the legacy "Credit Note" JE is created on cr-note recon. Under
+	# Immutable Ledger / WP-03 the recon flows through PRE instead (GAP-013),
+	# so no such JE exists — semantic still verified by test_tc007_*.
+	"test_invoice_status_after_cr_note_cancellation",
 	"test_journal_against_invoice",
 	"test_journal_against_journal",
 	"test_negative_debit_or_credit_journal_against_invoice",
