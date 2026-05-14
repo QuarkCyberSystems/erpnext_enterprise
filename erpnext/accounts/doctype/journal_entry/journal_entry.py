@@ -190,7 +190,15 @@ class JournalEntry(AccountsController):
 				row.from_template = 0
 
 	def validate_against_template(self):
-		if not (self.from_template and self.template_applied):
+		# Structural validation runs whenever `from_template` is set — we
+		# deliberately don't gate on `template_applied` here. The flag exists
+		# as a UI hint (for the JS to know when to apply client-side locks),
+		# but the server-side guarantee that "rows must match the template"
+		# is rooted in the link itself, not the flag. Gating on the flag
+		# created a bypass: tampering APIs could clear `template_applied`
+		# and then freely mutate row structure, skipping this validator
+		# entirely.
+		if not self.from_template:
 			return
 		if not frappe.db.exists("Journal Entry Template", self.from_template):
 			return
