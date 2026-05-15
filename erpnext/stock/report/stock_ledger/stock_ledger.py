@@ -428,6 +428,34 @@ def get_columns(filters):
 				"options": "Company",
 				"width": 110,
 			},
+			# WP GA-0001-02: surface immutable-ledger repost audit trail.
+			{
+				"label": _("Is Adjustment Entry"),
+				"fieldname": "is_adjustment_entry",
+				"fieldtype": "Check",
+				"width": 90,
+			},
+			{
+				"label": _("Against Adjustment Voucher Type"),
+				"fieldname": "against_adjustment_voucher_type",
+				"fieldtype": "Link",
+				"options": "DocType",
+				"width": 120,
+			},
+			{
+				"label": _("Against Adjustment Voucher"),
+				"fieldname": "against_adjustment_voucher",
+				"fieldtype": "Dynamic Link",
+				"options": "against_adjustment_voucher_type",
+				"width": 140,
+			},
+			{
+				"label": _("Repost Item Valuation"),
+				"fieldname": "repost_item_valuation",
+				"fieldtype": "Link",
+				"options": "Repost Item Valuation",
+				"width": 140,
+			},
 		]
 	)
 
@@ -460,6 +488,11 @@ def get_stock_ledger_entries(filters, items):
 			sle.batch_no,
 			sle.serial_no,
 			sle.project,
+			# WP GA-0001-02 immutable-ledger audit-trail fields
+			sle.is_adjustment_entry,
+			sle.against_adjustment_voucher_type,
+			sle.against_adjustment_voucher,
+			sle.repost_item_valuation,
 		)
 		.where((sle.docstatus < 2) & (sle.is_cancelled == 0) & (sle.posting_datetime[from_date:to_date]))
 		.orderby(sle.posting_datetime)
@@ -479,6 +512,10 @@ def get_stock_ledger_entries(filters, items):
 	for field in ["voucher_no", "project", "company"]:
 		if filters.get(field) and field not in inventory_dimension_fields:
 			query = query.where(sle[field] == filters.get(field))
+
+	# WP GA-0001-02: filter for immutable-ledger adjustment rows.
+	if filters.get("is_adjustment_entry"):
+		query = query.where(sle.is_adjustment_entry == 1)
 
 	if filters.get("batch_no"):
 		bundles = get_serial_and_batch_bundles(filters)
