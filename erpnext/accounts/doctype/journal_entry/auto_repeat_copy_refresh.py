@@ -39,27 +39,37 @@ def refresh_copy_document(auto_repeat, new_doc, reference_doc):
 	idempotent and bounded — if any underlying dependency is missing or
 	throws, the helper logs and continues so the doc still inserts.
 
-	Unconditional: previously, frappe AR carried ~10 user-facing toggles
-	(refresh_prices, recalculate_taxes, refresh_*_tax_template, etc.) that
-	the user could selectively enable. The toggle fields are gone from
-	frappe in this refactor; refreshes now always run. Surface a per-toggle
-	option set back on the consuming app's side if granular control is
-	required again.
+	Gated per-field: each refresh runs only when its corresponding switch
+	on the Auto Repeat is set. The switches were re-introduced as Custom
+	Fields in Phase 1 of the ERPNext-side WP-05+06 refactor (see
+	`erpnext.accounts.auto_repeat_extension.custom_fields`). `refresh_mode`
+	(Copy Original / Recalculate) is a UI convenience that cascades all
+	individual switches — the switches themselves are the source of
+	truth here.
 	"""
 	# Skip silently for the Reversal flow — that path goes through
 	# make_journal_entry_reversal, not this hook.
 	if getattr(auto_repeat, "repeat_type", "Copy") != "Copy":
 		return
 
-	_refresh_item_prices(auto_repeat, new_doc)
-	_refresh_conversion_rate(auto_repeat, new_doc)
-	_refresh_sales_tax_template_for(auto_repeat, new_doc)
-	_refresh_purchase_tax_template_for(auto_repeat, new_doc)
-	_refresh_item_tax_template_for(auto_repeat, new_doc)
-	_refresh_shipping_rule_for(auto_repeat, new_doc)
-	_recalculate_document_taxes(auto_repeat, new_doc)
-	_recalculate_payment_schedule(auto_repeat, new_doc)
-	_apply_cost_center_allocation(auto_repeat, new_doc)
+	if auto_repeat.get("refresh_prices"):
+		_refresh_item_prices(auto_repeat, new_doc)
+	if auto_repeat.get("refresh_exchange_rate"):
+		_refresh_conversion_rate(auto_repeat, new_doc)
+	if auto_repeat.get("refresh_sales_tax_template"):
+		_refresh_sales_tax_template_for(auto_repeat, new_doc)
+	if auto_repeat.get("refresh_purchase_tax_template"):
+		_refresh_purchase_tax_template_for(auto_repeat, new_doc)
+	if auto_repeat.get("refresh_item_tax_template"):
+		_refresh_item_tax_template_for(auto_repeat, new_doc)
+	if auto_repeat.get("refresh_shipping_rule"):
+		_refresh_shipping_rule_for(auto_repeat, new_doc)
+	if auto_repeat.get("recalculate_taxes"):
+		_recalculate_document_taxes(auto_repeat, new_doc)
+	if auto_repeat.get("recalculate_payment_terms"):
+		_recalculate_payment_schedule(auto_repeat, new_doc)
+	if auto_repeat.get("respect_cost_center_allocation"):
+		_apply_cost_center_allocation(auto_repeat, new_doc)
 
 
 def _refresh_item_prices(auto_repeat, new_doc):
@@ -103,6 +113,11 @@ def _refresh_item_prices(auto_repeat, new_doc):
 					"stock_qty": row.get("stock_qty") or row.get("qty") or 1,
 					"uom": row.get("uom"),
 					"conversion_factor": row.get("conversion_factor") or 1,
+					# Sub-switch under refresh_prices — when off (default), live
+					# Pricing Rules are bypassed so the price-list lookup is
+					# the only adjustment. Flip on to also re-apply Pricing
+					# Rules (discount/bundle/free-item) against the new date.
+					"ignore_pricing_rule": 0 if auto_repeat.get("apply_pricing_rules") else 1,
 				}
 			)
 			details = get_item_details(args)
