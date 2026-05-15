@@ -344,7 +344,13 @@ class JournalEntry(AccountsController):
 		ar.update(payload)
 		ar.flags.ignore_permissions = True
 		ar.insert()
-		ar.submit()
+		# Don't call ar.submit() — Auto Repeat is not a submittable doctype
+		# per its doctype JSON. Calling submit() still sets docstatus=1,
+		# which Frappe's UI treats as read-only-everywhere on the form
+		# (locking the `disabled` checkbox and status Select so the user
+		# can't cancel the schedule). The scheduler gates on
+		# `status='Active' AND !disabled`, not docstatus, so submit() was
+		# never functionally required — it only broke the UX.
 
 		# Back-link the new AR onto this JE so the form indicator and any
 		# JE-side reports can resolve "what's scheduled for this JE". The
