@@ -105,7 +105,15 @@ def _refresh_item_prices(auto_repeat, new_doc):
 					or new_doc.get("buying_price_list"),
 					"currency": new_doc.get("currency"),
 					"conversion_rate": flt(new_doc.get("conversion_rate")) or 1,
-					"plc_conversion_rate": 1,
+					# Pass the doc's ACTUAL plc_conversion_rate (price-list →
+					# doc currency) so get_item_details correctly converts
+					# the Item Price's value to doc currency. Hardcoding 1
+					# here previously caused INR-priced items to land as
+					# raw INR values in a USD doc, with downstream
+					# multi-currency recalculation producing garbage like
+					# 1195.82 instead of the expected 2.088.
+					"plc_conversion_rate": flt(new_doc.get("plc_conversion_rate")) or 1,
+					"price_list_currency": new_doc.get("price_list_currency"),
 					"warehouse": row.get("warehouse"),
 					"customer": new_doc.get("customer"),
 					"supplier": new_doc.get("supplier"),
@@ -122,8 +130,22 @@ def _refresh_item_prices(auto_repeat, new_doc):
 			)
 			details = get_item_details(args)
 			if details and details.get("price_list_rate"):
-				row.price_list_rate = flt(details["price_list_rate"])
-				row.rate = flt(details["price_list_rate"])
+				new_price = flt(details["price_list_rate"])
+				row.price_list_rate = new_price
+				# Reset rate to the new price_list_rate. Any margin/discount
+				# from the source no longer applies under a refresh — the
+				# whole point is to use the *current* price. If
+				# apply_pricing_rules=1, the pricing-rule logic in
+				# get_item_details may have populated `rate` separately;
+				# prefer that.
+				row.rate = flt(details.get("rate")) or new_price
+				# Reset margin/discount that may have been deep-copied from
+				# the source, so validate doesn't re-apply them on top of
+				# the freshly-fetched rate.
+				row.margin_type = ""
+				row.margin_rate_or_amount = 0
+				row.discount_percentage = 0
+				row.discount_amount = 0
 		except Exception:
 			# Don't fail the doc-create; just log and continue.
 			frappe.log_error(
