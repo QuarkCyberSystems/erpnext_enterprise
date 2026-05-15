@@ -337,26 +337,37 @@ frappe.ui.form.on("Auto Repeat", {
 
 
 def _install_auto_repeat_client_script():
-	"""Install the form-level cascade Client Script. Idempotent."""
-	existing = frappe.db.get_value(
-		"Client Script",
-		{"name": CLIENT_SCRIPT_NAME},
-		["name", "script"],
-		as_dict=True,
-	)
-	if existing and existing.get("script") == _AUTO_REPEAT_CLIENT_SCRIPT:
-		return
-	doc = frappe.get_doc({
-		"doctype": "Client Script",
-		"name": CLIENT_SCRIPT_NAME,
-		"dt": "Auto Repeat",
-		"view": "Form",
-		"enabled": 1,
-		"script": _AUTO_REPEAT_CLIENT_SCRIPT,
-	})
+	"""Install the form-level cascade Client Script. Idempotent — always
+	overwrites the DB row with the current on-disk script content.
+
+	Earlier this used an equality short-circuit (return if existing.script
+	matches), but Python module caching across the dev server vs ad-hoc
+	console invocations could mask stale module imports of
+	`_AUTO_REPEAT_CLIENT_SCRIPT`, leaving the DB out of sync with the file
+	even after multiple installer calls. Always-overwrite is cheap and
+	authoritative.
+	"""
+	existing = frappe.db.exists("Client Script", CLIENT_SCRIPT_NAME)
 	if existing:
-		# Update existing (idempotent upsert)
-		frappe.db.set_value("Client Script", CLIENT_SCRIPT_NAME, "script", _AUTO_REPEAT_CLIENT_SCRIPT)
+		frappe.db.set_value(
+			"Client Script",
+			CLIENT_SCRIPT_NAME,
+			{
+				"script": _AUTO_REPEAT_CLIENT_SCRIPT,
+				"enabled": 1,
+				"dt": "Auto Repeat",
+				"view": "Form",
+			},
+			update_modified=True,
+		)
 	else:
-		doc.insert(ignore_permissions=True)
+		frappe.get_doc({
+			"doctype": "Client Script",
+			"name": CLIENT_SCRIPT_NAME,
+			"dt": "Auto Repeat",
+			"view": "Form",
+			"enabled": 1,
+			"script": _AUTO_REPEAT_CLIENT_SCRIPT,
+		}).insert(ignore_permissions=True)
 	frappe.db.commit()
+	frappe.clear_cache()
