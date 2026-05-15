@@ -158,32 +158,40 @@ def _refresh_conversion_rate(auto_repeat, new_doc):
 
 
 def _refresh_sales_tax_template_for(auto_repeat, new_doc):
-	"""Refresh Sales Tax Template from customer's default for the new posting date."""
+	"""Refresh Sales Tax Template for the new posting date.
+
+	ERPNext doesn't store a per-customer default taxes template (Customer
+	has `tax_category` and a `taxes` child table, but no
+	`default_taxes_and_charges` column). Fall back to the company-level
+	default Sales Taxes and Charges Template — that's the most stable
+	"current" template that applies on the new posting date. Per-customer
+	override via Tax Rule + tax_category is not implemented here; that
+	semantic would be a separate refactor.
+	"""
 	if new_doc.doctype not in ("Sales Invoice", "Sales Order", "Delivery Note", "Quotation"):
 		return
-	customer = new_doc.get("customer")
-	if not customer:
-		return
 	new_template = frappe.db.get_value(
-		"Customer", customer, "default_taxes_and_charges"
-	) or frappe.db.get_value(
-		"Sales Taxes and Charges Template", {"is_default": 1, "company": new_doc.company}, "name"
+		"Sales Taxes and Charges Template",
+		{"is_default": 1, "company": new_doc.company, "disabled": 0},
+		"name",
 	)
 	if new_template:
 		_apply_taxes_template(auto_repeat, new_doc, new_template)
 
 
 def _refresh_purchase_tax_template_for(auto_repeat, new_doc):
-	"""Refresh Purchase Tax Template from supplier's default."""
+	"""Refresh Purchase Tax Template for the new posting date.
+
+	Same shape as the sales helper — Supplier has no
+	`default_taxes_and_charges` field; we use the company-level default
+	Purchase Taxes and Charges Template.
+	"""
 	if new_doc.doctype not in ("Purchase Invoice", "Purchase Order", "Purchase Receipt"):
 		return
-	supplier = new_doc.get("supplier")
-	if not supplier:
-		return
 	new_template = frappe.db.get_value(
-		"Supplier", supplier, "default_taxes_and_charges"
-	) or frappe.db.get_value(
-		"Purchase Taxes and Charges Template", {"is_default": 1, "company": new_doc.company}, "name"
+		"Purchase Taxes and Charges Template",
+		{"is_default": 1, "company": new_doc.company, "disabled": 0},
+		"name",
 	)
 	if new_template:
 		_apply_taxes_template(auto_repeat, new_doc, new_template)
@@ -210,21 +218,43 @@ def _apply_taxes_template(auto_repeat, new_doc, template):
 
 
 def _refresh_item_tax_template_for(auto_repeat, new_doc):
-	"""Refresh per-row Item Tax Template from the item master."""
+	"""Refresh per-row Item Tax Template from the Item's `taxes` child table.
+
+	Items don't have a single "default tax template" column — the proper
+	ERPNext model is a `taxes` child table on Item (doctype `Item Tax`)
+	with rows of (item_tax_template, tax_category, valid_from). The
+	"current" template is the latest row whose `valid_from <= posting_date`.
+
+	The earlier helper queried `Item.default_item_tax_template` which is
+	not a real column — it silently no-op'd via try/except, masking the
+	fact that no refresh actually happened.
+	"""
 	items = new_doc.get("items") or []
 	if not items:
 		return
+	posting_date = (
+		new_doc.get("posting_date")
+		or new_doc.get("transaction_date")
+		or new_doc.get("schedule_date")
+		or getdate()
+	)
 	for row in items:
 		if not row.get("item_code"):
 			continue
-		try:
-			item_tax_template = frappe.db.get_value(
-				"Item", row.item_code, "default_item_tax_template"
-			)
-		except Exception:
-			continue
-		if item_tax_template:
-			row.item_tax_template = item_tax_template
+		# Pick the most recent Item Tax row valid on or before posting_date
+		tax_rows = frappe.get_all(
+			"Item Tax",
+			filters={
+				"parent": row.item_code,
+				"parenttype": "Item",
+				"valid_from": ["<=", posting_date],
+			},
+			fields=["item_tax_template", "valid_from"],
+			order_by="valid_from desc",
+			limit=1,
+		)
+		if tax_rows and tax_rows[0].get("item_tax_template"):
+			row.item_tax_template = tax_rows[0]["item_tax_template"]
 
 
 def _refresh_shipping_rule_for(auto_repeat, new_doc):
