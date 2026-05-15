@@ -251,6 +251,40 @@ _AUTO_REPEAT_CLIENT_SCRIPT = """
 // reset them OFF. Wired as a Client Script (not in the doctype JS) so the
 // frappe Auto Repeat module stays untouched.
 frappe.ui.form.on("Auto Repeat", {
+    refresh: function (frm) {
+        // "Create Document Now" — manually fire the next tick. Useful for
+        // UAT and ops verification (so users don't have to wait for the
+        // daily scheduler to validate refresh-switch behaviour).
+        if (frm.doc.docstatus === 1 && !frm.doc.disabled) {
+            frm.add_custom_button(__("Create Document Now"), function () {
+                frappe.call({
+                    method: "erpnext.accounts.auto_repeat_extension.erpnext_auto_repeat.create_next_document_now",
+                    args: { auto_repeat_name: frm.doc.name },
+                    freeze: true,
+                    freeze_message: __("Creating next document..."),
+                    callback: function (r) {
+                        if (!r.message) return;
+                        if (r.message.error) {
+                            frappe.msgprint({
+                                title: __("No Document Created"),
+                                message: r.message.message,
+                                indicator: "orange",
+                            });
+                            return;
+                        }
+                        const url = `/app/${frappe.router.slug(r.message.doctype)}/${r.message.name}`;
+                        frappe.msgprint({
+                            title: __("Document Created"),
+                            message: __("New {0}: <a href='{1}'>{2}</a>", [
+                                r.message.doctype, url, r.message.name,
+                            ]),
+                            indicator: "green",
+                        });
+                    },
+                });
+            }, __("Actions"));
+        }
+    },
     refresh_mode: function (frm) {
         const recalc = frm.doc.refresh_mode === "Recalculate";
         const switches = [

@@ -218,3 +218,25 @@ class ERPNextAutoRepeat(AutoRepeat):
 			elif isinstance(value, list):
 				paths.extend([v for v in value if isinstance(v, str)])
 		return paths
+
+
+@frappe.whitelist()
+def create_next_document_now(auto_repeat_name: str) -> dict:
+	"""Manually trigger the next document creation for an Auto Repeat.
+
+	Wraps `auto_repeat.make_new_document()` so the form-level "Create
+	Document Now" button can fire one tick on demand without waiting for
+	the scheduler. Useful for UAT and ops verification.
+
+	Returns a dict with the new doc's doctype + name, or an `error` key
+	if creation was skipped (e.g. source cancelled with skip_if_source_cancelled).
+	"""
+	ar = frappe.get_doc("Auto Repeat", auto_repeat_name)
+	if ar.docstatus != 1:
+		frappe.throw(_("Auto Repeat must be submitted to create the next document."))
+	if ar.disabled:
+		frappe.throw(_("Auto Repeat is disabled."))
+	new_doc = ar.make_new_document()
+	if new_doc is None:
+		return {"error": "no_document_created", "message": "make_new_document returned None — check the AR's log for the skip reason."}
+	return {"doctype": new_doc.doctype, "name": new_doc.name}
