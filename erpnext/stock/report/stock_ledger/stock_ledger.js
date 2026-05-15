@@ -123,6 +123,12 @@ frappe.query_reports["Stock Ledger"] = {
 			fieldtype: "Check",
 			default: 0,
 		},
+		{
+			fieldname: "is_adjustment_entry",
+			label: __("Show Only Adjustment Entries"),
+			fieldtype: "Check",
+			default: 0,
+		},
 	],
 	formatter: function (value, row, column, data, default_formatter) {
 		value = default_formatter(value, row, column, data);

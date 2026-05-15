@@ -200,7 +200,9 @@ def get_gl_entries(filters, accounting_dimensions):
 			voucher_type, voucher_subtype, voucher_no, {dimension_fields}
 			cost_center, project, {transaction_currency_fields}
 			against_voucher_type, against_voucher, account_currency,
-			against, is_opening, creation {select_fields}
+			against, is_opening, creation,
+			is_adjustment_entry, against_adjustment_voucher_type,
+			against_adjustment_voucher, repost_item_valuation {select_fields}
 		from `tabGL Entry`
 		where company=%(company)s {get_conditions(filters)}
 		{order_by_statement}
@@ -240,6 +242,10 @@ def get_conditions(filters):
 
 	if filters.get("against_voucher_no"):
 		conditions.append("against_voucher=%(against_voucher_no)s")
+
+	# WP GA-0001-02: filter for immutable-ledger adjustment rows.
+	if filters.get("is_adjustment_entry"):
+		conditions.append("is_adjustment_entry=1")
 
 	if filters.get("ignore_err"):
 		err_journals = frappe.db.get_all(
@@ -787,6 +793,36 @@ def get_columns(filters):
 				"width": 100,
 			},
 			{"label": _("Supplier Invoice No"), "fieldname": "bill_no", "fieldtype": "Data", "width": 100},
+			# WP GA-0001-02: surface immutable-ledger repost audit trail so
+			# operators can spot adjustment rows and trace them back to the
+			# original voucher without drilling into the GL Entry record.
+			{
+				"label": _("Is Adjustment Entry"),
+				"fieldname": "is_adjustment_entry",
+				"fieldtype": "Check",
+				"width": 90,
+			},
+			{
+				"label": _("Against Adjustment Voucher Type"),
+				"fieldname": "against_adjustment_voucher_type",
+				"fieldtype": "Link",
+				"options": "DocType",
+				"width": 120,
+			},
+			{
+				"label": _("Against Adjustment Voucher"),
+				"fieldname": "against_adjustment_voucher",
+				"fieldtype": "Dynamic Link",
+				"options": "against_adjustment_voucher_type",
+				"width": 140,
+			},
+			{
+				"label": _("Repost Item Valuation"),
+				"fieldname": "repost_item_valuation",
+				"fieldtype": "Link",
+				"options": "Repost Item Valuation",
+				"width": 140,
+			},
 		]
 	)
 
