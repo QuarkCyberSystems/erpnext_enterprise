@@ -255,7 +255,10 @@ frappe.ui.form.on("Auto Repeat", {
         // "Create Document Now" — manually fire the next tick. Useful for
         // UAT and ops verification (so users don't have to wait for the
         // daily scheduler to validate refresh-switch behaviour).
-        if (frm.doc.docstatus === 1 && !frm.doc.disabled) {
+        // Auto Repeat is NOT submittable per its doctype JSON; the
+        // scheduler gates on status='Active' && !disabled rather than
+        // docstatus. Mirror that gate here.
+        if (!frm.is_new() && frm.doc.status === "Active" && !frm.doc.disabled) {
             frm.add_custom_button(__("Create Document Now"), function () {
                 frappe.call({
                     method: "erpnext.accounts.auto_repeat_extension.erpnext_auto_repeat.create_next_document_now",

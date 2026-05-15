@@ -232,10 +232,13 @@ def create_next_document_now(auto_repeat_name: str) -> dict:
 	if creation was skipped (e.g. source cancelled with skip_if_source_cancelled).
 	"""
 	ar = frappe.get_doc("Auto Repeat", auto_repeat_name)
-	if ar.docstatus != 1:
-		frappe.throw(_("Auto Repeat must be submitted to create the next document."))
+	# Auto Repeat is not submittable per its doctype JSON; the daily
+	# scheduler fires on status=='Active' && !disabled. Mirror that gate
+	# here rather than requiring docstatus=1.
 	if ar.disabled:
 		frappe.throw(_("Auto Repeat is disabled."))
+	if (ar.status or "") != "Active":
+		frappe.throw(_("Auto Repeat must be Active (current status: {0}).").format(ar.status or "<empty>"))
 	new_doc = ar.make_new_document()
 	if new_doc is None:
 		return {"error": "no_document_created", "message": "make_new_document returned None — check the AR's log for the skip reason."}
