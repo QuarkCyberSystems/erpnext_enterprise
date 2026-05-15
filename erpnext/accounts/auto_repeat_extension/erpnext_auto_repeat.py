@@ -203,7 +203,12 @@ class ERPNextAutoRepeat(AutoRepeat):
 			by_doctype = merged
 		if not isinstance(by_doctype, dict):
 			return None
-		return by_doctype.get(repeat_type)
+		value = by_doctype.get(repeat_type)
+		# Frappe's hook resolution wraps leaf scalar values in a list
+		# (e.g. {"Reversal": ["mod.path.fn"]}). Unwrap to a single string.
+		if isinstance(value, list):
+			value = value[0] if value else None
+		return value if isinstance(value, str) else None
 
 	def _resolve_copy_refresh_handlers(self):
 		"""Return all matching dotted-paths for Copy-mode refresh handlers."""
