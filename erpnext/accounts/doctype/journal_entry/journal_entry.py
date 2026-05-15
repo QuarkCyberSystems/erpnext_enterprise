@@ -299,32 +299,49 @@ class JournalEntry(AccountsController):
 			)
 			return
 
-		# Compute the schedule date from the JE's auto-reversal config.
-		# The handler (erpnext.accounts.doctype.journal_entry.auto_repeat_handler)
-		# reads the full reversal config off the JE itself at fire time, so we
-		# only need to tell the Auto Repeat *when* to fire here.
+		# Compute the schedule date and the AR-side reversal-config fields
+		# from the JE's mirrored auto-reversal config. The handler now reads
+		# the reversal config off the Auto Repeat (per imp_ga-0001-05+06.md
+		# §"Schema additions" — AR is the canonical source), falling back
+		# to the JE for back-compat with ARs created before this field set
+		# was installed.
 		from frappe.utils import add_months, get_first_day, getdate
 
 		if self.auto_reverse_on == "Specific Date" and self.auto_reverse_date:
 			start_date = getdate(self.auto_reverse_date)
+			reverse_on_next_month = 0
+			reverse_date = getdate(self.auto_reverse_date)
 		else:
 			start_date = get_first_day(add_months(getdate(), 1))
+			reverse_on_next_month = 1
+			reverse_date = None
+
+		# Only populate the Reversal Options fields when they exist on the
+		# Auto Repeat doctype. Pre-WP-05+06-tab deploys lack them; the
+		# handler will fall back to reading from the JE in that case.
+		ar_meta = frappe.get_meta("Auto Repeat")
+		payload = {
+			"reference_doctype": "Journal Entry",
+			"reference_document": self.name,
+			"repeat_type": "Reversal",
+			"submit_on_creation": 1,
+			"start_date": start_date,
+			# frappe's Auto Repeat requires `frequency` (reqd=1). For our
+			# single-fire Reversal flow it's a placeholder — ERPNextAutoRepeat's
+			# set_dates uses start_date directly for Reversal mode and never
+			# consumes frequency. We pick "Daily" arbitrarily.
+			"frequency": "Daily",
+		}
+		if ar_meta.has_field("reverse_on_next_month"):
+			payload["reverse_on_next_month"] = reverse_on_next_month
+			payload["reverse_date"] = reverse_date
+			payload["auto_submit_reversal"] = self.auto_submit_reversal or 0
+			payload["reversal_exchange_rate_type"] = self.reversal_exchange_rate_type or "Original Rate"
+			payload["reversal_tax_mode"] = self.reversal_tax_mode or "Use Original"
+			payload["reversal_cost_center_mode"] = self.reversal_cost_center_mode or "Use Original"
 
 		ar = frappe.new_doc("Auto Repeat")
-		ar.update(
-			{
-				"reference_doctype": "Journal Entry",
-				"reference_document": self.name,
-				"repeat_type": "Reversal",
-				"submit_on_creation": 1,
-				"start_date": start_date,
-				# frappe's Auto Repeat requires `frequency` (reqd=1). For our
-				# single-fire Reversal flow it's a placeholder — ERPNextAutoRepeat's
-				# set_dates uses start_date directly for Reversal mode and never
-				# consumes frequency. We pick "Daily" arbitrarily.
-				"frequency": "Daily",
-			}
-		)
+		ar.update(payload)
 		ar.flags.ignore_permissions = True
 		ar.insert()
 		ar.submit()

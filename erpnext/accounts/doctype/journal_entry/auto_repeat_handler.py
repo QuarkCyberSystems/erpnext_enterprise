@@ -58,31 +58,47 @@ def make_journal_entry_reversal(auto_repeat, reference_doc, assignee=None):
 
 	reversal = make_reverse_journal_entry(reference_doc.name)
 
-	# Reversal config (schedule + modes) is read off the source JE itself
-	# rather than from the Auto Repeat. The JE inherits these fields from
-	# its JE Template at insert time; storing them again on the AR was
-	# the WP's original shape but kept accounting concepts in frappe.
-	# Reading off the JE here lets frappe's Auto Repeat stay framework-
-	# generic and upstream-shaped.
-	auto_reverse_on = reference_doc.get("auto_reverse_on") or "First Day of Next Month"
-	if auto_reverse_on == "First Day of Next Month":
+	# Read reversal config from the Auto Repeat (canonical per imp_ga-0001-
+	# 05+06.md §"Schema additions" Section 4). Fall back to the source JE
+	# for ARs created before the Reversal Options Custom Fields were
+	# installed — those legacy ARs only have the schedule date but inherit
+	# the rest from the JE Template via the JE's mirror fields.
+	def _cfg(field_on_ar, field_on_je, default):
+		val = auto_repeat.get(field_on_ar)
+		if val not in (None, ""):
+			return val
+		val = reference_doc.get(field_on_je)
+		if val not in (None, ""):
+			return val
+		return default
+
+	# Schedule date: AR uses reverse_on_next_month (Check) + reverse_date,
+	# JE uses auto_reverse_on (Select) + auto_reverse_date.
+	if auto_repeat.get("reverse_on_next_month"):
 		reversal.posting_date = get_first_day(add_months(getdate(), 1))
-	elif auto_reverse_on == "Specific Date" and reference_doc.get("auto_reverse_date"):
-		reversal.posting_date = getdate(reference_doc.auto_reverse_date)
+	elif auto_repeat.get("reverse_date"):
+		reversal.posting_date = getdate(auto_repeat.reverse_date)
+	else:
+		# Legacy fall-back to JE's auto_reverse_on / auto_reverse_date
+		auto_reverse_on = reference_doc.get("auto_reverse_on") or "First Day of Next Month"
+		if auto_reverse_on == "First Day of Next Month":
+			reversal.posting_date = get_first_day(add_months(getdate(), 1))
+		elif auto_reverse_on == "Specific Date" and reference_doc.get("auto_reverse_date"):
+			reversal.posting_date = getdate(reference_doc.auto_reverse_date)
 
 	# WP GAP-013/014 — make_reverse_journal_entry does not copy cost_center / party / project.
 	_enhance_reversal_mapping(reversal, reference_doc)
 
-	# WP GAP-021 / Phase 5.1 — FX handling
-	if reference_doc.get("reversal_exchange_rate_type") == "Current Rate":
+	# WP GAP-021 / Phase 5.1 — FX handling. AR has same field name; either works.
+	if _cfg("reversal_exchange_rate_type", "reversal_exchange_rate_type", "Original Rate") == "Current Rate":
 		_refresh_reversal_exchange_rate(reversal)
 
 	# WP GAP-022 — cost-center allocation audit
-	if reference_doc.get("reversal_cost_center_mode") == "Apply Current Allocation":
+	if _cfg("reversal_cost_center_mode", "reversal_cost_center_mode", "Use Original") == "Apply Current Allocation":
 		_apply_reversal_cost_center_allocation(auto_repeat, reversal)
 
 	# WP GAP-021 — tax recalculation (audit-only — see imp plan §6 sign-off #4)
-	if reference_doc.get("reversal_tax_mode") == "Recalculate for Posting Date":
+	if _cfg("reversal_tax_mode", "reversal_tax_mode", "Use Original") == "Recalculate for Posting Date":
 		_recalculate_reversal_taxes(auto_repeat, reversal)
 
 	reversal.user_remark = (reversal.user_remark or "") + (
@@ -106,7 +122,7 @@ def make_journal_entry_reversal(auto_repeat, reference_doc, assignee=None):
 	if updates:
 		frappe.db.set_value("Journal Entry", reference_doc.name, updates)
 
-	if reference_doc.get("auto_submit_reversal"):
+	if _cfg("auto_submit_reversal", "auto_submit_reversal", 0):
 		try:
 			reversal.submit()
 			if je_meta.has_field("auto_reversal_status"):

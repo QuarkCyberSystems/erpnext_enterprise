@@ -164,6 +164,76 @@ def install_auto_repeat_custom_fields():
 					"insert_after": "refresh_shipping_rule",
 					"description": "Audit-log only. The actual GL distribution happens in `distribute_gl_based_on_cost_center_allocation` at posting time.",
 				},
+				# ── Reversal Options tab (only visible when repeat_type=Reversal) ──
+				# Per signed-off `imp_ga-0001-05+06.md` §"Schema additions"
+				# Section 4. AR is the canonical source for these — the
+				# GA-0001-04 hook populates them on AR insert, the reversal
+				# handler reads them off AR (falling back to the JE for
+				# back-compat with ARs created before this WP).
+				{
+					"fieldname": "erpnext_reversal_options_tab",
+					"label": "Reversal Options",
+					"fieldtype": "Tab Break",
+					"insert_after": "respect_cost_center_allocation",
+					"depends_on": "eval:doc.repeat_type === 'Reversal'",
+				},
+				{
+					"fieldname": "reverse_on_next_month",
+					"label": "Reverse on First Day of Next Month",
+					"fieldtype": "Check",
+					"default": 1,
+					"insert_after": "erpnext_reversal_options_tab",
+					"description": "Schedule the reversal for the first day of the month following the source's posting date.",
+				},
+				{
+					"fieldname": "reverse_date",
+					"label": "Reverse on Specific Date",
+					"fieldtype": "Date",
+					"insert_after": "reverse_on_next_month",
+					"depends_on": "eval:!doc.reverse_on_next_month",
+					"mandatory_depends_on": "eval:doc.repeat_type === 'Reversal' && !doc.reverse_on_next_month",
+					"description": "Explicit date for the reversal posting. Required when 'first day of next month' is unchecked.",
+				},
+				{
+					"fieldname": "column_break_reversal",
+					"fieldtype": "Column Break",
+					"insert_after": "reverse_date",
+				},
+				{
+					"fieldname": "auto_submit_reversal",
+					"label": "Auto Submit Reversal",
+					"fieldtype": "Check",
+					"default": 0,
+					"insert_after": "column_break_reversal",
+					"description": "Submit the generated reversal JE automatically. Off = leave as draft for operator review.",
+				},
+				{
+					"fieldname": "reversal_exchange_rate_type",
+					"label": "Reversal Exchange Rate",
+					"fieldtype": "Select",
+					"options": "Original Rate\nCurrent Rate",
+					"default": "Original Rate",
+					"insert_after": "auto_submit_reversal",
+					"description": "Original Rate: perfect offset (recommended under Immutable Ledger). Current Rate: re-fetches today's FX, creating an exchange-rate difference.",
+				},
+				{
+					"fieldname": "reversal_tax_mode",
+					"label": "Reversal Tax Mode",
+					"fieldtype": "Select",
+					"options": "Use Original\nRecalculate for Posting Date",
+					"default": "Use Original",
+					"insert_after": "reversal_exchange_rate_type",
+					"description": "Use Original: mirror source taxes verbatim. Recalculate for Posting Date: re-derive taxes against the reversal date's tax rules (audit-only in current implementation).",
+				},
+				{
+					"fieldname": "reversal_cost_center_mode",
+					"label": "Reversal Cost Center Mode",
+					"fieldtype": "Select",
+					"options": "Use Original\nApply Current Allocation",
+					"default": "Use Original",
+					"insert_after": "reversal_tax_mode",
+					"description": "Use Original: copy source cost centers verbatim. Apply Current Allocation: re-derive against active Cost Center Allocations for the reversal date (audit-only in current implementation).",
+				},
 			]
 		},
 		ignore_validate=True,
@@ -198,8 +268,10 @@ frappe.ui.form.on("Auto Repeat", {
         switches.forEach((f) => frm.set_value(f, recalc ? 1 : 0));
     },
     repeat_type: function (frm) {
-        // When user switches to Reversal mode, clear Copy-mode fields so
-        // the saved state matches the visible (depends_on=hidden) UI.
+        // When user switches modes, clear the inverse mode's fields so the
+        // saved state matches the depends_on-hidden UI. Either tab's fields
+        // would otherwise persist after the user toggles modes — confusing
+        // when looking at the doc via API or list view.
         if (frm.doc.repeat_type === "Reversal") {
             frm.set_value("refresh_mode", "Copy Original");
             ["refresh_prices","apply_pricing_rules","refresh_exchange_rate",
@@ -207,6 +279,20 @@ frappe.ui.form.on("Auto Repeat", {
              "refresh_sales_tax_template","refresh_purchase_tax_template",
              "refresh_item_tax_template","refresh_shipping_rule",
              "respect_cost_center_allocation"].forEach((f) => frm.set_value(f, 0));
+        } else {
+            // Copy mode — clear Reversal-mode fields to their defaults
+            frm.set_value("reverse_on_next_month", 1);
+            frm.set_value("reverse_date", null);
+            frm.set_value("auto_submit_reversal", 0);
+            frm.set_value("reversal_exchange_rate_type", "Original Rate");
+            frm.set_value("reversal_tax_mode", "Use Original");
+            frm.set_value("reversal_cost_center_mode", "Use Original");
+        }
+    },
+    reverse_on_next_month: function (frm) {
+        // Toggling back to "first of next month" clears any explicit date.
+        if (frm.doc.reverse_on_next_month) {
+            frm.set_value("reverse_date", null);
         }
     },
 });
