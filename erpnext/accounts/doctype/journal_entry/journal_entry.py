@@ -346,6 +346,16 @@ class JournalEntry(AccountsController):
 		ar.insert()
 		ar.submit()
 
+		# Back-link the new AR onto this JE so the form indicator and any
+		# JE-side reports can resolve "what's scheduled for this JE". The
+		# manual-reversal guard in `make_reverse_journal_entry` scans Auto
+		# Repeat directly (doesn't depend on this back-link) — this is for
+		# visibility/audit, not enforcement.
+		if self.meta.has_field("linked_auto_repeat"):
+			self.db_set("linked_auto_repeat", ar.name, update_modified=False)
+		if self.meta.has_field("auto_reversal_status"):
+			self.db_set("auto_reversal_status", "Scheduled", update_modified=False)
+
 	@frappe.whitelist()
 	def get_balance_for_periodic_accounting(self):
 		self.validate_company_for_periodic_accounting()
@@ -2080,22 +2090,35 @@ def make_reverse_journal_entry(source_name, target_doc=None):
 	# The user must cancel/disable the Auto Repeat before reversing manually.
 	# Capability-checked so this is safe to ship before Auto Repeat gains repeat_type
 	# (frappe.db.get_value returns None silently when the field doesn't exist on the doctype).
-	if frappe.get_meta("Journal Entry").has_field("linked_auto_repeat"):
-		linked_ar = frappe.db.get_value("Journal Entry", source_name, "linked_auto_repeat")
+	# Find any Active, non-disabled Auto Repeat (Reversal) targeting this JE.
+	# The earlier shape relied on JE.linked_auto_repeat being set on AR insert,
+	# but the template hook doesn't write that back-link — it only stamps it
+	# from the reversal handler. So scan Auto Repeat directly.
+	#
+	# Gate matches the scheduler's: status=='Active' AND !disabled. Auto
+	# Repeat is NOT submittable, so docstatus checks would always fail.
+	if frappe.get_meta("Auto Repeat").has_field("repeat_type"):
+		linked_ar = frappe.db.get_value(
+			"Auto Repeat",
+			{
+				"reference_doctype": "Journal Entry",
+				"reference_document": source_name,
+				"repeat_type": "Reversal",
+				"status": "Active",
+				"disabled": 0,
+			},
+			"name",
+		)
 		if linked_ar:
-			ar = frappe.db.get_value(
-				"Auto Repeat", linked_ar, ["docstatus", "disabled"], as_dict=True
-			)
-			if ar and ar.docstatus == 1 and not ar.disabled:
-				frappe.throw(
-					_(
-						"{0} has an active Auto Repeat reversal {1}. "
-						"Cancel or disable the Auto Repeat first before reversing manually."
-					).format(
-						frappe.bold(source_name),
-						get_link_to_form("Auto Repeat", linked_ar),
-					)
+			frappe.throw(
+				_(
+					"{0} has an active Auto Repeat reversal {1}. "
+					"Cancel or disable the Auto Repeat first before reversing manually."
+				).format(
+					frappe.bold(source_name),
+					get_link_to_form("Auto Repeat", linked_ar),
 				)
+			)
 
 	# WP GA-0001-01: block reversal of a reversal.
 	source = frappe.db.get_value(
