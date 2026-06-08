@@ -32,7 +32,6 @@ class JournalEntryTemplate(Document):
 		end_date: DF.Date | None
 		from_date: DF.Date | None
 		is_opening: DF.Literal["No", "Yes"]
-		lock_on_apply: DF.Check
 		multi_currency: DF.Check
 		naming_series: DF.Literal
 		reversal_cost_center_mode: DF.Literal["Use Original", "Apply Current Allocation"]
@@ -67,7 +66,6 @@ class JournalEntryTemplate(Document):
 		"company",
 		"is_opening",
 		"multi_currency",
-		"lock_on_apply",
 		"allow_additional_accounts",
 		"enable_auto_reversal",
 		"auto_reverse_on",
@@ -79,17 +77,10 @@ class JournalEntryTemplate(Document):
 	)
 
 	def onload(self):
-		# Surface lock/enforcement state to the client without an extra round-trip.
+		# Surface lock state to the client without an extra round-trip.
 		self.set_onload("in_use", self.is_in_use())
-		self.set_onload(
-			"enforce_template_field_locking",
-			bool(
-				frappe.db.get_single_value("Accounts Settings", "enforce_template_field_locking")
-			),
-		)
 
 	def validate(self):
-		self.enforce_global_lock_setting()
 		self.validate_availability_dates()
 		self.validate_party()
 		self.validate_auto_reversal()
@@ -103,12 +94,6 @@ class JournalEntryTemplate(Document):
 		return bool(
 			frappe.db.exists("Journal Entry", {"from_template": self.name, "docstatus": 1})
 		)
-
-	def enforce_global_lock_setting(self):
-		# Defect WA-0001-04 #4 — when the global Accounts Settings switch is on,
-		# Lock Fields on Apply cannot be turned off on any template.
-		if frappe.db.get_single_value("Accounts Settings", "enforce_template_field_locking"):
-			self.lock_on_apply = 1
 
 	def validate_availability_dates(self):
 		if self.from_date and self.end_date and getdate(self.from_date) > getdate(self.end_date):
@@ -124,13 +109,7 @@ class JournalEntryTemplate(Document):
 		if not before:
 			return
 
-		# When global enforcement is on, lock_on_apply is force-set to 1 by
-		# enforce_global_lock_setting(); don't flag that forced change here.
-		enforced = frappe.db.get_single_value("Accounts Settings", "enforce_template_field_locking")
-
 		for field in self.FROZEN_AFTER_USE:
-			if field == "lock_on_apply" and enforced:
-				continue
 			if (self.get(field) or None) != (before.get(field) or None):
 				frappe.throw(
 					_(

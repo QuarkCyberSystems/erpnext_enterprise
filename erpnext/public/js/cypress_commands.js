@@ -490,7 +490,6 @@ Cypress.Commands.add("create_test_je_template", (opts = {}) => {
 	const {
 		title,
 		allow_additional_accounts = 0,
-		lock_on_apply = 1,
 		// Three generic non-party accounts so submits don't trip JE's
 		// "Party Type/Party required for Receivable/Payable" validation.
 		accounts = [
@@ -509,7 +508,6 @@ Cypress.Commands.add("create_test_je_template", (opts = {}) => {
 		// naming_series is reqd=1 with options=None on this doctype — autoname
 		// is field:template_title, but the column still must be non-null.
 		naming_series: "JE-",
-		lock_on_apply,
 		allow_additional_accounts,
 		accounts: accounts.map((a) => ({
 			account: a.account,
@@ -604,7 +602,6 @@ Cypress.Commands.add("create_test_je_template_with_auto_reversal", (opts = {}) =
 		multi_currency: 0,
 		is_opening: "No",
 		naming_series: "JE-",
-		lock_on_apply: 1,
 		allow_additional_accounts: 0,
 		enable_auto_reversal: 1,
 		auto_reverse_on,

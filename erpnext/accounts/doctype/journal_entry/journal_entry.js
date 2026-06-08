@@ -151,8 +151,12 @@ frappe.ui.form.on("Journal Entry", {
 		if (frm.doc.template_applied && frm.doc.from_template && !frm.is_new()) {
 			frm._from_template_value = frm.doc.from_template;
 			frappe.db.get_doc("Journal Entry Template", frm.doc.from_template).then((tpl) => {
-				apply_template_locks(frm, tpl);
 				show_template_indicator(frm);
+				frappe.db
+					.get_single_value("Accounts Settings", "enforce_template_field_locking")
+					.then((enforce) => {
+						if (enforce) apply_template_locks(frm, tpl);
+					});
 			});
 		}
 	},
@@ -396,9 +400,15 @@ var apply_template = function (frm, tpl) {
 	});
 	update_jv_details(frm.doc, tpl.accounts, true);
 	frm.set_value("template_applied", 1);
-	if (tpl.lock_on_apply) {
-		apply_template_locks(frm, tpl);
-	}
+	// Field locking is governed solely by the global Accounts Settings switch
+	// "Enforce Journal Entry Template Field Locking" (admin-only). The per-template
+	// "Lock Fields on Apply" checkbox was removed (WA-0001-04) so users cannot
+	// disable locking. The server enforces row/structure locks unconditionally.
+	frappe.db
+		.get_single_value("Accounts Settings", "enforce_template_field_locking")
+		.then((enforce) => {
+			if (enforce) apply_template_locks(frm, tpl);
+		});
 	show_template_indicator(frm);
 };
 

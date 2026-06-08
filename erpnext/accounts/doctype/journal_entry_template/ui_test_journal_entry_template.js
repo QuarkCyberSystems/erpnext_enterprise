@@ -18,13 +18,11 @@ context("WP GA-0001-04 — Journal Entry Template", () => {
 		cy.create_test_je_template({
 			title: TPL_LOCK_TITLE,
 			allow_additional_accounts: 0,
-			lock_on_apply: 1,
 		});
-		// Template B: lock on apply, allow_additional_accounts=1 (TC-003)
+		// Template B: allow_additional_accounts=1 (TC-003)
 		cy.create_test_je_template({
 			title: TPL_ALLOW_ADD_TITLE,
 			allow_additional_accounts: 1,
-			lock_on_apply: 1,
 		});
 	});
 

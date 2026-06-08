@@ -804,7 +804,6 @@ class TestJournalEntryTemplateEnforcement(ERPNextTestSuite):
 		cls,
 		title,
 		voucher_type="Journal Entry",
-		lock_on_apply=1,
 		allow_additional_accounts=0,
 		accounts=None,
 		auto_reversal_kwargs=None,
@@ -816,7 +815,6 @@ class TestJournalEntryTemplateEnforcement(ERPNextTestSuite):
 		tpl.voucher_type = voucher_type
 		tpl.company = "_Test Company"
 		tpl.naming_series = "ACC-JV-.YYYY.-"
-		tpl.lock_on_apply = lock_on_apply
 		tpl.allow_additional_accounts = allow_additional_accounts
 		for acc in accounts or [
 			{"account": "_Test Cash - _TC"},

@@ -140,7 +140,6 @@ const TEMPLATE_FROZEN_FIELDS = [
 	"company",
 	"is_opening",
 	"multi_currency",
-	"lock_on_apply",
 	"allow_additional_accounts",
 	"enable_auto_reversal",
 	"auto_reverse_on",
@@ -153,15 +152,6 @@ const TEMPLATE_FROZEN_FIELDS = [
 
 var apply_template_lock_state = function (frm) {
 	const onload = frm.doc.__onload || {};
-
-	// Defect WA-0001-04 #4 — global Accounts Settings switch forces Lock Fields
-	// on Apply on and prevents users from unchecking it.
-	if (onload.enforce_template_field_locking) {
-		if (!frm.doc.lock_on_apply) {
-			frm.set_value("lock_on_apply", 1);
-		}
-		frm.set_df_property("lock_on_apply", "read_only", 1);
-	}
 
 	if (!onload.in_use) return;
 
