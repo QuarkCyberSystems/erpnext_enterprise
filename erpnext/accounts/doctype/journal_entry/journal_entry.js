@@ -324,6 +324,28 @@ frappe.ui.form.on("Journal Entry", {
 	apply_tds: function (frm) {
 		frm.clear_table("tax_withholding_entries");
 	},
+
+	enable_auto_reversal: function (frm) {
+		// WA-0001-05 #9 — auto-reversal is usable on any JE, not just template-derived.
+		// Clearing the switch resets the config so a disabled JE carries no stale
+		// settings. Mirrors the Journal Entry Template form.
+		if (!frm.doc.enable_auto_reversal) {
+			frm.set_value({
+				auto_reverse_on: "First Day of Next Month",
+				auto_reverse_date: null,
+				reversal_exchange_rate_type: "Original Rate",
+				reversal_tax_mode: "Use Original",
+				reversal_cost_center_mode: "Use Original",
+				auto_submit_reversal: 0,
+			});
+		}
+	},
+
+	auto_reverse_on: function (frm) {
+		if (frm.doc.auto_reverse_on === "First Day of Next Month") {
+			frm.set_value("auto_reverse_date", null);
+		}
+	},
 });
 
 frappe.ui.form.on("Journal Entry Account", {
@@ -1055,7 +1077,14 @@ $.extend(erpnext.journal_entry, {
 			// validator (validate_reversal_locked_fields) skips cost_center
 			// diff when this flag is unchecked, so client + server agree.
 			"respect_cost_center_allocation",
+			// WA-0001-01 #6 — the reversal's own posting date and remark are the
+			// operator's to set (e.g. post the reversal in a later period / explain
+			// it). The server validator does not lock these.
+			"posting_date",
+			"remark",
 		]);
+		// WA-0001-01 #6 — per-line remark stays editable on the reversal too.
+		const CHILD_ALWAYS_EDITABLE = new Set(["user_remark"]);
 		const SKIP_TYPES = new Set([
 			"Section Break", "Column Break", "Tab Break", "HTML", "Button",
 			"Heading",
@@ -1094,6 +1123,7 @@ $.extend(erpnext.journal_entry, {
 			const child_meta = frappe.get_meta("Journal Entry Account");
 			(child_meta.fields || []).forEach((df) => {
 				if (SKIP_TYPES.has(df.fieldtype)) return;
+				if (CHILD_ALWAYS_EDITABLE.has(df.fieldname)) return;
 				erpnext.journal_entry.set_grid_field_property(
 					accounts_grid, df.fieldname, "read_only", 1
 				);

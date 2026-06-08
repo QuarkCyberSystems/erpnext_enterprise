@@ -672,7 +672,7 @@
   },
   {
    "collapsible": 1,
-   "depends_on": "eval:doc.enable_auto_reversal",
+   "collapsible_depends_on": "eval:doc.enable_auto_reversal",
    "fieldname": "auto_reversal_section",
    "fieldtype": "Section Break",
    "label": "Auto Reversal"
@@ -682,8 +682,7 @@
    "fieldname": "enable_auto_reversal",
    "fieldtype": "Check",
    "label": "Enable Auto Reversal",
-   "no_copy": 1,
-   "read_only": 1
+   "no_copy": 1
   },
   {
    "default": "First Day of Next Month",
@@ -692,8 +691,7 @@
    "fieldtype": "Select",
    "label": "Auto Reverse On",
    "no_copy": 1,
-   "options": "First Day of Next Month\nSpecific Date",
-   "read_only": 1
+   "options": "First Day of Next Month\nSpecific Date"
   },
   {
    "depends_on": "eval:doc.enable_auto_reversal && doc.auto_reverse_on=='Specific Date'",
@@ -714,8 +712,7 @@
    "fieldtype": "Select",
    "label": "Exchange Rate for Reversal",
    "no_copy": 1,
-   "options": "Original Rate\nCurrent Rate",
-   "read_only": 1
+   "options": "Original Rate\nCurrent Rate"
   },
   {
    "default": "Use Original",
@@ -724,8 +721,7 @@
    "fieldtype": "Select",
    "label": "Reversal Tax Mode",
    "no_copy": 1,
-   "options": "Use Original\nRecalculate for Posting Date",
-   "read_only": 1
+   "options": "Use Original\nRecalculate for Posting Date"
   },
   {
    "default": "Use Original",
@@ -734,8 +730,7 @@
    "fieldtype": "Select",
    "label": "Reversal Cost Center Mode",
    "no_copy": 1,
-   "options": "Use Original\nApply Current Allocation",
-   "read_only": 1
+   "options": "Use Original\nApply Current Allocation"
   },
   {
    "default": "0",
@@ -743,8 +738,7 @@
    "fieldname": "auto_submit_reversal",
    "fieldtype": "Check",
    "label": "Auto Submit Reversal",
-   "no_copy": 1,
-   "read_only": 1
+   "no_copy": 1
   },
   {
    "collapsible_depends_on": "eval: doc.apply_tds && doc.docstatus == 0",

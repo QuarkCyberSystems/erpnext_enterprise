@@ -171,6 +171,7 @@ class JournalEntry(AccountsController):
 		self.validate_advance_accounts()
 		self.validate_template_availability()
 		self.validate_against_template()
+		self.validate_auto_reversal_config()
 
 		JournalTaxWithholding(self).on_validate()
 
@@ -189,6 +190,17 @@ class JournalEntry(AccountsController):
 			self.template_applied = 0
 			for row in self.accounts:
 				row.from_template = 0
+
+	def validate_auto_reversal_config(self):
+		# WA-0001-05 #9 — keep the JE's auto-reversal config coherent whether it was
+		# set manually or inherited from a template.
+		if not self.enable_auto_reversal:
+			self.auto_reverse_date = None
+			return
+		if self.auto_reverse_on == "First Day of Next Month":
+			self.auto_reverse_date = None
+		elif self.auto_reverse_on == "Specific Date" and not self.auto_reverse_date:
+			frappe.throw(_("Reversal Date is required when Auto Reverse On is set to Specific Date."))
 
 	def validate_template_availability(self):
 		# Defect WA-0001-04 #2 — a disabled or out-of-date-range template cannot
@@ -363,16 +375,20 @@ class JournalEntry(AccountsController):
 		self.update_invoice_discounting()
 		JournalTaxWithholding(self).on_submit()
 		self.update_reversal_link()
-		self._maybe_create_template_auto_repeat()
+		self._maybe_create_auto_reversal_repeat()
 
-	def _maybe_create_template_auto_repeat(self):
-		if not (self.from_template and self.template_applied and self.enable_auto_reversal):
+	def _maybe_create_auto_reversal_repeat(self):
+		# WA-0001-05 #9 — auto-reversal is available on ANY Journal Entry whose
+		# "Enable Auto Reversal" is set, whether or not it was created from a
+		# template. Template-derived JEs inherit (and lock) the config; manual JEs
+		# set it directly on the form.
+		if not self.enable_auto_reversal:
 			return
 		if getattr(self, "is_reversal", 0):
 			return
 		if not frappe.get_meta("Auto Repeat").has_field("repeat_type"):
 			frappe.log_error(
-				title="JE Template auto-reversal skipped",
+				title="Auto reversal skipped",
 				message=(
 					f"Journal Entry {self.name}: enable_auto_reversal=1 but the Auto Repeat doctype "
 					f"does not have repeat_type (GA-0001-05+06 not deployed). "
@@ -609,7 +625,9 @@ class JournalEntry(AccountsController):
 			# Treat None and "" as equivalent for text-like fields.
 			return (a or None) == (b or None)
 
-		header_fields = ("company", "voucher_type", "multi_currency", "cheque_no", "cheque_date")
+		# WA-0001-01 #7 — is_opening is allow_on_submit, so without this it stays
+		# editable on a submitted reversal; lock it to the original here.
+		header_fields = ("company", "voucher_type", "multi_currency", "cheque_no", "cheque_date", "is_opening")
 		for field in header_fields:
 			if not _values_match(self, original, field, self.meta):
 				frappe.throw(
@@ -632,6 +650,9 @@ class JournalEntry(AccountsController):
 			"cost_center",
 			"project",
 			"account_currency",
+			# WA-0001-01 #7 — is_advance is allow_on_submit; lock it to the original
+			# so it cannot be toggled on a submitted reversal row.
+			"is_advance",
 		)
 		original_rows = {row.idx: row for row in original.accounts}
 		row_meta = frappe.get_meta("Journal Entry Account")
