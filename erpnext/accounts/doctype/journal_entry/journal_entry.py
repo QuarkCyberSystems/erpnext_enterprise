@@ -7,7 +7,7 @@ import json
 import frappe
 from frappe import _, msgprint, scrub
 from frappe.core.doctype.submission_queue.submission_queue import queue_submission
-from frappe.utils import comma_and, cstr, flt, fmt_money, formatdate, get_link_to_form, nowdate
+from frappe.utils import comma_and, cstr, flt, fmt_money, formatdate, get_link_to_form, getdate, nowdate
 
 import erpnext
 from erpnext.accounts.deferred_revenue import get_deferred_booking_accounts
@@ -169,6 +169,7 @@ class JournalEntry(AccountsController):
 		self.validate_depr_account_and_depr_entry_voucher_type()
 		self.validate_company_in_accounting_dimension()
 		self.validate_advance_accounts()
+		self.validate_template_availability()
 		self.validate_against_template()
 
 		JournalTaxWithholding(self).on_validate()
@@ -188,6 +189,40 @@ class JournalEntry(AccountsController):
 			self.template_applied = 0
 			for row in self.accounts:
 				row.from_template = 0
+
+	def validate_template_availability(self):
+		# Defect WA-0001-04 #2 — a disabled or out-of-date-range template cannot
+		# be applied to a Journal Entry. Enforced for drafts only so historical
+		# submitted entries are never blocked retroactively if the template is
+		# later disabled or date-bounded.
+		if self.docstatus != 0 or not self.from_template:
+			return
+		template = frappe.db.get_value(
+			"Journal Entry Template",
+			self.from_template,
+			["disabled", "from_date", "end_date"],
+			as_dict=True,
+		)
+		if not template:
+			return
+
+		link = get_link_to_form("Journal Entry Template", self.from_template)
+		if template.disabled:
+			frappe.throw(_("Journal Entry Template {0} is disabled and cannot be used.").format(link))
+
+		posting_date = getdate(self.posting_date) if self.posting_date else getdate()
+		if template.from_date and posting_date < getdate(template.from_date):
+			frappe.throw(
+				_("Journal Entry Template {0} is only valid from {1}.").format(
+					link, formatdate(template.from_date)
+				)
+			)
+		if template.end_date and posting_date > getdate(template.end_date):
+			frappe.throw(
+				_("Journal Entry Template {0} is only valid until {1}.").format(
+					link, formatdate(template.end_date)
+				)
+			)
 
 	def validate_against_template(self):
 		# Structural validation runs whenever `from_template` is set — we
@@ -226,6 +261,53 @@ class JournalEntry(AccountsController):
 						"Template {0} does not allow additional accounts. Remove rows that are not part of the template."
 					).format(self.from_template)
 				)
+
+		self.validate_template_row_locks(template)
+
+	def validate_template_row_locks(self, template):
+		# Defect WA-0001-04 #5 — server-side mirror of the client row locks:
+		# fields the template populated on a row (account, party, party_type,
+		# cost_center, project and every accounting dimension) cannot be changed
+		# on the template-derived JE row. Only template-FILLED values are
+		# enforced, so accounting-dimension defaults on fields the template left
+		# blank are still permitted. The account+party_type multiset check above
+		# already guarantees the two row sets have equal length; because account
+		# is always non-empty it is enforced positionally here, which also
+		# catches any reordering of the locked rows.
+		locked_fields = self.get_template_locked_row_fields()
+		je_template_rows = [r for r in self.accounts if r.from_template]
+		row_meta = frappe.get_meta("Journal Entry Account")
+		for tpl_row, je_row in zip(template.accounts, je_template_rows):
+			for field in locked_fields:
+				tpl_val = tpl_row.get(field)
+				if tpl_val in (None, ""):
+					continue
+				if (je_row.get(field) or None) != (tpl_val or None):
+					frappe.throw(
+						_(
+							"Row #{0}: {1} is set by Journal Entry Template {2} and cannot be changed."
+						).format(
+							je_row.idx,
+							frappe.bold(_(row_meta.get_label(field) or field)),
+							get_link_to_form("Journal Entry Template", self.from_template),
+						)
+					)
+
+	@staticmethod
+	def get_template_locked_row_fields():
+		from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
+			get_accounting_dimensions,
+		)
+
+		candidates = ["account", "party_type", "party", "cost_center", "project"]
+		candidates += get_accounting_dimensions() or []
+		row_meta = frappe.get_meta("Journal Entry Account")
+		seen, fields = set(), []
+		for field in candidates:
+			if field not in seen and row_meta.has_field(field):
+				seen.add(field)
+				fields.append(field)
+		return fields
 
 	def validate_advance_accounts(self):
 		journal_accounts = set([x.account for x in self.accounts])
@@ -1899,6 +1981,34 @@ def get_against_jv(doctype, txt, searchfield, start, page_len, filters):
 	else:
 		query = query.where(JournalEntryAccount.party.isnull() | (JournalEntryAccount.party == ""))
 
+	return query.run()
+
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_available_templates(doctype, txt, searchfield, start, page_len, filters):
+	# Defect WA-0001-04 #2 — the from_template picker previously listed every
+	# non-disabled template; the from_date/end_date availability window was only
+	# enforced server-side on save, so out-of-window templates still appeared in
+	# the dropdown. Mirror that window here, treating null bounds as open-ended,
+	# so the posting date filters the list directly.
+	if not frappe.db.has_column("Journal Entry Template", searchfield):
+		searchfield = "name"
+
+	posting_date = (filters or {}).get("posting_date") or nowdate()
+
+	Template = frappe.qb.DocType("Journal Entry Template")
+	query = (
+		frappe.qb.from_(Template)
+		.select(Template.name)
+		.where(Template.disabled == 0)
+		.where(Template.from_date.isnull() | (Template.from_date <= posting_date))
+		.where(Template.end_date.isnull() | (Template.end_date >= posting_date))
+		.where(Template[searchfield].like(f"%{txt}%"))
+		.orderby(Template.name)
+		.limit(page_len)
+		.offset(start)
+	)
 	return query.run()
 
 

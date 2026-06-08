@@ -149,6 +149,7 @@ frappe.ui.form.on("Journal Entry", {
 		}
 
 		if (frm.doc.template_applied && frm.doc.from_template && !frm.is_new()) {
+			frm._from_template_value = frm.doc.from_template;
 			frappe.db.get_doc("Journal Entry Template", frm.doc.from_template).then((tpl) => {
 				apply_template_locks(frm, tpl);
 				show_template_indicator(frm);
@@ -286,9 +287,33 @@ frappe.ui.form.on("Journal Entry", {
 		if (frm.doc.from_template) {
 			frappe.db.get_doc("Journal Entry Template", frm.doc.from_template).then((tpl) => {
 				apply_template(frm, tpl);
+				frm._from_template_value = frm.doc.from_template;
 			});
 		} else {
-			clear_template(frm);
+			// FR-008 (defect WA-0001-04 #3): warn before clearing if
+			// template-derived data exists on the Journal Entry.
+			const has_template_data =
+				frm.doc.template_applied || (frm.doc.accounts || []).some((r) => r.from_template);
+			if (has_template_data) {
+				const prev = frm._from_template_value;
+				frappe.confirm(
+					__(
+						"Clearing the template reference will unlock all template-derived fields and account rows on this Journal Entry. Do you want to continue?"
+					),
+					() => {
+						clear_template(frm);
+						frm._from_template_value = null;
+					},
+					() => {
+						// Cancelled — restore the link without re-seeding the rows.
+						frm.doc.from_template = prev;
+						frm.refresh_field("from_template");
+					}
+				);
+			} else {
+				clear_template(frm);
+				frm._from_template_value = null;
+			}
 		}
 	},
 
@@ -331,6 +356,27 @@ const TEMPLATE_AUTO_REVERSAL_LOCKS = [
 	"reversal_cost_center_mode",
 	"auto_submit_reversal",
 ];
+
+// Row-level fields locked on template-derived JE rows (defect WA-0001-04 #5).
+// Built dynamically so every accounting dimension the template can populate —
+// cost_center, project, and any custom Accounting Dimension (Branch,
+// Department, ...) — locks too, not just the hard-coded identity fields.
+// `erpnext.accounts.dimensions.accounting_dimensions` is loaded in JE onload
+// (with_cost_center_and_project=true) and refreshes on every form load.
+function template_row_lock_fields() {
+	const dims =
+		(erpnext.accounts.dimensions && erpnext.accounts.dimensions.accounting_dimensions) || [];
+	return Array.from(
+		new Set([
+			"account",
+			"party_type",
+			"party",
+			"cost_center",
+			"project",
+			...dims.map((d) => d.fieldname).filter(Boolean),
+		])
+	);
+}
 
 var apply_template = function (frm, tpl) {
 	frappe.model.clear_table(frm.doc, "accounts");
@@ -387,19 +433,37 @@ var apply_template_locks = function (frm, tpl) {
 	// docfield individually so user-added rows (when allow_additional_accounts=1)
 	// stay fully editable.
 	const grid = frm.fields_dict.accounts.grid;
+	const lock_fields = template_row_lock_fields();
+	// Defect WA-0001-04 #5 — lock a field on a template-derived row ONLY when the
+	// source template row actually populated it. This mirrors the server-side
+	// validate_template_row_locks, which skips blank template values
+	// (`if tpl_val in (None, ""): continue`). Locking unconditionally greyed out
+	// fields the template left blank (e.g. party), so the user could not fill
+	// them on the JE even though the server would have accepted them.
+	// `account` is always populated and is enforced positionally server-side, so
+	// it always locks. Template rows map 1:1 in seed order to `tpl.accounts`
+	// (update_jv_details appends them in order; static_rows keeps that order).
+	const ALWAYS_LOCK = new Set(["account"]);
 	const apply_row_locks = () => {
+		const tpl_rows = tpl.accounts || [];
+		let tpl_idx = 0;
 		(grid.grid_rows || []).forEach((row) => {
 			if (!row || !row.doc) return;
-			const read_only = row.doc.from_template ? 1 : 0;
-			["account", "party_type"].forEach((f) => {
+			// User-added rows (from_template=0) stay fully editable → tpl_row=null.
+			const tpl_row = row.doc.from_template ? tpl_rows[tpl_idx++] || {} : null;
+			lock_fields.forEach((f) => {
 				const df = row.docfields && row.docfields.find((d) => d.fieldname === f);
-				if (df) df.read_only = read_only;
+				if (!df) return;
+				df.read_only = tpl_row && (ALWAYS_LOCK.has(f) || tpl_row[f]) ? 1 : 0;
 			});
 		});
 	};
 	apply_row_locks();
 	grid.cannot_delete_rows = !tpl.allow_additional_accounts;
 	grid.cannot_add_rows = !tpl.allow_additional_accounts;
+	// Keep template rows in template order so the server-side positional row
+	// lock check (validate_template_row_locks) stays sound.
+	grid.static_rows = true;
 	frm.refresh_fields();
 };
 
@@ -407,11 +471,12 @@ var remove_template_locks = function (frm) {
 	TEMPLATE_HEADER_LOCKS.forEach((f) => frm.set_df_property(f, "read_only", 0));
 	TEMPLATE_AUTO_REVERSAL_LOCKS.forEach((f) => frm.set_df_property(f, "read_only", 0));
 	frm.set_df_property("auto_reverse_date", "read_only", 0);
-	["account", "party_type"].forEach((f) =>
+	template_row_lock_fields().forEach((f) =>
 		frm.fields_dict.accounts.grid.update_docfield_property(f, "read_only", 0)
 	);
 	frm.fields_dict.accounts.grid.cannot_delete_rows = false;
 	frm.fields_dict.accounts.grid.cannot_add_rows = false;
+	frm.fields_dict.accounts.grid.static_rows = false;
 };
 
 var show_template_indicator = function (frm) {
@@ -467,6 +532,16 @@ erpnext.accounts.JournalEntry = class JournalEntry extends frappe.ui.form.Contro
 
 	setup_queries() {
 		var me = this;
+
+		// Defect WA-0001-04 #2 — the picker hides disabled templates AND templates
+		// whose from_date/end_date window excludes the current posting date. Null
+		// bounds are treated as open-ended. The server still re-validates on save.
+		me.frm.set_query("from_template", function () {
+			return {
+				query: "erpnext.accounts.doctype.journal_entry.journal_entry.get_available_templates",
+				filters: { posting_date: me.frm.doc.posting_date },
+			};
+		});
 
 		me.frm.set_query("account", "accounts", function (doc, cdt, cdn) {
 			return erpnext.journal_entry.account_query(me.frm);

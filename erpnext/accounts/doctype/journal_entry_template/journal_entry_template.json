@@ -15,6 +15,11 @@
   "company",
   "is_opening",
   "multi_currency",
+  "availability_section",
+  "disabled",
+  "availability_col_break",
+  "from_date",
+  "end_date",
   "enforcement_section",
   "lock_on_apply",
   "enforcement_col_break",
@@ -96,6 +101,34 @@
    "fieldname": "multi_currency",
    "fieldtype": "Check",
    "label": "Multi Currency"
+  },
+  {
+   "fieldname": "availability_section",
+   "fieldtype": "Section Break",
+   "label": "Availability"
+  },
+  {
+   "default": "0",
+   "description": "When checked, this template can no longer be selected on new Journal Entries. Remains editable after the template is locked.",
+   "fieldname": "disabled",
+   "fieldtype": "Check",
+   "label": "Disabled"
+  },
+  {
+   "fieldname": "availability_col_break",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "The template is only selectable on Journal Entries whose posting date is on or after this date. Remains editable after the template is locked.",
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date"
+  },
+  {
+   "description": "The template is only selectable on Journal Entries whose posting date is on or before this date. Remains editable after the template is locked.",
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "label": "End Date"
   },
   {
    "fieldname": "enforcement_section",

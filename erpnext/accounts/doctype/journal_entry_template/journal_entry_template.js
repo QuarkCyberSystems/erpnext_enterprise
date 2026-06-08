@@ -63,6 +63,8 @@ frappe.ui.form.on("Journal Entry Template", {
 				},
 			};
 		});
+
+		apply_template_lock_state(frm);
 	},
 	voucher_type: function (frm) {
 		var add_accounts = function (doc, r) {
@@ -127,3 +129,59 @@ frappe.ui.form.on("Journal Entry Template", {
 		}
 	},
 });
+
+// Structural fields frozen once the template is in use (defect WA-0001-04 #1).
+// `disabled`, `from_date`, `end_date` are deliberately excluded so the template
+// can be retired / date-bounded after lock.
+const TEMPLATE_FROZEN_FIELDS = [
+	"template_title",
+	"voucher_type",
+	"naming_series",
+	"company",
+	"is_opening",
+	"multi_currency",
+	"lock_on_apply",
+	"allow_additional_accounts",
+	"enable_auto_reversal",
+	"auto_reverse_on",
+	"auto_reverse_date",
+	"reversal_exchange_rate_type",
+	"reversal_tax_mode",
+	"reversal_cost_center_mode",
+	"auto_submit_reversal",
+];
+
+var apply_template_lock_state = function (frm) {
+	const onload = frm.doc.__onload || {};
+
+	// Defect WA-0001-04 #4 — global Accounts Settings switch forces Lock Fields
+	// on Apply on and prevents users from unchecking it.
+	if (onload.enforce_template_field_locking) {
+		if (!frm.doc.lock_on_apply) {
+			frm.set_value("lock_on_apply", 1);
+		}
+		frm.set_df_property("lock_on_apply", "read_only", 1);
+	}
+
+	if (!onload.in_use) return;
+
+	// Defect WA-0001-04 #1 — template already used by a submitted Journal Entry;
+	// freeze its structure. Availability fields stay editable.
+	TEMPLATE_FROZEN_FIELDS.forEach((f) => frm.set_df_property(f, "read_only", 1));
+
+	const grid = frm.fields_dict.accounts.grid;
+	grid.cannot_add_rows = true;
+	grid.cannot_delete_rows = true;
+	grid.static_rows = true;
+	(frappe.get_meta("Journal Entry Template Account").fields || []).forEach((df) => {
+		if (["Section Break", "Column Break", "HTML", "Button"].includes(df.fieldtype)) return;
+		grid.update_docfield_property(df.fieldname, "read_only", 1);
+	});
+	frm.refresh_field("accounts");
+
+	frm.dashboard.add_comment(
+		__("This template has been used by a submitted Journal Entry and is locked. You can still disable it or change its From/End dates."),
+		"blue",
+		true
+	);
+};

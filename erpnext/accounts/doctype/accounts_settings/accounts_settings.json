@@ -27,6 +27,7 @@
   "enable_discounts_and_margin",
   "journals_section",
   "merge_similar_account_heads",
+  "enforce_template_field_locking",
   "deferred_accounting_settings_section",
   "book_deferred_entries_based_on",
   "column_break_18",
@@ -381,6 +382,13 @@
    "fieldname": "merge_similar_account_heads",
    "fieldtype": "Check",
    "label": "Merge Similar Account Heads"
+  },
+  {
+   "default": "0",
+   "description": "When enabled, 'Lock Fields on Apply' is forced on for every Journal Entry Template and cannot be unchecked by users.",
+   "fieldname": "enforce_template_field_locking",
+   "fieldtype": "Check",
+   "label": "Enforce Journal Entry Template Field Locking"
   },
   {
    "fieldname": "section_break_jpd0",
