@@ -41,6 +41,7 @@ doctype_js = {
 	"Event": "public/js/event.js",
 	"Newsletter": "public/js/newsletter.js",
 	"Contact": "public/js/contact.js",
+	"Auto Repeat": "public/js/auto_repeat.js",
 }
 doctype_list_js = {
 	"Code List": [

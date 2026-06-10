@@ -39,6 +39,14 @@ class ERPNextAutoRepeat(AutoRepeat):
 	field installation on a fresh site).
 	"""
 
+	def onload(self):
+		base_onload = getattr(super(), "onload", None)
+		if callable(base_onload):
+			base_onload()
+		# Tell the form (auto_repeat.js) to grey out the fields of an Auto Repeat
+		# that is managed by a Journal Entry auto-reversal.
+		self.set_onload("je_reversal_locked", self._is_je_reversal_managed())
+
 	def validate(self):
 		# Run frappe's base validate first
 		super().validate()
@@ -47,22 +55,26 @@ class ERPNextAutoRepeat(AutoRepeat):
 		# Lock Auto Repeats created by a Journal Entry auto-reversal
 		self._guard_je_reversal_lock()
 
+	def _is_je_reversal_managed(self):
+		"""True when this Auto Repeat was created by a Journal Entry's
+		auto-reversal, identified by the JE back-link Journal Entry.linked_auto_repeat."""
+		if self.is_new():
+			return False
+		je_meta = frappe.get_meta("Journal Entry")
+		if not je_meta.has_field("linked_auto_repeat"):
+			return False
+		return bool(frappe.db.exists("Journal Entry", {"linked_auto_repeat": self.name}))
+
 	def _guard_je_reversal_lock(self):
 		"""An Auto Repeat created by a Journal Entry's auto-reversal is fully
 		managed by the JE flow and must not be edited by users — not its
 		reversal config, not its schedule, and not by switching it to Copy mode.
 		The only permitted change is disabling it (to stop the schedule).
 
-		Identified by the JE back-link (Journal Entry.linked_auto_repeat). The
-		single-fire disable performed by the reversal handler uses db_set, which
-		bypasses validate(), so this guard never blocks the system's own flow.
+		The single-fire disable performed by the reversal handler uses db_set,
+		which bypasses validate(), so this guard never blocks the system's own flow.
 		"""
-		if self.is_new():
-			return
-		je_meta = frappe.get_meta("Journal Entry")
-		if not je_meta.has_field("linked_auto_repeat"):
-			return
-		if not frappe.db.exists("Journal Entry", {"linked_auto_repeat": self.name}):
+		if not self._is_je_reversal_managed():
 			return
 
 		before = self.get_doc_before_save()
