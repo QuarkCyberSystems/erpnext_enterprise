@@ -131,6 +131,7 @@ class JournalEntryTemplate(Document):
 				row.get("account"),
 				row.get("party_type") or None,
 				row.get("party") or None,
+				row.get("is_advance") or None,
 				row.get("cost_center") or None,
 				row.get("project") or None,
 				flt(row.get("debit_in_account_currency")),

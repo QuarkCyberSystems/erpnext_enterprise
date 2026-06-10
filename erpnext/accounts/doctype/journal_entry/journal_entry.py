@@ -371,7 +371,7 @@ class JournalEntry(AccountsController):
 			get_accounting_dimensions,
 		)
 
-		candidates = ["account", "party_type", "party", "cost_center", "project"]
+		candidates = ["account", "party_type", "party", "is_advance", "cost_center", "project"]
 		candidates += get_accounting_dimensions() or []
 		row_meta = frappe.get_meta("Journal Entry Account")
 		seen, fields = set(), []
