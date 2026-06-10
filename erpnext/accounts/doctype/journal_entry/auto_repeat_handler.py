@@ -56,7 +56,16 @@ def make_journal_entry_reversal(auto_repeat, reference_doc, assignee=None):
 			)
 		return None
 
-	reversal = make_reverse_journal_entry(reference_doc.name)
+	# Signal make_reverse_journal_entry to skip the manual-reversal guard:
+	# this IS the scheduled auto-reversal, not a user reversing behind the
+	# AR's back. The AR is still Active+enabled at this point (it disables
+	# itself only after the reversal is created below), so without this flag
+	# the guard would block the AR against itself.
+	frappe.flags.in_auto_repeat_reversal = True
+	try:
+		reversal = make_reverse_journal_entry(reference_doc.name)
+	finally:
+		frappe.flags.in_auto_repeat_reversal = False
 
 	# Read reversal config from the Auto Repeat (canonical per imp_ga-0001-
 	# 05+06.md §"Schema additions" Section 4). Fall back to the source JE

@@ -2234,7 +2234,16 @@ def make_reverse_journal_entry(source_name, target_doc=None):
 	#
 	# Gate matches the scheduler's: status=='Active' AND !disabled. Auto
 	# Repeat is NOT submittable, so docstatus checks would always fail.
-	if frappe.get_meta("Auto Repeat").has_field("repeat_type"):
+	#
+	# Exempt the Auto Repeat's OWN scheduled handler: it calls this function
+	# to perform the very reversal the AR schedules. Without this, the guard
+	# blocks the AR against itself (it is always Active+enabled at fire time),
+	# so auto-reversal could never succeed. The flag is set only by
+	# auto_repeat_handler.make_journal_entry_reversal and is not an API kwarg,
+	# so the user-facing manual-reversal guard remains fully enforced.
+	if not frappe.flags.get("in_auto_repeat_reversal") and frappe.get_meta(
+		"Auto Repeat"
+	).has_field("repeat_type"):
 		linked_ar = frappe.db.get_value(
 			"Auto Repeat",
 			{
