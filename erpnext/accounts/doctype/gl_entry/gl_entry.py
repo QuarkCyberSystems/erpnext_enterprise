@@ -257,7 +257,9 @@ class GLEntry(Document):
 		if not self.cost_center or self.is_cancelled:
 			return
 
-		is_group, company = frappe.get_cached_value("Cost Center", self.cost_center, ["is_group", "company"])
+		is_group, company, disabled = frappe.get_cached_value(
+			"Cost Center", self.cost_center, ["is_group", "company", "disabled"]
+		)
 
 		if company != self.company:
 			frappe.throw(
@@ -271,6 +273,13 @@ class GLEntry(Document):
 				_(
 					"""{0} {1}: Cost Center {2} is a group cost center and group cost centers cannot be used in transactions"""
 				).format(self.voucher_type, self.voucher_no, frappe.bold(self.cost_center))
+			)
+
+		if disabled:
+			frappe.throw(
+				_("{0} {1}: Cost Center {2} is disabled. Enable it or choose an active cost center.").format(
+					self.voucher_type, self.voucher_no, frappe.bold(self.cost_center)
+				)
 			)
 
 	def validate_party(self):
