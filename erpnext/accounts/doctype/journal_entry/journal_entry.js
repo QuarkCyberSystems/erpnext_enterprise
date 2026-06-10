@@ -493,9 +493,12 @@ var apply_template_locks = function (frm, tpl) {
 	apply_row_locks();
 	grid.cannot_delete_rows = !tpl.allow_additional_accounts;
 	grid.cannot_add_rows = !tpl.allow_additional_accounts;
-	// Keep template rows in template order so the server-side positional row
-	// lock check (validate_template_row_locks) stays sound.
-	grid.static_rows = true;
+	// NOTE: deliberately NOT setting grid.static_rows here. static_rows=true
+	// flips Frappe's grid.is_editable() to false, which disables ALL inline
+	// cell editing (debit/credit/user_remark included) and forces row-popup
+	// editing — see grid.js is_editable(). Reordering template rows is harmless
+	// to data (each row keeps its own locked values) and, if it happens, the
+	// server positional account check in validate_template_row_locks rejects it.
 	frm.refresh_fields();
 };
 
@@ -508,7 +511,6 @@ var remove_template_locks = function (frm) {
 	);
 	frm.fields_dict.accounts.grid.cannot_delete_rows = false;
 	frm.fields_dict.accounts.grid.cannot_add_rows = false;
-	frm.fields_dict.accounts.grid.static_rows = false;
 };
 
 var show_template_indicator = function (frm) {
