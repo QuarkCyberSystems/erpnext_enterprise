@@ -309,7 +309,22 @@ class JournalEntry(AccountsController):
 		# fieldtype-normalised comparison as the reversal locks.
 		if not frappe.db.get_single_value("Accounts Settings", "enforce_template_field_locking"):
 			return
-		header_fields = ("voucher_type", "company", "multi_currency", "is_opening", "naming_series")
+		# `auto_reverse_date` is deliberately excluded — it is the one reversal
+		# field the operator may adjust on the JE (mirrors the client, where
+		# only the date stays editable when auto_reverse_on == "Specific Date").
+		header_fields = (
+			"voucher_type",
+			"company",
+			"multi_currency",
+			"is_opening",
+			"naming_series",
+			"enable_auto_reversal",
+			"auto_reverse_on",
+			"reversal_exchange_rate_type",
+			"reversal_tax_mode",
+			"reversal_cost_center_mode",
+			"auto_submit_reversal",
+		)
 		for field in header_fields:
 			if not (self.meta.has_field(field) and template.meta.has_field(field)):
 				continue
