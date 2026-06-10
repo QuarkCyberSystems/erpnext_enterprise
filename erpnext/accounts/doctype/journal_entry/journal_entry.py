@@ -275,6 +275,51 @@ class JournalEntry(AccountsController):
 				)
 
 		self.validate_template_row_locks(template)
+		self.validate_template_header_locks(template)
+
+	@staticmethod
+	def _field_values_match(doc_a, doc_b, fieldname, meta):
+		# Fieldtype-normalised equality so a form-POSTed string ("2026-05-13",
+		# "0") compares equal to the DB-typed value (datetime.date, False).
+		# Shared by the reversal locks and the template header locks.
+		df = meta.get_field(fieldname)
+		fieldtype = df.fieldtype if df else None
+		a, b = doc_a.get(fieldname), doc_b.get(fieldname)
+		if fieldtype == "Date":
+			return (getdate(a) if a else None) == (getdate(b) if b else None)
+		if fieldtype == "Datetime":
+			from frappe.utils import get_datetime
+
+			return (get_datetime(a) if a else None) == (get_datetime(b) if b else None)
+		if fieldtype in ("Check", "Int"):
+			from frappe.utils import cint
+
+			return cint(a) == cint(b)
+		if fieldtype in ("Float", "Currency", "Percent"):
+			return flt(a) == flt(b)
+		# Treat None and "" as equivalent for text-like fields.
+		return (a or None) == (b or None)
+
+	def validate_template_header_locks(self, template):
+		# Server-side mirror of the client header locks (TEMPLATE_HEADER_LOCKS in
+		# journal_entry.js). Only enforced when the global Accounts Settings switch
+		# is on, matching the client — which makes these fields read-only only in
+		# that mode. Without this, a bulk edit / API write could change header
+		# fields the template fixed (proven for is_opening). Reuses the same
+		# fieldtype-normalised comparison as the reversal locks.
+		if not frappe.db.get_single_value("Accounts Settings", "enforce_template_field_locking"):
+			return
+		header_fields = ("voucher_type", "company", "multi_currency", "is_opening", "naming_series")
+		for field in header_fields:
+			if not (self.meta.has_field(field) and template.meta.has_field(field)):
+				continue
+			if not self._field_values_match(self, template, field, self.meta):
+				frappe.throw(
+					_("Field {0} is set by Journal Entry Template {1} and cannot be changed.").format(
+						frappe.bold(_(self.meta.get_label(field) or field)),
+						get_link_to_form("Journal Entry Template", self.from_template),
+					)
+				)
 
 	def validate_template_row_locks(self, template):
 		# Defect WA-0001-04 #5 — server-side mirror of the client row locks:
@@ -636,31 +681,11 @@ class JournalEntry(AccountsController):
 
 		original = frappe.get_doc("Journal Entry", self.reversal_of)
 
-		def _values_match(doc_a, doc_b, fieldname, meta):
-			# Normalise by fieldtype so a form-POSTed string ("2026-05-13", "0")
-			# compares equal to the DB-typed value (datetime.date, False).
-			df = meta.get_field(fieldname)
-			fieldtype = df.fieldtype if df else None
-			a, b = doc_a.get(fieldname), doc_b.get(fieldname)
-			if fieldtype == "Date":
-				from frappe.utils import getdate
-				return (getdate(a) if a else None) == (getdate(b) if b else None)
-			if fieldtype in ("Datetime",):
-				from frappe.utils import get_datetime
-				return (get_datetime(a) if a else None) == (get_datetime(b) if b else None)
-			if fieldtype in ("Check", "Int"):
-				from frappe.utils import cint
-				return cint(a) == cint(b)
-			if fieldtype in ("Float", "Currency", "Percent"):
-				return flt(a) == flt(b)
-			# Treat None and "" as equivalent for text-like fields.
-			return (a or None) == (b or None)
-
 		# WA-0001-01 #7 — is_opening is allow_on_submit, so without this it stays
 		# editable on a submitted reversal; lock it to the original here.
 		header_fields = ("company", "voucher_type", "multi_currency", "cheque_no", "cheque_date", "is_opening")
 		for field in header_fields:
-			if not _values_match(self, original, field, self.meta):
+			if not self._field_values_match(self, original, field, self.meta):
 				frappe.throw(
 					_("Field {0} cannot be modified on a Reversal Journal Entry.").format(
 						frappe.bold(_(self.meta.get_label(field) or field))
@@ -695,7 +720,7 @@ class JournalEntry(AccountsController):
 				if field == "cost_center" and not self.respect_cost_center_allocation:
 					# cost_center is allowed to change when re-resolution is requested.
 					continue
-				if not _values_match(reversal_row, original_row, field, row_meta):
+				if not self._field_values_match(reversal_row, original_row, field, row_meta):
 					frappe.throw(
 						_("Row #{0}: Field {1} cannot be modified on a Reversal Journal Entry.").format(
 							reversal_row.idx,
