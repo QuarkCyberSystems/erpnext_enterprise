@@ -498,7 +498,11 @@ class JournalEntry(AccountsController):
 			"reference_doctype": "Journal Entry",
 			"reference_document": self.name,
 			"repeat_type": "Reversal",
-			"submit_on_creation": 1,
+			# Keep submit_on_creation aligned with the JE's Auto Submit Reversal
+			# config. In Reversal mode the handler controls submission via
+			# auto_submit_reversal (submit_on_creation is not consumed on this
+			# path), but they must agree so the stored config is not misleading.
+			"submit_on_creation": self.auto_submit_reversal or 0,
 			"start_date": start_date,
 			# frappe's Auto Repeat requires `frequency` (reqd=1). For our
 			# single-fire Reversal flow it's a placeholder — ERPNextAutoRepeat's

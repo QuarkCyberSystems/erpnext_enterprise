@@ -44,6 +44,45 @@ class ERPNextAutoRepeat(AutoRepeat):
 		super().validate()
 		# Validate ERPNext-side repeat_type handler registration
 		self._validate_erpnext_repeat_type()
+		# Lock Auto Repeats created by a Journal Entry auto-reversal
+		self._guard_je_reversal_lock()
+
+	def _guard_je_reversal_lock(self):
+		"""An Auto Repeat created by a Journal Entry's auto-reversal is fully
+		managed by the JE flow and must not be edited by users — not its
+		reversal config, not its schedule, and not by switching it to Copy mode.
+		The only permitted change is disabling it (to stop the schedule).
+
+		Identified by the JE back-link (Journal Entry.linked_auto_repeat). The
+		single-fire disable performed by the reversal handler uses db_set, which
+		bypasses validate(), so this guard never blocks the system's own flow.
+		"""
+		if self.is_new():
+			return
+		je_meta = frappe.get_meta("Journal Entry")
+		if not je_meta.has_field("linked_auto_repeat"):
+			return
+		if not frappe.db.exists("Journal Entry", {"linked_auto_repeat": self.name}):
+			return
+
+		before = self.get_doc_before_save()
+		if not before:
+			return
+
+		# Disabling (and its derived status / cleared schedule) is the only
+		# change a user may make.
+		allowed = {"disabled", "status", "next_schedule_date"}
+		skip_types = {"Section Break", "Column Break", "Tab Break", "HTML", "Button", "Heading"}
+		for df in self.meta.fields:
+			if df.fieldname in allowed or df.fieldtype in skip_types:
+				continue
+			if (self.get(df.fieldname) or None) != (before.get(df.fieldname) or None):
+				frappe.throw(
+					_(
+						"This Auto Repeat was created by a Journal Entry auto-reversal and is locked. "
+						"{0} cannot be changed; you may only disable the schedule."
+					).format(frappe.bold(_(df.label or df.fieldname)))
+				)
 
 	def _validate_erpnext_repeat_type(self):
 		"""Reject Reversal mode for doctypes without a registered handler."""
