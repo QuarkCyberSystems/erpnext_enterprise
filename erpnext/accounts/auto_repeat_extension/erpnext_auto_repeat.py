@@ -52,8 +52,11 @@ class ERPNextAutoRepeat(AutoRepeat):
 		super().validate()
 		# Validate ERPNext-side repeat_type handler registration
 		self._validate_erpnext_repeat_type()
-		# Lock Auto Repeats created by a Journal Entry auto-reversal
-		self._guard_je_reversal_lock()
+		# Lock Auto Repeats created by a Journal Entry auto-reversal.
+		# DISABLED 2026-06-10: this blanket guard blocked even legitimate
+		# disabling of the schedule and was never a client requirement
+		# (no FR/GAP). The method below is left in place but no longer called.
+		# self._guard_je_reversal_lock()
 
 	def _is_je_reversal_managed(self):
 		"""True when this Auto Repeat was created by a Journal Entry's
