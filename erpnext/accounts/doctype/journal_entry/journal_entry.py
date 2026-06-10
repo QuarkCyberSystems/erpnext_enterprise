@@ -347,6 +347,7 @@ class JournalEntry(AccountsController):
 
 	def before_cancel(self):
 		self.has_asset_adjustment_entry()
+		self.validate_no_active_auto_reversal()
 		# WP GA-0001-03 / GAP-004: block cancel if any PRE on this JE is still
 		# active. JEs reconciled as the payment side of a PRE need to be
 		# unreconciled (via reversal PRE) first.
@@ -354,6 +355,36 @@ class JournalEntry(AccountsController):
 			assert_no_active_pres,
 		)
 		assert_no_active_pres("Journal Entry", self.name)
+
+	def validate_no_active_auto_reversal(self):
+		# Symmetric with the manual-reversal guard in make_reverse_journal_entry:
+		# don't allow cancelling a JE that still has an active scheduled
+		# auto-reversal, otherwise the Auto Repeat would later fire and try to
+		# reverse a cancelled entry. The user must disable/cancel the schedule
+		# first. Capability-checked so it's safe before GA-0001-05+06 lands.
+		if not frappe.get_meta("Auto Repeat").has_field("repeat_type"):
+			return
+		active_ar = frappe.db.get_value(
+			"Auto Repeat",
+			{
+				"reference_doctype": "Journal Entry",
+				"reference_document": self.name,
+				"repeat_type": "Reversal",
+				"status": "Active",
+				"disabled": 0,
+			},
+			"name",
+		)
+		if active_ar:
+			frappe.throw(
+				_(
+					"{0} has an active Auto Repeat reversal {1}. "
+					"Disable or cancel the Auto Repeat before cancelling this Journal Entry."
+				).format(
+					frappe.bold(self.name),
+					get_link_to_form("Auto Repeat", active_ar),
+				)
+			)
 
 	def cancel(self):
 		if len(self.accounts) > 100:
