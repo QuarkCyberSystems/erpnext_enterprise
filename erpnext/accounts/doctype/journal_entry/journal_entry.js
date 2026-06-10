@@ -243,6 +243,10 @@ frappe.ui.form.on("Journal Entry", {
 			callback: function (r) {
 				if (r.message) {
 					$.each(frm.doc.accounts || [], function (i, jvd) {
+						// Template-seeded rows carry their own cost center from the
+						// Journal Entry Template — don't reset them to the company
+						// default when the company is populated during apply.
+						if (jvd.from_template) return;
 						frappe.model.set_value(jvd.doctype, jvd.name, "cost_center", r.message.cost_center);
 					});
 				}
@@ -397,6 +401,7 @@ function template_row_lock_fields() {
 			"account",
 			"party_type",
 			"party",
+			"is_advance",
 			"cost_center",
 			"project",
 			...dims.map((d) => d.fieldname).filter(Boolean),
@@ -1008,6 +1013,16 @@ $.extend(erpnext.journal_entry, {
 				},
 				callback: function (r) {
 					if (r.message) {
+						// A template-seeded row carries its own party_type/party
+						// from the Journal Entry Template. The account-type default
+						// (Receivable→Customer, Payable→Supplier) must not overwrite
+						// them — doing so leaves party_type out of sync with the
+						// existing party (an invalid Dynamic Link), which both shows
+						// the wrong party type and breaks inline grid editing.
+						if (d.from_template) {
+							delete r.message.party_type;
+							delete r.message.party;
+						}
 						$.extend(d, r.message);
 						erpnext.journal_entry.set_amount_on_last_row(frm, dt, dn);
 						erpnext.journal_entry.set_debit_credit_in_company_currency(frm, dt, dn);
