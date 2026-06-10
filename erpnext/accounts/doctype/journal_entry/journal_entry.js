@@ -1149,14 +1149,16 @@ $.extend(erpnext.journal_entry, {
 		if (parent_df) parent_df[property] = value;
 	},
 	apply_cost_center_lock: function (frm) {
-		// cost_center editability follows respect_cost_center_allocation:
-		// flag ON  → row cost_center stays locked (mirrors the original)
-		// flag OFF → row cost_center becomes editable so the user can
-		//            re-resolve to a different center; the server validator
-		//            permits the diff in this mode.
+		// WP GA-0001-01: cost_center on a reversal is ALWAYS read-only — the user
+		// must never set it by hand.
+		//   flag ON  → row cost_center mirrors the original (unchanged)
+		//   flag OFF → the server re-resolves it from the cost-center allocation
+		//              active at the reversal posting date (maybe_reresolve_cost_center)
+		// Either way the value is system-controlled, not user-entered, so the
+		// column stays locked in both modes.
 		const accounts_grid = frm.fields_dict.accounts && frm.fields_dict.accounts.grid;
 		if (!accounts_grid) return;
-		const read_only = frm.doc.respect_cost_center_allocation ? 1 : 0;
+		const read_only = 1;
 
 		// Update the grid-level docfield (affects future row-dialog renders
 		// and inline grid columns).

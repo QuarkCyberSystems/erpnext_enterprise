@@ -710,10 +710,13 @@ class JournalEntry(AccountsController):
 			"cost_center",
 			"project",
 			"account_currency",
-			# WA-0001-01 #7 — is_advance is allow_on_submit; lock it to the original
-			# so it cannot be toggled on a submitted reversal row.
-			"is_advance",
 		)
+		# WA-0001-01 #7 — is_advance is deliberately NOT diffed against the
+		# original. A reversal flips debit<->credit, so an advance row cannot
+		# keep is_advance="Yes" (it would violate the advance direction rule),
+		# and is never carried over (see make_reverse_journal_entry). The field
+		# is still locked read-only on the form via lock_reversal_fields, which
+		# satisfies the "not editable" requirement without an impossible diff.
 		original_rows = {row.idx: row for row in original.accounts}
 		row_meta = frappe.get_meta("Journal Entry Account")
 		for reversal_row in self.accounts:
@@ -792,8 +795,11 @@ class JournalEntry(AccountsController):
 			original_row = original_rows.get(row.idx)
 			if not original_row or not original_row.cost_center:
 				continue
+			# WP GA-0001-01: resolve the main cost center using the REVERSAL's
+			# posting date (not the original's) so the cost-center allocation
+			# active at the reversal date is the one re-applied on the post side.
 			main_cost_center = _find_main_cost_center_for_leaf(
-				original_row.cost_center, original.posting_date
+				original_row.cost_center, self.posting_date
 			)
 			if main_cost_center:
 				row.cost_center = main_cost_center
@@ -2368,6 +2374,13 @@ def make_reverse_journal_entry(source_name, target_doc=None):
 		# server-side — unsubmittable reversal.
 		target.cheque_no = source.cheque_no
 		target.cheque_date = source.cheque_date
+		# NOTE: is_advance is intentionally NOT carried over. A reversal flips
+		# debit<->credit, so an advance row (e.g. a customer advance, which must
+		# be a credit) would become a debit and fail the "Advance against
+		# Customer must be credit" rule. The reversal of an advance is not itself
+		# an advance, so it is left at its default ("No"). is_advance is locked
+		# read-only on the reversal form (lock_reversal_fields) per WA-0001-01 #7,
+		# but it is NOT diffed against the original (see validate_reversal_locked_fields).
 
 	doclist = get_mapped_doc(
 		"Journal Entry",
