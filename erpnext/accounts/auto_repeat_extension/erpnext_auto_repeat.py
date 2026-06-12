@@ -39,65 +39,11 @@ class ERPNextAutoRepeat(AutoRepeat):
 	field installation on a fresh site).
 	"""
 
-	def onload(self):
-		base_onload = getattr(super(), "onload", None)
-		if callable(base_onload):
-			base_onload()
-		# Tell the form (auto_repeat.js) to grey out the fields of an Auto Repeat
-		# that is managed by a Journal Entry auto-reversal.
-		self.set_onload("je_reversal_locked", self._is_je_reversal_managed())
-
 	def validate(self):
 		# Run frappe's base validate first
 		super().validate()
 		# Validate ERPNext-side repeat_type handler registration
 		self._validate_erpnext_repeat_type()
-		# Lock Auto Repeats created by a Journal Entry auto-reversal.
-		# DISABLED 2026-06-10: this blanket guard blocked even legitimate
-		# disabling of the schedule and was never a client requirement
-		# (no FR/GAP). The method below is left in place but no longer called.
-		# self._guard_je_reversal_lock()
-
-	def _is_je_reversal_managed(self):
-		"""True when this Auto Repeat was created by a Journal Entry's
-		auto-reversal, identified by the JE back-link Journal Entry.linked_auto_repeat."""
-		if self.is_new():
-			return False
-		je_meta = frappe.get_meta("Journal Entry")
-		if not je_meta.has_field("linked_auto_repeat"):
-			return False
-		return bool(frappe.db.exists("Journal Entry", {"linked_auto_repeat": self.name}))
-
-	def _guard_je_reversal_lock(self):
-		"""An Auto Repeat created by a Journal Entry's auto-reversal is fully
-		managed by the JE flow and must not be edited by users — not its
-		reversal config, not its schedule, and not by switching it to Copy mode.
-		The only permitted change is disabling it (to stop the schedule).
-
-		The single-fire disable performed by the reversal handler uses db_set,
-		which bypasses validate(), so this guard never blocks the system's own flow.
-		"""
-		if not self._is_je_reversal_managed():
-			return
-
-		before = self.get_doc_before_save()
-		if not before:
-			return
-
-		# Disabling (and its derived status / cleared schedule) is the only
-		# change a user may make.
-		allowed = {"disabled", "status", "next_schedule_date"}
-		skip_types = {"Section Break", "Column Break", "Tab Break", "HTML", "Button", "Heading"}
-		for df in self.meta.fields:
-			if df.fieldname in allowed or df.fieldtype in skip_types:
-				continue
-			if (self.get(df.fieldname) or None) != (before.get(df.fieldname) or None):
-				frappe.throw(
-					_(
-						"This Auto Repeat was created by a Journal Entry auto-reversal and is locked. "
-						"{0} cannot be changed; you may only disable the schedule."
-					).format(frappe.bold(_(df.label or df.fieldname)))
-				)
 
 	def _validate_erpnext_repeat_type(self):
 		"""Reject Reversal mode for doctypes without a registered handler."""
