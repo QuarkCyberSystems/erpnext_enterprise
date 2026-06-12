@@ -766,6 +766,15 @@ class JournalEntry(AccountsController):
 		if not self.is_reversal or not self.reversal_of or self.docstatus == 2:
 			return
 
+		# WA-0001-06: a "Current Rate" reversal deliberately re-prices the entry at
+		# the reversal posting date, so its base-currency totals differ from the
+		# original by the FX delta. The account-currency amounts still mirror the
+		# original row-by-row (validate_reversal_locked_fields) and the reversal
+		# balances internally, so the cross-document base-total equality check
+		# below does not apply in that mode.
+		if (self.get("reversal_exchange_rate_type") or "Original Rate") == "Current Rate":
+			return
+
 		original = frappe.db.get_value(
 			"Journal Entry",
 			self.reversal_of,

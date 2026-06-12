@@ -99,7 +99,14 @@ def make_journal_entry_reversal(auto_repeat, reference_doc, assignee=None):
 	_enhance_reversal_mapping(reversal, reference_doc)
 
 	# WP GAP-021 / Phase 5.1 — FX handling. AR has same field name; either works.
-	if _cfg("reversal_exchange_rate_type", "reversal_exchange_rate_type", "Original Rate") == "Current Rate":
+	# Stamp the resolved mode onto the reversal so validate_reversal_totals_match_original
+	# knows a Current-Rate reversal intentionally produces a base-currency FX
+	# difference (WA-0001-06) and skips the base-total equality check; account-
+	# currency amounts still mirror the original row-by-row.
+	rev_fx_mode = _cfg("reversal_exchange_rate_type", "reversal_exchange_rate_type", "Original Rate")
+	if reversal.meta.has_field("reversal_exchange_rate_type"):
+		reversal.reversal_exchange_rate_type = rev_fx_mode
+	if rev_fx_mode == "Current Rate":
 		_refresh_reversal_exchange_rate(reversal)
 
 	# WP GAP-022 — cost-center allocation audit
