@@ -641,6 +641,9 @@ class PaymentReconciliation(Document):
 				"difference_posting_date": row.get("gain_loss_posting_date"),
 				"debit_or_credit_note_posting_date": row.get("debit_or_credit_note_posting_date"),
 				"cost_center": row.get("cost_center"),
+				# WP GA-0001-03: user-chosen reconciliation/posting date carried
+				# through to the Payment Reconciliation Entry and its clearing GL.
+				"reconciliation_date": self.reconciliation_date,
 			}
 		)
 

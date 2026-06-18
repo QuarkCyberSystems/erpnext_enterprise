@@ -6,6 +6,7 @@
  "engine": "InnoDB",
  "field_order": [
   "company",
+  "reconciliation_date",
   "party_type",
   "column_break_4",
   "party",
@@ -45,6 +46,14 @@
    "ignore_user_permissions": 1,
    "label": "Company",
    "options": "Company",
+   "reqd": 1
+  },
+  {
+   "default": "Today",
+   "description": "Posting date used for the reconciliation (clearing GL pair and Payment Reconciliation Entry).",
+   "fieldname": "reconciliation_date",
+   "fieldtype": "Date",
+   "label": "Reconciliation Date",
    "reqd": 1
   },
   {

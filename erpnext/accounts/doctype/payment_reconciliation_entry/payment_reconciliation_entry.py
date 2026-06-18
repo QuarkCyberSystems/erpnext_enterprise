@@ -49,6 +49,23 @@ class PaymentReconciliationEntry(Document):
 	SUPPORTED_PAYMENT_TYPES = ("Payment Entry", "Journal Entry", "Sales Invoice", "Purchase Invoice")
 	SUPPORTED_INVOICE_TYPES = ("Sales Invoice", "Purchase Invoice", "Journal Entry", "Payment Entry")
 
+	def before_insert(self):
+		# WP GA-0001-03: a Payment Reconciliation Entry is an accounting record
+		# produced by the reconciliation engine — it must never be hand-created
+		# from the desk. Both legitimate entry points (the Payment Reconciliation
+		# tool via `_create_pre_for_allocation`, and Unreconcile Payment via
+		# `_create_reversal_pre`) set this flag before inserting. Anything else
+		# (manual "New", API insert) is rejected.
+		if not self.flags.via_reconciliation_tool:
+			frappe.throw(
+				_(
+					"Payment Reconciliation Entry cannot be created directly. "
+					"Use the Payment Reconciliation tool to reconcile, or Unreconcile "
+					"Payment to reverse an existing reconciliation."
+				),
+				title=_("Not Allowed"),
+			)
+
 	def validate(self):
 		self._validate_payment_invoice_compatibility()
 		self._set_currency_and_exchange_rate()
@@ -88,19 +105,25 @@ class PaymentReconciliationEntry(Document):
 				""",
 				{"now": frappe.utils.now(), "orig": self.reversal_of, "rev": self.name},
 			)
-			# UAT-found: the PE Reference row added by the original recon
-			# (via `_insert_payment_entry_reference_row` in utils.py) was left
-			# in place when the original PRE got marked unreconciled, with its
-			# `reconciliation_entry` still pointing at the now-unreconciled
-			# PRE. A subsequent re-recon appends a fresh row, leaving the PE
-			# form showing two allocations for the same invoice (one stale,
-			# one live). `unallocated_amount` is computed correctly so the GL
-			# math is fine, but the references display is misleading. Delete
-			# the original row symmetrically with how it was inserted: direct
-			# child-row delete, no parent doc save. Reads `payment_reference_row`
-			# off the ORIGINAL PRE (which is the field the row belongs to) so
-			# the cleanup survives if the reversal PRE was created without
-			# inheriting that field.
+			# WP GA-0001-03 #4: the PE Reference row added by the original recon
+			# (via `_insert_payment_entry_reference_row` in utils.py) must NOT be
+			# hard-deleted on unreconcile — immutable ledger requires the
+			# reconciliation reference to survive for audit, and the client
+			# explicitly asked that it be cancelled, not deleted. Instead,
+			# neutralise its accounting effect by zeroing `allocated_amount` (so
+			# the payment frees up for re-reconciliation and any future
+			# `set_total_allocated_amount` recompute ignores it) while preserving
+			# the row and its `reconciliation_entry` link, which still points at
+			# the now-unreconciled original PRE (whose `unreconciled_by` in turn
+			# names this reversal PRE — a complete audit chain). This mirrors
+			# standard ERPNext's unlink idiom (set allocated_amount=0) but stops
+			# short of the subsequent hard delete
+			# (`clear_unallocated_reference_document_rows`). Reads
+			# `payment_reference_row` off the ORIGINAL PRE (the field the row
+			# belongs to) so it works even if the reversal PRE didn't inherit it.
+			# After zeroing, the grid shows the reversed allocation as 0 — so the
+			# misleading "two identical 1000 rows" the earlier delete-fix was
+			# guarding against no longer occurs.
 			if self.payment_type == "Payment Entry":
 				orig_ref_row = frappe.db.get_value(
 					"Payment Reconciliation Entry",
@@ -110,7 +133,13 @@ class PaymentReconciliationEntry(Document):
 				if orig_ref_row and frappe.db.exists(
 					"Payment Entry Reference", orig_ref_row
 				):
-					frappe.db.delete("Payment Entry Reference", {"name": orig_ref_row})
+					frappe.db.set_value(
+						"Payment Entry Reference",
+						orig_ref_row,
+						"allocated_amount",
+						0,
+						update_modified=False,
+					)
 		else:
 			if self.payment_type == "Payment Entry" and self.payment_reference_row:
 				frappe.db.set_value(

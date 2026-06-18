@@ -38,7 +38,15 @@ erpnext.accounts.unreconcile_payment = {
 		// assuming each row is an individual voucher
 		// pass this to server side method that creates unreconcile doc for each row
 		let selection_map = [];
-		if (["Sales Invoice", "Purchase Invoice"].includes(frm.doc.doctype)) {
+		// WP GA-0001-03 #6: a Sales/Purchase Invoice with is_return=1 is a
+		// credit/debit note that acts as the PAYMENT in its reconciliation (the
+		// PRE stores it as payment_name). It must use the payment-side mapping
+		// (voucher = the note itself, against = the linked invoice), exactly like
+		// a Payment Entry / Journal Entry — NOT the invoice-side mapping. Only a
+		// non-return invoice uses the invoice-side mapping.
+		let is_invoice_side =
+			["Sales Invoice", "Purchase Invoice"].includes(frm.doc.doctype) && !frm.doc.is_return;
+		if (is_invoice_side) {
 			selection_map = selections.map(function (elem) {
 				return {
 					company: elem.company,
@@ -48,7 +56,12 @@ erpnext.accounts.unreconcile_payment = {
 					against_voucher_no: frm.doc.name,
 				};
 			});
-		} else if (["Payment Entry", "Journal Entry"].includes(frm.doc.doctype)) {
+		} else if (
+			["Payment Entry", "Journal Entry", "Sales Invoice", "Purchase Invoice"].includes(
+				frm.doc.doctype
+			)
+		) {
+			// Payment Entry, Journal Entry, OR a return-invoice acting as payment
 			selection_map = selections.map(function (elem) {
 				return {
 					company: elem.company,

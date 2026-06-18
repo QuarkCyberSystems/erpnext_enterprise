@@ -112,6 +112,7 @@ class AccountsSettings(Document):
 
 	def validate(self):
 		self.validate_auto_tax_settings()
+		self.validate_immutable_ledger_deletion_guard()
 		old_doc = self.get_doc_before_save()
 		clear_cache = False
 
@@ -153,6 +154,21 @@ class AccountsSettings(Document):
 
 		self.validate_and_sync_auto_reconcile_config()
 		self.update_property_for_accounting_dimension()
+
+	def validate_immutable_ledger_deletion_guard(self):
+		# WP GA-0001-03: an immutable ledger must never hard-delete linked GL /
+		# PLE entries. `delete_linked_ledger_entries` re-enables exactly that
+		# deletion path on document trash, which would defeat the immutable
+		# ledger guarantee. Block the incompatible combination outright.
+		if self.enable_immutable_ledger and self.delete_linked_ledger_entries:
+			frappe.throw(
+				_(
+					"'Delete Linked Ledger Entries' cannot be enabled while 'Enable Immutable Ledger' "
+					"is on. An immutable ledger must preserve all GL and Payment Ledger entries; "
+					"deleting them on document trash would break the audit trail."
+				),
+				title=_("Incompatible Settings"),
+			)
 
 	def validate_stale_days(self):
 		if not self.allow_stale and cint(self.stale_days) <= 0:

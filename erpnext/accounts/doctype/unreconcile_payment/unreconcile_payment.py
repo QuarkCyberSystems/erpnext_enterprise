@@ -132,6 +132,9 @@ class UnreconcilePayment(Document):
 		# which it doesn't. Clear it to keep the data model honest.
 		reversal.exchange_gain_loss_journal = None
 		reversal.flags.ignore_permissions = True
+		# Authorise creation: PRE rejects any insert not originating from the
+		# reconciliation engine (see PaymentReconciliationEntry.before_insert).
+		reversal.flags.via_reconciliation_tool = True
 		reversal.insert()
 		reversal.submit()
 		return reversal
@@ -223,6 +226,40 @@ def get_linked_payments_for_doc(
 				.having(qb.Field("allocated_amount") > 0)
 				.run(as_dict=True)
 			)
+
+			# WP GA-0001-03: under Immutable Ledger the clearing GL/PLE pair is
+			# owned by the Payment Reconciliation Entry, so the rows above surface
+			# the PRE itself as the "payment" — which Unreconcile Payment can't act
+			# on (PRE isn't an allowed voucher_type). Resolve those PRE rows back to
+			# the real payment voucher, mirroring the payment-side logic below.
+			if is_immutable_ledger_enabled():
+				res = [r for r in res if r.get("reference_doctype") != "Payment Reconciliation Entry"]
+				existing_pairs = {(r.get("reference_doctype"), r.get("reference_name")) for r in res}
+				pre_rows = frappe.get_all(
+					"Payment Reconciliation Entry",
+					filters={
+						"company": company,
+						"invoice_type": _dt,
+						"invoice_name": _dn,
+						"is_reversal": 0,
+						"is_unreconciled": 0,
+						"docstatus": 1,
+					},
+					fields=[
+						"company",
+						"account",
+						"party_type",
+						"party",
+						"payment_type as reference_doctype",
+						"payment_name as reference_name",
+						"allocated_amount",
+						"currency as account_currency",
+					],
+				)
+				for row in pre_rows:
+					if (row.reference_doctype, row.reference_name) not in existing_pairs:
+						res.append(row)
+
 			return res
 		else:
 			criteria = [
@@ -318,17 +355,43 @@ def create_unreconcile_doc_for_selection(selections=None):
 		selections = json.loads(selections)
 		# assuming each row is a unique voucher
 		for row in selections:
+			voucher_type = row.get("voucher_type")
+			voucher_no = row.get("voucher_no")
+			against_type = row.get("against_voucher_type")
+			against_no = row.get("against_voucher_no")
+
+			# WP GA-0001-03 #6: a credit/debit note (Sales/Purchase Invoice with
+			# is_return=1) is the PAYMENT side of its reconciliation — the PRE
+			# stores it as `payment_name`, with the normal invoice as
+			# `invoice_name`. When the user unreconciles from the note, the
+			# selection can arrive with the note as `against` and the linked
+			# invoice as `voucher` (the note is a Sales/Purchase Invoice doctype,
+			# so it gets the invoice-side mapping). Left as-is, Unreconcile
+			# Payment.on_submit looks up a PRE keyed on payment_name=voucher_no /
+			# invoice_name=against_no — i.e. swapped — finds nothing, and silently
+			# no-ops. Orient so the return invoice is always the voucher (payment)
+			# and the normal invoice the counterparty. Idempotent: when the voucher
+			# is already the return invoice (unreconcile from the invoice side, or
+			# corrected JS), the condition is false and nothing is swapped.
+			if (
+				voucher_type in ("Sales Invoice", "Purchase Invoice")
+				and against_type in ("Sales Invoice", "Purchase Invoice")
+				and not frappe.db.get_value(voucher_type, voucher_no, "is_return")
+				and frappe.db.get_value(against_type, against_no, "is_return")
+			):
+				voucher_type, against_type = against_type, voucher_type
+				voucher_no, against_no = against_no, voucher_no
+
 			unrecon = frappe.new_doc("Unreconcile Payment")
 			unrecon.company = row.get("company")
-			unrecon.voucher_type = row.get("voucher_type")
-			unrecon.voucher_no = row.get("voucher_no")
+			unrecon.voucher_type = voucher_type
+			unrecon.voucher_no = voucher_no
 			unrecon.add_references()
 
 			# remove unselected references
 			unrecon.allocations = [
 				x
 				for x in unrecon.allocations
-				if x.reference_doctype == row.get("against_voucher_type")
-				and x.reference_name == row.get("against_voucher_no")
+				if x.reference_doctype == against_type and x.reference_name == against_no
 			]
 			unrecon.save().submit()

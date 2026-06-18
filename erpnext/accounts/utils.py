@@ -638,7 +638,10 @@ def _create_pre_for_allocation(doc, entry, dimensions_dict):
 	pre = frappe.new_doc("Payment Reconciliation Entry")
 	pre.update(
 		{
-			"reconciliation_date": nowdate(),
+			# WP GA-0001-03: honour the user-chosen reconciliation date from the
+			# Payment Reconciliation tool; fall back to today for callers that
+			# don't supply one (legacy advance-adjustment paths).
+			"reconciliation_date": entry.get("reconciliation_date") or nowdate(),
 			"company": doc.company,
 			"party_type": entry.party_type,
 			"party": entry.party,
@@ -659,6 +662,9 @@ def _create_pre_for_allocation(doc, entry, dimensions_dict):
 		if pre.meta.has_field(dim_field):
 			pre.set(dim_field, dim_value)
 	pre.flags.ignore_permissions = True
+	# Authorise creation: PRE rejects any insert not originating from the
+	# reconciliation engine (see PaymentReconciliationEntry.before_insert).
+	pre.flags.via_reconciliation_tool = True
 	pre.insert()
 	pre.submit()
 
