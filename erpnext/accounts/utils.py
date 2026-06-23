@@ -1015,7 +1015,14 @@ def update_reference_in_payment_entry(
 	return row
 
 
-def get_reconciliation_effect_date(against_voucher_type, against_voucher, company, posting_date):
+def get_reconciliation_effect_date(
+	against_voucher_type, against_voucher, company, posting_date, reconciliation_date=None
+):
+	# WP GA-0001-03 #11: `reconciliation_date` lets a caller supply the
+	# user-chosen reconcile date (Payment Reconciliation Entry flow). When the
+	# company policy is "Reconciliation Date" we post on that chosen date rather
+	# than today; legacy callers pass nothing, so the behaviour (nowdate) is
+	# unchanged for them.
 	reconciliation_takes_effect_on = frappe.get_cached_value(
 		"Company", company, "reconciliation_takes_effect_on"
 	)
@@ -1033,7 +1040,7 @@ def get_reconciliation_effect_date(against_voucher_type, against_voucher, compan
 		if getdate(reconcile_on) < getdate(posting_date):
 			reconcile_on = posting_date
 	elif reconciliation_takes_effect_on == "Reconciliation Date":
-		reconcile_on = nowdate()
+		reconcile_on = reconciliation_date or nowdate()
 
 	return reconcile_on
 

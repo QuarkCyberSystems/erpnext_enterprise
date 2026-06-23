@@ -1841,6 +1841,14 @@ class AccountsController(TransactionBase):
 			if self.get("doctype") == "Payment Entry":
 				# For Payment Entry, exchange_gain_loss field in the `references` table is the trigger for journal creation
 				gain_loss_to_book = [x for x in self.references if x.exchange_gain_loss != 0]
+				# WP GA-0001-03 #10: honour the "Posting Date Inheritance for Exchange
+				# Gain / Loss" Accounts Settings option for normal payments. The
+				# gain/loss JE date was previously always the payment posting date,
+				# ignoring the setting (whose description is "Only applies for Normal
+				# Payments"). Resolved per reference row just before each JE is booked.
+				exc_gl_posting_date_setting = frappe.db.get_single_value(
+					"Accounts Settings", "exchange_gain_loss_posting_date", cache=True
+				)
 				booked = []
 				if gain_loss_to_book:
 					[x.reference_doctype for x in gain_loss_to_book]
@@ -1899,7 +1907,7 @@ class AccountsController(TransactionBase):
 						)
 						je = create_gain_loss_journal(
 							self.company,
-							args.get("difference_posting_date") if args else self.posting_date,
+							self._resolve_exc_gain_loss_posting_date(exc_gl_posting_date_setting, d, args),
 							self.party_type,
 							self.party,
 							party_account,
@@ -1922,6 +1930,33 @@ class AccountsController(TransactionBase):
 								get_link_to_form("Journal Entry", je)
 							)
 						)
+
+	def _resolve_exc_gain_loss_posting_date(self, setting, ref_row, args=None):
+		"""WP GA-0001-03 #10 — resolve the Exchange Gain/Loss JE posting date.
+
+		Honours the "Posting Date Inheritance for Exchange Gain / Loss"
+		Accounts Settings option for normal payments:
+		  * "Payment" (default)     -> the payment's own posting date
+		  * "Invoice"               -> the referenced invoice's posting date
+		  * "Reconciliation Date"   -> today
+		An explicit ``difference_posting_date`` (passed by the reconciliation
+		flow) always takes precedence so that path is unchanged.
+		"""
+		if args and args.get("difference_posting_date"):
+			return args.get("difference_posting_date")
+		if setting == "Invoice" and ref_row.reference_doctype and ref_row.reference_name:
+			date_field = (
+				"transaction_date"
+				if ref_row.reference_doctype in ("Sales Order", "Purchase Order")
+				else "posting_date"
+			)
+			return (
+				frappe.db.get_value(ref_row.reference_doctype, ref_row.reference_name, date_field)
+				or self.posting_date
+			)
+		if setting == "Reconciliation Date":
+			return nowdate()
+		return self.posting_date
 
 	def is_payable_account(self, reference_doctype, account):
 		if reference_doctype == "Purchase Invoice" or (

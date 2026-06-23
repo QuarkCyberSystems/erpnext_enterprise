@@ -140,6 +140,12 @@ class PaymentReconciliationEntry(Document):
 						0,
 						update_modified=False,
 					)
+			# WP GA-0001-03 #7: the exchange gain/loss JE booked by the original
+			# reconciliation must be REVERSED on unreconcile, not cancelled or
+			# left orphaned. Post a GA-0001-01 reversal JE that offsets it; both
+			# the original and the reversal stay docstatus=1 for the immutable
+			# audit trail.
+			self._reverse_exchange_gain_loss_journal()
 		else:
 			if self.payment_type == "Payment Entry" and self.payment_reference_row:
 				frappe.db.set_value(
@@ -175,6 +181,45 @@ class PaymentReconciliationEntry(Document):
 			)
 
 	# --- helpers ---
+
+	def _reverse_exchange_gain_loss_journal(self):
+		"""WP GA-0001-03 #7 — reverse, don't cancel, the exchange gain/loss JE.
+
+		On unreconcile (this is a reversal PRE), the system-generated
+		``Exchange Gain Or Loss`` JE that the original reconciliation booked
+		must be offset by a GA-0001-01 reversal JE rather than cancelled or
+		left orphaned. The original JE stays docstatus=1; the reversal JE
+		(``is_reversal=1``, ``reversal_of`` = original) flips its debits and
+		credits and is linked on this reversal PRE's
+		``exchange_gain_loss_journal``. Idempotent — a no-op when the original
+		recon had no gain/loss JE or one has already been reversed.
+		"""
+		from erpnext.accounts.doctype.journal_entry.journal_entry import make_reverse_journal_entry
+
+		orig_je = frappe.db.get_value(
+			"Payment Reconciliation Entry", self.reversal_of, "exchange_gain_loss_journal"
+		)
+		if not orig_je or frappe.db.get_value("Journal Entry", orig_je, "docstatus") != 1:
+			return
+		# Already reversed (e.g. re-run) — don't double-post.
+		if frappe.db.exists("Journal Entry", {"reversal_of": orig_je, "docstatus": ["in", [0, 1]]}):
+			return
+
+		rev_je = make_reverse_journal_entry(orig_je)
+		# Post the reversal on the unreconcile date and keep it flagged as a
+		# system entry (the audit lookups filter on is_system_generated=1).
+		rev_je.posting_date = self.reconciliation_date
+		rev_je.is_system_generated = 1
+		rev_je.flags.ignore_permissions = True
+		rev_je.insert()
+		rev_je.submit()
+		frappe.db.set_value(
+			"Payment Reconciliation Entry",
+			self.name,
+			"exchange_gain_loss_journal",
+			rev_je.name,
+			update_modified=False,
+		)
 
 	def _validate_payment_invoice_compatibility(self):
 		if self.payment_type not in self.SUPPORTED_PAYMENT_TYPES:
@@ -318,6 +363,34 @@ class PaymentReconciliationEntry(Document):
 			dr_or_cr_invoice = "credit" if self.party_type == "Customer" else "debit"
 		return advance_account, dr_or_cr_invoice
 
+	def _clearing_posting_date(self):
+		"""WP GA-0001-03 #11 — posting date for the clearing GL pair.
+
+		The forward reconciliation honours the Company's "Reconciliation Takes
+		Effect On" policy (Advance Payment Date / Oldest Of Invoice Or Advance /
+		Reconciliation Date) via ``get_reconciliation_effect_date`` — previously
+		the clearing GL always posted on the reconcile date, ignoring the policy.
+		Under the "Reconciliation Date" policy the user-chosen
+		``reconciliation_date`` is used (so the editable date from #1 still
+		drives posting when the policy selects it). A reversal PRE posts on its
+		own (unreconcile) date, so undoing a reconcile never posts into a
+		possibly-closed prior period.
+		"""
+		if self.is_reversal:
+			return self.reconciliation_date
+		from erpnext.accounts.utils import get_reconciliation_effect_date
+
+		payment_posting_date = frappe.db.get_value(
+			self.payment_type, self.payment_name, "posting_date"
+		)
+		return get_reconciliation_effect_date(
+			self.invoice_type,
+			self.invoice_name,
+			self.company,
+			payment_posting_date or self.reconciliation_date,
+			self.reconciliation_date,
+		)
+
 	def _post_clearing_gl_pair(self):
 		from erpnext.accounts.general_ledger import make_gl_entries
 
@@ -332,7 +405,7 @@ class PaymentReconciliationEntry(Document):
 
 		common = {
 			"company": self.company,
-			"posting_date": self.reconciliation_date,
+			"posting_date": self._clearing_posting_date(),
 			"voucher_type": "Payment Reconciliation Entry",
 			"voucher_no": self.name,
 			"voucher_detail_no": self.payment_reference_row,

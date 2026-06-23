@@ -38,6 +38,22 @@ class UnreconcilePayment(Document):
 		voucher_type: DF.Link | None
 	# end: auto-generated types
 
+	def before_insert(self):
+		# WP GA-0001-03 #9: Unreconcile Payment is a ledger-altering action
+		# record — submitting it reverses reconciliations (creates reversal
+		# PREs under Immutable Ledger). It must only be raised by the UnReconcile
+		# action flow (`create_unreconcile_doc_for_selection`), which sets this
+		# flag. A hand-created doc from the desk / API is rejected, mirroring the
+		# Payment Reconciliation Entry lockdown.
+		if not self.flags.via_unreconcile_action:
+			frappe.throw(
+				_(
+					"Unreconcile Payment cannot be created directly. Use the "
+					"UnReconcile action on the Payment Entry / Journal Entry / Invoice."
+				),
+				title=_("Not Allowed"),
+			)
+
 	def validate(self):
 		# WP GA-0001-03 / GAP-013: under Immutable Ledger, credit/debit notes
 		# (Sales/Purchase Invoice with is_return=1) route through PRE just
@@ -383,6 +399,10 @@ def create_unreconcile_doc_for_selection(selections=None):
 				voucher_no, against_no = against_no, voucher_no
 
 			unrecon = frappe.new_doc("Unreconcile Payment")
+			# Authorise creation: Unreconcile Payment rejects any insert not
+			# raised through this action flow (see before_insert).
+			unrecon.flags.via_unreconcile_action = True
+			unrecon.flags.ignore_permissions = True
 			unrecon.company = row.get("company")
 			unrecon.voucher_type = voucher_type
 			unrecon.voucher_no = voucher_no
