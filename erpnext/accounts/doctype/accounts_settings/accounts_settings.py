@@ -113,6 +113,7 @@ class AccountsSettings(Document):
 	def validate(self):
 		self.validate_auto_tax_settings()
 		self.validate_immutable_ledger_deletion_guard()
+		self.validate_immutable_ledger_disable_guard()
 		old_doc = self.get_doc_before_save()
 		clear_cache = False
 
@@ -168,6 +169,28 @@ class AccountsSettings(Document):
 					"deleting them on document trash would break the audit trail."
 				),
 				title=_("Incompatible Settings"),
+			)
+
+	def validate_immutable_ledger_disable_guard(self):
+		# WP GA-0001-03 #8: the immutable-ledger reconciliation architecture
+		# (Payment Reconciliation Entry — a separate clearing voucher on
+		# reconcile, a reversal PRE on unreconcile) is active only while
+		# Immutable Ledger is on. Turning it off silently reverts reconciliation
+		# to the legacy same-voucher / mutate-and-cancel path (GAP-002) and
+		# strands the audit model of any reconciliations already booked through
+		# PREs. Block the toggle once any PRE exists.
+		old_doc = self.get_doc_before_save()
+		if not old_doc or not old_doc.enable_immutable_ledger or self.enable_immutable_ledger:
+			return
+		if frappe.db.exists("Payment Reconciliation Entry", {"docstatus": 1}):
+			frappe.throw(
+				_(
+					"Immutable Ledger cannot be disabled because Payment Reconciliation "
+					"Entries already exist. Disabling it would revert reconciliation to the "
+					"legacy same-voucher path and strand the audit trail of those "
+					"reconciliations. Reverse/cancel them first if you must disable it."
+				),
+				title=_("Immutable Ledger In Use"),
 			)
 
 	def validate_stale_days(self):
