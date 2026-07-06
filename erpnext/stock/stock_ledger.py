@@ -846,6 +846,14 @@ class update_entries_after:
 			)
 
 	def process_sle(self, sle):
+		if sle.get("posted_via_sap_kernel"):
+			# Valuation for this row was computed by a SAP posting kernel
+			# (sap_valuation app). Recomputing it here — e.g. during a repost
+			# walk — would re-value the item under FIFO and corrupt the books.
+			return
+
+		self.validate_known_valuation_method(sle)
+
 		# previous sle data for this warehouse
 		key = (sle.item_code, sle.warehouse)
 		if key not in self.prev_sle_dict:
@@ -1560,6 +1568,26 @@ class update_entries_after:
 			incoming_values += flt(incoming_rate[0][0]) if incoming_rate else 0
 
 		return incoming_values
+
+	def validate_known_valuation_method(self, sle):
+		"""An unrecognised valuation method must never fall through to FIFO.
+
+		Methods served by a posting kernel (``sap_valuation_kernels`` hook) are
+		routed before SLE creation; a kernel-method SLE reaching here means the
+		routing was bypassed. Anything else is a configuration error. Either
+		way, valuing it silently as FIFO would corrupt the books.
+		"""
+		if not self.valuation_method or self.valuation_method in ("FIFO", "Moving Average", "LIFO"):
+			return
+
+		frappe.throw(
+			_(
+				"Item {0} uses valuation method {1}, which the core stock ledger has no engine for. "
+				"If this is a SAP valuation method, the posting must route through its kernel "
+				"(is the sap_valuation app installed and the item routed correctly?)."
+			).format(sle.item_code, frappe.bold(self.valuation_method)),
+			title=_("Unknown Valuation Method"),
+		)
 
 	def get_moving_average_values(self, sle):
 		actual_qty = flt(sle.actual_qty)

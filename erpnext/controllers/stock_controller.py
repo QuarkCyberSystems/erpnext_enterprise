@@ -1238,12 +1238,61 @@ class StockController(AccountsController):
 		from erpnext.stock.serial_batch_bundle import update_batch_qty
 		from erpnext.stock.stock_ledger import make_sl_entries
 
-		make_sl_entries(sl_entries, allow_negative_stock, via_landed_cost_voucher)
+		sl_entries = self.route_sap_valuation_entries(sl_entries)
+
+		if sl_entries:
+			make_sl_entries(sl_entries, allow_negative_stock, via_landed_cost_voucher)
 		update_batch_qty(
 			self.doctype, self.name, self.docstatus, via_landed_cost_voucher=via_landed_cost_voucher
 		)
 
 		self.validate_reserved_batches()
+
+	def sap_kernel_items_only(self):
+		"""True when every stock item on this voucher routes through a SAP
+		posting kernel — such vouchers never create Repost Item Valuation."""
+		kernel_map = frappe.get_hooks("sap_valuation_kernels")
+		if not kernel_map:
+			return False
+
+		from erpnext.stock.utils import get_valuation_method
+
+		item_codes = {row.item_code for row in self.get("items") or [] if row.get("item_code")}
+		if not item_codes:
+			return False
+		return all(
+			get_valuation_method(item_code, self.get("company")) in kernel_map for item_code in item_codes
+		)
+
+	def route_sap_valuation_entries(self, sl_entries):
+		"""Split off SLE dicts for items whose valuation method has a registered
+		posting kernel (``sap_valuation_kernels`` hook) and post them through it.
+
+		Returns the remaining entries for the core stock ledger. No-op when no
+		kernel-providing app is installed, so upstream behaviour is unchanged.
+		"""
+		kernel_map = frappe.get_hooks("sap_valuation_kernels")
+		if not kernel_map or not sl_entries:
+			return sl_entries
+
+		from erpnext.stock.utils import get_valuation_method
+
+		core_entries = []
+		routed = {}
+		for sle in sl_entries:
+			method = get_valuation_method(sle.get("item_code"), self.get("company"))
+			if method in kernel_map:
+				routed.setdefault(method, []).append(sle)
+			else:
+				core_entries.append(sle)
+
+		for method, entries in routed.items():
+			kernel_path = kernel_map[method]
+			if isinstance(kernel_path, list | tuple):
+				kernel_path = kernel_path[-1]
+			frappe.get_attr(kernel_path)(self, entries)
+
+		return core_entries
 
 	def validate_reserved_batches(self):
 		if not frappe.db.get_single_value("Stock Settings", "enable_stock_reservation"):
@@ -1748,6 +1797,12 @@ class StockController(AccountsController):
 		return message
 
 	def repost_future_sle_and_gle(self, force=False, via_landed_cost_voucher=False):
+		if self.sap_kernel_items_only():
+			# SAP-kernel valuation has no repost concept: backdated corrections
+			# post forward as new dated events; the kernel keeps period balances
+			# and GL consistent itself. Reposting would only churn gates.
+			return
+
 		args = frappe._dict(
 			{
 				"posting_date": self.posting_date,

@@ -13,6 +13,7 @@
   "posting_time",
   "posting_datetime",
   "is_adjustment_entry",
+  "posted_via_sap_kernel",
   "auto_created_serial_and_batch_bundle",
   "column_break_6",
   "voucher_type",
@@ -367,6 +368,14 @@
    "fieldname": "is_adjustment_entry",
    "fieldtype": "Check",
    "label": "Is Adjustment Entry"
+  },
+  {
+   "default": "0",
+   "fieldname": "posted_via_sap_kernel",
+   "fieldtype": "Check",
+   "label": "Posted via SAP Kernel",
+   "read_only": 1,
+   "search_index": 1
   },
   {
    "default": "0",

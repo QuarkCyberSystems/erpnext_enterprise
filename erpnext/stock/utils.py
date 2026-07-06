@@ -312,6 +312,21 @@ def get_incoming_rate(args, raise_error_if_no_rate=True, fallbacks: bool = True)
 		return batch_obj.get_incoming_rate()
 	else:
 		valuation_method = get_valuation_method(args.get("item_code"), args.get("company"))
+
+		if valuation_method and frappe.get_hooks("sap_valuation_kernels").get(valuation_method):
+			# Kernel-valued items: the rate comes from the kernel's period
+			# balance, never from SLE state or the generic fallback chain.
+			rate_provider = frappe.get_hooks("sap_valuation_incoming_rate")
+			if not rate_provider:
+				frappe.throw(
+					_(
+						"Item {0} is valued by the {1} posting kernel, which does not provide an "
+						"incoming-rate resolver yet."
+					).format(args.get("item_code"), valuation_method),
+					title=_("Unknown Valuation Method"),
+				)
+			return frappe.get_attr(rate_provider[-1])(args, valuation_method)
+
 		previous_sle = get_previous_sle(args)
 		if valuation_method in ("FIFO", "LIFO"):
 			if previous_sle:
