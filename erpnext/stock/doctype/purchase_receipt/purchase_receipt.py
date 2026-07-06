@@ -746,8 +746,13 @@ class PurchaseReceipt(BuyingController):
 
 		stock_items = self.get_stock_items()
 		warehouse_with_no_account = []
+		sap_routed_items = self.get_sap_routed_items()
 
 		for d in self.get("items"):
+			if d.item_code in sap_routed_items:
+				# kernel-valued: the posting kernel owns this item's stock GL
+				continue
+
 			remarks = self.get("remarks") or _("Accounting Entry for {0}").format(
 				"Asset" if d.is_fixed_asset else "Stock"
 			)

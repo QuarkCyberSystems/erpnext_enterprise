@@ -908,6 +908,10 @@ class StockController(AccountsController):
 				(table.voucher_type == self.doctype)
 				& (table.voucher_no == self.name)
 				& (table.is_cancelled == 0)
+				# kernel-valued rows: the posting kernel generates the complete
+				# stock GL itself (incl. PRD/price-difference legs), tagged with
+				# valuation_event_id — deriving a pair here would double-post
+				& (table.posted_via_sap_kernel == 0)
 			)
 		).run(as_dict=True)
 
@@ -1247,6 +1251,22 @@ class StockController(AccountsController):
 		)
 
 		self.validate_reserved_batches()
+
+	def get_sap_routed_items(self):
+		"""Item codes on this voucher whose valuation method has a registered
+		SAP posting kernel. Empty set when no kernel-providing app is installed."""
+		kernel_map = frappe.get_hooks("sap_valuation_kernels")
+		if not kernel_map:
+			return set()
+
+		from erpnext.stock.utils import get_valuation_method
+
+		return {
+			row.item_code
+			for row in self.get("items") or []
+			if row.get("item_code")
+			and get_valuation_method(row.item_code, self.get("company")) in kernel_map
+		}
 
 	def sap_kernel_items_only(self):
 		"""True when every stock item on this voucher routes through a SAP
