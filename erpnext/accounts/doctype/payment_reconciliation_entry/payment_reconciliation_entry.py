@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import flt, nowdate
+from frappe.utils import flt, getdate, nowdate
 
 from erpnext.accounts.utils import is_immutable_ledger_enabled, update_voucher_outstanding
 
@@ -36,6 +36,7 @@ class PaymentReconciliationEntry(Document):
 		party: DF.DynamicLink
 		party_type: DF.Link
 		payment_name: DF.DynamicLink
+		posting_date: DF.Date | None
 		payment_reference_row: DF.Data | None
 		payment_type: DF.Link
 		process_payment_reconciliation_log: DF.Link | None
@@ -72,6 +73,9 @@ class PaymentReconciliationEntry(Document):
 		self._compute_base_allocated_amount()
 		if self.is_reversal:
 			self._validate_reversal_target()
+		# WP GA-0001-03 #11 / #1: the effective GL posting date is stored (and
+		# shown) on the document rather than computed invisibly at GL time.
+		self.posting_date = self._clearing_posting_date()
 
 	def before_save(self):
 		self._compute_base_allocated_amount()
@@ -86,7 +90,7 @@ class PaymentReconciliationEntry(Document):
 				{
 					"is_unreconciled": 1,
 					"unreconciled_by": self.name,
-					"unreconciled_on": nowdate(),
+					"unreconciled_on": self.reconciliation_date or nowdate(),
 				},
 				update_modified=False,
 			)
@@ -105,25 +109,18 @@ class PaymentReconciliationEntry(Document):
 				""",
 				{"now": frappe.utils.now(), "orig": self.reversal_of, "rev": self.name},
 			)
-			# WP GA-0001-03 #4: the PE Reference row added by the original recon
-			# (via `_insert_payment_entry_reference_row` in utils.py) must NOT be
-			# hard-deleted on unreconcile — immutable ledger requires the
-			# reconciliation reference to survive for audit, and the client
-			# explicitly asked that it be cancelled, not deleted. Instead,
-			# neutralise its accounting effect by zeroing `allocated_amount` (so
-			# the payment frees up for re-reconciliation and any future
-			# `set_total_allocated_amount` recompute ignores it) while preserving
-			# the row and its `reconciliation_entry` link, which still points at
-			# the now-unreconciled original PRE (whose `unreconciled_by` in turn
-			# names this reversal PRE — a complete audit chain). This mirrors
-			# standard ERPNext's unlink idiom (set allocated_amount=0) but stops
-			# short of the subsequent hard delete
-			# (`clear_unallocated_reference_document_rows`). Reads
-			# `payment_reference_row` off the ORIGINAL PRE (the field the row
-			# belongs to) so it works even if the reversal PRE didn't inherit it.
-			# After zeroing, the grid shows the reversed allocation as 0 — so the
-			# misleading "two identical 1000 rows" the earlier delete-fix was
-			# guarding against no longer occurs.
+			# WP GA-0001-03 #4 (client-confirmed design): the PE Reference row
+			# added by the original recon is neither deleted nor zeroed on
+			# unreconcile. Its recorded values (allocated amount, exchange rate,
+			# account) are preserved verbatim for audit; the row is flagged
+			# `is_reversed=1` and carries links to BOTH reconciliation entries —
+			# `reconciliation_entry` (the original PRE, set at recon time) and
+			# `reversal_reconciliation_entry` (this reversal PRE). Preserving the
+			# amount is safe under Immutable Ledger because the submitted PE's
+			# stored totals are never recomputed from its reference rows
+			# post-submit (the PE is not saved by the PRE flow), and payment
+			# availability in the reconciliation tool is derived from PRE state,
+			# not from these rows.
 			if self.payment_type == "Payment Entry":
 				orig_ref_row = frappe.db.get_value(
 					"Payment Reconciliation Entry",
@@ -136,8 +133,10 @@ class PaymentReconciliationEntry(Document):
 					frappe.db.set_value(
 						"Payment Entry Reference",
 						orig_ref_row,
-						"allocated_amount",
-						0,
+						{
+							"is_reversed": 1,
+							"reversal_reconciliation_entry": self.name,
+						},
 						update_modified=False,
 					)
 			# WP GA-0001-03 #7: the exchange gain/loss JE booked by the original
@@ -268,6 +267,22 @@ class PaymentReconciliationEntry(Document):
 			frappe.throw(_("Cannot reverse a reversal entry"))
 		if target.is_unreconciled:
 			frappe.throw(_("Reversal target {0} is already unreconciled").format(self.reversal_of))
+		# WP GA-0001-03 #12: the user may choose the unreconcile date, but the
+		# reversal must not post before the original clearing GL — that would
+		# corrupt period balances between the two dates.
+		orig_posting_date = frappe.db.get_value(
+			"Payment Reconciliation Entry",
+			self.reversal_of,
+			["posting_date", "reconciliation_date"],
+			as_dict=True,
+		)
+		floor_date = orig_posting_date.posting_date or orig_posting_date.reconciliation_date
+		if floor_date and self.reconciliation_date and getdate(self.reconciliation_date) < getdate(floor_date):
+			frappe.throw(
+				_("Unreconcile Date {0} cannot be before the original reconciliation's posting date {1}").format(
+					frappe.bold(self.reconciliation_date), frappe.bold(floor_date)
+				)
+			)
 
 	def _create_advance_payment_ledger_entry(self):
 		"""Insert an APLE row marking the reconcile (or its reversal).
@@ -405,7 +420,7 @@ class PaymentReconciliationEntry(Document):
 
 		common = {
 			"company": self.company,
-			"posting_date": self._clearing_posting_date(),
+			"posting_date": self.posting_date or self._clearing_posting_date(),
 			"voucher_type": "Payment Reconciliation Entry",
 			"voucher_no": self.name,
 			"voucher_detail_no": self.payment_reference_row,

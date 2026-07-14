@@ -701,7 +701,7 @@ def _book_exchange_gain_loss_for_pre(pre, entry, dimensions_dict, difference_amo
 		dr_or_cr = "credit" if entry.party_type == "Customer" else "debit"
 	reverse_dr_or_cr = "debit" if dr_or_cr == "credit" else "credit"
 
-	posting_date = entry.get("difference_posting_date") or nowdate()
+	posting_date = entry.get("difference_posting_date") or _resolve_pre_gain_loss_posting_date(pre)
 	je_name = create_gain_loss_journal(
 		pre.company,
 		posting_date,
@@ -730,6 +730,34 @@ def _book_exchange_gain_loss_for_pre(pre, entry, dimensions_dict, difference_amo
 		"exchange_gain_loss_journal",
 		je_name,
 		update_modified=False,
+	)
+
+
+def _resolve_pre_gain_loss_posting_date(pre):
+	"""WP GA-0001-03 #10 — posting date for a PRE's exchange gain/loss JE.
+
+	Callers that carry an explicit ``difference_posting_date`` (the Payment
+	Reconciliation tool) never reach this. Paths that don't — notably the
+	invoice Advances table (``update_against_document_in_jv``), i.e. ADVANCE
+	payments — previously fell back to today, ignoring the "Posting Date
+	Inheritance for Exchange Gain / Loss" Accounts Settings option. Resolve
+	it here: Payment (default) -> the payment voucher's posting date,
+	Invoice -> the invoice's posting date, Reconciliation Date -> the PRE's
+	reconciliation date.
+	"""
+	setting = frappe.db.get_single_value(
+		"Accounts Settings", "exchange_gain_loss_posting_date", cache=True
+	)
+	if setting == "Invoice":
+		return (
+			frappe.db.get_value(pre.invoice_type, pre.invoice_name, "posting_date")
+			or pre.reconciliation_date
+		)
+	if setting == "Reconciliation Date":
+		return pre.reconciliation_date or nowdate()
+	return (
+		frappe.db.get_value(pre.payment_type, pre.payment_name, "posting_date")
+		or pre.reconciliation_date
 	)
 
 

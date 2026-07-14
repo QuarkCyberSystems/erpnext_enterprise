@@ -50,11 +50,11 @@
   },
   {
    "default": "Today",
-   "description": "Posting date used for the reconciliation (clearing GL pair and Payment Reconciliation Entry).",
+   "description": "Optional; defaults to today. Used for the Payment Reconciliation Entry and, when the Company policy 'Reconciliation Takes Effect On' is 'Reconciliation Date', for the clearing GL posting date.",
    "fieldname": "reconciliation_date",
    "fieldtype": "Date",
    "label": "Reconciliation Date",
-   "reqd": 1
+   "reqd": 0
   },
   {
    "fieldname": "party_type",
@@ -205,10 +205,10 @@
    "options": "Cost Center"
   },
   {
-    "fieldname": "project",
-    "fieldtype": "Link",
-    "label": "Project",
-    "options": "Project"
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project"
   },
   {
    "depends_on": "eval:doc.party",
@@ -248,7 +248,7 @@
  "is_virtual": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-04-23 12:38:29.557315",
+ "modified": "2026-07-14 05:30:00.000000",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Payment Reconciliation",

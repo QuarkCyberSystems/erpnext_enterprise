@@ -501,12 +501,17 @@ class PaymentReconciliation(Document):
 				res.difference_amount = self.get_difference_amount(pay, inv, res["allocated_amount"])
 				res.difference_account = default_exchange_gain_loss_account
 				res.exchange_rate = inv.get("exchange_rate")
+				# WP GA-0001-03 #10: the "Posting Date Inheritance for Exchange
+				# Gain / Loss" setting applies to ADVANCE payments as well as
+				# normal ones (previously gated on `not pay.is_advance`, so
+				# advances always used the payment date regardless of setting).
+				# "Reconciliation Date" uses the tool's chosen date (#1), not
+				# today.
 				res.update({"gain_loss_posting_date": pay.get("posting_date")})
-				if not pay.get("is_advance"):
-					if exc_gain_loss_posting_date == "Invoice":
-						res.update({"gain_loss_posting_date": inv.get("invoice_date")})
-					elif exc_gain_loss_posting_date == "Reconciliation Date":
-						res.update({"gain_loss_posting_date": nowdate()})
+				if exc_gain_loss_posting_date == "Invoice":
+					res.update({"gain_loss_posting_date": inv.get("invoice_date")})
+				elif exc_gain_loss_posting_date == "Reconciliation Date":
+					res.update({"gain_loss_posting_date": self.reconciliation_date or nowdate()})
 
 				if pay.get("amount") == 0:
 					entries.append(res)
@@ -643,7 +648,8 @@ class PaymentReconciliation(Document):
 				"cost_center": row.get("cost_center"),
 				# WP GA-0001-03: user-chosen reconciliation/posting date carried
 				# through to the Payment Reconciliation Entry and its clearing GL.
-				"reconciliation_date": self.reconciliation_date,
+				# Optional on the tool (#1) — defaults to today.
+				"reconciliation_date": self.reconciliation_date or nowdate(),
 			}
 		)
 

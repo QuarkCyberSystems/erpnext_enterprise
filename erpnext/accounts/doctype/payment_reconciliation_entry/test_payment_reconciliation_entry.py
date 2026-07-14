@@ -171,6 +171,125 @@ class TestPaymentReconciliationEntry(TestPaymentReconciliation):
 		self.assertEqual(reversal_meta.reversal_of, original_pre_name)
 		self.assertEqual(reversal_meta.docstatus, 1)
 
+	def test_wa03_04_reference_row_preserved_and_double_linked(self):
+		"""WA-0001-03 #4: unreconcile keeps the PE Reference row's recorded
+		values, flags it is_reversed=1, and links original + reversal PRE."""
+		si = self.create_sales_invoice(qty=1, rate=100)
+		pe = self.create_payment_entry(amount=100)
+		pe.submit()
+		self._reconcile_pe_against_si(pe, si, 100)
+
+		original_pre = frappe.get_doc(
+			"Payment Reconciliation Entry",
+			{"payment_name": pe.name, "is_reversal": 0, "docstatus": 1},
+		)
+		self.assertTrue(original_pre.payment_reference_row)
+
+		from erpnext.accounts.doctype.unreconcile_payment.unreconcile_payment import (
+			create_unreconcile_doc_for_selection,
+		)
+		import json
+
+		create_unreconcile_doc_for_selection(
+			selections=json.dumps(
+				[
+					{
+						"company": self.company,
+						"voucher_type": "Payment Entry",
+						"voucher_no": pe.name,
+						"against_voucher_type": "Sales Invoice",
+						"against_voucher_no": si.name,
+					}
+				]
+			)
+		)
+
+		reversal_pre_name = frappe.db.get_value(
+			"Payment Reconciliation Entry", original_pre.name, "unreconciled_by"
+		)
+		ref = frappe.db.get_value(
+			"Payment Entry Reference",
+			original_pre.payment_reference_row,
+			["allocated_amount", "is_reversed", "reconciliation_entry", "reversal_reconciliation_entry"],
+			as_dict=True,
+		)
+		self.assertEqual(ref.allocated_amount, 100)  # preserved, not zeroed
+		self.assertEqual(ref.is_reversed, 1)
+		self.assertEqual(ref.reconciliation_entry, original_pre.name)
+		self.assertEqual(ref.reversal_reconciliation_entry, reversal_pre_name)
+
+	def test_wa03_11_posting_date_stored_on_pre(self):
+		"""WA-0001-03 #11/#1: the effective clearing-GL posting date is stored
+		on the PRE and matches the GL rows."""
+		si = self.create_sales_invoice(qty=1, rate=100)
+		pe = self.create_payment_entry(amount=100)
+		pe.submit()
+		self._reconcile_pe_against_si(pe, si, 100)
+
+		pre = frappe.get_doc(
+			"Payment Reconciliation Entry",
+			{"payment_name": pe.name, "is_reversal": 0, "docstatus": 1},
+		)
+		self.assertTrue(pre.posting_date)
+		gl_dates = frappe.get_all("GL Entry", filters={"voucher_no": pre.name}, pluck="posting_date")
+		self.assertTrue(gl_dates)
+		for d in gl_dates:
+			self.assertEqual(str(d), str(pre.posting_date))
+
+	def test_wa03_12_unreconcile_date_flows_and_is_guarded(self):
+		"""WA-0001-03 #12: the user-chosen unreconcile date drives the reversal
+		PRE's posting; a date before the original posting date is rejected."""
+		from frappe.utils import add_days, nowdate
+
+		si = self.create_sales_invoice(qty=1, rate=100)
+		pe = self.create_payment_entry(amount=100)
+		pe.submit()
+		self._reconcile_pe_against_si(pe, si, 100)
+
+		original_pre = frappe.get_doc(
+			"Payment Reconciliation Entry",
+			{"payment_name": pe.name, "is_reversal": 0, "docstatus": 1},
+		)
+
+		from erpnext.accounts.doctype.unreconcile_payment.unreconcile_payment import (
+			create_unreconcile_doc_for_selection,
+		)
+		import json
+
+		selections = json.dumps(
+			[
+				{
+					"company": self.company,
+					"voucher_type": "Payment Entry",
+					"voucher_no": pe.name,
+					"against_voucher_type": "Sales Invoice",
+					"against_voucher_no": si.name,
+				}
+			]
+		)
+
+		# Before the original posting date -> rejected
+		self.assertRaises(
+			frappe.ValidationError,
+			create_unreconcile_doc_for_selection,
+			selections,
+			add_days(original_pre.posting_date, -5),
+		)
+
+		# On a chosen (valid) date -> reversal posts on that date
+		chosen = nowdate()
+		create_unreconcile_doc_for_selection(selections, chosen)
+		reversal_pre = frappe.get_doc(
+			"Payment Reconciliation Entry",
+			{"reversal_of": original_pre.name, "docstatus": 1},
+		)
+		self.assertEqual(str(reversal_pre.reconciliation_date), str(chosen))
+		self.assertEqual(str(reversal_pre.posting_date), str(chosen))
+		self.assertEqual(
+			str(frappe.db.get_value("Payment Reconciliation Entry", original_pre.name, "unreconciled_on")),
+			str(chosen),
+		)
+
 	# -------- TC-004: GAP-004 — cancel-with-active-PRE guard --------
 
 	def test_tc004a_active_pre_blocks_pe_cancel(self):

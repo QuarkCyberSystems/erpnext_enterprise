@@ -114,6 +114,14 @@ erpnext.accounts.unreconcile_payment = {
 			];
 			let unreconcile_dialog_fields = [
 				{
+					// WP GA-0001-03 #12: user-chosen posting date for the reversal
+					label: __("Unreconcile Date"),
+					fieldname: "unreconcile_date",
+					fieldtype: "Date",
+					default: frappe.datetime.get_today(),
+					reqd: 1,
+				},
+				{
 					label: __("Allocations"),
 					fieldname: "allocations",
 					fieldtype: "Table",
@@ -153,7 +161,8 @@ erpnext.accounts.unreconcile_payment = {
 											selected_allocations
 										);
 									erpnext.accounts.unreconcile_payment.create_unreconcile_docs(
-										selection_map
+										selection_map,
+										values.unreconcile_date
 									);
 									d.hide();
 								} else {
@@ -169,11 +178,12 @@ erpnext.accounts.unreconcile_payment = {
 		}
 	},
 
-	create_unreconcile_docs(selection_map) {
+	create_unreconcile_docs(selection_map, unreconcile_date) {
 		frappe.call({
 			method: "erpnext.accounts.doctype.unreconcile_payment.unreconcile_payment.create_unreconcile_doc_for_selection",
 			args: {
 				selections: selection_map,
+				unreconcile_date: unreconcile_date,
 			},
 		});
 	},

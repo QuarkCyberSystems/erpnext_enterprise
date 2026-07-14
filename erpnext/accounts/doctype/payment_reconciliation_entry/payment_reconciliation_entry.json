@@ -7,6 +7,7 @@
  "field_order": [
   "header_section",
   "reconciliation_date",
+  "posting_date",
   "company",
   "column_break_header",
   "party_type",
@@ -53,6 +54,15 @@
    "fieldtype": "Date",
    "label": "Reconciliation Date",
    "reqd": 1
+  },
+  {
+   "description": "Date the clearing GL pair is posted on. Derived from the Company setting 'Reconciliation Takes Effect On'; for a reversal entry it is the unreconcile date.",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Posting Date",
+   "read_only": 1
   },
   {
    "fieldname": "company",
@@ -277,7 +287,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2026-05-05 10:00:00.000000",
+ "modified": "2026-07-14 05:30:00.000000",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Payment Reconciliation Entry",
@@ -285,6 +295,8 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "amend": 1,
+   "cancel": 1,
    "create": 0,
    "delete": 1,
    "email": 1,
@@ -295,11 +307,10 @@
    "role": "Accounts Manager",
    "share": 1,
    "submit": 1,
-   "write": 1,
-   "cancel": 1,
-   "amend": 1
+   "write": 1
   },
   {
+   "cancel": 1,
    "create": 0,
    "email": 1,
    "export": 1,
@@ -309,8 +320,7 @@
    "role": "Accounts User",
    "share": 1,
    "submit": 1,
-   "write": 1,
-   "cancel": 1
+   "write": 1
   },
   {
    "email": 1,

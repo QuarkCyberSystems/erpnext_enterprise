@@ -34,6 +34,7 @@ class UnreconcilePayment(Document):
 		allocations: DF.Table[UnreconcilePaymentEntries]
 		amended_from: DF.Link | None
 		company: DF.Link | None
+		unreconcile_date: DF.Date | None
 		voucher_no: DF.DynamicLink | None
 		voucher_type: DF.Link | None
 	# end: auto-generated types
@@ -65,6 +66,11 @@ class UnreconcilePayment(Document):
 		self.supported_types = ["Payment Entry", "Journal Entry", "Sales Invoice", "Purchase Invoice"]
 		if self.voucher_type not in self.supported_types:
 			frappe.throw(_("Only {0} are supported").format(comma_and(self.supported_types)))
+		# WP GA-0001-03 #12: the reversal PRE posts on this date; default today.
+		if not self.unreconcile_date:
+			from frappe.utils import nowdate
+
+			self.unreconcile_date = nowdate()
 
 	@frappe.whitelist()
 	def get_allocations_from_payment(self):
@@ -136,7 +142,9 @@ class UnreconcilePayment(Document):
 		reversal.reversal_of = original_pre_name
 		from frappe.utils import nowdate
 
-		reversal.reconciliation_date = nowdate()
+		# WP GA-0001-03 #12: post the reversal on the user-chosen unreconcile
+		# date (validated by PRE against the original's posting date).
+		reversal.reconciliation_date = self.unreconcile_date or nowdate()
 		reversal.is_unreconciled = 0
 		reversal.unreconciled_by = None
 		reversal.unreconciled_on = None
@@ -366,7 +374,7 @@ def get_linked_advances(company, docname):
 
 
 @frappe.whitelist()
-def create_unreconcile_doc_for_selection(selections=None):
+def create_unreconcile_doc_for_selection(selections=None, unreconcile_date=None):
 	if selections:
 		selections = json.loads(selections)
 		# assuming each row is a unique voucher
@@ -404,6 +412,7 @@ def create_unreconcile_doc_for_selection(selections=None):
 			unrecon.flags.via_unreconcile_action = True
 			unrecon.flags.ignore_permissions = True
 			unrecon.company = row.get("company")
+			unrecon.unreconcile_date = unreconcile_date
 			unrecon.voucher_type = voucher_type
 			unrecon.voucher_no = voucher_no
 			unrecon.add_references()

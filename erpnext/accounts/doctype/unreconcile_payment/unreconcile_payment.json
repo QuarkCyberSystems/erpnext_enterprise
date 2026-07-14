@@ -7,6 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "company",
+  "unreconcile_date",
   "voucher_type",
   "voucher_no",
   "get_allocations",
@@ -28,6 +29,13 @@
    "fieldtype": "Link",
    "label": "Company",
    "options": "Company"
+  },
+  {
+   "default": "Today",
+   "description": "Posting date for the reversal Payment Reconciliation Entry (and the reversal of any exchange gain/loss journal). Cannot be before the original reconciliation's posting date.",
+   "fieldname": "unreconcile_date",
+   "fieldtype": "Date",
+   "label": "Unreconcile Date"
   },
   {
    "fieldname": "voucher_type",
@@ -56,7 +64,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2024-10-10 12:03:50.022444",
+ "modified": "2026-07-14 05:30:00.000000",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Unreconcile Payment",
