@@ -957,7 +957,13 @@ class PurchaseInvoice(BuyingController):
 			stock_ledger_entries = frappe.get_all(
 				"Stock Ledger Entry",
 				fields=["voucher_detail_no", "stock_value_difference", "warehouse"],
-				filters={"voucher_no": self.name, "voucher_type": self.doctype, "is_cancelled": 0},
+				filters={
+					"voucher_no": self.name,
+					"voucher_type": self.doctype,
+					"is_cancelled": 0,
+					# kernel-valued rows: the SAP posting kernel owns their stock GL
+					"posted_via_sap_kernel": 0,
+				},
 			)
 			for d in stock_ledger_entries:
 				voucher_wise_stock_value.setdefault(
@@ -985,10 +991,33 @@ class PurchaseInvoice(BuyingController):
 			"Buying Settings", "set_landed_cost_based_on_purchase_invoice_rate"
 		)
 
+		sap_routed_items = self.get_sap_routed_items() if self.get("update_stock") else set()
+
 		for item in self.get("items"):
 			if flt(item.base_net_amount) or (self.get("update_stock") and item.valuation_rate):
 				if item.item_code:
 					frappe.get_cached_value("Item", item.item_code, "asset_category")
+
+				if item.item_code in sap_routed_items:
+					# kernel-valued: the posting kernel booked Dr Stock / Cr SRBNB;
+					# the invoice's item leg clears SRBNB against the supplier
+					srbnb = self.get_company_default("stock_received_but_not_billed")
+					gl_entries.append(
+						self.get_gl_dict(
+							{
+								"account": srbnb,
+								"against": self.supplier,
+								"debit": flt(item.base_net_amount, item.precision("base_net_amount")),
+								"debit_in_transaction_currency": item.net_amount,
+								"remarks": self.get("remarks") or _("Accounting Entry for Stock"),
+								"cost_center": item.cost_center,
+								"project": item.project or self.project,
+							},
+							get_account_currency(srbnb),
+							item=item,
+						)
+					)
+					continue
 
 				if (
 					self.update_stock

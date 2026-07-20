@@ -1001,6 +1001,14 @@ class Item(Document):
 				).format(frappe.bold(self.valuation_method))
 			)
 
+		if self.has_batch_no or self.has_serial_no:
+			frappe.throw(
+				_(
+					"Valuation Method {0} does not support batch or serial valuation in this release. "
+					"Disable Has Batch No / Has Serial No, or use a core valuation method."
+				).format(frappe.bold(self.valuation_method))
+			)
+
 		if self.valuation_method == "SAP Moving Average" and not frappe.db.exists(
 			"SAP Moving Average Settings", {}
 		):
