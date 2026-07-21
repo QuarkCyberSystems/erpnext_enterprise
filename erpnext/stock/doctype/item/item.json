@@ -45,6 +45,7 @@
   "inventory_valuation_section",
   "valuation_method",
   "valuation_includes_warehouse",
+  "settlement_view",
   "column_break_cqdk",
   "valuation_rate",
   "inventory_settings_section",
@@ -375,6 +376,14 @@
    "fieldname": "valuation_includes_warehouse",
    "fieldtype": "Check",
    "label": "Valuation Includes Warehouse"
+  },
+  {
+   "depends_on": "eval:doc.valuation_method == 'SAP Standard Cost'",
+   "description": "Variance settlement scope for SAP Standard Cost. Blank inherits Item Group -> SAP Standard Cost Settings. Locked after the first transaction.",
+   "fieldname": "settlement_view",
+   "fieldtype": "Select",
+   "label": "Settlement View",
+   "options": "\nMTD\nYTD"
   },
   {
    "depends_on": "is_stock_item",
