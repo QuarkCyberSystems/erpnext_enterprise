@@ -1030,6 +1030,7 @@ class Item(Document):
 			"valuation_method",
 			"has_batch_no",
 			"valuation_includes_warehouse",
+			"settlement_view",
 		)
 
 		values = frappe.db.get_value("Item", self.name, restricted_fields, as_dict=True)

@@ -1453,6 +1453,17 @@ def get_billed_qty_amount_against_purchase_order(pr_doc):
 
 
 def adjust_incoming_rate_for_pr(doc):
+	# SAP-kernel items: invoice differences post as dated valuation events —
+	# never as an in-place rewrite of the receipt's rates (design DR-04/DR-14)
+	if kernel_map := frappe.get_hooks("sap_valuation_kernels"):
+		from erpnext.stock.utils import get_valuation_method
+
+		doc.items = [
+			item for item in doc.items
+			if get_valuation_method(item.item_code, doc.company) not in kernel_map
+		]
+		if not doc.items:
+			return
 	doc.update_valuation_rate(reset_outgoing_rate=False)
 
 	for item in doc.get("items"):
