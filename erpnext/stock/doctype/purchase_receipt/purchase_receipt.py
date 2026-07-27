@@ -1276,6 +1276,15 @@ def update_billing_percentage(pr_doc, update_modified=True, adjust_incoming_rate
 	item_wise_returned_qty = get_item_wise_returned_qty(pr_doc)
 	billed_qty_amt = frappe._dict()
 
+	# SAP-valuation items are billed by quantity, not amount (provisional
+	# receipt rate); they are exempted from the amount-based over-billing throw
+	# below and capped by received quantity in PurchaseInvoice.validate_sap_qty_billing.
+	sap_routed = (
+		pr_doc.get_sap_routed_items()
+		if hasattr(pr_doc, "get_sap_routed_items")
+		else set()
+	)
+
 	if adjust_incoming_rate:
 		billed_qty_amt = get_billed_qty_amount_against_purchase_receipt(pr_doc)
 		billed_qty_amt_based_on_po = get_billed_qty_amount_against_purchase_order(pr_doc)
@@ -1350,7 +1359,7 @@ def update_billing_percentage(pr_doc, update_modified=True, adjust_incoming_rate
 			adjusted_amt = flt(adjusted_amt, item.precision("amount"))
 			pi_landed_cost_amount += adjusted_amt
 			item.db_set("amount_difference_with_purchase_invoice", adjusted_amt, update_modified=False)
-		elif amount and item.billed_amt > amount:
+		elif amount and item.billed_amt > amount and item.item_code not in sap_routed:
 			per_over_billed = (flt(item.billed_amt / amount, 2) * 100) - 100
 			if (
 				per_over_billed > over_billing_allowance

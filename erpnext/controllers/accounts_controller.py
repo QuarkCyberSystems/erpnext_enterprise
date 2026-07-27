@@ -2248,6 +2248,17 @@ class AccountsController(TransactionBase):
 		role_allowed_to_overbill = frappe.get_single_value("Accounts Settings", "role_allowed_to_over_bill")
 		is_overbilling_allowed = role_allowed_to_overbill in frappe.get_roles()
 
+		# SAP-valuation items are billed by QUANTITY, not amount: the receipt
+		# rate is provisional and the invoice carries the real price, so an
+		# amount ceiling based on the receipt value false-triggers. These items
+		# are exempted here and capped by received quantity in
+		# validate_sap_qty_billing (Purchase Invoice only).
+		sap_routed = (
+			self.get_sap_routed_items()
+			if self.doctype == "Purchase Invoice" and hasattr(self, "get_sap_routed_items")
+			else set()
+		)
+
 		for row in ref_wise_billed_amount.values():
 			total_billed_amt = row.billed_amt
 			allowance = get_allowance_for(row.item_code, {}, None, None, "amount")[0]
@@ -2263,6 +2274,8 @@ class AccountsController(TransactionBase):
 			total_overbilled_amt += overbill_amt
 
 			if overbill_amt > precision_allowance and not is_overbilling_allowed:
+				if row.item_code in sap_routed:
+					continue
 				if self.doctype != "Purchase Invoice" or not cint(
 					frappe.db.get_single_value(
 						"Buying Settings", "bill_for_rejected_quantity_in_purchase_invoice"

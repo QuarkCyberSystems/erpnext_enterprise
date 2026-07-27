@@ -291,6 +291,7 @@ class PurchaseInvoice(BuyingController):
 		self.set_against_expense_account()
 		self.validate_write_off_account()
 		self.validate_multiple_billing("Purchase Receipt", "pr_detail", "amount")
+		self.validate_sap_qty_billing()
 		self.set_status()
 		self.validate_purchase_receipt_if_update_stock()
 		validate_inter_company_party(
@@ -658,6 +659,54 @@ class PurchaseInvoice(BuyingController):
 	def validate_write_off_account(self):
 		if self.write_off_amount and not self.write_off_account:
 			throw(_("Please enter Write Off Account"))
+
+	def validate_sap_qty_billing(self):
+		"""Cap SAP-valuation item billing by RECEIVED QUANTITY, not amount.
+		The amount-based over-billing check exempts routed items (their receipt
+		rate is provisional); this enforces that the total invoiced quantity
+		against a receipt line does not exceed the received quantity (plus the
+		item's over-delivery/receipt allowance). Debit notes (returns) reduce
+		billing and are not capped here."""
+		if self.get("is_return"):
+			return
+		routed = self.get_sap_routed_items() if hasattr(self, "get_sap_routed_items") else set()
+		if not routed:
+			return
+
+		from erpnext.controllers.status_updater import get_allowance_for
+
+		# current invoice's qty per pr_detail (rows may repeat a reference)
+		current_by_ref = {}
+		for it in self.items:
+			if it.item_code in routed and it.get("pr_detail"):
+				current_by_ref[it.pr_detail] = current_by_ref.get(it.pr_detail, 0.0) + flt(it.qty)
+
+		for pr_detail, current_qty in current_by_ref.items():
+			pr_item = frappe.db.get_value(
+				"Purchase Receipt Item", pr_detail, ["qty", "item_code", "parent"], as_dict=True
+			)
+			if not pr_item:
+				continue
+			already = frappe.db.sql(
+				"""SELECT COALESCE(SUM(pii.qty), 0)
+				FROM `tabPurchase Invoice Item` pii
+				JOIN `tabPurchase Invoice` pi ON pi.name = pii.parent
+				WHERE pii.pr_detail = %s AND pi.docstatus = 1 AND pi.name != %s""",
+				(pr_detail, self.name or ""),
+			)[0][0]
+			total_qty = flt(already) + flt(current_qty)
+			allowance = get_allowance_for(pr_item.item_code, {}, None, None, "qty")[0]
+			max_qty = flt(pr_item.qty) * (100 + flt(allowance)) / 100
+			if total_qty - max_qty > 1e-6:
+				frappe.throw(
+					_(
+						"Cannot invoice {0} units of {1} against receipt {2}: only {3} were "
+						"received. SAP-valuation items are billed by quantity, not amount — "
+						"the remaining quantity can be invoiced at any rate, but not beyond "
+						"what was received."
+					).format(total_qty, pr_item.item_code, pr_item.parent, flt(pr_item.qty)),
+					title=_("Over-billed Quantity"),
+				)
 
 	def check_prev_docstatus(self):
 		for d in self.get("items"):
