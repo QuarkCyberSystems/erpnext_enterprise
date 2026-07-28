@@ -80,6 +80,7 @@ class StockReconciliation(StockController):
 		self.validate_customer_provided_item()
 		self.set_zero_value_for_customer_provided_items()
 		self.clean_serial_nos()
+		self.override_sap_current_state()
 		self.set_total_qty_and_amount()
 		self.validate_putaway_capacity()
 		self.validate_inventory_dimension()
@@ -1006,6 +1007,30 @@ class StockReconciliation(StockController):
 				title=_("Note"),
 				indicator="blue",
 			)
+
+	def override_sap_current_state(self):
+		"""For SAP-valuation items, the current on-hand and rate shown on the
+		form must come from the SAP valuation ledger (Inventory Period Balance),
+		NOT the Bin/SLE — the kernel reconciles against the IPB, so the Bin
+		figure would make the displayed variance disagree with the posted GL.
+		Display-only: the posting reads the IPB directly."""
+		routed = self.get_sap_routed_items() if hasattr(self, "get_sap_routed_items") else set()
+		if not routed:
+			return
+		for d in self.get("items"):
+			if d.item_code not in routed:
+				continue
+			include_wh = frappe.get_cached_value("Item", d.item_code, "valuation_includes_warehouse")
+			ipb = frappe.get_all(
+				"Inventory Period Balance",
+				filters={"company": self.company, "item_code": d.item_code,
+					"warehouse": (d.warehouse or "") if include_wh else ""},
+				fields=["closing_qty", "moving_avg_price"],
+				order_by="period_year desc, period_month desc", limit=1,
+			)
+			if ipb:
+				d.current_qty = flt(ipb[0].closing_qty)
+				d.current_valuation_rate = flt(ipb[0].moving_avg_price)
 
 	def set_total_qty_and_amount(self):
 		for d in self.get("items"):
