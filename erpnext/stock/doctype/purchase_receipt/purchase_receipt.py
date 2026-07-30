@@ -746,10 +746,10 @@ class PurchaseReceipt(BuyingController):
 
 		stock_items = self.get_stock_items()
 		warehouse_with_no_account = []
-		sap_routed_items = self.get_sap_routed_items()
+		kernel_routed_items = self.get_kernel_routed_items()
 
 		for d in self.get("items"):
-			if d.item_code in sap_routed_items:
+			if d.item_code in kernel_routed_items:
 				# kernel-valued: the posting kernel owns this item's stock GL
 				continue
 
