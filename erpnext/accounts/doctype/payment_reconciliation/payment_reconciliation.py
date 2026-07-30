@@ -191,28 +191,28 @@ class PaymentReconciliation(Document):
 			condition=condition,
 		)
 
-		# WP GA-0001-03 §3.7 — under Immutable Ledger, exclude PEs that already
-		# have a non-reversed Payment Reconciliation Entry. Avoids re-displaying
-		# a payment that's already been reconciled via PRE.
-		from erpnext.accounts.utils import is_immutable_ledger_enabled
+		# WP GA-0001-03 §3.7 / WA-0001-03 — under Immutable Ledger the PE is
+		# never mutated by reconciliation, so its stored unallocated_amount does
+		# not shrink. Net the amounts already consumed by active (non-reversed,
+		# non-unreconciled) PREs off each PE row and drop rows that are fully
+		# consumed. This replaces the earlier all-or-nothing filter, so a
+		# partially reconciled PE correctly reappears with its remainder.
+		from erpnext.accounts.utils import get_active_pre_allocations, is_immutable_ledger_enabled
 
 		if is_immutable_ledger_enabled() and payment_entries:
-			covered_pes = set(
-				frappe.get_all(
-					"Payment Reconciliation Entry",
-					filters={
-						"payment_type": "Payment Entry",
-						"is_reversal": 0,
-						"is_unreconciled": 0,
-						"docstatus": 1,
-					},
-					pluck="payment_name",
-				)
+			pre_sums = get_active_pre_allocations(
+				"Payment Entry", [pe.get("reference_name") for pe in payment_entries]
 			)
-			if covered_pes:
-				payment_entries = [
-					pe for pe in payment_entries if pe.get("reference_name") not in covered_pes
-				]
+			netted = []
+			for pe in payment_entries:
+				consumed = flt(pre_sums.get(pe.get("reference_name")))
+				if consumed:
+					remaining = flt(pe.get("amount")) - consumed
+					if remaining < 0.005:
+						continue
+					pe["amount"] = remaining
+				netted.append(pe)
+			payment_entries = netted
 
 		return payment_entries
 
@@ -280,6 +280,51 @@ class PaymentReconciliation(Document):
 			journal_query = journal_query.limit(self.payment_limit)
 
 		journal_entries = journal_query.run(as_dict=True)
+
+		# WP GA-0001-03 / WA-0001-03 — under Immutable Ledger a reconciled JE
+		# keeps its Journal Entry Account row untouched (no reference is written
+		# into it), so the query above cannot exclude it and the JV re-appears
+		# at full value after reconciliation. Net the amounts consumed by active
+		# PREs: row-attributed allocations first (payment_reference_row = JEA
+		# row), then unattributed ones (older PREs) first-fit across the JV's
+		# rows. Fully consumed rows are dropped.
+		from erpnext.accounts.utils import is_immutable_ledger_enabled
+
+		if is_immutable_ledger_enabled() and journal_entries:
+			pres = frappe.get_all(
+				"Payment Reconciliation Entry",
+				filters={
+					"payment_type": "Journal Entry",
+					"payment_name": ["in", [d.reference_name for d in journal_entries]],
+					"is_reversal": 0,
+					"is_unreconciled": 0,
+					"docstatus": 1,
+				},
+				fields=["payment_name", "payment_reference_row", "allocated_amount"],
+			)
+			row_consumed, jv_consumed = {}, {}
+			for p in pres:
+				if p.payment_reference_row:
+					row_consumed[p.payment_reference_row] = flt(
+						row_consumed.get(p.payment_reference_row)
+					) + flt(p.allocated_amount)
+				else:
+					jv_consumed[p.payment_name] = flt(jv_consumed.get(p.payment_name)) + flt(
+						p.allocated_amount
+					)
+			netted = []
+			for row in journal_entries:
+				remaining = flt(row.amount) - flt(row_consumed.get(row.reference_row))
+				unattributed = flt(jv_consumed.get(row.reference_name))
+				if unattributed > 0 and remaining > 0:
+					take = min(remaining, unattributed)
+					remaining -= take
+					jv_consumed[row.reference_name] = unattributed - take
+				if remaining < 0.005:
+					continue
+				row.amount = remaining
+				netted.append(row)
+			journal_entries = netted
 
 		return list(journal_entries)
 

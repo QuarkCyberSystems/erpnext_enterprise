@@ -290,6 +290,50 @@ class TestPaymentReconciliationEntry(TestPaymentReconciliation):
 			str(chosen),
 		)
 
+	def test_wa03_jv_clearing_direction_and_netting(self):
+		"""UAT finding (JV-00032): a reconciled JE must actually settle the
+		invoice (clearing pair direction), disappear from the recon tool's
+		payment list when fully consumed, and reappear with only its
+		remainder when partially consumed."""
+		import frappe
+		from frappe.utils import nowdate
+
+		si = self.create_sales_invoice(qty=1, rate=100)
+		cash = frappe.db.get_value(
+			"Account", {"company": self.company, "account_type": "Cash", "is_group": 0}
+		)
+		je = frappe.new_doc("Journal Entry")
+		je.company = self.company
+		je.posting_date = nowdate()
+		je.voucher_type = "Journal Entry"
+		je.append(
+			"accounts",
+			{
+				"account": self.debit_to,
+				"party_type": "Customer",
+				"party": self.customer,
+				"credit_in_account_currency": 100,
+			},
+		)
+		je.append("accounts", {"account": cash, "debit_in_account_currency": 100})
+		je.submit()
+
+		pr = self.create_payment_reconciliation()
+		pr.get_unreconciled_entries()
+		payments = [p.as_dict() for p in pr.payments if p.reference_name == je.name]
+		invoices = [i.as_dict() for i in pr.invoices if i.invoice_number == si.name]
+		pr.allocate_entries(frappe._dict({"payments": payments, "invoices": invoices}))
+		pr.reconcile()
+
+		# Direction: the clearing pair must SETTLE the invoice, not inflate it.
+		self.assertEqual(
+			frappe.db.get_value("Sales Invoice", si.name, "outstanding_amount"), 0
+		)
+		# Netting: fully consumed JE is no longer offered as a payment.
+		pr2 = self.create_payment_reconciliation()
+		pr2.get_unreconciled_entries()
+		self.assertNotIn(je.name, [p.reference_name for p in pr2.payments])
+
 	# -------- TC-004: GAP-004 — cancel-with-active-PRE guard --------
 
 	def test_tc004a_active_pre_blocks_pe_cancel(self):

@@ -365,7 +365,13 @@ class PaymentReconciliationEntry(Document):
 				)
 				if row:
 					advance_account = row.account
-					dr_or_cr_invoice = "credit" if flt(row.debit_in_account_currency) else "debit"
+					# The clearing pair must settle the invoice in the SAME
+					# direction the JE row carries the payment: a customer
+					# receipt JE credits the receivable, so the invoice side of
+					# the clearing pair is also a credit (and the advance side
+					# debits it back). A supplier payment JE debits the payable
+					# and the invoice side debits likewise.
+					dr_or_cr_invoice = "credit" if flt(row.credit_in_account_currency) else "debit"
 				else:
 					dr_or_cr_invoice = "credit" if self.party_type == "Customer" else "debit"
 			else:

@@ -603,6 +603,78 @@ def reconcile_against_document(
 		frappe.flags.ignore_party_validation = False
 
 
+def get_active_pre_allocations(payment_type, payment_names):
+	"""Sum of allocated_amount of ACTIVE (submitted, non-reversed,
+	non-unreconciled) Payment Reconciliation Entries per payment voucher.
+
+	Under Immutable Ledger the payment voucher is never mutated by a
+	reconciliation, so its stored amounts don't reflect PRE consumption —
+	every availability computation must net these sums off. Returns
+	{payment_name: total_allocated}.
+	"""
+	if not payment_names:
+		return {}
+	rows = frappe.db.sql(
+		"""
+		select payment_name, sum(allocated_amount)
+		from `tabPayment Reconciliation Entry`
+		where payment_type = %s
+		  and payment_name in %s
+		  and is_reversal = 0
+		  and is_unreconciled = 0
+		  and docstatus = 1
+		group by payment_name
+		""",
+		(payment_type, tuple(payment_names)),
+	)
+	return {r[0]: flt(r[1]) for r in rows}
+
+
+def _assert_pre_payment_capacity(doc, entry):
+	"""WA-0001-03 — server-side over-allocation guard for the PRE flow.
+
+	Because the payment voucher is not mutated, a stale client (or a direct
+	API call) could allocate the same PE/JE twice. Compute the voucher's
+	true remaining capacity (stored amount minus active PRE allocations)
+	and reject allocations that exceed it. SI/PI (credit/debit note)
+	payments are already guarded upstream via their live outstanding.
+	"""
+	if doc.doctype == "Payment Entry":
+		capacity = flt(doc.unallocated_amount)
+	elif doc.doctype == "Journal Entry":
+		rows = [
+			r
+			for r in doc.accounts
+			if r.party_type == entry.party_type
+			and r.party == entry.party
+			and (not r.reference_type or r.reference_type in ("Sales Order", "Purchase Order"))
+		]
+		if not rows:
+			return
+		capacity = abs(
+			sum(flt(r.credit_in_account_currency) - flt(r.debit_in_account_currency) for r in rows)
+		)
+	else:
+		return
+
+	consumed = flt(get_active_pre_allocations(doc.doctype, [doc.name]).get(doc.name))
+	available = capacity - consumed
+	if flt(entry.allocated_amount) - available > 0.005:
+		frappe.throw(
+			_(
+				"Cannot allocate {0} from {1} {2}: only {3} remains unreconciled "
+				"(already allocated {4} via active Payment Reconciliation Entries). "
+				"Please reload the Payment Reconciliation tool."
+			).format(
+				frappe.bold(flt(entry.allocated_amount)),
+				_(doc.doctype),
+				frappe.bold(doc.name),
+				frappe.bold(flt(available)),
+				flt(consumed),
+			)
+		)
+
+
 def _create_pre_for_allocation(doc, entry, dimensions_dict):
 	"""Create + submit one Payment Reconciliation Entry for one allocation.
 
@@ -621,8 +693,15 @@ def _create_pre_for_allocation(doc, entry, dimensions_dict):
 	for the receivable/payable account is off by the rate-delta amount —
 	the GAP-010 closure the WP describes was missing for the PRE path.
 	"""
+	_assert_pre_payment_capacity(doc, entry)
+
 	if doc.doctype == "Payment Entry":
 		ref_row_name = _insert_payment_entry_reference_row(doc, entry)
+	elif doc.doctype == "Journal Entry":
+		# Keep the JE Account row the allocation came from. Lets the clearing
+		# account resolve exactly and lets the recon tool net this PRE against
+		# the specific JEA row it consumed.
+		ref_row_name = entry.get("voucher_detail_no")
 	else:
 		ref_row_name = None
 
@@ -856,6 +935,20 @@ def check_if_advance_entry_modified(args):
 					)
 				)
 				.where(payment_ref.allocated_amount == args.get("unreconciled_amount"))
+			)
+		elif is_immutable_ledger_enabled():
+			# WA-0001-03: under Immutable Ledger the PE's stored
+			# unallocated_amount is never reduced by PRE reconciliations, so
+			# compare against the PRE-netted remainder (what the tool now
+			# displays) instead of the raw column.
+			consumed = flt(
+				get_active_pre_allocations("Payment Entry", [args.get("voucher_no")]).get(
+					args.get("voucher_no")
+				)
+			)
+			q = q.where(
+				Round(payment_entry.unallocated_amount - consumed, precision)
+				== Round(args.get("unreconciled_amount"), precision)
 			)
 		else:
 			q = q.where(
