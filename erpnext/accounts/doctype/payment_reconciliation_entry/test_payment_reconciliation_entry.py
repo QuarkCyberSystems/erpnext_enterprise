@@ -285,6 +285,8 @@ class TestPaymentReconciliationEntry(TestPaymentReconciliation):
 		)
 		self.assertEqual(str(reversal_pre.reconciliation_date), str(chosen))
 		self.assertEqual(str(reversal_pre.posting_date), str(chosen))
+		# WP Table 3: reversal ("Reset Clearing") stores a negative amount
+		self.assertEqual(reversal_pre.allocated_amount, -100)
 		self.assertEqual(
 			str(frappe.db.get_value("Payment Reconciliation Entry", original_pre.name, "unreconciled_on")),
 			str(chosen),

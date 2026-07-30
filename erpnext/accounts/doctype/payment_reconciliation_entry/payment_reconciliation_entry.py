@@ -235,7 +235,13 @@ class PaymentReconciliationEntry(Document):
 			)
 		if not self.party_type or not self.party:
 			frappe.throw(_("Party Type and Party are required"))
-		if flt(self.allocated_amount) <= 0:
+		# WP Table 3 (SAP mapping): a forward clearing carries a positive
+		# amount, a reversal ("Reset Clearing") a NEGATIVE one — the sign is
+		# part of the record's meaning, mirroring credit-note conventions.
+		if self.is_reversal:
+			if flt(self.allocated_amount) >= 0:
+				frappe.throw(_("Allocated Amount of a reversal entry must be negative"))
+		elif flt(self.allocated_amount) <= 0:
 			frappe.throw(_("Allocated Amount must be greater than zero"))
 
 	def _set_currency_and_exchange_rate(self):
@@ -288,12 +294,12 @@ class PaymentReconciliationEntry(Document):
 		"""Insert an APLE row marking the reconcile (or its reversal).
 
 		The amount is signed: positive on the original PRE, negative on a
-		reversal PRE. `event="Reconcile"` distinguishes these from PE/JE-submit
-		APLE rows.
+		reversal PRE. The stored allocated_amount already carries that sign
+		(reversal PREs are stored negative), so it is used as-is.
+		`event="Reconcile"` distinguishes these from PE/JE-submit APLE rows.
 		"""
-		amount_sign = -1 if self.is_reversal else 1
-		amount = amount_sign * flt(self.allocated_amount)
-		base_amount = amount_sign * flt(self.base_allocated_amount)
+		amount = flt(self.allocated_amount)
+		base_amount = flt(self.base_allocated_amount)
 
 		aple = frappe.get_doc(
 			{
@@ -421,8 +427,11 @@ class PaymentReconciliationEntry(Document):
 			dr_or_cr_invoice = "debit" if dr_or_cr_invoice == "credit" else "credit"
 		dr_or_cr_advance = "debit" if dr_or_cr_invoice == "credit" else "credit"
 
-		base_amount = flt(self.base_allocated_amount)
-		alloc_amount = flt(self.allocated_amount)
+		# Magnitudes only: a reversal PRE stores negative amounts (WP Table 3),
+		# but its direction is expressed by the Dr/Cr swap above, and GL rows
+		# must never carry negative debits/credits.
+		base_amount = abs(flt(self.base_allocated_amount))
+		alloc_amount = abs(flt(self.allocated_amount))
 
 		common = {
 			"company": self.company,

@@ -8,6 +8,7 @@ from frappe import _, qb
 from frappe.model.document import Document
 from frappe.query_builder import Criterion
 from frappe.query_builder.functions import Abs, Sum
+from frappe.utils import flt
 from frappe.utils.data import comma_and
 
 from erpnext.accounts.utils import (
@@ -145,6 +146,11 @@ class UnreconcilePayment(Document):
 		# WP GA-0001-03 #12: post the reversal on the user-chosen unreconcile
 		# date (validated by PRE against the original's posting date).
 		reversal.reconciliation_date = self.unreconcile_date or nowdate()
+		# WP Table 3: the reversal ("Reset Clearing") carries a NEGATIVE amount.
+		# base_allocated_amount is recomputed from this in PRE.validate; the
+		# gain/loss display sign flips with it.
+		reversal.allocated_amount = -flt(src.allocated_amount)
+		reversal.exchange_gain_loss = -flt(src.exchange_gain_loss)
 		reversal.is_unreconciled = 0
 		reversal.unreconciled_by = None
 		reversal.unreconciled_on = None
