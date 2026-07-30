@@ -148,7 +148,7 @@ class Item(Document):
 		uoms: DF.Table[UOMConversionDetail]
 		valuation_includes_warehouse: DF.Check
 		valuation_method: DF.Literal[
-			"", "FIFO", "Moving Average", "LIFO", "SAP Moving Average", "SAP Standard Cost"
+			"", "FIFO", "Moving Average", "LIFO", "Periodic Moving Average", "Periodic Standard Cost"
 		]
 		valuation_rate: DF.Currency
 		variant_based_on: DF.Literal["Item Attribute", "Manufacturer"]
@@ -220,7 +220,7 @@ class Item(Document):
 		self.validate_item_defaults()
 		self.validate_auto_reorder_enabled_in_stock_settings()
 		self.cant_change()
-		self.validate_sap_valuation_method()
+		self.validate_periodic_valuation_method()
 		self.validate_item_tax_net_rate_range()
 
 		if not self.is_new():
@@ -987,17 +987,17 @@ class Item(Document):
 			for d in self.attributes:
 				d.variant_of = self.variant_of
 
-	def validate_sap_valuation_method(self):
-		"""SAP valuation methods route through a posting kernel provided by the
-		sap_valuation app. Selecting one without the kernel installed would hit
+	def validate_periodic_valuation_method(self):
+		"""periodic valuation methods route through a posting kernel provided by the
+		periodic_valuation app. Selecting one without the kernel installed would hit
 		the unknown-method guard on the first transaction, so fail early here."""
-		if self.valuation_method not in ("SAP Moving Average", "SAP Standard Cost"):
+		if self.valuation_method not in ("Periodic Moving Average", "Periodic Standard Cost"):
 			return
 
-		if "sap_valuation" not in frappe.get_installed_apps():
+		if "periodic_valuation" not in frappe.get_installed_apps():
 			frappe.throw(
 				_(
-					"Valuation Method {0} requires the SAP Valuation app, which is not installed on this site."
+					"Valuation Method {0} requires the Periodic Valuation app, which is not installed on this site."
 				).format(frappe.bold(self.valuation_method))
 			)
 
@@ -1009,12 +1009,12 @@ class Item(Document):
 				).format(frappe.bold(self.valuation_method))
 			)
 
-		if self.valuation_method == "SAP Moving Average" and not frappe.db.exists(
-			"SAP Moving Average Settings", {}
+		if self.valuation_method == "Periodic Moving Average" and not frappe.db.exists(
+			"Periodic Moving Average Settings", {}
 		):
 			frappe.msgprint(
 				_(
-					"No SAP Moving Average Settings exist yet. Configure them (and Inventory Periods) "
+					"No Periodic Moving Average Settings exist yet. Configure them (and Inventory Periods) "
 					"before posting transactions for this item."
 				),
 				indicator="orange",
@@ -1047,7 +1047,7 @@ class Item(Document):
 		]
 
 		# Allow to change valuation method from FIFO to Moving Average not vice versa.
-		# The carve-out must not apply to SAP-kernel methods: switching a routed item
+		# The carve-out must not apply to periodic-kernel methods: switching a routed item
 		# to core Moving Average would silently re-value its ledger as non-routed.
 		if (
 			self.valuation_method == "Moving Average"

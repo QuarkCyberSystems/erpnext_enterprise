@@ -80,7 +80,7 @@ class StockReconciliation(StockController):
 		self.validate_customer_provided_item()
 		self.set_zero_value_for_customer_provided_items()
 		self.clean_serial_nos()
-		self.override_sap_current_state()
+		self.override_kernel_current_state()
 		self.set_total_qty_and_amount()
 		self.validate_putaway_capacity()
 		self.validate_inventory_dimension()
@@ -1008,13 +1008,13 @@ class StockReconciliation(StockController):
 				indicator="blue",
 			)
 
-	def override_sap_current_state(self):
-		"""For SAP-valuation items, the current on-hand and rate shown on the
-		form must come from the SAP valuation ledger (Inventory Period Balance),
+	def override_kernel_current_state(self):
+		"""For periodic-valuation items, the current on-hand and rate shown on the
+		form must come from the periodic valuation ledger (Inventory Period Balance),
 		NOT the Bin/SLE — the kernel reconciles against the IPB, so the Bin
 		figure would make the displayed variance disagree with the posted GL.
 		Display-only: the posting reads the IPB directly."""
-		routed = self.get_sap_routed_items() if hasattr(self, "get_sap_routed_items") else set()
+		routed = self.get_kernel_routed_items() if hasattr(self, "get_kernel_routed_items") else set()
 		if not routed:
 			return
 		for d in self.get("items"):

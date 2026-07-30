@@ -291,7 +291,7 @@ class PurchaseInvoice(BuyingController):
 		self.set_against_expense_account()
 		self.validate_write_off_account()
 		self.validate_multiple_billing("Purchase Receipt", "pr_detail", "amount")
-		self.validate_sap_qty_billing()
+		self.validate_kernel_qty_billing()
 		self.set_status()
 		self.validate_purchase_receipt_if_update_stock()
 		validate_inter_company_party(
@@ -660,8 +660,8 @@ class PurchaseInvoice(BuyingController):
 		if self.write_off_amount and not self.write_off_account:
 			throw(_("Please enter Write Off Account"))
 
-	def validate_sap_qty_billing(self):
-		"""Cap SAP-valuation item billing by RECEIVED QUANTITY, not amount.
+	def validate_kernel_qty_billing(self):
+		"""Cap periodic-valuation item billing by RECEIVED QUANTITY, not amount.
 		The amount-based over-billing check exempts routed items (their receipt
 		rate is provisional); this enforces that the total invoiced quantity
 		against a receipt line does not exceed the received quantity (plus the
@@ -669,7 +669,7 @@ class PurchaseInvoice(BuyingController):
 		billing and are not capped here."""
 		if self.get("is_return"):
 			return
-		routed = self.get_sap_routed_items() if hasattr(self, "get_sap_routed_items") else set()
+		routed = self.get_kernel_routed_items() if hasattr(self, "get_kernel_routed_items") else set()
 		if not routed:
 			return
 
@@ -701,7 +701,7 @@ class PurchaseInvoice(BuyingController):
 				frappe.throw(
 					_(
 						"Cannot invoice {0} units of {1} against receipt {2}: only {3} were "
-						"received. SAP-valuation items are billed by quantity, not amount — "
+						"received. periodic-valuation items are billed by quantity, not amount — "
 						"the remaining quantity can be invoiced at any rate, but not beyond "
 						"what was received."
 					).format(total_qty, pr_item.item_code, pr_item.parent, flt(pr_item.qty)),
@@ -1010,8 +1010,8 @@ class PurchaseInvoice(BuyingController):
 					"voucher_no": self.name,
 					"voucher_type": self.doctype,
 					"is_cancelled": 0,
-					# kernel-valued rows: the SAP posting kernel owns their stock GL
-					"posted_via_sap_kernel": 0,
+					# kernel-valued rows: the periodic posting kernel owns their stock GL
+					"posted_via_valuation_kernel": 0,
 				},
 			)
 			for d in stock_ledger_entries:
@@ -1040,14 +1040,14 @@ class PurchaseInvoice(BuyingController):
 			"Buying Settings", "set_landed_cost_based_on_purchase_invoice_rate"
 		)
 
-		sap_routed_items = self.get_sap_routed_items() if self.get("update_stock") else set()
+		kernel_routed_items = self.get_kernel_routed_items() if self.get("update_stock") else set()
 
 		for item in self.get("items"):
 			if flt(item.base_net_amount) or (self.get("update_stock") and item.valuation_rate):
 				if item.item_code:
 					frappe.get_cached_value("Item", item.item_code, "asset_category")
 
-				if item.item_code in sap_routed_items:
+				if item.item_code in kernel_routed_items:
 					# kernel-valued: the posting kernel booked Dr Stock / Cr SRBNB;
 					# the invoice's item leg clears SRBNB against the supplier
 					srbnb = self.get_company_default("stock_received_but_not_billed")

@@ -305,9 +305,9 @@ class LandedCostVoucher(Document):
 			)
 
 	def update_landed_cost(self):
-		# SAP-kernel items: landed cost posts as a current-dated stock-ratio
+		# periodic-kernel items: landed cost posts as a current-dated stock-ratio
 		# split event — never as an in-place revaluation of the receipt's SLEs.
-		if handler := frappe.get_hooks("sap_valuation_landed_cost"):
+		if handler := frappe.get_hooks("valuation_landed_cost"):
 			if frappe.get_attr(handler[-1])(self):
 				return
 

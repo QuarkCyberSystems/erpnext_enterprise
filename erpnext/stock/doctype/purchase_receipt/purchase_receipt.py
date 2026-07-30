@@ -746,10 +746,10 @@ class PurchaseReceipt(BuyingController):
 
 		stock_items = self.get_stock_items()
 		warehouse_with_no_account = []
-		sap_routed_items = self.get_sap_routed_items()
+		kernel_routed_items = self.get_kernel_routed_items()
 
 		for d in self.get("items"):
-			if d.item_code in sap_routed_items:
+			if d.item_code in kernel_routed_items:
 				# kernel-valued: the posting kernel owns this item's stock GL
 				continue
 
@@ -1276,12 +1276,12 @@ def update_billing_percentage(pr_doc, update_modified=True, adjust_incoming_rate
 	item_wise_returned_qty = get_item_wise_returned_qty(pr_doc)
 	billed_qty_amt = frappe._dict()
 
-	# SAP-valuation items are billed by quantity, not amount (provisional
+	# periodic-valuation items are billed by quantity, not amount (provisional
 	# receipt rate); they are exempted from the amount-based over-billing throw
-	# below and capped by received quantity in PurchaseInvoice.validate_sap_qty_billing.
-	sap_routed = (
-		pr_doc.get_sap_routed_items()
-		if hasattr(pr_doc, "get_sap_routed_items")
+	# below and capped by received quantity in PurchaseInvoice.validate_kernel_qty_billing.
+	kernel_routed = (
+		pr_doc.get_kernel_routed_items()
+		if hasattr(pr_doc, "get_kernel_routed_items")
 		else set()
 	)
 
@@ -1359,7 +1359,7 @@ def update_billing_percentage(pr_doc, update_modified=True, adjust_incoming_rate
 			adjusted_amt = flt(adjusted_amt, item.precision("amount"))
 			pi_landed_cost_amount += adjusted_amt
 			item.db_set("amount_difference_with_purchase_invoice", adjusted_amt, update_modified=False)
-		elif amount and item.billed_amt > amount and item.item_code not in sap_routed:
+		elif amount and item.billed_amt > amount and item.item_code not in kernel_routed:
 			per_over_billed = (flt(item.billed_amt / amount, 2) * 100) - 100
 			if (
 				per_over_billed > over_billing_allowance
@@ -1462,9 +1462,9 @@ def get_billed_qty_amount_against_purchase_order(pr_doc):
 
 
 def adjust_incoming_rate_for_pr(doc):
-	# SAP-kernel items: invoice differences post as dated valuation events —
+	# periodic-kernel items: invoice differences post as dated valuation events —
 	# never as an in-place rewrite of the receipt's rates (design DR-04/DR-14)
-	if kernel_map := frappe.get_hooks("sap_valuation_kernels"):
+	if kernel_map := frappe.get_hooks("valuation_kernels"):
 		from erpnext.stock.utils import get_valuation_method
 
 		doc.items = [
