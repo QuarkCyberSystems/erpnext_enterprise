@@ -141,9 +141,14 @@ erpnext.accounts.unreconcile_payment = {
 				},
 				callback: function (r) {
 					if (r.message) {
-						// populate child table with allocations
-						unreconcile_dialog_fields[0].data = r.message;
-						unreconcile_dialog_fields[0].get_data = function () {
+						// populate child table with allocations (looked up by
+						// fieldname — the table is no longer at index 0 since the
+						// Unreconcile Date field was added above it)
+						let allocations_field = unreconcile_dialog_fields.find(
+							(f) => f.fieldname === "allocations"
+						);
+						allocations_field.data = r.message;
+						allocations_field.get_data = function () {
 							return r.message;
 						};
 
