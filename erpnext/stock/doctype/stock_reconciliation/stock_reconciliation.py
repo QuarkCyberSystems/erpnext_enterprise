@@ -1463,6 +1463,27 @@ def get_stock_balance_for(
 ):
 	frappe.has_permission("Stock Reconciliation", "write", throw=True)
 
+	# Kernel-routed items: the balance shown (and reconciled against) is the
+	# Inventory Period Balance of the posting date's period — qty, and MAP
+	# (frozen MAP while negative) — not the SLE-derived valuation rate, which
+	# reflects the latest state and misleads on backdated reconciliations
+	# (client meeting 2026-08-12: "Stock Reconciliation isn't picking up the
+	# MAP as per the period balance").
+	kernel_map = frappe.get_hooks("valuation_kernels")
+	if kernel_map:
+		from erpnext.stock.utils import get_valuation_method
+
+		company = frappe.get_cached_value("Warehouse", warehouse, "company")
+		if get_valuation_method(item_code, company) in kernel_map:
+			resolver = frappe.get_hooks("valuation_current_state")
+			if resolver:
+				state = frappe.get_attr(resolver[-1])(company, item_code, warehouse, posting_date)
+				return {
+					"qty": state.get("closing_qty") or 0,
+					"rate": (state.get("frozen_map") if state.get("is_negative") else state.get("moving_avg_price")) or 0,
+					"serial_nos": None,
+				}
+
 	item_dict = frappe.get_cached_value("Item", item_code, ["has_serial_no", "has_batch_no"], as_dict=1)
 
 	if isinstance(row, str):
