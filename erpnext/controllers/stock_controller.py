@@ -1459,6 +1459,51 @@ class StockController(AccountsController):
 			validate_warehouse_company(w, self.company)
 
 	def update_billing_percentage(self, update_modified=True):
+		# Kernel-routed rows bill by QUANTITY coverage (SAP GR/IR semantics),
+		# not amount: the receipt/delivery rate is provisional and the invoice
+		# reprices it, so amount coverage misstates completion in both
+		# directions. Same rule as update_billed_amount_based_on_pr.
+		kernel_routed = (
+			self.get_kernel_routed_items() if hasattr(self, "get_kernel_routed_items") else set()
+		)
+		if kernel_routed:
+			link_map = {
+				"Delivery Note": ("Sales Invoice Item", "delivery_note", "dn_detail"),
+				"Purchase Receipt": ("Purchase Invoice Item", "purchase_receipt", "pr_detail"),
+			}
+			if self.doctype in link_map:
+				child_dt, parent_field, detail_field = link_map[self.doctype]
+				billed_qty = dict(
+					frappe.db.sql(
+						"""select `{detail}`, sum(qty) from `tab{child}`
+						where `{parent}`=%s and docstatus=1 and ifnull(`{detail}`,'') != ''
+						group by `{detail}`""".format(
+							detail=detail_field, child=child_dt, parent=parent_field
+						),
+						self.name,
+					)
+				)
+				total_ref = total_billed = 0.0
+				for item in self.items:
+					returned_amt = flt(item.get("returned_qty")) * flt(item.rate)
+					ref_amount = max(flt(item.amount) - returned_amt, 0.0)
+					total_ref += ref_amount
+					if item.item_code in kernel_routed:
+						effective_qty = flt(item.qty) - flt(item.get("returned_qty"))
+						fraction = (
+							1.0
+							if effective_qty <= 0
+							else min(flt(billed_qty.get(item.name)) / effective_qty, 1.0)
+						)
+						total_billed += fraction * ref_amount
+					else:
+						total_billed += min(abs(flt(item.billed_amt)), ref_amount)
+				percent = round(100.0 * total_billed / (total_ref or 1), 6)
+				self.db_set("per_billed", percent, update_modified=update_modified)
+				self.set_status(update=True)
+				self.notify_update()
+				return
+
 		target_ref_field = "amount"
 		if self.doctype == "Delivery Note":
 			total_amount = total_returned = 0

@@ -1289,6 +1289,23 @@ def update_billing_percentage(pr_doc, update_modified=True, adjust_incoming_rate
 		billed_qty_amt = get_billed_qty_amount_against_purchase_receipt(pr_doc)
 		billed_qty_amt_based_on_po = get_billed_qty_amount_against_purchase_order(pr_doc)
 
+	# For kernel-routed rows billing progress is QUANTITY coverage (SAP GR/IR
+	# semantics: fully invoiced = invoiced qty >= received qty). The receipt
+	# rate is provisional and the invoice reprices it, so amount coverage is
+	# meaningless in both directions: part of the qty billed at a higher rate
+	# read "Completed" with units still unbilled, and full qty billed at a
+	# lower rate never completed at all.
+	kernel_billed_qty = {}
+	if kernel_routed:
+		kernel_billed_qty = dict(
+			frappe.db.sql(
+				"""select pr_detail, sum(qty) from `tabPurchase Invoice Item`
+				where purchase_receipt=%s and docstatus=1 and ifnull(pr_detail,'') != ''
+				group by pr_detail""",
+				pr_doc.name,
+			)
+		)
+
 	for item in pr_doc.items:
 		returned_qty = flt(item_wise_returned_qty.get(item.name))
 		returned_amount = flt(returned_qty) * flt(item.rate)
@@ -1301,7 +1318,15 @@ def update_billing_percentage(pr_doc, update_modified=True, adjust_incoming_rate
 			total_billable_amount = pending_amount if item.billed_amt <= pending_amount else item.billed_amt
 
 		total_amount += total_billable_amount
-		total_billed_amount += abs(flt(item.billed_amt))
+		if item.item_code in kernel_routed:
+			# qty coverage, weighted by the row's amount so mixed receipts
+			# aggregate into one meaningful percentage
+			effective_qty = flt(item.qty) - returned_qty
+			billed_qty = flt(kernel_billed_qty.get(item.name))
+			fraction = 1.0 if effective_qty <= 0 else min(billed_qty / effective_qty, 1.0)
+			total_billed_amount += fraction * total_billable_amount
+		else:
+			total_billed_amount += abs(flt(item.billed_amt))
 
 		if pr_doc.get("is_return") and not total_amount and total_billed_amount:
 			total_amount = total_billed_amount
