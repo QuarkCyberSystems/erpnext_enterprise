@@ -1477,7 +1477,12 @@ def get_stock_balance_for(
 		if get_valuation_method(item_code, company) in kernel_map:
 			resolver = frappe.get_hooks("valuation_current_state")
 			if resolver:
-				state = frappe.get_attr(resolver[-1])(company, item_code, warehouse, posting_date)
+				# physical=True: a reconciliation row targets ONE warehouse's
+				# physical quantity; for company-scope items the scope total
+				# misstates what is being counted (the rate stays scope-level)
+				state = frappe.get_attr(resolver[-1])(
+					company, item_code, warehouse, posting_date, physical=True
+				)
 				return {
 					"qty": state.get("closing_qty") or 0,
 					"rate": (state.get("frozen_map") if state.get("is_negative") else state.get("moving_avg_price")) or 0,
