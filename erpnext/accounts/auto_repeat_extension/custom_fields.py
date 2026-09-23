@@ -26,11 +26,20 @@ def install_auto_repeat_custom_fields():
 					"options": "Copy\nReversal",
 					"default": "Copy",
 					"reqd": 1,
+					# Reversal is system-set only: the mode is stamped by the
+					# source document's auto-reversal flow (Journal Entry's
+					# "Enable Auto Reversal"), never picked on this form. The
+					# field is read-only so a user cannot select Reversal — the
+					# server-side half of the rule lives in
+					# ERPNextAutoRepeat._validate_reversal_not_user_set.
+					"read_only": 1,
 					"insert_after": "reference_document",
 					"description": (
 						"Copy: deep-copy the source on each schedule. "
-						"Reversal: route through erpnext.auto_repeat_handlers "
-						"to create a reversal entry instead."
+						"Reversal: created automatically by the source document's "
+						"auto-reversal configuration — routed through "
+						"erpnext.auto_repeat_handlers to create a reversal entry. "
+						"Set by the system; not user-selectable."
 					),
 				},
 				{

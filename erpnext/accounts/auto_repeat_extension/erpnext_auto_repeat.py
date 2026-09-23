@@ -40,10 +40,59 @@ class ERPNextAutoRepeat(AutoRepeat):
 	"""
 
 	def validate(self):
-		# Run frappe's base validate first
+		# Reversal mode is stamped by the source document, not chosen by a user.
+		# Checked before frappe's base validate so the mode is refused on its own
+		# terms, whatever else the submitted payload looks like.
+		self._validate_reversal_not_user_set()
+		# Run frappe's base validate
 		super().validate()
 		# Validate ERPNext-side repeat_type handler registration
 		self._validate_erpnext_repeat_type()
+
+	def _validate_reversal_not_user_set(self):
+		"""Reversal mode is system-set only — never selectable on the form.
+
+		A Reversal Auto Repeat is created by the source document's
+		auto-reversal flow (Journal Entry's "Enable Auto Reversal"), which
+		sets `flags.system_set_repeat_type` before insert. The Custom Field
+		is read-only in the UI; this is the server-side half, covering the
+		API / data-import / console paths.
+
+		Only *entering or leaving* Reversal mode is blocked — an existing
+		Reversal schedule stays fully editable (disable, reschedule, change
+		the reversal options).
+		"""
+		new_type = self.get("repeat_type") or "Copy"
+		if self.is_new():
+			# The flag is honoured on insert only — an already-stored schedule
+			# never has its mode rewritten by the system.
+			if self.flags.system_set_repeat_type:
+				return
+			old_type = "Copy"
+		else:
+			# Read the stored mode straight from the DB: `get_doc_before_save()`
+			# is not populated yet when validate runs on the save path.
+			old_type = frappe.db.get_value(self.doctype, self.name, "repeat_type") or "Copy"
+		if new_type == old_type:
+			return
+
+		if new_type == "Reversal":
+			frappe.throw(
+				_(
+					"Repeat Type 'Reversal' cannot be selected manually. An auto-reversal "
+					"schedule is created by the source document — set 'Enable Auto Reversal' "
+					"on the Journal Entry instead."
+				),
+				title=_("Not Permitted"),
+			)
+		if old_type == "Reversal":
+			frappe.throw(
+				_(
+					"Repeat Type cannot be changed away from 'Reversal'. Disable this "
+					"Auto Repeat instead, or cancel the reversal from the source document."
+				),
+				title=_("Not Permitted"),
+			)
 
 	def _validate_erpnext_repeat_type(self):
 		"""Reject Reversal mode for doctypes without a registered handler."""

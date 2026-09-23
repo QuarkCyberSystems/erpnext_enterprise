@@ -536,6 +536,10 @@ class JournalEntry(AccountsController):
 		ar = frappe.new_doc("Auto Repeat")
 		ar.update(payload)
 		ar.flags.ignore_permissions = True
+		# repeat_type="Reversal" is system-set only — the Auto Repeat form
+		# keeps it read-only and ERPNextAutoRepeat rejects a user-set Reversal.
+		# This flag marks the schedule as created by this auto-reversal flow.
+		ar.flags.system_set_repeat_type = True
 		ar.insert()
 		# Don't call ar.submit() — Auto Repeat is not a submittable doctype
 		# per its doctype JSON. Calling submit() still sets docstatus=1,

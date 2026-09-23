@@ -1109,6 +1109,9 @@ class TestJournalEntryTemplateEnforcement(ERPNextTestSuite):
 			}
 		)
 		ar.flags.ignore_permissions = True
+		# Reversal mode is system-set only; mirror what
+		# JournalEntry._maybe_create_auto_reversal_repeat stamps.
+		ar.flags.system_set_repeat_type = True
 		ar.insert()
 		ar.submit()
 		frappe.db.set_value("Journal Entry", jv.name, "linked_auto_repeat", ar.name)
@@ -1136,6 +1139,9 @@ class TestJournalEntryTemplateEnforcement(ERPNextTestSuite):
 			}
 		)
 		ar.flags.ignore_permissions = True
+		# Reversal mode is system-set only; mirror what
+		# JournalEntry._maybe_create_auto_reversal_repeat stamps.
+		ar.flags.system_set_repeat_type = True
 		ar.insert()
 		ar.submit()
 		frappe.db.set_value("Journal Entry", jv.name, "linked_auto_repeat", ar.name)
@@ -1145,6 +1151,62 @@ class TestJournalEntryTemplateEnforcement(ERPNextTestSuite):
 
 		rjv = make_reverse_journal_entry(jv.name)
 		self.assertEqual(rjv.reversal_of, jv.name)
+
+	def test_repeat_type_reversal_not_user_selectable(self):
+		"""Reversal is system-set: the field is read-only and a hand-made
+		Auto Repeat with repeat_type='Reversal' is rejected."""
+		if not self._auto_repeat_reversal_available():
+			self.skipTest("Auto Repeat does not expose repeat_type — Frappe-side WP not deployed")
+
+		self.assertTrue(
+			frappe.get_meta("Auto Repeat").get_field("repeat_type").read_only,
+			"repeat_type must be read-only so users cannot pick Reversal",
+		)
+
+		jv = self._make_submitted_jv()
+		ar = frappe.new_doc("Auto Repeat")
+		ar.update(
+			{
+				"reference_doctype": "Journal Entry",
+				"reference_document": jv.name,
+				"repeat_type": "Reversal",
+				"start_date": nowdate(),
+				"frequency": "Daily",
+			}
+		)
+		ar.flags.ignore_permissions = True
+		# No system_set_repeat_type flag — this is the user/API path.
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot be selected manually"):
+			ar.insert()
+
+	def test_repeat_type_cannot_be_switched_off_reversal(self):
+		"""A system-created Reversal schedule stays editable, but its mode is locked."""
+		if not self._auto_repeat_reversal_available():
+			self.skipTest("Auto Repeat does not expose repeat_type — Frappe-side WP not deployed")
+
+		jv = self._make_submitted_jv()
+		ar = frappe.new_doc("Auto Repeat")
+		ar.update(
+			{
+				"reference_doctype": "Journal Entry",
+				"reference_document": jv.name,
+				"repeat_type": "Reversal",
+				"start_date": nowdate(),
+				"frequency": "Daily",
+			}
+		)
+		ar.flags.ignore_permissions = True
+		ar.flags.system_set_repeat_type = True
+		ar.insert()
+
+		# Unrelated edits on the existing Reversal schedule still save.
+		ar.disabled = 1
+		ar.save(ignore_permissions=True)
+
+		ar.reload()
+		ar.repeat_type = "Copy"
+		with self.assertRaisesRegex(frappe.ValidationError, "cannot be changed away from"):
+			ar.save(ignore_permissions=True)
 
 	def test_auto_repeat_reversal_default_status(self):
 		"""TC-baseline: Fresh JE has empty linked_auto_repeat / auto_reversal_status."""

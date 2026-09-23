@@ -6,7 +6,7 @@
 // Remaining 26 TCs are backend (Auto Repeat creation logic, scheduled-job
 // behaviour, refresh modes, reversal mode rules, etc.) and stay Python.
 //
-//   TC-005  — Auto Repeat form: repeat_type=Reversal toggles UI fields
+//   TC-005  — Auto Repeat form: repeat_type is read-only (Reversal not user-selectable)
 //   TC-022  — JE from template with auto-reversal config (next-month) →
 //             on submit, Auto Repeat is created and linked_auto_repeat set
 //   TC-023  — Same as TC-022 but with auto_reverse_on="Specific Date"
@@ -109,38 +109,49 @@ context("WP GA-0001-05+06 — Auto Repeat Enhancements", () => {
 		});
 
 	// ── TC-005 ──────────────────────────────────────────────────────────
-	it("TC-005 — Auto Repeat form: selecting repeat_type=Reversal toggles UI fields", () => {
-		// Open a fresh Auto Repeat form. Reference a real submitted JE so the
-		// form's reference_document validations don't block our toggle test.
+	it("TC-005 — Auto Repeat form: repeat_type is read-only; Reversal is not user-selectable", () => {
+		// Reversal schedules are created by the source document's auto-reversal
+		// flow. On the Auto Repeat form the mode is display-only: it defaults to
+		// Copy and the control cannot be edited.
 		cy.visit("/app/auto-repeat/new");
 		cy.window({ timeout: 30000 }).its("cur_frm.doctype").should("eq", "Auto Repeat");
 
-		// Initial state: repeat_type defaults to Copy → refresh_mode visible,
-		// reverse_on_next_month hidden.
 		cy.window().then((win) => {
 			const frm = win.cur_frm;
 			expect(frm.doc.repeat_type, "default repeat_type").to.eq("Copy");
+			expect(frm.fields_dict.repeat_type.df.read_only, "repeat_type read-only").to.eq(1);
+			// Read-only Select renders as static text, not an editable <select>.
+			const $input = win.$(frm.wrapper).find('[data-fieldname="repeat_type"] select');
+			expect($input.filter(":visible").length, "no editable select rendered").to.eq(0);
+			// Copy-mode options stay visible.
 			expect(
 				frm.fields_dict.refresh_mode.df.hidden,
 				"refresh_mode visible when Copy"
 			).not.to.eq(1);
 		});
 
-		// Toggle to Reversal.
-		cy.window().then((win) => new Cypress.Promise((resolve) => {
-			win.cur_frm.set_value("repeat_type", "Reversal").then(resolve);
-		}));
-
-		cy.window().then((win) => {
-			const frm = win.cur_frm;
-			expect(frm.doc.repeat_type, "repeat_type set to Reversal").to.eq("Reversal");
-			// refresh_mode field hides via depends_on `repeat_type == 'Copy'`.
-			// After the upstream-shape refactor the AR no longer carries doctype-
-			// specific reversal-config fields (reverse_on_next_month, reverse_date,
-			// reversal_tax_mode, etc.) — those moved to the source JE / its
-			// template, read by the ERPNext-side handler at fire time.
-			const $refresh = win.$(frm.wrapper).find('[data-fieldname="refresh_mode"]');
-			expect($refresh.is(":visible"), "refresh_mode hidden when Reversal").to.be.false;
+		// Server-side half: a hand-made Reversal Auto Repeat is refused.
+		cy.ensure_frappe_loaded();
+		cy.frappe_request({
+			url: "/api/method/frappe.client.insert",
+			method: "POST",
+			body: {
+				doc: {
+					doctype: "Auto Repeat",
+					reference_doctype: "Journal Entry",
+					reference_document: "",
+					repeat_type: "Reversal",
+					frequency: "Daily",
+					start_date: new Date().toISOString().slice(0, 10),
+				},
+			},
+			failOnStatusCode: false,
+		}).then((resp) => {
+			expect(resp.status, "user-set Reversal rejected").to.not.be.oneOf([200, 201]);
+			expect(
+				JSON.stringify(resp.body || {}).toLowerCase(),
+				"error names the manual-selection rule"
+			).to.include("cannot be selected manually");
 		});
 	});
 
