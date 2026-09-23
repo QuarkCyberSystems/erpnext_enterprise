@@ -1208,6 +1208,39 @@ class TestJournalEntryTemplateEnforcement(ERPNextTestSuite):
 		with self.assertRaisesRegex(frappe.ValidationError, "cannot be changed away from"):
 			ar.save(ignore_permissions=True)
 
+	def test_schedule_fields_stay_on_first_tab(self):
+		"""Frappe's own Start Date / End Date / Disabled / Submit on Creation must
+		stay on the first tab. The WP's Copy/Reversal Tab Breaks capture every
+		field that follows them, so anchoring one too early hides those fields
+		in Copy mode."""
+		if not self._auto_repeat_reversal_available():
+			self.skipTest("Auto Repeat does not expose repeat_type — Frappe-side WP not deployed")
+
+		tab_of = {}
+		current_tab = None
+		for df in frappe.get_meta("Auto Repeat").fields:
+			if df.fieldtype == "Tab Break":
+				current_tab = df
+			tab_of[df.fieldname] = current_tab
+
+		for fieldname in ("submit_on_creation", "start_date", "end_date", "disabled"):
+			tab = tab_of.get(fieldname)
+			self.assertIsNone(
+				tab,
+				f"{fieldname} must stay on the first tab; found under tab "
+				f"{tab.label if tab else None!r}",
+			)
+
+		# The frequency block keeps its own ungated tab.
+		for fieldname in ("frequency", "next_schedule_date"):
+			tab = tab_of.get(fieldname)
+			self.assertIsNotNone(tab, f"{fieldname} should sit on a tab")
+			self.assertNotIn(
+				"repeat_type",
+				tab.depends_on or "",
+				f"{fieldname} must not be gated on repeat_type",
+			)
+
 	def test_auto_repeat_reversal_default_status(self):
 		"""TC-baseline: Fresh JE has empty linked_auto_repeat / auto_reversal_status."""
 		jv = self._make_submitted_jv()

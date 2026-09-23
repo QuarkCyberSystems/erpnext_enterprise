@@ -75,12 +75,28 @@ def install_auto_repeat_custom_fields():
 					"insert_after": "follow_amendment_chain",
 					"description": "Updated at each fire — the doc actually used (post amendment-chain follow).",
 				},
+				# Closes the collapsible Source Validation block. Without it the
+				# fields frappe ships after `reference_document` — submit_on_creation,
+				# start_date, end_date, disabled — render inside that block and are
+				# collapsed by default.
+				{
+					"fieldname": "erpnext_schedule_section",
+					"fieldtype": "Section Break",
+					"insert_after": "current_source_document",
+				},
 				# ── Copy Options tab (only visible when repeat_type=Copy) ─────
 				{
 					"fieldname": "erpnext_copy_options_tab",
 					"label": "Copy Options",
 					"fieldtype": "Tab Break",
-					"insert_after": "current_source_document",
+					# A Tab Break captures every field that follows it, so it is
+					# anchored after `disabled` — the last field frappe puts on the
+					# first tab. Anchored any earlier, frappe's own Start Date /
+					# End Date / Disabled / Submit on Creation get swept into the
+					# Reversal Options tab and vanish in Copy mode. Matches
+					# imp_ga-0001-05+06.md §"Auto Repeat": the new blocks go after
+					# `submit_on_creation`.
+					"insert_after": "disabled",
 					"depends_on": "eval:doc.repeat_type !== 'Reversal'",
 				},
 				{
