@@ -38,15 +38,7 @@ erpnext.accounts.unreconcile_payment = {
 		// assuming each row is an individual voucher
 		// pass this to server side method that creates unreconcile doc for each row
 		let selection_map = [];
-		// WP GA-0001-03 #6: a Sales/Purchase Invoice with is_return=1 is a
-		// credit/debit note that acts as the PAYMENT in its reconciliation (the
-		// PRE stores it as payment_name). It must use the payment-side mapping
-		// (voucher = the note itself, against = the linked invoice), exactly like
-		// a Payment Entry / Journal Entry — NOT the invoice-side mapping. Only a
-		// non-return invoice uses the invoice-side mapping.
-		let is_invoice_side =
-			["Sales Invoice", "Purchase Invoice"].includes(frm.doc.doctype) && !frm.doc.is_return;
-		if (is_invoice_side) {
+		if (["Sales Invoice", "Purchase Invoice"].includes(frm.doc.doctype)) {
 			selection_map = selections.map(function (elem) {
 				return {
 					company: elem.company,
@@ -56,12 +48,7 @@ erpnext.accounts.unreconcile_payment = {
 					against_voucher_no: frm.doc.name,
 				};
 			});
-		} else if (
-			["Payment Entry", "Journal Entry", "Sales Invoice", "Purchase Invoice"].includes(
-				frm.doc.doctype
-			)
-		) {
-			// Payment Entry, Journal Entry, OR a return-invoice acting as payment
+		} else if (["Payment Entry", "Journal Entry"].includes(frm.doc.doctype)) {
 			selection_map = selections.map(function (elem) {
 				return {
 					company: elem.company,
@@ -114,14 +101,6 @@ erpnext.accounts.unreconcile_payment = {
 			];
 			let unreconcile_dialog_fields = [
 				{
-					// WP GA-0001-03 #12: user-chosen posting date for the reversal
-					label: __("Unreconcile Date"),
-					fieldname: "unreconcile_date",
-					fieldtype: "Date",
-					default: frappe.datetime.get_today(),
-					reqd: 1,
-				},
-				{
 					label: __("Allocations"),
 					fieldname: "allocations",
 					fieldtype: "Table",
@@ -141,14 +120,9 @@ erpnext.accounts.unreconcile_payment = {
 				},
 				callback: function (r) {
 					if (r.message) {
-						// populate child table with allocations (looked up by
-						// fieldname — the table is no longer at index 0 since the
-						// Unreconcile Date field was added above it)
-						let allocations_field = unreconcile_dialog_fields.find(
-							(f) => f.fieldname === "allocations"
-						);
-						allocations_field.data = r.message;
-						allocations_field.get_data = function () {
+						// populate child table with allocations
+						unreconcile_dialog_fields[0].data = r.message;
+						unreconcile_dialog_fields[0].get_data = function () {
 							return r.message;
 						};
 
@@ -166,8 +140,7 @@ erpnext.accounts.unreconcile_payment = {
 											selected_allocations
 										);
 									erpnext.accounts.unreconcile_payment.create_unreconcile_docs(
-										selection_map,
-										values.unreconcile_date
+										selection_map
 									);
 									d.hide();
 								} else {
@@ -183,12 +156,11 @@ erpnext.accounts.unreconcile_payment = {
 		}
 	},
 
-	create_unreconcile_docs(selection_map, unreconcile_date) {
+	create_unreconcile_docs(selection_map) {
 		frappe.call({
 			method: "erpnext.accounts.doctype.unreconcile_payment.unreconcile_payment.create_unreconcile_doc_for_selection",
 			args: {
 				selections: selection_map,
-				unreconcile_date: unreconcile_date,
 			},
 		});
 	},

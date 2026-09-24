@@ -292,24 +292,7 @@ class PaymentEntry(AccountsController):
 			alert=True,
 		)
 
-	def before_cancel(self):
-		# WP GA-0001-03 / GAP-004: block cancel while any reconciliation is
-		# still active. Unreconciled PREs (is_unreconciled=1) don't count —
-		# they're docstatus=1 only for audit. Throws with a list of blocking
-		# PREs and how to clear them.
-		from qcs_platform.core.pre.cancel_guards import (  # step 1: re-homed; the wiring itself moves at step 3
-			assert_no_active_pres,
-		)
-		assert_no_active_pres("Payment Entry", self.name)
-
 	def on_cancel(self):
-		# Frappe's generic link check (`check_no_back_links_exist`) runs
-		# after on_cancel and counts every submitted PRE — including ones
-		# already unreconciled — as a blocker. Silence it for PREs; the
-		# active-only guard in `before_cancel` does the right enforcement.
-		from qcs_platform.core.pre.cancel_guards import (  # step 1: re-homed; the wiring itself moves at step 3
-			add_pre_to_ignore_linked_doctypes,
-		)
 		self.ignore_linked_doctypes = (
 			"GL Entry",
 			"Stock Ledger Entry",
@@ -323,7 +306,6 @@ class PaymentEntry(AccountsController):
 			"Advance Payment Ledger Entry",
 			"Tax Withholding Entry",
 		)
-		add_pre_to_ignore_linked_doctypes(self)
 		super().on_cancel()
 		PaymentTaxWithholding(self).on_cancel()
 		self.update_payment_requests(cancel=True)
@@ -1508,11 +1490,6 @@ class PaymentEntry(AccountsController):
 				return "debit", reference.account
 
 	def add_advance_gl_for_reference(self, gl_entries, invoice):
-		# When this PE Reference row is owned by a Payment Reconciliation Entry
-		# (Tier 3 PRE flow under Immutable Ledger), the clearing GL pair is
-		# posted by PRE.on_submit. Skip here to avoid double-posting.
-		if invoice.get("reconciliation_entry"):
-			return
 		args_dict = {
 			"party_type": self.party_type,
 			"party": self.party,

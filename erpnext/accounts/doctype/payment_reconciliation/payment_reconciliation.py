@@ -191,29 +191,6 @@ class PaymentReconciliation(Document):
 			condition=condition,
 		)
 
-		# WP GA-0001-03 §3.7 / WA-0001-03 — under Immutable Ledger the PE is
-		# never mutated by reconciliation, so its stored unallocated_amount does
-		# not shrink. Net the amounts already consumed by active (non-reversed,
-		# non-unreconciled) PREs off each PE row and drop rows that are fully
-		# consumed. This replaces the earlier all-or-nothing filter, so a
-		# partially reconciled PE correctly reappears with its remainder.
-		from erpnext.accounts.utils import get_active_pre_allocations, is_immutable_ledger_enabled
-
-		if is_immutable_ledger_enabled() and payment_entries:
-			pre_sums = get_active_pre_allocations(
-				"Payment Entry", [pe.get("reference_name") for pe in payment_entries]
-			)
-			netted = []
-			for pe in payment_entries:
-				consumed = flt(pre_sums.get(pe.get("reference_name")))
-				if consumed:
-					remaining = flt(pe.get("amount")) - consumed
-					if remaining < 0.005:
-						continue
-					pe["amount"] = remaining
-				netted.append(pe)
-			payment_entries = netted
-
 		return payment_entries
 
 	def get_jv_entries(self):
@@ -280,51 +257,6 @@ class PaymentReconciliation(Document):
 			journal_query = journal_query.limit(self.payment_limit)
 
 		journal_entries = journal_query.run(as_dict=True)
-
-		# WP GA-0001-03 / WA-0001-03 — under Immutable Ledger a reconciled JE
-		# keeps its Journal Entry Account row untouched (no reference is written
-		# into it), so the query above cannot exclude it and the JV re-appears
-		# at full value after reconciliation. Net the amounts consumed by active
-		# PREs: row-attributed allocations first (payment_reference_row = JEA
-		# row), then unattributed ones (older PREs) first-fit across the JV's
-		# rows. Fully consumed rows are dropped.
-		from erpnext.accounts.utils import is_immutable_ledger_enabled
-
-		if is_immutable_ledger_enabled() and journal_entries:
-			pres = frappe.get_all(
-				"Payment Reconciliation Entry",
-				filters={
-					"payment_type": "Journal Entry",
-					"payment_name": ["in", [d.reference_name for d in journal_entries]],
-					"is_reversal": 0,
-					"is_unreconciled": 0,
-					"docstatus": 1,
-				},
-				fields=["payment_name", "payment_reference_row", "allocated_amount"],
-			)
-			row_consumed, jv_consumed = {}, {}
-			for p in pres:
-				if p.payment_reference_row:
-					row_consumed[p.payment_reference_row] = flt(
-						row_consumed.get(p.payment_reference_row)
-					) + flt(p.allocated_amount)
-				else:
-					jv_consumed[p.payment_name] = flt(jv_consumed.get(p.payment_name)) + flt(
-						p.allocated_amount
-					)
-			netted = []
-			for row in journal_entries:
-				remaining = flt(row.amount) - flt(row_consumed.get(row.reference_row))
-				unattributed = flt(jv_consumed.get(row.reference_name))
-				if unattributed > 0 and remaining > 0:
-					take = min(remaining, unattributed)
-					remaining -= take
-					jv_consumed[row.reference_name] = unattributed - take
-				if remaining < 0.005:
-					continue
-				row.amount = remaining
-				netted.append(row)
-			journal_entries = netted
 
 		return list(journal_entries)
 
@@ -528,9 +460,7 @@ class PaymentReconciliation(Document):
 		for pay in args.get("payments"):
 			pay.update({"unreconciled_amount": pay.get("amount")})
 			for inv in args.get("invoices"):
-				# Defensive flt() — when reconciling against a fresh JE that hasn't
-				# computed outstanding yet, outstanding_amount can be None.
-				if flt(pay.get("amount")) >= flt(inv.get("outstanding_amount")):
+				if pay.get("amount") >= inv.get("outstanding_amount"):
 					res = self.get_allocated_entry(pay, inv, inv["outstanding_amount"])
 					pay["amount"] = flt(pay.get("amount")) - flt(inv.get("outstanding_amount"))
 					inv["outstanding_amount"] = 0
@@ -546,17 +476,12 @@ class PaymentReconciliation(Document):
 				res.difference_amount = self.get_difference_amount(pay, inv, res["allocated_amount"])
 				res.difference_account = default_exchange_gain_loss_account
 				res.exchange_rate = inv.get("exchange_rate")
-				# WP GA-0001-03 #10: the "Posting Date Inheritance for Exchange
-				# Gain / Loss" setting applies to ADVANCE payments as well as
-				# normal ones (previously gated on `not pay.is_advance`, so
-				# advances always used the payment date regardless of setting).
-				# "Reconciliation Date" uses the tool's chosen date (#1), not
-				# today.
 				res.update({"gain_loss_posting_date": pay.get("posting_date")})
-				if exc_gain_loss_posting_date == "Invoice":
-					res.update({"gain_loss_posting_date": inv.get("invoice_date")})
-				elif exc_gain_loss_posting_date == "Reconciliation Date":
-					res.update({"gain_loss_posting_date": self.reconciliation_date or nowdate()})
+				if not pay.get("is_advance"):
+					if exc_gain_loss_posting_date == "Invoice":
+						res.update({"gain_loss_posting_date": inv.get("invoice_date")})
+					elif exc_gain_loss_posting_date == "Reconciliation Date":
+						res.update({"gain_loss_posting_date": nowdate()})
 
 				if pay.get("amount") == 0:
 					entries.append(res)
@@ -626,22 +551,7 @@ class PaymentReconciliation(Document):
 			reconcile_against_document(entry_list, skip_ref_details_update_for_pe, self.dimensions)
 
 		if dr_or_cr_notes:
-			# WP GA-0001-03 / GAP-013: Under Immutable Ledger the credit/debit
-			# note recon must flow through PRE like every other recon — same
-			# clearing-GL shape, audit chain bound to the PRE voucher rather
-			# than to a standalone orphan JE. `reconcile_against_document`
-			# already has an `immutable` branch that routes to
-			# `_create_pre_for_allocation`, and PRE's `_resolve_clearing_accounts`
-			# already supports `payment_type='Sales Invoice'` (the dr/cr note
-			# flow). Just route through that path; legacy `reconcile_dr_cr_note`
-			# is preserved for IM-OFF sites (backward compat).
-			from erpnext.accounts.utils import is_immutable_ledger_enabled
-			if is_immutable_ledger_enabled():
-				reconcile_against_document(
-					dr_or_cr_notes, skip_ref_details_update_for_pe, self.dimensions
-				)
-			else:
-				reconcile_dr_cr_note(dr_or_cr_notes, self.company, self.dimensions)
+			reconcile_dr_cr_note(dr_or_cr_notes, self.company, self.dimensions)
 
 	@frappe.whitelist()
 	def reconcile(self):
@@ -691,10 +601,6 @@ class PaymentReconciliation(Document):
 				"difference_posting_date": row.get("gain_loss_posting_date"),
 				"debit_or_credit_note_posting_date": row.get("debit_or_credit_note_posting_date"),
 				"cost_center": row.get("cost_center"),
-				# WP GA-0001-03: user-chosen reconciliation/posting date carried
-				# through to the Payment Reconciliation Entry and its clearing GL.
-				# Optional on the tool (#1) — defaults to today.
-				"reconciliation_date": self.reconciliation_date or nowdate(),
 			}
 		)
 

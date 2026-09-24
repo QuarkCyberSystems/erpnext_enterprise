@@ -24,10 +24,7 @@
   "payment_request",
   "payment_request_outstanding",
   "advance_voucher_type",
-  "advance_voucher_no",
-  "reconciliation_entry",
-  "is_reversed",
-  "reversal_reconciliation_entry"
+  "advance_voucher_no"
  ],
  "fields": [
   {
@@ -174,37 +171,12 @@
    "label": "Advance Voucher No",
    "options": "advance_voucher_type",
    "read_only": 1
-  },
-  {
-   "fieldname": "reconciliation_entry",
-   "fieldtype": "Link",
-   "label": "Reconciliation Entry",
-   "options": "Payment Reconciliation Entry",
-   "read_only": 1
-  },
-  {
-   "default": "0",
-   "description": "Set when this reconciliation allocation was reversed via Unreconcile Payment. The original values are preserved for audit.",
-   "fieldname": "is_reversed",
-   "fieldtype": "Check",
-   "in_list_view": 1,
-   "label": "Reversed",
-   "no_copy": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "reversal_reconciliation_entry",
-   "fieldtype": "Link",
-   "label": "Reversal Reconciliation Entry",
-   "no_copy": 1,
-   "options": "Payment Reconciliation Entry",
-   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-07-14 05:30:00.000000",
+ "modified": "2026-01-05 14:18:03.286224",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Payment Entry Reference",
