@@ -63,8 +63,6 @@ frappe.ui.form.on("Journal Entry Template", {
 				},
 			};
 		});
-
-		apply_template_lock_state(frm);
 	},
 	voucher_type: function (frm) {
 		var add_accounts = function (doc, r) {
@@ -111,67 +109,4 @@ frappe.ui.form.on("Journal Entry Template", {
 		frappe.model.clear_table(frm.doc, "accounts");
 		frm.refresh_field("accounts");
 	},
-	enable_auto_reversal: function (frm) {
-		if (!frm.doc.enable_auto_reversal) {
-			frm.set_value({
-				auto_reverse_on: "First Day of Next Month",
-				auto_reverse_date: null,
-				reversal_exchange_rate_type: "Original Rate",
-				reversal_tax_mode: "Use Original",
-				reversal_cost_center_mode: "Use Original",
-				auto_submit_reversal: 0,
-			});
-		}
-	},
-	auto_reverse_on: function (frm) {
-		if (frm.doc.auto_reverse_on === "First Day of Next Month") {
-			frm.set_value("auto_reverse_date", null);
-		}
-	},
 });
-
-// Structural fields frozen once the template is in use (defect WA-0001-04 #1).
-// `disabled`, `from_date`, `end_date` are deliberately excluded so the template
-// can be retired / date-bounded after lock.
-const TEMPLATE_FROZEN_FIELDS = [
-	"template_title",
-	"voucher_type",
-	"naming_series",
-	"company",
-	"is_opening",
-	"multi_currency",
-	"allow_additional_accounts",
-	"enable_auto_reversal",
-	"auto_reverse_on",
-	"auto_reverse_date",
-	"reversal_exchange_rate_type",
-	"reversal_tax_mode",
-	"reversal_cost_center_mode",
-	"auto_submit_reversal",
-];
-
-var apply_template_lock_state = function (frm) {
-	const onload = frm.doc.__onload || {};
-
-	if (!onload.in_use) return;
-
-	// Defect WA-0001-04 #1 — template already used by a submitted Journal Entry;
-	// freeze its structure. Availability fields stay editable.
-	TEMPLATE_FROZEN_FIELDS.forEach((f) => frm.set_df_property(f, "read_only", 1));
-
-	const grid = frm.fields_dict.accounts.grid;
-	grid.cannot_add_rows = true;
-	grid.cannot_delete_rows = true;
-	grid.static_rows = true;
-	(frappe.get_meta("Journal Entry Template Account").fields || []).forEach((df) => {
-		if (["Section Break", "Column Break", "HTML", "Button"].includes(df.fieldtype)) return;
-		grid.update_docfield_property(df.fieldname, "read_only", 1);
-	});
-	frm.refresh_field("accounts");
-
-	frm.dashboard.add_comment(
-		__("This template has been used by a submitted Journal Entry and is locked. You can still disable it or change its From/End dates."),
-		"blue",
-		true
-	);
-};

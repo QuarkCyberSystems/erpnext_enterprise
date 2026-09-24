@@ -7,7 +7,7 @@ import json
 import frappe
 from frappe import _, msgprint, scrub
 from frappe.core.doctype.submission_queue.submission_queue import queue_submission
-from frappe.utils import comma_and, cstr, flt, fmt_money, formatdate, get_link_to_form, getdate, nowdate
+from frappe.utils import comma_and, cstr, flt, fmt_money, formatdate, get_link_to_form, nowdate
 
 import erpnext
 from erpnext.accounts.deferred_revenue import get_deferred_booking_accounts
@@ -55,10 +55,6 @@ class JournalEntry(AccountsController):
 		amended_from: DF.Link | None
 		apply_tds: DF.Check
 		auto_repeat: DF.Link | None
-		auto_reversal_status: DF.Data | None
-		auto_reverse_date: DF.Date | None
-		auto_reverse_on: DF.Literal["First Day of Next Month", "Specific Date"]
-		auto_submit_reversal: DF.Check
 		bill_date: DF.Date | None
 		bill_no: DF.Data | None
 		cheque_date: DF.Date | None
@@ -68,18 +64,14 @@ class JournalEntry(AccountsController):
 		custom_remark: DF.Check
 		difference: DF.Currency
 		due_date: DF.Date | None
-		enable_auto_reversal: DF.Check
 		finance_book: DF.Link | None
 		for_all_stock_asset_accounts: DF.Check
 		from_template: DF.Link | None
 		ignore_tax_withholding_threshold: DF.Check
 		inter_company_journal_entry_reference: DF.Link | None
 		is_opening: DF.Literal["No", "Yes"]
-		is_reversal: DF.Check
-		is_reversed: DF.Check
 		is_system_generated: DF.Check
 		letter_head: DF.Link | None
-		linked_auto_repeat: DF.Link | None
 		mode_of_payment: DF.Link | None
 		multi_currency: DF.Check
 		naming_series: DF.Literal["ACC-JV-.YYYY.-"]
@@ -91,19 +83,13 @@ class JournalEntry(AccountsController):
 		posting_date: DF.Date
 		process_deferred_accounting: DF.Link | None
 		remark: DF.SmallText | None
-		respect_cost_center_allocation: DF.Check
-		reversal_cost_center_mode: DF.Literal["Use Original", "Apply Current Allocation"]
-		reversal_exchange_rate_type: DF.Literal["Original Rate", "Current Rate"]
 		reversal_of: DF.Link | None
-		reversal_tax_mode: DF.Literal["Use Original", "Recalculate for Posting Date"]
-		reversed_by: DF.Link | None
 		select_print_heading: DF.Link | None
 		stock_asset_account: DF.Link | None
 		stock_entry: DF.Link | None
 		tax_withholding_category: DF.Link | None
 		tax_withholding_entries: DF.Table[TaxWithholdingEntry]
 		tax_withholding_group: DF.Link | None
-		template_applied: DF.Check
 		title: DF.Data | None
 		total_amount: DF.Currency
 		total_amount_currency: DF.Link | None
@@ -169,217 +155,11 @@ class JournalEntry(AccountsController):
 		self.validate_depr_account_and_depr_entry_voucher_type()
 		self.validate_company_in_accounting_dimension()
 		self.validate_advance_accounts()
-		self.validate_template_availability()
-		self.validate_against_template()
-		self.validate_auto_reversal_config()
 
 		JournalTaxWithholding(self).on_validate()
 
-		self.validate_reversal_locked_fields()
-		self.validate_reversal_totals_match_original()
-		self.maybe_reresolve_cost_center()
-
 		if self.is_new() or not self.title:
 			self.title = self.get_title()
-
-	def before_save(self):
-		if self.is_new():
-			return
-		old = self.get_doc_before_save()
-		if old and old.from_template and not self.from_template:
-			self.template_applied = 0
-			for row in self.accounts:
-				row.from_template = 0
-
-	def validate_auto_reversal_config(self):
-		# WA-0001-05 #9 — keep the JE's auto-reversal config coherent whether it was
-		# set manually or inherited from a template.
-		if not self.enable_auto_reversal:
-			self.auto_reverse_date = None
-			return
-		if self.auto_reverse_on == "First Day of Next Month":
-			self.auto_reverse_date = None
-		elif self.auto_reverse_on == "Specific Date" and not self.auto_reverse_date:
-			frappe.throw(_("Reversal Date is required when Auto Reverse On is set to Specific Date."))
-
-	def validate_template_availability(self):
-		# Defect WA-0001-04 #2 — a disabled or out-of-date-range template cannot
-		# be applied to a Journal Entry. Enforced for drafts only so historical
-		# submitted entries are never blocked retroactively if the template is
-		# later disabled or date-bounded.
-		if self.docstatus != 0 or not self.from_template:
-			return
-		template = frappe.db.get_value(
-			"Journal Entry Template",
-			self.from_template,
-			["disabled", "from_date", "end_date"],
-			as_dict=True,
-		)
-		if not template:
-			return
-
-		link = get_link_to_form("Journal Entry Template", self.from_template)
-		if template.disabled:
-			frappe.throw(_("Journal Entry Template {0} is disabled and cannot be used.").format(link))
-
-		posting_date = getdate(self.posting_date) if self.posting_date else getdate()
-		if template.from_date and posting_date < getdate(template.from_date):
-			frappe.throw(
-				_("Journal Entry Template {0} is only valid from {1}.").format(
-					link, formatdate(template.from_date)
-				)
-			)
-		if template.end_date and posting_date > getdate(template.end_date):
-			frappe.throw(
-				_("Journal Entry Template {0} is only valid until {1}.").format(
-					link, formatdate(template.end_date)
-				)
-			)
-
-	def validate_against_template(self):
-		# Structural validation runs whenever `from_template` is set — we
-		# deliberately don't gate on `template_applied` here. The flag exists
-		# as a UI hint (for the JS to know when to apply client-side locks),
-		# but the server-side guarantee that "rows must match the template"
-		# is rooted in the link itself, not the flag. Gating on the flag
-		# created a bypass: tampering APIs could clear `template_applied`
-		# and then freely mutate row structure, skipping this validator
-		# entirely.
-		if not self.from_template:
-			return
-		if not frappe.db.exists("Journal Entry Template", self.from_template):
-			return
-
-		template = frappe.get_cached_doc("Journal Entry Template", self.from_template)
-		expected = sorted(
-			(r.account, r.party_type or "") for r in template.accounts
-		)
-		actual_template_rows = sorted(
-			(r.account, r.party_type or "") for r in self.accounts if r.from_template
-		)
-		if expected != actual_template_rows:
-			frappe.throw(
-				_(
-					"Template-derived account rows do not match {0}. "
-					"Clear and reapply the template, or remove the template reference."
-				).format(get_link_to_form("Journal Entry Template", self.from_template))
-			)
-
-		if not template.allow_additional_accounts:
-			extra = [r for r in self.accounts if not r.from_template]
-			if extra:
-				frappe.throw(
-					_(
-						"Template {0} does not allow additional accounts. Remove rows that are not part of the template."
-					).format(self.from_template)
-				)
-
-		self.validate_template_row_locks(template)
-		self.validate_template_header_locks(template)
-
-	@staticmethod
-	def _field_values_match(doc_a, doc_b, fieldname, meta):
-		# Fieldtype-normalised equality so a form-POSTed string ("2026-05-13",
-		# "0") compares equal to the DB-typed value (datetime.date, False).
-		# Shared by the reversal locks and the template header locks.
-		df = meta.get_field(fieldname)
-		fieldtype = df.fieldtype if df else None
-		a, b = doc_a.get(fieldname), doc_b.get(fieldname)
-		if fieldtype == "Date":
-			return (getdate(a) if a else None) == (getdate(b) if b else None)
-		if fieldtype == "Datetime":
-			from frappe.utils import get_datetime
-
-			return (get_datetime(a) if a else None) == (get_datetime(b) if b else None)
-		if fieldtype in ("Check", "Int"):
-			from frappe.utils import cint
-
-			return cint(a) == cint(b)
-		if fieldtype in ("Float", "Currency", "Percent"):
-			return flt(a) == flt(b)
-		# Treat None and "" as equivalent for text-like fields.
-		return (a or None) == (b or None)
-
-	def validate_template_header_locks(self, template):
-		# Server-side mirror of the client header locks (TEMPLATE_HEADER_LOCKS in
-		# journal_entry.js). Only enforced when the global Accounts Settings switch
-		# is on, matching the client — which makes these fields read-only only in
-		# that mode. Without this, a bulk edit / API write could change header
-		# fields the template fixed (proven for is_opening). Reuses the same
-		# fieldtype-normalised comparison as the reversal locks.
-		if not frappe.db.get_single_value("Accounts Settings", "enforce_template_field_locking"):
-			return
-		# `auto_reverse_date` is deliberately excluded — it is the one reversal
-		# field the operator may adjust on the JE (mirrors the client, where
-		# only the date stays editable when auto_reverse_on == "Specific Date").
-		header_fields = (
-			"voucher_type",
-			"company",
-			"multi_currency",
-			"is_opening",
-			"naming_series",
-			"enable_auto_reversal",
-			"auto_reverse_on",
-			"reversal_exchange_rate_type",
-			"reversal_tax_mode",
-			"reversal_cost_center_mode",
-			"auto_submit_reversal",
-		)
-		for field in header_fields:
-			if not (self.meta.has_field(field) and template.meta.has_field(field)):
-				continue
-			if not self._field_values_match(self, template, field, self.meta):
-				frappe.throw(
-					_("Field {0} is set by Journal Entry Template {1} and cannot be changed.").format(
-						frappe.bold(_(self.meta.get_label(field) or field)),
-						get_link_to_form("Journal Entry Template", self.from_template),
-					)
-				)
-
-	def validate_template_row_locks(self, template):
-		# Defect WA-0001-04 #5 — server-side mirror of the client row locks:
-		# fields the template populated on a row (account, party, party_type,
-		# cost_center, project and every accounting dimension) cannot be changed
-		# on the template-derived JE row. Only template-FILLED values are
-		# enforced, so accounting-dimension defaults on fields the template left
-		# blank are still permitted. The account+party_type multiset check above
-		# already guarantees the two row sets have equal length; because account
-		# is always non-empty it is enforced positionally here, which also
-		# catches any reordering of the locked rows.
-		locked_fields = self.get_template_locked_row_fields()
-		je_template_rows = [r for r in self.accounts if r.from_template]
-		row_meta = frappe.get_meta("Journal Entry Account")
-		for tpl_row, je_row in zip(template.accounts, je_template_rows):
-			for field in locked_fields:
-				tpl_val = tpl_row.get(field)
-				if tpl_val in (None, ""):
-					continue
-				if (je_row.get(field) or None) != (tpl_val or None):
-					frappe.throw(
-						_(
-							"Row #{0}: {1} is set by Journal Entry Template {2} and cannot be changed."
-						).format(
-							je_row.idx,
-							frappe.bold(_(row_meta.get_label(field) or field)),
-							get_link_to_form("Journal Entry Template", self.from_template),
-						)
-					)
-
-	@staticmethod
-	def get_template_locked_row_fields():
-		from erpnext.accounts.doctype.accounting_dimension.accounting_dimension import (
-			get_accounting_dimensions,
-		)
-
-		candidates = ["account", "party_type", "party", "is_advance", "cost_center", "project"]
-		candidates += get_accounting_dimensions() or []
-		row_meta = frappe.get_meta("Journal Entry Account")
-		seen, fields = set(), []
-		for field in candidates:
-			if field not in seen and row_meta.has_field(field):
-				seen.add(field)
-				fields.append(field)
-		return fields
 
 	def validate_advance_accounts(self):
 		journal_accounts = set([x.account for x in self.accounts])
@@ -407,44 +187,6 @@ class JournalEntry(AccountsController):
 
 	def before_cancel(self):
 		self.has_asset_adjustment_entry()
-		self.validate_no_active_auto_reversal()
-		# WP GA-0001-03 / GAP-004: block cancel if any PRE on this JE is still
-		# active. JEs reconciled as the payment side of a PRE need to be
-		# unreconciled (via reversal PRE) first.
-		from qcs_platform.core.pre.cancel_guards import (  # step 1: re-homed; the wiring itself moves at step 3
-			assert_no_active_pres,
-		)
-		assert_no_active_pres("Journal Entry", self.name)
-
-	def validate_no_active_auto_reversal(self):
-		# Symmetric with the manual-reversal guard in make_reverse_journal_entry:
-		# don't allow cancelling a JE that still has an active scheduled
-		# auto-reversal, otherwise the Auto Repeat would later fire and try to
-		# reverse a cancelled entry. The user must disable/cancel the schedule
-		# first. Capability-checked so it's safe before GA-0001-05+06 lands.
-		if not frappe.get_meta("Auto Repeat").has_field("repeat_type"):
-			return
-		active_ar = frappe.db.get_value(
-			"Auto Repeat",
-			{
-				"reference_doctype": "Journal Entry",
-				"reference_document": self.name,
-				"repeat_type": "Reversal",
-				"status": "Active",
-				"disabled": 0,
-			},
-			"name",
-		)
-		if active_ar:
-			frappe.throw(
-				_(
-					"{0} has an active Auto Repeat reversal {1}. "
-					"Disable or cancel the Auto Repeat before cancelling this Journal Entry."
-				).format(
-					frappe.bold(self.name),
-					get_link_to_form("Auto Repeat", active_ar),
-				)
-			)
 
 	def cancel(self):
 		if len(self.accounts) > 100:
@@ -465,99 +207,6 @@ class JournalEntry(AccountsController):
 		self.update_inter_company_jv()
 		self.update_invoice_discounting()
 		JournalTaxWithholding(self).on_submit()
-		self.update_reversal_link()
-		self._maybe_create_auto_reversal_repeat()
-
-	def _maybe_create_auto_reversal_repeat(self):
-		# WA-0001-05 #9 — auto-reversal is available on ANY Journal Entry whose
-		# "Enable Auto Reversal" is set, whether or not it was created from a
-		# template. Template-derived JEs inherit (and lock) the config; manual JEs
-		# set it directly on the form.
-		if not self.enable_auto_reversal:
-			return
-		if getattr(self, "is_reversal", 0):
-			return
-		if not frappe.get_meta("Auto Repeat").has_field("repeat_type"):
-			frappe.log_error(
-				title="Auto reversal skipped",
-				message=(
-					f"Journal Entry {self.name}: enable_auto_reversal=1 but the Auto Repeat doctype "
-					f"does not have repeat_type (GA-0001-05+06 not deployed). "
-					f"No reversal scheduled."
-				),
-			)
-			return
-
-		# Compute the schedule date and the AR-side reversal-config fields
-		# from the JE's mirrored auto-reversal config. The handler now reads
-		# the reversal config off the Auto Repeat (per imp_ga-0001-05+06.md
-		# §"Schema additions" — AR is the canonical source), falling back
-		# to the JE for back-compat with ARs created before this field set
-		# was installed.
-		from frappe.utils import add_months, get_first_day, getdate
-
-		if self.auto_reverse_on == "Specific Date" and self.auto_reverse_date:
-			start_date = getdate(self.auto_reverse_date)
-			reverse_on_next_month = 0
-			reverse_date = getdate(self.auto_reverse_date)
-		else:
-			start_date = get_first_day(add_months(getdate(), 1))
-			reverse_on_next_month = 1
-			reverse_date = None
-
-		# Only populate the Reversal Options fields when they exist on the
-		# Auto Repeat doctype. Pre-WP-05+06-tab deploys lack them; the
-		# handler will fall back to reading from the JE in that case.
-		ar_meta = frappe.get_meta("Auto Repeat")
-		payload = {
-			"reference_doctype": "Journal Entry",
-			"reference_document": self.name,
-			"repeat_type": "Reversal",
-			# Keep submit_on_creation aligned with the JE's Auto Submit Reversal
-			# config. In Reversal mode the handler controls submission via
-			# auto_submit_reversal (submit_on_creation is not consumed on this
-			# path), but they must agree so the stored config is not misleading.
-			"submit_on_creation": self.auto_submit_reversal or 0,
-			"start_date": start_date,
-			# frappe's Auto Repeat requires `frequency` (reqd=1). For our
-			# single-fire Reversal flow it's a placeholder — ERPNextAutoRepeat's
-			# set_dates uses start_date directly for Reversal mode and never
-			# consumes frequency. We pick "Daily" arbitrarily.
-			"frequency": "Daily",
-		}
-		if ar_meta.has_field("reverse_on_next_month"):
-			payload["reverse_on_next_month"] = reverse_on_next_month
-			payload["reverse_date"] = reverse_date
-			payload["auto_submit_reversal"] = self.auto_submit_reversal or 0
-			payload["reversal_exchange_rate_type"] = self.reversal_exchange_rate_type or "Original Rate"
-			payload["reversal_tax_mode"] = self.reversal_tax_mode or "Use Original"
-			payload["reversal_cost_center_mode"] = self.reversal_cost_center_mode or "Use Original"
-
-		ar = frappe.new_doc("Auto Repeat")
-		ar.update(payload)
-		ar.flags.ignore_permissions = True
-		# repeat_type="Reversal" is system-set only — the Auto Repeat form
-		# keeps it read-only and ERPNextAutoRepeat rejects a user-set Reversal.
-		# This flag marks the schedule as created by this auto-reversal flow.
-		ar.flags.system_set_repeat_type = True
-		ar.insert()
-		# Don't call ar.submit() — Auto Repeat is not a submittable doctype
-		# per its doctype JSON. Calling submit() still sets docstatus=1,
-		# which Frappe's UI treats as read-only-everywhere on the form
-		# (locking the `disabled` checkbox and status Select so the user
-		# can't cancel the schedule). The scheduler gates on
-		# `status='Active' AND !disabled`, not docstatus, so submit() was
-		# never functionally required — it only broke the UX.
-
-		# Back-link the new AR onto this JE so the form indicator and any
-		# JE-side reports can resolve "what's scheduled for this JE". The
-		# manual-reversal guard in `make_reverse_journal_entry` scans Auto
-		# Repeat directly (doesn't depend on this back-link) — this is for
-		# visibility/audit, not enforcement.
-		if self.meta.has_field("linked_auto_repeat"):
-			self.db_set("linked_auto_repeat", ar.name, update_modified=False)
-		if self.meta.has_field("auto_reversal_status"):
-			self.db_set("auto_reversal_status", "Scheduled", update_modified=False)
 
 	@frappe.whitelist()
 	def get_balance_for_periodic_accounting(self):
@@ -643,8 +292,6 @@ class JournalEntry(AccountsController):
 	def on_cancel(self):
 		# Cancel tax withholding entries
 
-		self.validate_reversal_cancel_allowed()
-
 		# References for this Journal are removed on the `on_cancel` event in accounts_controller
 		super().on_cancel()
 
@@ -666,13 +313,6 @@ class JournalEntry(AccountsController):
 		if from_doc_events and from_doc_events != self.ignore_linked_doctypes:
 			self.ignore_linked_doctypes = self.ignore_linked_doctypes + from_doc_events
 
-		# WP GA-0001-03 / GAP-004: silence Frappe's generic PRE link check;
-		# the active-only guard in `before_cancel` already enforced the rule.
-		from qcs_platform.core.pre.cancel_guards import (  # step 1: re-homed; the wiring itself moves at step 3
-			add_pre_to_ignore_linked_doctypes,
-		)
-		add_pre_to_ignore_linked_doctypes(self)
-
 		self.make_gl_entries(1)
 		JournalTaxWithholding(self).on_cancel()
 		self.unlink_advance_entry_reference()
@@ -680,177 +320,6 @@ class JournalEntry(AccountsController):
 		self.unlink_inter_company_jv()
 		self.unlink_asset_adjustment_entry()
 		self.update_invoice_discounting()
-		self.clear_reversal_link()
-
-	def validate_reversal_cancel_allowed(self):
-		if not self.is_reversal:
-			return
-
-		from erpnext.accounts.utils import is_immutable_ledger_enabled
-
-		if is_immutable_ledger_enabled():
-			frappe.throw(
-				_(
-					"Cannot cancel Reversal Journal Entry {0} while Immutable Ledger is enabled. Disable Immutable Ledger in Accounts Settings to allow cancelling reversal entries."
-				).format(frappe.bold(self.name))
-			)
-
-	def validate_reversal_locked_fields(self):
-		if not self.is_reversal or not self.reversal_of or self.docstatus == 2:
-			return
-		if self.is_new():
-			# Fresh mapped draft — nothing to diff yet.
-			return
-
-		original = frappe.get_doc("Journal Entry", self.reversal_of)
-
-		# WA-0001-01 #7 — is_opening is allow_on_submit, so without this it stays
-		# editable on a submitted reversal; lock it to the original here.
-		header_fields = ("company", "voucher_type", "multi_currency", "cheque_no", "cheque_date", "is_opening")
-		for field in header_fields:
-			if not self._field_values_match(self, original, field, self.meta):
-				frappe.throw(
-					_("Field {0} cannot be modified on a Reversal Journal Entry.").format(
-						frappe.bold(_(self.meta.get_label(field) or field))
-					)
-				)
-
-		if len(self.accounts) != len(original.accounts):
-			frappe.throw(
-				_("Rows cannot be added or removed on a Reversal Journal Entry.")
-			)
-
-		row_fields = (
-			"account",
-			"party_type",
-			"party",
-			"reference_type",
-			"reference_name",
-			"cost_center",
-			"project",
-			"account_currency",
-		)
-		# WA-0001-01 #7 — is_advance is deliberately NOT diffed against the
-		# original. A reversal flips debit<->credit, so an advance row cannot
-		# keep is_advance="Yes" (it would violate the advance direction rule),
-		# and is never carried over (see make_reverse_journal_entry). The field
-		# is still locked read-only on the form via lock_reversal_fields, which
-		# satisfies the "not editable" requirement without an impossible diff.
-		original_rows = {row.idx: row for row in original.accounts}
-		row_meta = frappe.get_meta("Journal Entry Account")
-		for reversal_row in self.accounts:
-			original_row = original_rows.get(reversal_row.idx)
-			if not original_row:
-				continue
-			for field in row_fields:
-				if field == "cost_center" and not self.respect_cost_center_allocation:
-					# cost_center is allowed to change when re-resolution is requested.
-					continue
-				if not self._field_values_match(reversal_row, original_row, field, row_meta):
-					frappe.throw(
-						_("Row #{0}: Field {1} cannot be modified on a Reversal Journal Entry.").format(
-							reversal_row.idx,
-							frappe.bold(_(reversal_row.meta.get_label(field) or field)),
-						)
-					)
-
-			original_debit = flt(original_row.debit_in_account_currency)
-			original_credit = flt(original_row.credit_in_account_currency)
-			if (
-				flt(reversal_row.debit_in_account_currency) != original_credit
-				or flt(reversal_row.credit_in_account_currency) != original_debit
-			):
-				frappe.throw(
-					_(
-						"Row #{0}: Debit/Credit amounts on a Reversal Journal Entry must mirror the original entry."
-					).format(reversal_row.idx)
-				)
-
-	def validate_reversal_totals_match_original(self):
-		if not self.is_reversal or not self.reversal_of or self.docstatus == 2:
-			return
-
-		# WA-0001-06: a "Current Rate" reversal deliberately re-prices the entry at
-		# the reversal posting date, so its base-currency totals differ from the
-		# original by the FX delta. The account-currency amounts still mirror the
-		# original row-by-row (validate_reversal_locked_fields) and the reversal
-		# balances internally, so the cross-document base-total equality check
-		# below does not apply in that mode.
-		if (self.get("reversal_exchange_rate_type") or "Original Rate") == "Current Rate":
-			return
-
-		original = frappe.db.get_value(
-			"Journal Entry",
-			self.reversal_of,
-			["total_debit", "total_credit"],
-			as_dict=True,
-		)
-		if not original:
-			return
-
-		debit_precision = self.precision("total_debit")
-		credit_precision = self.precision("total_credit")
-
-		if flt(self.total_debit, debit_precision) != flt(original.total_credit, credit_precision):
-			frappe.throw(
-				_(
-					"Reversal entry total debit ({0}) must match the original entry's total credit ({1})."
-				).format(
-					fmt_money(self.total_debit, precision=debit_precision),
-					fmt_money(original.total_credit, precision=credit_precision),
-				)
-			)
-
-		if flt(self.total_credit, credit_precision) != flt(original.total_debit, debit_precision):
-			frappe.throw(
-				_(
-					"Reversal entry total credit ({0}) must match the original entry's total debit ({1})."
-				).format(
-					fmt_money(self.total_credit, precision=credit_precision),
-					fmt_money(original.total_debit, precision=debit_precision),
-				)
-			)
-
-	def maybe_reresolve_cost_center(self):
-		if not self.is_reversal or self.respect_cost_center_allocation or self.docstatus == 2:
-			return
-		if not self.reversal_of:
-			return
-
-		original = frappe.get_doc("Journal Entry", self.reversal_of)
-		original_rows = {row.idx: row for row in original.accounts}
-		for row in self.accounts:
-			original_row = original_rows.get(row.idx)
-			if not original_row or not original_row.cost_center:
-				continue
-			# WP GA-0001-01: resolve the main cost center using the REVERSAL's
-			# posting date (not the original's) so the cost-center allocation
-			# active at the reversal date is the one re-applied on the post side.
-			main_cost_center = _find_main_cost_center_for_leaf(
-				original_row.cost_center, self.posting_date
-			)
-			if main_cost_center:
-				row.cost_center = main_cost_center
-
-	def update_reversal_link(self):
-		if not self.is_reversal or not self.reversal_of:
-			return
-		frappe.db.set_value(
-			"Journal Entry",
-			self.reversal_of,
-			{"reversed_by": self.name, "is_reversed": 1},
-			update_modified=False,
-		)
-
-	def clear_reversal_link(self):
-		if not self.is_reversal or not self.reversal_of:
-			return
-		frappe.db.set_value(
-			"Journal Entry",
-			self.reversal_of,
-			{"reversed_by": None, "is_reversed": 0},
-			update_modified=False,
-		)
 
 	def get_title(self):
 		return self.pay_to_recd_from or self.accounts[0].account
@@ -2100,34 +1569,6 @@ def get_against_jv(doctype, txt, searchfield, start, page_len, filters):
 
 
 @frappe.whitelist()
-@frappe.validate_and_sanitize_search_inputs
-def get_available_templates(doctype, txt, searchfield, start, page_len, filters):
-	# Defect WA-0001-04 #2 — the from_template picker previously listed every
-	# non-disabled template; the from_date/end_date availability window was only
-	# enforced server-side on save, so out-of-window templates still appeared in
-	# the dropdown. Mirror that window here, treating null bounds as open-ended,
-	# so the posting date filters the list directly.
-	if not frappe.db.has_column("Journal Entry Template", searchfield):
-		searchfield = "name"
-
-	posting_date = (filters or {}).get("posting_date") or nowdate()
-
-	Template = frappe.qb.DocType("Journal Entry Template")
-	query = (
-		frappe.qb.from_(Template)
-		.select(Template.name)
-		.where(Template.disabled == 0)
-		.where(Template.from_date.isnull() | (Template.from_date <= posting_date))
-		.where(Template.end_date.isnull() | (Template.end_date >= posting_date))
-		.where(Template[searchfield].like(f"%{txt}%"))
-		.orderby(Template.name)
-		.limit(page_len)
-		.offset(start)
-	)
-	return query.run()
-
-
-@frappe.whitelist()
 def get_outstanding(args):
 	if not frappe.has_permission("Account"):
 		frappe.msgprint(_("No Permission"), raise_exception=1)
@@ -2317,66 +1758,7 @@ def make_inter_company_journal_entry(name, voucher_type, company):
 
 @frappe.whitelist()
 def make_reverse_journal_entry(source_name, target_doc=None):
-	# WP GA-0001-05+06: block manual reversal while an active Auto Repeat (Reversal) is linked.
-	# The user must cancel/disable the Auto Repeat before reversing manually.
-	# Capability-checked so this is safe to ship before Auto Repeat gains repeat_type
-	# (frappe.db.get_value returns None silently when the field doesn't exist on the doctype).
-	# Find any Active, non-disabled Auto Repeat (Reversal) targeting this JE.
-	# The earlier shape relied on JE.linked_auto_repeat being set on AR insert,
-	# but the template hook doesn't write that back-link — it only stamps it
-	# from the reversal handler. So scan Auto Repeat directly.
-	#
-	# Gate matches the scheduler's: status=='Active' AND !disabled. Auto
-	# Repeat is NOT submittable, so docstatus checks would always fail.
-	#
-	# Exempt the Auto Repeat's OWN scheduled handler: it calls this function
-	# to perform the very reversal the AR schedules. Without this, the guard
-	# blocks the AR against itself (it is always Active+enabled at fire time),
-	# so auto-reversal could never succeed. The flag is set only by
-	# auto_repeat_handler.make_journal_entry_reversal and is not an API kwarg,
-	# so the user-facing manual-reversal guard remains fully enforced.
-	if not frappe.flags.get("in_auto_repeat_reversal") and frappe.get_meta(
-		"Auto Repeat"
-	).has_field("repeat_type"):
-		linked_ar = frappe.db.get_value(
-			"Auto Repeat",
-			{
-				"reference_doctype": "Journal Entry",
-				"reference_document": source_name,
-				"repeat_type": "Reversal",
-				"status": "Active",
-				"disabled": 0,
-			},
-			"name",
-		)
-		if linked_ar:
-			frappe.throw(
-				_(
-					"{0} has an active Auto Repeat reversal {1}. "
-					"Cancel or disable the Auto Repeat first before reversing manually."
-				).format(
-					frappe.bold(source_name),
-					get_link_to_form("Auto Repeat", linked_ar),
-				)
-			)
-
-	# WP GA-0001-01: block reversal of a reversal.
-	source = frappe.db.get_value(
-		"Journal Entry",
-		source_name,
-		["is_reversal", "reversal_of"],
-		as_dict=True,
-	)
-	if source and (source.is_reversal or source.reversal_of):
-		frappe.throw(
-			_("Journal Entry {0} is itself a reversal. Reversing a reversal entry is not allowed.").format(
-				get_link_to_form("Journal Entry", source_name)
-			)
-		)
-
-	existing_reverse = frappe.db.exists(
-		"Journal Entry", {"reversal_of": source_name, "docstatus": ["in", [0, 1]]}
-	)
+	existing_reverse = frappe.db.exists("Journal Entry", {"reversal_of": source_name, "docstatus": 1})
 	if existing_reverse:
 		frappe.throw(
 			_("A Reverse Journal Entry {0} already exists for this Journal Entry.").format(
@@ -2388,27 +1770,6 @@ def make_reverse_journal_entry(source_name, target_doc=None):
 
 	def post_process(source, target):
 		target.reversal_of = source.name
-		target.is_reversal = 1
-		target.is_reversed = 0
-		target.reversed_by = None
-		target.respect_cost_center_allocation = 1
-		# WP GA-0001-01: cheque_no / cheque_date have no_copy=1 in the JE
-		# doctype JSON, so get_mapped_doc strips them. Explicitly carry them
-		# over for Bank Entry / Cash Entry reversals — the reversal represents
-		# the same banking transaction reversed, so the reference number and
-		# date are the same. Without this, locking the (empty) fields combined
-		# with Frappe v16's `hide_empty_read_only_fields` sysdefault hides
-		# them on the form while mandatory_depends_on still requires them
-		# server-side — unsubmittable reversal.
-		target.cheque_no = source.cheque_no
-		target.cheque_date = source.cheque_date
-		# NOTE: is_advance is intentionally NOT carried over. A reversal flips
-		# debit<->credit, so an advance row (e.g. a customer advance, which must
-		# be a credit) would become a debit and fail the "Advance against
-		# Customer must be credit" rule. The reversal of an advance is not itself
-		# an advance, so it is left at its default ("No"). is_advance is locked
-		# read-only on the reversal form (lock_reversal_fields) per WA-0001-01 #7,
-		# but it is NOT diffed against the original (see validate_reversal_locked_fields).
 
 	doclist = get_mapped_doc(
 		"Journal Entry",
@@ -2434,28 +1795,3 @@ def make_reverse_journal_entry(source_name, target_doc=None):
 	)
 
 	return doclist
-
-
-def _find_main_cost_center_for_leaf(leaf_cost_center, posting_date):
-	"""Given a (potentially leaf) cost center that was posted on the original
-	entry, return the main cost center whose allocation at ``posting_date``
-	resolves to this leaf. If no allocation references the leaf, fall back to
-	the leaf itself so ``distribute_gl_based_on_cost_center_allocation`` treats
-	it normally at the reversal's posting date."""
-	allocation = frappe.db.sql(
-		"""
-		SELECT parent.main_cost_center
-		FROM `tabCost Center Allocation Percentage` child
-		JOIN `tabCost Center Allocation` parent ON child.parent = parent.name
-		WHERE child.cost_center = %(leaf)s
-			AND parent.docstatus = 1
-			AND parent.valid_from <= %(posting_date)s
-		ORDER BY parent.valid_from DESC
-		LIMIT 1
-		""",
-		{"leaf": leaf_cost_center, "posting_date": posting_date},
-		as_dict=True,
-	)
-	if allocation:
-		return allocation[0].main_cost_center
-	return leaf_cost_center

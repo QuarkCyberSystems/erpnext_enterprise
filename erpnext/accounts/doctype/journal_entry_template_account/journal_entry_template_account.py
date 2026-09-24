@@ -23,7 +23,6 @@ class JournalEntryTemplateAccount(Document):
 		party: DF.DynamicLink | None
 		party_type: DF.Link | None
 		project: DF.Link | None
-		user_remark: DF.SmallText | None
 	# end: auto-generated types
 
 	pass
