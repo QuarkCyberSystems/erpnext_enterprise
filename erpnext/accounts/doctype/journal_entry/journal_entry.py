@@ -411,7 +411,7 @@ class JournalEntry(AccountsController):
 		# WP GA-0001-03 / GAP-004: block cancel if any PRE on this JE is still
 		# active. JEs reconciled as the payment side of a PRE need to be
 		# unreconciled (via reversal PRE) first.
-		from erpnext.accounts.doctype.payment_reconciliation_entry.cancel_guards import (
+		from qcs_platform.core.pre.cancel_guards import (  # step 1: re-homed; the wiring itself moves at step 3
 			assert_no_active_pres,
 		)
 		assert_no_active_pres("Journal Entry", self.name)
@@ -668,7 +668,7 @@ class JournalEntry(AccountsController):
 
 		# WP GA-0001-03 / GAP-004: silence Frappe's generic PRE link check;
 		# the active-only guard in `before_cancel` already enforced the rule.
-		from erpnext.accounts.doctype.payment_reconciliation_entry.cancel_guards import (
+		from qcs_platform.core.pre.cancel_guards import (  # step 1: re-homed; the wiring itself moves at step 3
 			add_pre_to_ignore_linked_doctypes,
 		)
 		add_pre_to_ignore_linked_doctypes(self)

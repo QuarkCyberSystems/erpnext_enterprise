@@ -297,7 +297,7 @@ class PaymentEntry(AccountsController):
 		# still active. Unreconciled PREs (is_unreconciled=1) don't count —
 		# they're docstatus=1 only for audit. Throws with a list of blocking
 		# PREs and how to clear them.
-		from erpnext.accounts.doctype.payment_reconciliation_entry.cancel_guards import (
+		from qcs_platform.core.pre.cancel_guards import (  # step 1: re-homed; the wiring itself moves at step 3
 			assert_no_active_pres,
 		)
 		assert_no_active_pres("Payment Entry", self.name)
@@ -307,7 +307,7 @@ class PaymentEntry(AccountsController):
 		# after on_cancel and counts every submitted PRE — including ones
 		# already unreconciled — as a blocker. Silence it for PREs; the
 		# active-only guard in `before_cancel` does the right enforcement.
-		from erpnext.accounts.doctype.payment_reconciliation_entry.cancel_guards import (
+		from qcs_platform.core.pre.cancel_guards import (  # step 1: re-homed; the wiring itself moves at step 3
 			add_pre_to_ignore_linked_doctypes,
 		)
 		self.ignore_linked_doctypes = (
