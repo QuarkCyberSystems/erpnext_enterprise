@@ -27,7 +27,6 @@
   "enable_discounts_and_margin",
   "journals_section",
   "merge_similar_account_heads",
-  "enforce_template_field_locking",
   "deferred_accounting_settings_section",
   "book_deferred_entries_based_on",
   "column_break_18",
@@ -384,13 +383,6 @@
    "label": "Merge Similar Account Heads"
   },
   {
-   "default": "1",
-   "description": "When enabled, Journal Entries created from a Journal Entry Template lock the template-defined header fields and account rows so users cannot edit them. This is the single, admin-controlled switch governing template field locking.",
-   "fieldname": "enforce_template_field_locking",
-   "fieldtype": "Check",
-   "label": "Enforce Journal Entry Template Field Locking"
-  },
-  {
    "fieldname": "section_break_jpd0",
    "fieldtype": "Section Break",
    "label": "Payment Reconciliation Settings"
@@ -520,7 +512,7 @@
   },
   {
    "default": "Payment",
-   "description": "Applies to normal and advance payments. 'Reconciliation Date' uses the date chosen on the Payment Reconciliation tool.",
+   "description": "Only applies for Normal Payments",
    "fieldname": "exchange_gain_loss_posting_date",
    "fieldtype": "Select",
    "label": "Posting Date Inheritance for Exchange Gain / Loss",
@@ -733,7 +725,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-07-14 05:30:00.000000",
+ "modified": "2026-04-13 15:30:28.729627",
  "modified_by": "Administrator",
  "module": "Accounts",
  "name": "Accounts Settings",
