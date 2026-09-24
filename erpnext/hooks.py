@@ -701,4 +701,3 @@ repost_allowed_doctypes = [
 	"Payment Entry",
 	"Purchase Receipt",
 ]
-
