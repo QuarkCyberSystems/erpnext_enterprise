@@ -313,7 +313,7 @@ def get_incoming_rate(args, raise_error_if_no_rate=True, fallbacks: bool = True)
 	else:
 		valuation_method = get_valuation_method(args.get("item_code"), args.get("company"))
 
-		if valuation_method and frappe.get_hooks("valuation_kernels").get(valuation_method):
+		if valuation_method and (frappe.get_hooks("valuation_kernels") or {}).get(valuation_method):
 			# Kernel-valued items: the rate comes from the kernel's period
 			# balance, never from SLE state or the generic fallback chain.
 			rate_provider = frappe.get_hooks("valuation_incoming_rate")
